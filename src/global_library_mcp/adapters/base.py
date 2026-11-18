@@ -28,3 +28,9 @@ class LibraryAdapter(ABC):
 
     async def get_document(self, record_id: str) -> dict[str, Any]:
         raise AdapterError(self.library_id, "Document retrieval is not implemented for this adapter")
+
+    async def search_in_document(self, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+        raise AdapterError(self.library_id, "In-document search is not implemented for this adapter")
+
+    async def get_page_text(self, page_id: str) -> dict[str, Any]:
+        raise AdapterError(self.library_id, "Page text retrieval is not implemented for this adapter")

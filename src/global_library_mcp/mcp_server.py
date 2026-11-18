@@ -19,6 +19,11 @@ def _registry() -> Registry:
     return Registry(REGISTRY_PATH)
 
 
+async def _with_service():
+    client = httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"})
+    return client, LibraryService(client)
+
+
 @mcp.tool()
 def list_libraries() -> list[dict[str, Any]]:
     """Return the configured library and archive registry."""
@@ -33,16 +38,58 @@ def get_library_capabilities(library_id: str) -> dict[str, Any]:
 
 @mcp.tool()
 async def search_across_libraries(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
-    """Search live LoC, NDL, and Gallica adapters and preserve partial errors."""
-    async with httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-        response = await LibraryService(client).search(query, libraries, min(max(limit, 1), 20))
-    return response.to_dict()
+    """Search configured live adapters and preserve partial errors."""
+    client, service = await _with_service()
+    try:
+        response = await service.search(query, libraries, min(max(limit, 1), 20))
+        return response.to_dict()
+    finally:
+        await client.aclose()
 
 
 @mcp.tool()
 async def search_catalog(query: str, library_id: str, limit: int = 10) -> dict[str, Any]:
     """Search one supported live library."""
     return await search_across_libraries(query, [library_id], limit)
+
+
+@mcp.tool()
+async def get_document(library_id: str, record_id: str) -> dict[str, Any]:
+    """Retrieve a document record where the adapter supports it."""
+    client, service = await _with_service()
+    try:
+        return await service.get_document(library_id, record_id)
+    finally:
+        await client.aclose()
+
+
+@mcp.tool()
+async def search_in_document(library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+    """Search within a document, returning page-level matches when supported."""
+    client, service = await _with_service()
+    try:
+        return await service.search_in_document(library_id, record_id, query, min(max(limit, 1), 100))
+    finally:
+        await client.aclose()
+
+
+@mcp.tool()
+async def get_page_text(library_id: str, page_id: str) -> dict[str, Any]:
+    """Return OCR text, coordinates, and an original-image link for a page/frame."""
+    client, service = await _with_service()
+    try:
+        return await service.get_page_text(library_id, page_id)
+    finally:
+        await client.aclose()
+
+
+@mcp.tool()
+def get_page_image(library_id: str, book_pid: str, page: int) -> dict[str, Any]:
+    """Return an image URL without downloading or redistributing the original."""
+    if library_id != "ndl":
+        return {"library_id": library_id, "image_url": None, "status": "unknown", "message": "Page image URL generation is not implemented for this adapter"}
+    from global_library_mcp.adapters.ndl import NdlAdapter
+    return {"library_id": library_id, "book_pid": book_pid, "digital_frame": page, "image_url": NdlAdapter.image_url(book_pid, page), "status": "link_only"}
 
 
 @mcp.tool()

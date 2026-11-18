@@ -58,6 +58,36 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send(json_bytes({"error": str(exc)}), status=502)
             return
+        if parsed.path == "/api/answer":
+            query = parse_qs(parsed.query).get("q", [""])[0].strip()
+            if not query:
+                self._send(json_bytes({"error": "q is required"}), status=400)
+                return
+            raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
+            libraries = [item for item in raw_libraries.split(",") if item] or None
+            try:
+                async def execute_answer():
+                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        return await LibraryService(client).answer(query, libraries, 10)
+                self._send(json_bytes(asyncio.run(execute_answer())))
+            except Exception as exc:
+                self._send(json_bytes({"error": str(exc)}), status=502)
+            return
+        if parsed.path in ("/api/document", "/api/page"):
+            params = parse_qs(parsed.query)
+            library_id = params.get("library", [""])[0]
+            identifier = params.get("id", [""])[0]
+            try:
+                async def execute_detail():
+                    async with httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        service = LibraryService(client)
+                        if parsed.path == "/api/document":
+                            return await service.get_document(library_id, identifier)
+                        return await service.get_page_text(library_id, identifier)
+                self._send(json_bytes(asyncio.run(execute_detail())))
+            except Exception as exc:
+                self._send(json_bytes({"error": str(exc)}), status=502)
+            return
         if parsed.path == "/" or parsed.path == "/index.html":
             self._send((STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
             return

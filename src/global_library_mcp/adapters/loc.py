@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import time
 from typing import Any
 
 import httpx
@@ -16,8 +18,20 @@ class LocAdapter(LibraryAdapter):
     def __init__(self, client: httpx.AsyncClient, cache: ResponseCache | None = None):
         super().__init__(client)
         self.cache = cache
+        self._rate_lock = asyncio.Lock()
+        self._next_request_at = 0.0
+
+    async def _wait_for_rate_limit(self) -> None:
+        async with self._rate_lock:
+            now = time.monotonic()
+            delay = self._next_request_at - now
+            if delay > 0:
+                await asyncio.sleep(delay)
+            # LoC JSON/YAML API documents 20 requests/minute; use a conservative 3s interval.
+            self._next_request_at = time.monotonic() + 3.0
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
+        await self._wait_for_rate_limit()
         payload = await get_json(
             self.client,
             "https://www.loc.gov/search/",

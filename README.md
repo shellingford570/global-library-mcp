@@ -1,6 +1,6 @@
 # Global Library MCP
 
-Global Library MCP is an evidence-first MCP gateway for official library and digital-archive APIs. The current Phase 1 slice provides live catalog search adapters for the Library of Congress, National Diet Library, and Gallica/BnF, plus a dependency-light Web UI that works without an LLM key.
+Global Library MCP is an evidence-first MCP gateway for official library and digital-archive APIs. The current slice provides live search adapters for the National Diet Library, Internet Archive, Library of Congress, and Gallica/BnF, plus configured adapters for DDB and Europeana. NDL Book/Page OCR and IIIF image links are supported, and the dependency-light Web UI works without an LLM key.
 
 ## Quick start
 
@@ -14,7 +14,9 @@ global-library-mcp web --port 8000
 
 Open `http://127.0.0.1:8000`. To run the MCP stdio server, use `global-library-mcp mcp` and configure that command in your MCP client.
 
-The Web UI exposes `/health`, `/manus-routes.json`, `/api/libraries`, and `/api/search?q=...`. The MCP server exposes `list_libraries`, `get_library_capabilities`, `search_catalog`, `search_across_libraries`, `get_citation`, and `get_rights`.
+The Web UI exposes `/health`, `/manus-routes.json`, `/api/libraries`, `/api/search?q=...`, `/api/document`, `/api/page`, and `/api/answer`. The MCP server exposes `list_libraries`, `get_library_capabilities`, `search_catalog`, `search_across_libraries`, `get_document`, `search_in_document`, `get_page_text`, `get_page_image`, `get_citation`, and `get_rights`.
+
+AI answer generation is disabled by default. To explicitly opt in to an OpenAI-compatible provider, set `LLM_ENABLED=true`, `LLM_API_KEY`, and optionally `LLM_API_BASE`/`LLM_MODEL`. Search and original-source links do not require an LLM key.
 
 ## Evidence and limits
 

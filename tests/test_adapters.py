@@ -3,6 +3,7 @@ import pytest
 import respx
 
 from global_library_mcp.adapters.gallica import GallicaAdapter
+from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
 from global_library_mcp.adapters.ndl import NdlAdapter
 from global_library_mcp.service import LibraryService
@@ -21,13 +22,18 @@ async def test_loc_adapter_normalizes_record():
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_ndl_adapter_parses_atom():
-    xml = """<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\"><entry><id>ndl:1</id><title>日本の本</title><link href=\"https://ndlsearch.ndl.go.jp/books/R1\"/><dc:creator>著者</dc:creator><dc:date>1900</dc:date></entry></feed>"""
-    respx.get("https://ndlsearch.ndl.go.jp/api/opensearch").mock(return_value=httpx.Response(200, text=xml))
+async def test_ndl_book_search_and_page_mapping():
+    respx.get("https://lab.ndl.go.jp/dl/api/book/search").mock(return_value=httpx.Response(200, json={"list": [{"id": "974405", "title": "発電水力事業概覧", "responsibility": "調査局 編", "published": "1913", "highlights": ["発電水力"]}]}))
+    respx.get("https://lab.ndl.go.jp/dl/api/page/974405_2").mock(return_value=httpx.Response(200, json={"id": "974405_2", "book": "974405", "page": 2, "contents": "発電水力", "coordjson": "[]", "highlights": []}))
     async with httpx.AsyncClient() as client:
-        result = await NdlAdapter(client).search("日本")
-    assert result[0].record_id == "ndl:1"
-    assert result[0].title == "日本の本"
+        adapter = NdlAdapter(client)
+        result = await adapter.search("発電")
+        page = await adapter.get_page_text("974405_2")
+    assert result[0].record_id == "974405"
+    assert result[0].fulltext_status == "available"
+    assert page["contents"] == "発電水力"
+    assert page["digital_frame"] == 2
+    assert page["image_url"].endswith("/974405/R0000002/full/full/0/default.jpg")
 
 
 @pytest.mark.asyncio
@@ -43,11 +49,22 @@ async def test_gallica_adapter_parses_sru():
 
 @pytest.mark.asyncio
 @respx.mock
+async def test_internet_archive_adapter_normalizes_record():
+    respx.get("https://archive.org/advancedsearch.php").mock(return_value=httpx.Response(200, json={"response": {"docs": [{"identifier": "item-1", "title": "Railway source", "creator": "Author", "date": "1890"}]}}))
+    async with httpx.AsyncClient() as client:
+        result = await InternetArchiveAdapter(client).search("railway")
+    assert result[0].record_id == "item-1"
+    assert result[0].landing_url.endswith("/details/item-1")
+
+
+@pytest.mark.asyncio
+@respx.mock
 async def test_service_returns_partial_results_on_failure():
     respx.get("https://www.loc.gov/search/").mock(return_value=httpx.Response(200, json={"results": [{"id": "loc:1", "title": "Shared title"}]}))
-    respx.get("https://ndlsearch.ndl.go.jp/api/opensearch").mock(side_effect=httpx.ConnectError("down"))
+    respx.get("https://lab.ndl.go.jp/dl/api/book/search").mock(side_effect=httpx.ConnectError("down"))
     respx.get("https://gallica.bnf.fr/SRU").mock(return_value=httpx.Response(200, text="<x/>"))
+    respx.get("https://archive.org/advancedsearch.php").mock(return_value=httpx.Response(200, json={"response": {"docs": []}}))
     async with httpx.AsyncClient() as client:
-        result = await LibraryService(client).search("query")
+        result = await LibraryService(client).search("query", ["loc", "ndl", "gallica", "internet-archive"])
     assert any(item.library_id == "loc" for item in result.results)
     assert any(item["library_id"] == "ndl" for item in result.errors)
