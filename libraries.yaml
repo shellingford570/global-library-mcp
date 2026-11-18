@@ -1,0 +1,354 @@
+schema_version: "0.1"
+phase: 0
+last_verified: "2026-11-19"
+status: "research_only"
+notes:
+  - "未確認項目は unknown。true は公式仕様または調査メモで確認済みの範囲のみ。"
+  - "権利・利用条件はコードライセンスと別に資料／提供機関単位で再確認する。"
+  - "Global Library MCPの既存実装・正式スキーマ・SLAは unknown。"
+libraries:
+  - id: loc
+    region: Americas
+    country: US
+    official_site: https://www.loc.gov/apis/
+    api_specs: [https://www.loc.gov/apis/additional-apis/search-retrieval-via-url/, https://www.loc.gov/standards/sru/]
+    languages: [en, multi]
+    material_types: [books, newspapers, photographs, maps, audiovisual]
+    capabilities: {bibliographic: true, fulltext: true, ocr: true, image: true, page: true, iiif: true}
+    standards: [JSON, YAML, SRU, CQL, IIIF]
+    auth: "public scope; exact requirements unknown"
+    terms_rights: "item-level rights; do not infer redistribution"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official specification review; live contract tests pending"
+    last_verified: "2026-11-19"
+  - id: ndl
+    region: Asia
+    country: JP
+    official_site: https://ndlsearch.ndl.go.jp/
+    api_specs: [https://ndlsearch.ndl.go.jp/help/api/specifications, https://ndlsearch.ndl.go.jp/help/api/oai_pmh]
+    languages: [ja, multi]
+    material_types: [books, journals, articles, newspapers, digital_content]
+    capabilities: {bibliographic: true, fulltext: true, ocr: true, image: unknown, page: true, iiif: unknown}
+    standards: [SRU, OpenSearch, OpenURL, OAI-PMH, DC-NDL]
+    auth: "mostly unauthenticated; provider-specific unknown"
+    terms_rights: "provider-specific; commercial use, credit, continuous/bulk access conditions"
+    rate_limits: "numeric limit unknown; throttling/blocking warnings"
+    existing_mcp: [https://github.com/knagata/ndl-mcp, https://github.com/sho0318/ndl-mcp]
+    verification: "XML/JSON behavior reported; full operational validation pending"
+    last_verified: "2026-11-19"
+  - id: japan-search
+    region: Asia
+    country: JP
+    official_site: https://jpsearch.go.jp/
+    api_specs: [https://jpsearch.go.jp/api]
+    languages: [ja, multi]
+    material_types: [cultural_heritage, books, images, media]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: true}
+    standards: [SPARQL, EasySPARQL, IIIF]
+    auth: unknown
+    terms_rights: "provider/item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official API and IIIF links reviewed"
+    last_verified: "2026-11-19"
+  - id: ndli
+    region: Asia
+    country: IN
+    official_site: https://www.ndl.gov.in/
+    api_specs: [https://www.ndl.gov.in/faq]
+    languages: [multi]
+    material_types: [books, papers, theses, audio, video, manuscripts]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [integrated_search]
+    auth: unknown
+    terms_rights: "terms restrict commercial use, mining, harvesting, extraction"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official site/terms review; no API implementation"
+    last_verified: "2026-11-19"
+  - id: kr-nlk
+    region: Asia
+    country: KR
+    official_site: https://www.nl.go.kr/NL/
+    api_specs: [https://www.nl.go.kr/NL/contents/N31101010000.do]
+    languages: [ko]
+    material_types: [books, national_bibliography]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [XML]
+    auth: "membership, key, approval"
+    terms_rights: unknown
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "API description reviewed; live test pending"
+    last_verified: "2026-11-19"
+  - id: tw-ncl
+    region: Asia
+    country: TW
+    official_site: https://www.ncl.edu.tw/en
+    api_specs: [https://www.ncl.edu.tw/en/collections]
+    languages: [zh-TW, en]
+    material_types: [books, theses, journals, rare_books]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: unknown
+    auth: unknown
+    terms_rights: unknown
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official collections reviewed; API unknown"
+    last_verified: "2026-11-19"
+  - id: sg-nlb
+    region: Asia
+    country: SG
+    official_site: https://www.nlb.gov.sg/main/home
+    api_specs: [https://data.gov.sg/datasets/d_077b765202cd793a3757175d91fd2086/view]
+    languages: [en, multi]
+    material_types: [books, newspapers, images, records, websites]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [Datastore_API, OpenAPI]
+    auth: "data.gov.sg public dataset scope"
+    terms_rights: "Open Data Licence for dataset metadata; item may be All rights reserved"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "dataset/API page reviewed"
+    last_verified: "2026-11-19"
+  - id: europeana
+    region: Europe
+    country: EU
+    official_site: https://www.europeana.eu/en/for-developers
+    api_specs: [https://api.europeana.eu/]
+    languages: [multi]
+    material_types: [books, manuscripts, art, newspapers, video, 3d]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: true, page: unknown, iiif: true}
+    standards: [Search_API, Record_API, IIIF, SPARQL, OAI-PMH]
+    auth: "free API key"
+    terms_rights: "Europeana/provider/item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official API pages reviewed"
+    last_verified: "2026-11-19"
+  - id: ddb
+    region: Europe
+    country: DE
+    official_site: https://www.deutsche-digitale-bibliothek.de/
+    api_specs: [https://labs.deutsche-digitale-bibliothek.de/app/ddbapi/]
+    languages: [de, multi]
+    material_types: [cultural_heritage, books, images, audiovisual]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: true, page: unknown, iiif: true}
+    standards: [OpenAPI, IIIF]
+    auth: unknown
+    terms_rights: "metadata generally described as CC0; media item/provider rights"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "v2 API documentation reviewed; v1 sunset noted"
+    last_verified: "2026-11-19"
+  - id: gallica
+    region: Europe
+    country: FR
+    official_site: https://gallica.bnf.fr/
+    api_specs: [https://api.bnf.fr/fr/api-document-de-gallica, https://api.bnf.fr/api-iiif-de-recuperation-des-images-de-gallica]
+    languages: [fr, multi]
+    material_types: [books, newspapers, manuscripts, maps]
+    capabilities: {bibliographic: true, fulltext: true, ocr: true, image: true, page: true, iiif: true}
+    standards: [SRU, IIIF, ALTO]
+    auth: unknown
+    terms_rights: "BnF/item-specific; access restriction notices"
+    rate_limits: unknown
+    existing_mcp: [https://github.com/raphink/newspapers-mcp]
+    verification: "ContentSearch/ALTO/IIIF specs reviewed"
+    last_verified: "2026-11-19"
+  - id: bl
+    region: Europe
+    country: GB
+    official_site: https://www.bl.uk/services/collection-metadata-services
+    api_specs: [https://www.bl.uk/services/collection-metadata-services]
+    languages: [en, multi]
+    material_types: [bibliographic, digital_collections]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [MARC21, Z39.50, linked_data, CSV]
+    auth: "Z39.50 restricted/non-commercial noted"
+    terms_rights: "service/item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "metadata service page reviewed"
+    last_verified: "2026-11-19"
+  - id: ape
+    region: Europe
+    country: EU
+    official_site: https://www.archivesportaleurope.net/
+    api_specs: unknown
+    languages: [multi]
+    material_types: [archival_descriptions, finding_aids]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: unknown
+    auth: unknown
+    terms_rights: "institution-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "portal reviewed; external API unknown"
+    last_verified: "2026-11-19"
+  - id: hathitrust
+    region: Americas
+    country: US
+    official_site: https://www.hathitrust.org/
+    api_specs: [https://www.hathitrust.org/member-libraries/resources-for-librarians/data-resources/bibliographic-api/]
+    languages: [en, multi]
+    material_types: [books, journals]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [JSON, MARC-XML, OAI_feed]
+    auth: "access key for restricted data"
+    terms_rights: "rightsCode/Full View and region restrictions"
+    rate_limits: unknown
+    existing_mcp: [https://github.com/pipeworx-io/mcp-hathitrust]
+    verification: "bibliographic API reviewed; old Data API currentness unknown"
+    last_verified: "2026-11-19"
+  - id: qdl
+    region: Middle_East
+    country: QA
+    official_site: https://www.qdl.qa/en/about
+    api_specs: [https://www.qdl.qa/en/archive/81055/vdc_100023518692.0x000002]
+    languages: [ar, en]
+    material_types: [archives, maps, manuscripts, audiovisual]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: true, page: true, iiif: true}
+    standards: [IIIF_Presentation_v2, IIIF_Image]
+    auth: "public viewing; API auth unknown"
+    terms_rights: "item Usage terms; not uniform"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "manifest and Canvas/Image service observed"
+    last_verified: "2026-11-19"
+  - id: nli-il
+    region: Middle_East
+    country: IL
+    official_site: https://www.nli.org.il/en/research-and-teach/open-library
+    api_specs: [https://www.nli.org.il/en/research-and-teach/open-library/search-api, https://www.nli.org.il/en/research-and-teach/open-library/presentation-api, https://www.nli.org.il/en/research-and-teach/open-library/image-api]
+    languages: [he, ar, en, multi]
+    material_types: [books, images, audio, video]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: true, page: true, iiif: true}
+    standards: [API, IIIF]
+    auth: "API key"
+    terms_rights: "item copyright conditions"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official API documentation reviewed"
+    last_verified: "2026-11-19"
+  - id: nlsa
+    region: Africa
+    country: ZA
+    official_site: https://www.nlsa.ac.za/
+    api_specs: [https://cdm21048.contentdm.oclc.org/digital/api/search/collection/p21048coll115/searchterm/%20/field/all/maxRecords/1]
+    languages: [en, multi]
+    material_types: [photographs, digital_collections]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: true, page: unknown, iiif: true}
+    standards: [CONTENTdm_JSON_XML, IIIF]
+    auth: "public API scope"
+    terms_rights: "record-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "search endpoint observed; OCR/compound unknown"
+    last_verified: "2026-11-19"
+  - id: trove
+    region: Oceania
+    country: AU
+    official_site: https://trove.nla.gov.au/
+    api_specs: [https://trove.nla.gov.au/about/create-something/using-api/v3/api-technical-guide]
+    languages: [en, multi]
+    material_types: [newspapers, books, journals, images, music]
+    capabilities: {bibliographic: true, fulltext: true, ocr: unknown, image: unknown, page: true, iiif: unknown}
+    standards: [JSON, XML, cursor_pagination]
+    auth: "API key"
+    terms_rights: "metadata conditions, attribution, 30-day cache; objects separate"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "v3 documentation reviewed"
+    last_verified: "2026-11-19"
+  - id: digitalnz
+    region: Oceania
+    country: NZ
+    official_site: https://digitalnz.org/
+    api_specs: [https://digitalnz.org/developers/api-docs-v3]
+    languages: [en, multi]
+    material_types: [aggregated_cultural_heritage]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [JSON, XML, RSS]
+    auth: "public; API key for higher quota"
+    terms_rights: "rights_url and is_commercial_use; source partner controls object"
+    rate_limits: "usually 10,000 calls/day/key"
+    existing_mcp: unknown
+    verification: "v3 docs reviewed"
+    last_verified: "2026-11-19"
+  - id: internet-archive
+    region: Global
+    country: US
+    official_site: https://archive.org/
+    api_specs: [https://archive.org/developers/index-apis.html, https://archive.org/developers/ocr.html]
+    languages: [multi]
+    material_types: [books, audio, video, web, documents]
+    capabilities: {bibliographic: true, fulltext: true, ocr: true, image: true, page: true, iiif: unknown}
+    standards: [Metadata_API, OCR, hOCR, PDF, DjVu]
+    auth: "public scope; account-specific varies"
+    terms_rights: "item/upload-specific"
+    rate_limits: "identified User-Agent; 429/Retry-After guidance"
+    existing_mcp: unknown
+    verification: "official API/OCR docs reviewed"
+    last_verified: "2026-11-19"
+  - id: open-library
+    region: Global
+    country: US
+    official_site: https://openlibrary.org/
+    api_specs: [https://openlibrary.org/developers/api, https://openlibrary.org/dev/docs/api/search_inside]
+    languages: [multi]
+    material_types: [works, editions, book_covers]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: true, image: true, page: true, iiif: unknown}
+    standards: [JSON, YAML, RDF, XML]
+    auth: "identified User-Agent"
+    terms_rights: "data and source-item specific; Search inside experimental"
+    rate_limits: "1 req/s, 3 req/s identified"
+    existing_mcp: unknown
+    verification: "official API docs reviewed"
+    last_verified: "2026-11-19"
+  - id: lac
+    region: Americas
+    country: CA
+    official_site: https://www.canada.ca/en/library-archives/collection/search.html
+    api_specs: unknown
+    languages: [en, fr, multi]
+    material_types: [digital_records, publications, web_archive]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: unknown
+    auth: unknown
+    terms_rights: "item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official search/update pages reviewed"
+    last_verified: "2026-11-19"
+  - id: bn-br
+    region: Americas
+    country: BR
+    official_site: https://www.gov.br/bn/pt-br
+    api_specs: unknown
+    languages: [pt, multi]
+    material_types: [books, manuscripts, maps, photographs, audio, video]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: unknown
+    auth: unknown
+    terms_rights: "copyright law and item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "Sophia/BNDigital pages reviewed"
+    last_verified: "2026-11-19"
+  - id: worldcat
+    region: Global
+    country: INTL
+    official_site: https://developer.api.oclc.org/wcv2
+    api_specs: [https://developer.api.oclc.org/wcv2]
+    languages: [multi]
+    material_types: [bibliographic, holdings]
+    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [WorldCat_Search_API_v2]
+    auth: "member authentication"
+    terms_rights: "OCLC/member/item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    verification: "official API page reviewed"
+    last_verified: "2026-11-19"
