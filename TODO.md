@@ -23,6 +23,6 @@
 - [x] DDB Search APIの正規パスでライブ検索を検証する。公式ドキュメント上はAPIキーを取得し、`DDB_API_KEY`をBearerで設定することを本番条件とする。
 - [ ] Europeanaライブ検索を`EUROPEANA_API_KEY`の提供後に検証する。
 - [ ] LLM実プロバイダー呼び出し。費用・資格情報のため、`LLM_ENABLED=true`の明示承認なしでは実行しない。
-- [ ] Docker実ビルドと起動。この環境にはDocker CLIがないため未確認。
-- [ ] ブラウザ実機によるE2E。HTTP API/UIスモークは手動検証済みだが、ブラウザランナーは未接続。
+- [x] Docker実ビルドと起動。GitHub Actions run 44378302864でDocker build、起動、health checkを成功させた。ローカルDocker CLIは未導入。
+- [x] Playwright Chromium E2E。Dockerコンテナを対象に検索カード表示とLLM無効時のUIを検証した。
 - [ ] 本番Web公開。公開デプロイは別途承認が必要。

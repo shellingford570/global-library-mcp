@@ -33,4 +33,4 @@ curl -fsS 'http://127.0.0.1:8000/api/document?library=ndl&id=974405'
 curl -fsS 'http://127.0.0.1:8000/api/page?library=ndl&id=974405_2'
 ```
 
-Dockerfile、docker-compose.yml、GitHub ActionsのDocker build/runジョブ、Docker上でPlaywrightを動かすCIジョブを追加した。ローカルのDocker CLIは存在しないため、ローカル実ビルドは未確認だが、GitHub Actionsで実行する構成にした。公開デプロイや有料契約は実施していない。
+Dockerfile、docker-compose.yml、GitHub ActionsのDocker build/runジョブ、Docker上でPlaywrightを動かすCIジョブを追加した。GitHub Actions run [44378302864](https://github.com/shellingford570/global-library-mcp/actions/runs/44378302864)でDocker build、コンテナ起動、health check、Playwright Chromium E2E、Python回帰テストがすべて成功した。ローカルのDocker CLIは存在しないためローカル実ビルドは未確認である。公開デプロイや有料契約は実施していない。

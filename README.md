@@ -22,4 +22,4 @@ AI answer generation is disabled by default. To explicitly opt in to an OpenAI-c
 
 Search is for discovery. Verify the original page and item-level rights before quoting or redistributing anything. The project does not infer rights from source code licenses. Unknown capabilities remain `unknown`. Detailed IIIF page analysis, OCR coordinate alignment, LLM answer generation, and additional live adapters are not complete in this slice.
 
-See the [Japanese README](README.ja.md), [prior-art report](docs/prior-art.md), [API research](docs/api-research.md), and [library registry](libraries.yaml).
+The release-candidate CI verifies Python tests, Docker build/startup, and Playwright Chromium E2E. See the [Japanese README](README.ja.md), [prior-art report](docs/prior-art.md), [API research](docs/api-research.md), [implementation status](docs/implementation-status.md), and [library registry](libraries.yaml).
