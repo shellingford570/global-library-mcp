@@ -3,6 +3,7 @@ import pytest
 import respx
 
 from global_library_mcp.adapters.gallica import GallicaAdapter
+from global_library_mcp.adapters.aggregators import DdbAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
 from global_library_mcp.adapters.ndl import NdlAdapter
@@ -55,6 +56,17 @@ async def test_internet_archive_adapter_normalizes_record():
         result = await InternetArchiveAdapter(client).search("railway")
     assert result[0].record_id == "item-1"
     assert result[0].landing_url.endswith("/details/item-1")
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ddb_adapter_parses_solr_response():
+    respx.get("https://api.deutsche-digitale-bibliothek.de/2/search/index/search/select").mock(return_value=httpx.Response(200, json={"response": {"docs": [{"id": "ddb-1", "title": ["German source"], "affiliate": ["A. Author"], "license": ["CC0"]}]}}))
+    async with httpx.AsyncClient() as client:
+        result = await DdbAdapter(client).search("source")
+    assert result[0].title == "German source"
+    assert result[0].author == "A. Author"
+    assert result[0].rights.statement == "CC0"
 
 
 @pytest.mark.asyncio

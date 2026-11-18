@@ -39,25 +39,32 @@ class DdbAdapter(LibraryAdapter):
     library_name = "Deutsche Digitale Bibliothek"
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
-        response = await self.client.get("https://api.deutsche-digitale-bibliothek.de/2/search", params={"query": query, "limit": min(max(limit, 1), 50)})
+        headers = {}
+        api_key = os.getenv("DDB_API_KEY")
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        response = await self.client.get("https://api.deutsche-digitale-bibliothek.de/2/search/index/search/select", params={"q": query, "rows": min(max(limit, 1), 50)}, headers=headers)
         if response.status_code in (401, 403):
             raise AdapterError(self.library_id, "DDB API requires access credentials or has denied this request")
         response.raise_for_status()
         payload = response.json()
-        items = payload.get("items") or payload.get("results") or []
+        items = payload.get("response", {}).get("docs", []) or payload.get("items") or payload.get("results") or []
         return [self._result(item) for item in items]
 
     def _result(self, item: dict[str, Any]) -> SearchResult:
         record_id = str(item.get("id") or item.get("itemId") or "unknown")
+        title = item.get("title") or item.get("label") or ["Untitled"]
+        author = item.get("creator") or item.get("affiliate")
+        rights = item.get("license") or item.get("metadata_rights") or ["verify item-level rights"]
         return SearchResult(
             library_id=self.library_id,
             library_name=self.library_name,
             record_id=record_id,
-            title=item.get("title") or "Untitled",
-            author=item.get("creator"),
+            title=title[0] if isinstance(title, list) else title,
+            author=author[0] if isinstance(author, list) else author,
             date=str(item.get("date")) if item.get("date") else None,
-            landing_url=item.get("url") or item.get("itemUrl"),
-            rights=Rights(statement=item.get("rights") or "institution-specific; verify", source=item.get("url")),
+            landing_url=item.get("url") or item.get("itemUrl") or f"https://www.deutsche-digitale-bibliothek.de/item/{record_id}",
+            rights=Rights(statement=rights[0] if isinstance(rights, list) else rights, source=item.get("url") or f"https://www.deutsche-digitale-bibliothek.de/item/{record_id}"),
             source_protocol="DDB API v2",
             raw=item,
         )

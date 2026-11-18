@@ -20,7 +20,7 @@
 
 - [ ] LoCライブ検索を成功させる。公式APIの利用条件は確認済みだが、現環境はCloudflare challenge付き403。再試行で回避せず、許可された別ネットワークまたは機関側条件の確認後に再検証する。
 - [ ] Gallicaライブ検索を成功させる。BnF公式告知でSRU・IIIF・Document APIへの一時的制限が継続中。制限解除後に再検証する。
-- [ ] DDBライブ検索を資格条件込みで検証する。
+- [x] DDB Search APIの正規パスでライブ検索を検証する。公式ドキュメント上はAPIキーを取得し、`DDB_API_KEY`をBearerで設定することを本番条件とする。
 - [ ] Europeanaライブ検索を`EUROPEANA_API_KEY`の提供後に検証する。
 - [ ] LLM実プロバイダー呼び出し。費用・資格情報のため、`LLM_ENABLED=true`の明示承認なしでは実行しない。
 - [ ] Docker実ビルドと起動。この環境にはDocker CLIがないため未確認。
