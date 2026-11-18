@@ -1,20 +1,23 @@
 # Global Library MCP
 
-Global Library MCPのPhase 0調査成果物を管理するリポジトリです。
+Global Library MCP is an evidence-first MCP gateway for official library and digital-archive APIs. The current Phase 1 slice provides live catalog search adapters for the Library of Congress, National Diet Library, and Gallica/BnF, plus a dependency-light Web UI that works without an LLM key.
 
-## Contents
+## Quick start
 
-- `docs/prior-art.md`: 既存プロジェクト調査
-- `docs/api-research.md`: 図書館・アーカイブAPI調査
-- `docs/architecture.md`: 推奨アーキテクチャ
-- `docs/roadmap.md`: 開発計画
-- `docs/evaluation.md`: 検証方法
-- `docs/risks.md`: 技術的・法的リスク
-- `libraries.yaml`: 図書館レジストリ初期版
-- `docs/prior-art-sources/`: 並列調査の詳細メモ
+```bash
+python -m venv .venv
+. .venv/bin/activate
+pip install -e '.[test]'
+pytest
+global-library-mcp web --port 8000
+```
 
-## Status
+Open `http://127.0.0.1:8000`. To run the MCP stdio server, use `global-library-mcp mcp` and configure that command in your MCP client.
 
-Phase 0のみ完了。実装、デプロイ、外部公開、有料サービス契約は未実施です。未確認事項は `unknown` として管理しています。
+The Web UI exposes `/health`, `/manus-routes.json`, `/api/libraries`, and `/api/search?q=...`. The MCP server exposes `list_libraries`, `get_library_capabilities`, `search_catalog`, `search_across_libraries`, `get_citation`, and `get_rights`.
 
-確認日: 2026-11-19
+## Evidence and limits
+
+Search is for discovery. Verify the original page and item-level rights before quoting or redistributing anything. The project does not infer rights from source code licenses. Unknown capabilities remain `unknown`. Detailed IIIF page analysis, OCR coordinate alignment, LLM answer generation, and additional live adapters are not complete in this slice.
+
+See the [Japanese README](README.ja.md), [prior-art report](docs/prior-art.md), [API research](docs/api-research.md), and [library registry](libraries.yaml).
