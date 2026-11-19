@@ -32,8 +32,8 @@
 
 - `python -m compileall -q src tests`: 成功。
 - `.venv/bin/pytest -q`: **15 passed**（既存9件＋監査回帰6件）。モック試験であり、これだけで外部APIのライブ成功は意味しない。
-- `npm run test:e2e`: 既存のPlaywright Chromiumシナリオは過去に2件成功。今回の監査環境ではNode/ブラウザを再実行した証跡を別途作成していないため、最新成功とは扱わない。
-- Docker build/run: 監査環境にDocker CLIがないため未実施。GitHub Actionsの過去run成功記録は実装状況文書に残るが、この監査から独立に再検証したものではない。
+- `npm run test:e2e`: **2 passed**（Playwright Chromium、ローカル再実行）。
+- GitHub Actions run [44449816400](https://github.com/shellingford570/global-library-mcp/actions/runs/44449816400): **成功**。Python 15件、Docker build、non-rootコンテナ起動、health check、Playwright、Docker越しの`tests/e2e_smoke.sh`を実行した。ローカルSandboxにはDocker CLIがないため、Docker実行環境はCIで検証した。
 
 ## 正式リリース前チェックリスト
 

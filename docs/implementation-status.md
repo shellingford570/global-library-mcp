@@ -39,4 +39,4 @@ Dockerfile、docker-compose.yml、GitHub ActionsのDocker build/runジョブ、D
 
 今回の監査では、モック回帰テストと過去のCI記録だけをライブ成功の根拠にせず、LoC/Gallica/Europeanaは未成功、DDBは条件付きとして扱った。秘密情報のエラー漏えい、NDLページ対応、引用ステータス、UIリンク安全性、Docker実行権限、横断検索のlimit・未知機関処理を修正し、追加回帰テストを含めて`.venv/bin/pytest -q`は15件成功した。詳細な判定と残ブロッカーは[`docs/code-review.md`](code-review.md)を参照する。
 
-この時点の判定は「リリース候補（RC）だが正式v1.0公開不可」。Docker/Composeと最新コミット上のPlaywright・実バックエンドE2Eは、GitHub Actionsで再実行して成功を確認するまで未検証とする。
+この時点の判定は「リリース候補（RC）だが正式v1.0公開不可」。最新コミットではGitHub Actions run [44449816400](https://github.com/shellingford570/global-library-mcp/actions/runs/44449816400)が成功し、Docker build/start、non-root実行、health check、Playwright、Docker越しのAPIスモークまで確認した。ただし、外部API条件、権利・IIIF完全対応、依存供給網、公開運用認証のブロッカーは残る。
