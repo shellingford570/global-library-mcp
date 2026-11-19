@@ -18,3 +18,7 @@ def main() -> None:
         run_mcp()
     else:
         run_web(args.host, args.port)
+
+
+if __name__ == "__main__":
+    main()

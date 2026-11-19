@@ -88,6 +88,8 @@ def get_page_image(library_id: str, book_pid: str, page: int) -> dict[str, Any]:
     """Return an image URL without downloading or redistributing the original."""
     if library_id != "ndl":
         return {"library_id": library_id, "image_url": None, "status": "unknown", "message": "Page image URL generation is not implemented for this adapter"}
+    if page < 1:
+        raise ValueError("page must be a positive integer")
     from global_library_mcp.adapters.ndl import NdlAdapter
     return {"library_id": library_id, "book_pid": book_pid, "digital_frame": page, "image_url": NdlAdapter.image_url(book_pid, page), "status": "link_only"}
 
@@ -106,7 +108,7 @@ def get_citation(result: dict[str, Any]) -> dict[str, Any]:
         "image_frame": result.get("image_frame", "unknown"),
         "rights": result.get("rights", {"statement": "unknown"}),
         "retrieved_at": result.get("retrieved_at"),
-        "citation_status": "page-level verification required" if not result.get("page") else "record-level",
+        "citation_status": "page-level" if result.get("page") or result.get("page_id") else "record-level",
     }
 
 

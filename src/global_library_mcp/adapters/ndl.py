@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from typing import Any
+from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 
 import httpx
@@ -72,17 +74,29 @@ class NdlAdapter(LibraryAdapter):
         response = await self.client.get(f"{self.base_url}/api/page/{safe_page_id}")
         response.raise_for_status()
         page = response.json()
-        book = str(page.get("book") or safe_page_id.rsplit("_", 1)[0])
-        page_number = int(page.get("page") or safe_page_id.rsplit("_", 1)[-1])
+        expected_book, expected_page = safe_page_id.split("_", 1)
+        book = str(page.get("book") or expected_book)
+        try:
+            page_number = int(page.get("page") or expected_page)
+        except (TypeError, ValueError) as exc:
+            raise AdapterError(self.library_id, "NDL page response has an invalid page number", retryable=False) from exc
+        if not book.isdigit() or page_number < 1:
+            raise AdapterError(self.library_id, "NDL page response has an invalid book or page", retryable=False)
         coordjson = page.get("coordjson")
         ocr_text = page.get("contents")
-        if not ocr_text and coordjson:
+        ocr_source = "contents" if isinstance(ocr_text, str) and ocr_text.strip() else None
+        if not ocr_source and coordjson:
             try:
-                import json
-                tokens = json.loads(coordjson)
-                ocr_text = " ".join(str(token.get("contenttext", "")) for token in tokens if token.get("contenttext"))
-            except (TypeError, ValueError):
+                tokens = json.loads(coordjson) if isinstance(coordjson, str) else coordjson
+                if isinstance(tokens, list) and all(isinstance(token, dict) for token in tokens):
+                    recovered = " ".join(str(token.get("contenttext", "")).strip() for token in tokens if str(token.get("contenttext", "")).strip())
+                    if recovered:
+                        ocr_text = recovered
+                        ocr_source = "coordjson"
+            except (TypeError, ValueError, json.JSONDecodeError):
                 ocr_text = None
+        response_id = page.get("id")
+        verified_mapping = response_id == safe_page_id and book == expected_book and page_number == int(expected_page) and bool(ocr_source)
         return {
             "library_id": self.library_id,
             "page_id": safe_page_id,
@@ -90,11 +104,14 @@ class NdlAdapter(LibraryAdapter):
             "digital_frame": page_number,
             "printed_page": "unknown",
             "contents": ocr_text,
+            "ocr_source": ocr_source or "unknown",
             "coordjson": coordjson,
             "highlights": page.get("highlights", []),
             "image_url": self.image_url(book, page_number),
-            "source": "NDL Page API",
-            "verified_mapping": bool(page.get("id") and (ocr_text is not None or coordjson is not None)),
+            "source": f"{self.base_url}/api/page/{safe_page_id}",
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "rights": {"statement": "資料単位で確認; OCR・画像の利用条件を原本で確認", "source": f"{self.base_url}/service/tsugidigi/apiinfo/"},
+            "verified_mapping": verified_mapping,
         }
 
     @staticmethod

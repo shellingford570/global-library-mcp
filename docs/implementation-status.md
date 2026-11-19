@@ -34,3 +34,9 @@ curl -fsS 'http://127.0.0.1:8000/api/page?library=ndl&id=974405_2'
 ```
 
 Dockerfile、docker-compose.yml、GitHub ActionsのDocker build/runジョブ、Docker上でPlaywrightを動かすCIジョブを追加した。GitHub Actions run [44378302864](https://github.com/shellingford570/global-library-mcp/actions/runs/44378302864)でDocker build、コンテナ起動、health check、Playwright Chromium E2E、Python回帰テストがすべて成功した。ローカルのDocker CLIは存在しないためローカル実ビルドは未確認である。公開デプロイや有料契約は実施していない。
+
+## 独立コードレビュー追記
+
+今回の監査では、モック回帰テストと過去のCI記録だけをライブ成功の根拠にせず、LoC/Gallica/Europeanaは未成功、DDBは条件付きとして扱った。秘密情報のエラー漏えい、NDLページ対応、引用ステータス、UIリンク安全性、Docker実行権限、横断検索のlimit・未知機関処理を修正し、追加回帰テストを含めて`.venv/bin/pytest -q`は15件成功した。詳細な判定と残ブロッカーは[`docs/code-review.md`](code-review.md)を参照する。
+
+この時点の判定は「リリース候補（RC）だが正式v1.0公開不可」。Docker/Composeと最新コミット上のPlaywright・実バックエンドE2Eは、GitHub Actionsで再実行して成功を確認するまで未検証とする。

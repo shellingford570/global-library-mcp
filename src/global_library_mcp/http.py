@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from collections.abc import Mapping
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
 
@@ -25,6 +27,22 @@ class ResponseCache:
         self._values[key] = (time.monotonic(), value)
 
 
+def sanitize_error(value: object) -> str:
+    """Return an upstream error safe to expose without query credentials."""
+    text = str(value)
+    secret_names = {"api_key", "apikey", "key", "token", "wskey", "access_token"}
+    url_pattern = re.compile(r"https?://[^\s'\"]+")
+    def redact(match: re.Match[str]) -> str:
+        raw = match.group(0)
+        try:
+            parts = urlsplit(raw)
+            query = urlencode([(key, "[redacted]" if key.lower() in secret_names else val) for key, val in parse_qsl(parts.query, keep_blank_values=True)])
+            return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
+        except ValueError:
+            return raw
+    return url_pattern.sub(redact, text)
+
+
 async def get_json(
     client: httpx.AsyncClient,
     url: str,
@@ -40,11 +58,13 @@ async def get_json(
         if cached is not None:
             return cached
     last_error: Exception | None = None
+    attempts = max(1, attempts)
     for attempt in range(attempts):
         try:
             response = await client.get(url, params=params, headers=headers)
             if response.status_code == 429:
-                raise AdapterError("http", "Upstream rate limit (429)", retryable=True)
+                retry_after = response.headers.get("retry-after", "")
+                raise AdapterError("http", f"Upstream rate limit (429); Retry-After={retry_after or 'unknown'}", retryable=True)
             if response.status_code == 403:
                 raise AdapterError("http", "Upstream access denied (403; challenge or policy restriction)", retryable=False)
             response.raise_for_status()
@@ -54,6 +74,8 @@ async def get_json(
             return value
         except (httpx.HTTPError, AdapterError) as exc:
             last_error = exc
+            if isinstance(exc, AdapterError) and not exc.retryable:
+                raise
             if attempt + 1 < attempts:
                 await asyncio.sleep(0.2 * (attempt + 1))
-    raise AdapterError("http", f"Upstream request failed: {last_error}", retryable=True)
+    raise AdapterError("http", f"Upstream request failed: {sanitize_error(last_error)}", retryable=True)

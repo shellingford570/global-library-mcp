@@ -26,7 +26,7 @@ jobs:
       - name: Wait for health endpoint
         run: |
           for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:8000/health; then exit 0; fi
+            if curl --fail --silent http://127.0.0.1:8000/health | grep -q '"ok": true'; then exit 0; fi
             sleep 2
           done
           docker logs global-library-mcp
@@ -41,12 +41,19 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8000
         run: npm run test:e2e
+      - name: Run live API smoke against Docker
+        env:
+          BASE_URL: http://127.0.0.1:8000
+        run: tests/e2e_smoke.sh
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
       - name: Show container logs
         if: always()
         run: docker logs global-library-mcp || true

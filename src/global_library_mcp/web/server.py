@@ -10,6 +10,7 @@ import httpx
 
 from global_library_mcp.registry import Registry
 from global_library_mcp.service import LibraryService
+from global_library_mcp.http import sanitize_error
 
 ROOT = Path(__file__).resolve().parents[3]
 STATIC = Path(__file__).resolve().parent / "static"
@@ -27,6 +28,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Content-Security-Policy", "default-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
         self.end_headers()
         self.wfile.write(body)
 
@@ -47,8 +52,11 @@ class Handler(BaseHTTPRequestHandler):
             if not query:
                 self._send(json_bytes({"error": "q is required"}), status=400)
                 return
+            if len(query) > 500:
+                self._send(json_bytes({"error": "q is too long"}), status=400)
+                return
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
-            libraries = [item for item in raw_libraries.split(",") if item] or None
+            libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
                 async def execute():
                     async with httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
@@ -56,22 +64,25 @@ class Handler(BaseHTTPRequestHandler):
                 response = asyncio.run(execute())
                 self._send(json_bytes(response.to_dict()))
             except Exception as exc:
-                self._send(json_bytes({"error": str(exc)}), status=502)
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
         if parsed.path == "/api/answer":
             query = parse_qs(parsed.query).get("q", [""])[0].strip()
             if not query:
                 self._send(json_bytes({"error": "q is required"}), status=400)
                 return
+            if len(query) > 500:
+                self._send(json_bytes({"error": "q is too long"}), status=400)
+                return
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
-            libraries = [item for item in raw_libraries.split(",") if item] or None
+            libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
                 async def execute_answer():
                     async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
                         return await LibraryService(client).answer(query, libraries, 10)
                 self._send(json_bytes(asyncio.run(execute_answer())))
             except Exception as exc:
-                self._send(json_bytes({"error": str(exc)}), status=502)
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
         if parsed.path in ("/api/document", "/api/page"):
             params = parse_qs(parsed.query)
@@ -86,7 +97,7 @@ class Handler(BaseHTTPRequestHandler):
                         return await service.get_page_text(library_id, identifier)
                 self._send(json_bytes(asyncio.run(execute_detail())))
             except Exception as exc:
-                self._send(json_bytes({"error": str(exc)}), status=502)
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
         if parsed.path == "/" or parsed.path == "/index.html":
             self._send((STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")

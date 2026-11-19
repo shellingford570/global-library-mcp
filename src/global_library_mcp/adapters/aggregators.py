@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
+from global_library_mcp.http import get_json
 from global_library_mcp.models import Rights, SearchResult
 
 
@@ -15,9 +16,8 @@ class EuropeanaAdapter(LibraryAdapter):
         api_key = os.getenv("EUROPEANA_API_KEY")
         if not api_key:
             raise AdapterError(self.library_id, "EUROPEANA_API_KEY is required; live search not attempted")
-        response = await self.client.get("https://api.europeana.eu/record/v2/search.json", params={"wskey": api_key, "query": query, "rows": min(max(limit, 1), 100)})
-        response.raise_for_status()
-        return [self._result(item) for item in response.json().get("items", [])]
+        payload = await get_json(self.client, "https://api.europeana.eu/record/v2/search.json", params={"wskey": api_key, "query": query, "rows": min(max(limit, 1), 100)}, attempts=1)
+        return [self._result(item) for item in payload.get("items", []) if isinstance(item, dict)]
 
     def _result(self, item: dict[str, Any]) -> SearchResult:
         record_id = str(item.get("id") or "unknown")
@@ -39,32 +39,44 @@ class DdbAdapter(LibraryAdapter):
     library_name = "Deutsche Digitale Bibliothek"
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
-        headers = {}
+        headers: dict[str, str] = {}
         api_key = os.getenv("DDB_API_KEY")
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
-        response = await self.client.get("https://api.deutsche-digitale-bibliothek.de/2/search/index/search/select", params={"q": query, "rows": min(max(limit, 1), 50)}, headers=headers)
-        if response.status_code in (401, 403):
-            raise AdapterError(self.library_id, "DDB API requires access credentials or has denied this request")
-        response.raise_for_status()
-        payload = response.json()
-        items = payload.get("response", {}).get("docs", []) or payload.get("items") or payload.get("results") or []
-        return [self._result(item) for item in items]
+        payload = await get_json(self.client, "https://api.deutsche-digitale-bibliothek.de/2/search/index/search/select", params={"q": query, "rows": min(max(limit, 1), 50)}, headers=headers, attempts=1)
+        response = payload.get("response") if isinstance(payload, dict) else None
+        items = response.get("docs", []) if isinstance(response, dict) else []
+        if not isinstance(items, list):
+            raise AdapterError(self.library_id, "DDB response schema changed", retryable=False)
+        return [self._result(item) for item in items if isinstance(item, dict)]
 
     def _result(self, item: dict[str, Any]) -> SearchResult:
         record_id = str(item.get("id") or item.get("itemId") or "unknown")
         title = item.get("title") or item.get("label") or ["Untitled"]
         author = item.get("creator") or item.get("affiliate")
-        rights = item.get("license") or item.get("metadata_rights") or ["verify item-level rights"]
+        rights = item.get("license") or item.get("metadata_rights") or item.get("rights") or ["verify item-level rights"]
+        title = title[0] if isinstance(title, list) and title else title
+        author = author[0] if isinstance(author, list) and author else author
+        rights = rights[0] if isinstance(rights, list) and rights else rights
+        if not isinstance(title, str):
+            title = "Untitled"
+        if not isinstance(author, str):
+            author = None
+        if not isinstance(rights, str):
+            rights = "verify item-level rights"
+        landing_url = item.get("url") or item.get("itemUrl")
+        if not landing_url and record_id != "unknown":
+            landing_url = f"https://www.deutsche-digitale-bibliothek.de/item/{record_id}"
+        rights_url = item.get("license") if isinstance(item.get("license"), str) else item.get("metadata_rights")
         return SearchResult(
             library_id=self.library_id,
             library_name=self.library_name,
             record_id=record_id,
-            title=title[0] if isinstance(title, list) else title,
-            author=author[0] if isinstance(author, list) else author,
+            title=title,
+            author=author,
             date=str(item.get("date")) if item.get("date") else None,
-            landing_url=item.get("url") or item.get("itemUrl") or f"https://www.deutsche-digitale-bibliothek.de/item/{record_id}",
-            rights=Rights(statement=rights[0] if isinstance(rights, list) else rights, source=item.get("url") or f"https://www.deutsche-digitale-bibliothek.de/item/{record_id}"),
+            landing_url=landing_url,
+            rights=Rights(statement=rights, url=rights_url, source=landing_url),
             source_protocol="DDB API v2",
             raw=item,
         )
