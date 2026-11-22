@@ -75,6 +75,18 @@ const ANSWER_PAYLOAD = {
     image_url: 'https://dl.ndl.go.jp/api/iiif/994120/R0000050/full/full/0/default.jpg',
     landing_url: 'https://dl.ndl.go.jp/pid/994120',
     rights: { statement: '資料単位で確認' },
+    relevance: { status: 'relevant', score: 0.85, matched_concepts: ['水力発電'], missing_concepts: [], reasons: ['中心概念を確認: 水力発電', '時代名「明治」が本文に現れる'] },
+  }],
+  related: [{
+    citation_key: 'ndl:111:111_10',
+    library_id: 'ndl',
+    library_name: 'National Diet Library',
+    record_id: '111',
+    page_id: '111_10',
+    title: '電信沿革史',
+    image_url: null,
+    landing_url: 'https://dl.ndl.go.jp/pid/111',
+    relevance: { status: 'partially_relevant', score: 0.35, matched_concepts: [], missing_concepts: ['水力発電'], reasons: ['中心概念が本文にない: 水力発電'] },
   }],
   unverified: [{ library_id: 'ndl', record_id: '123456', page_id: '123456_7', reason: 'OCR text is very short' }],
   claims: [{
@@ -116,6 +128,10 @@ test('answer view links citations to evidence and runs IIIF verification', async
 
   await expect(page.getByText('裏付けあり')).toBeVisible();
   await expect(page.locator('.evidence-thumb')).toHaveCount(1);
+  await expect(page.getByText('関連性あり', { exact: true })).toBeVisible();
+  await expect(page.getByText(/参考資料（回答の根拠には未採用）/)).toBeVisible();
+  await expect(page.getByText('電信沿革史')).toBeVisible();
+  await expect(page.getByText('一部関連', { exact: true })).toBeVisible();
 
   const chip = page.locator('.chip').first();
   await chip.click();
@@ -131,14 +147,26 @@ test('insufficient evidence is reported plainly', async ({ page }) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ status: 'insufficient_evidence', available: false, query: '未知の主題', answer: null, citations: [], evidence: [], unverified: [], message: '確認できる根拠（検証済みのOCRページ）が見つかりませんでした。', search: { results: [], errors: [] } }),
+      body: JSON.stringify({
+        status: 'insufficient_evidence', available: false, query: '明治時代のスマートフォンの普及について教えて', answer: null, citations: [], evidence: [], unverified: [],
+        reason: '質問の中心概念（スマートフォン）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。',
+        related_documents: [{
+          citation_key: 'ndl:111:111_10', library_id: 'ndl', record_id: '111', page_id: '111_10', title: '電信沿革史',
+          image_url: null, landing_url: 'https://dl.ndl.go.jp/pid/111',
+          relevance_status: 'irrelevant', relevance_reasons: ['中心概念が本文にない: スマートフォン', '一致したのは周辺語のみ: 通信'],
+        }],
+        search: { results: [], errors: [] },
+      }),
     });
   });
 
   await page.goto('/');
-  await page.locator('#query').fill('未知の主題');
+  await page.locator('#query').fill('明治時代のスマートフォンの普及について教えて');
   await page.getByRole('button', { name: 'AI回答' }).click();
-  await expect(page.getByText(/確認できる根拠/)).toBeVisible();
+  await expect(page.getByText(/中心概念（スマートフォン）を裏付けるOCR本文が確認できませんでした/)).toBeVisible();
+  await expect(page.getByText(/参考資料（回答の根拠には未採用）/)).toBeVisible();
+  await expect(page.getByText('関連性なし', { exact: true })).toBeVisible();
+  await expect(page.getByText(/周辺語のみ: 通信/)).toBeVisible();
 });
 
 test('language toggle switches the UI to English', async ({ page }) => {
