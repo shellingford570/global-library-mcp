@@ -118,5 +118,22 @@ def get_rights(result: dict[str, Any]) -> dict[str, Any]:
     return result.get("rights") or {"statement": "unknown"}
 
 
+@mcp.tool()
+async def get_verified_evidence(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+    """Collect page-level OCR evidence for a question.
+
+    Runs a cross-library search, then in-document search and page OCR
+    retrieval for adapters that support it. Only pages whose identity
+    cross-check passed and whose OCR passed the quality gate are
+    returned under ``evidence``; the rest are listed under
+    ``unverified`` with reasons and must not be cited as page evidence.
+    """
+    client, service = await _with_service()
+    try:
+        return await service.collect_evidence(query, libraries, min(max(limit, 1), 20))
+    finally:
+        await client.aclose()
+
+
 def run() -> None:
     mcp.run(transport="stdio")

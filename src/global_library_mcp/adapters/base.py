@@ -18,6 +18,7 @@ class AdapterError(RuntimeError):
 class LibraryAdapter(ABC):
     library_id: str
     library_name: str
+    supports_in_document_search: bool = False
 
     def __init__(self, client: httpx.AsyncClient):
         self.client = client

@@ -63,3 +63,42 @@ class SearchResponse:
             "errors": self.errors,
             "retrieved_at": self.retrieved_at,
         }
+
+
+@dataclass(slots=True)
+class Evidence:
+    """One page of OCR text whose identity has been cross-checked.
+
+    An Evidence record is only marked ``verified`` when the page payload
+    returned by the library matches the requested page (book PID, page id
+    and digital frame) and the OCR text passed the quality gate. Anything
+    else must be carried as unverified and never used as the basis for a
+    page-level claim.
+    """
+
+    library_id: str
+    library_name: str
+    record_id: str
+    title: str
+    page_id: str
+    digital_frame: int | None = None
+    printed_page: str = "unknown"
+    ocr_text: str = ""
+    ocr_source: str = "unknown"
+    ocr_quality: dict[str, Any] = field(default_factory=dict)
+    image_url: str | None = None
+    landing_url: str | None = None
+    matched_term: str | None = None
+    verified: bool = False
+    verification_notes: list[str] = field(default_factory=list)
+    rights: Rights = field(default_factory=Rights)
+    retrieved_at: str = field(default_factory=now_iso)
+
+    @property
+    def citation_key(self) -> str:
+        return f"{self.library_id}:{self.record_id}:{self.page_id}"
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["citation_key"] = self.citation_key
+        return data

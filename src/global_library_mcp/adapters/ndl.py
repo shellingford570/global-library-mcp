@@ -14,6 +14,7 @@ from global_library_mcp.models import Rights, SearchResult
 class NdlAdapter(LibraryAdapter):
     library_id = "ndl"
     library_name = "National Diet Library / 次世代デジタルライブラリー"
+    supports_in_document_search = True
     base_url = "https://lab.ndl.go.jp/dl"
     image_base = "https://dl.ndl.go.jp/api/iiif"
 
