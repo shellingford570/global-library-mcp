@@ -1,7 +1,12 @@
 schema_version: "0.1"
-phase: 0
-last_verified: "2026-11-19"
-status: "research_only"
+phase: 1
+last_verified: "2026-11-22"
+status: "core_implemented"
+notes:
+  - "未確認項目は unknown。true は公式仕様または調査メモで確認済みの範囲のみ。"
+  - "権利・利用条件はコードライセンスと別に資料／提供機関単位で再確認する。"
+  - "実装済みアダプターは loc / ndl / gallica / internet-archive / ddb / europeana。ライブ検証結果は各 verification 欄と docs/api-research.md に記録。"
+  - "NDLアダプターはNDLラボ「次世代デジタルライブラリー」Book/Page APIと dl.ndl.go.jp のIIIFを使用する（NDLサーチAPIとは別系統）。"
 notes:
   - "未確認項目は unknown。true は公式仕様または調査メモで確認済みの範囲のみ。"
   - "権利・利用条件はコードライセンスと別に資料／提供機関単位で再確認する。"
@@ -20,23 +25,25 @@ libraries:
     terms_rights: "item-level rights; do not infer redistribution"
     rate_limits: unknown
     existing_mcp: unknown
-    verification: "official specification review; live contract tests pending"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'railway')"
+    last_verified: "2026-11-22"
   - id: ndl
     region: Asia
     country: JP
     official_site: https://ndlsearch.ndl.go.jp/
-    api_specs: [https://ndlsearch.ndl.go.jp/help/api/specifications, https://ndlsearch.ndl.go.jp/help/api/oai_pmh]
+    api_specs: [https://lab.ndl.go.jp/dl/api/book/search, https://lab.ndl.go.jp/dl/api/page/search, "https://dl.ndl.go.jp/api/iiif/{pid}/manifest.json", https://ndlsearch.ndl.go.jp/help/api/specifications]
     languages: [ja, multi]
     material_types: [books, journals, articles, newspapers, digital_content]
-    capabilities: {bibliographic: true, fulltext: true, ocr: true, image: unknown, page: true, iiif: unknown}
-    standards: [SRU, OpenSearch, OpenURL, OAI-PMH, DC-NDL]
+    capabilities: {bibliographic: true, fulltext: true, ocr: true, image: true, page: true, iiif: true}
+    standards: [JSON, IIIF, SRU, OpenSearch, OpenURL, OAI-PMH, DC-NDL]
     auth: "mostly unauthenticated; provider-specific unknown"
     terms_rights: "provider-specific; commercial use, credit, continuous/bulk access conditions"
     rate_limits: "numeric limit unknown; throttling/blocking warnings"
     existing_mcp: [https://github.com/knagata/ndl-mcp, https://github.com/sho0318/ndl-mcp]
-    verification: "XML/JSON behavior reported; full operational validation pending"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    verification: "adapter implemented on the NDL Lab Book/Page APIs; live-verified 2026-11-22: catalog search, in-document search, page OCR, and IIIF manifest/canvas/image checks all pass for reference pages 994120_50, 1018770_21, 1886468_121"
+    last_verified: "2026-11-22"
   - id: japan-search
     region: Asia
     country: JP
@@ -125,8 +132,9 @@ libraries:
     terms_rights: "Europeana/provider/item-specific"
     rate_limits: unknown
     existing_mcp: unknown
-    verification: "official API pages reviewed"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    verification: "adapter implemented; live search not attempted without key: EUROPEANA_API_KEY is required (free key); awaiting credentials as of 2026-11-22"
+    last_verified: "2026-11-22"
   - id: ddb
     region: Europe
     country: DE
@@ -140,8 +148,9 @@ libraries:
     terms_rights: "metadata generally described as CC0; media item/provider rights"
     rate_limits: unknown
     existing_mcp: unknown
-    verification: "v2 API documentation reviewed; v1 sunset noted"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'Berlin' without an API key on the used endpoint)"
+    last_verified: "2026-11-22"
   - id: gallica
     region: Europe
     country: FR
@@ -155,8 +164,9 @@ libraries:
     terms_rights: "BnF/item-specific; access restriction notices"
     rate_limits: unknown
     existing_mcp: [https://github.com/raphink/newspapers-mcp]
-    verification: "ContentSearch/ALTO/IIIF specs reviewed"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    verification: "adapter implemented; live check 2026-11-22 was denied by the upstream (HTTP 403, challenge or policy restriction) from this network, so live search is not verified here; specs (SRU/IIIF/ALTO) reviewed"
+    last_verified: "2026-11-22"
   - id: bl
     region: Europe
     country: GB
@@ -290,8 +300,9 @@ libraries:
     terms_rights: "item/upload-specific"
     rate_limits: "identified User-Agent; 429/Retry-After guidance"
     existing_mcp: unknown
-    verification: "official API/OCR docs reviewed"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'railway')"
+    last_verified: "2026-11-22"
   - id: open-library
     region: Global
     country: US

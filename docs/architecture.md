@@ -66,3 +66,23 @@ HTTP/XML/JSON/IIIF/SRU/OAI-PMH clients
 [8]: https://api.bnf.fr/fr/api-document-de-gallica "Gallica Content API"
 [9]: https://archive.org/developers/bots.html "Internet Archive automated access"
 [10]: https://trove.nla.gov.au/about/create-something/using-api/trove-api-terms-use "Trove API Terms of Use"
+
+## Evidence pipeline (added 2026-11-22, `feat/global-library-evidence-v2`)
+
+```
+question
+  -> catalog search (question, then extracted content terms as fallback)
+  -> in-document page search (adapters that support it; NDL today)
+  -> page OCR fetch + identity cross-check (verified_mapping)
+  -> OCR quality gate (evidence.py)  => verified Evidence records
+  -> provider payload (capped: 8 items x 1,500 chars, citation_key each)
+  -> LLM or mock provider
+  -> citation whitelist validation (provider layer AND service layer)
+  -> answer + resolved citations (record id, page id, frame, IIIF image URL)
+```
+
+Separately, `verify_original` checks a page against its IIIF original:
+manifest -> canvas for the digital frame -> canvas image URL equality ->
+image range request. Each check is reported individually; the page is
+`verified` only when all pass. Pages failing any step stay visible as
+unverified with reasons, in the API, the MCP tools and the Web UI.
