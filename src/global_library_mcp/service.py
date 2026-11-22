@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import Iterable
 from typing import Any
 
@@ -228,7 +229,10 @@ class LibraryService:
         """
         from global_library_mcp.evidence import assess_ocr_quality, extract_terms
         from global_library_mcp.models import Evidence
+        from global_library_mcp.question import analyze_question
+        from global_library_mcp.relevance import assess_relevance
 
+        analysis = analyze_question(query)
         search_terms = terms or extract_terms(query)
         # A natural-language question rarely matches bibliographic fields
         # verbatim, so search with the question first and then with each
@@ -249,14 +253,18 @@ class LibraryService:
                     adapter = self.adapters.get(item.library_id)
                     if adapter is not None and adapter.supports_in_document_search:
                         capable += 1
-            if capable >= max_documents:
+            if capable >= max_documents + 3:
                 break
         search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
         verified: list[Evidence] = []
+        related: list[dict[str, Any]] = []
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
         for result in merged:
-            if documents_tried >= max_documents:
+            # Keep trying further documents while no page has passed the
+            # relevance gate yet (bounded, to cap API use).
+            doc_limit = max_documents if verified else max_documents + 3
+            if documents_tried >= doc_limit:
                 break
             adapter = self.adapters.get(result.library_id)
             if adapter is None or not adapter.supports_in_document_search:
@@ -320,17 +328,29 @@ class LibraryService:
                     rights=result.rights,
                 )
                 if is_verified:
-                    verified.append(evidence)
+                    year_match = re.search(r"(1[4-9]\d{2}|20\d{2})", str(result.date or ""))
+                    assessment = assess_relevance(
+                        analysis, evidence.ocr_text,
+                        publication_year=int(year_match.group(1)) if year_match else None,
+                    )
+                    evidence.relevance = assessment
+                    if assessment["status"] == "relevant":
+                        verified.append(evidence)
+                    else:
+                        related.append(evidence.to_dict())
                 else:
                     unverified.append({
                         "library_id": result.library_id, "record_id": result.record_id,
                         "page_id": page_id, "reason": "; ".join(notes) or "unverified",
                         "citation_key": evidence.citation_key,
                     })
+        related.sort(key=lambda item: (item.get("relevance") or {}).get("score", 0), reverse=True)
         return {
             "query": query,
             "terms": search_terms,
+            "analysis": analysis.to_dict(),
             "evidence": [item.to_dict() for item in verified],
+            "related": related[:8],
             "unverified": unverified,
             "search": search_view,
         }
