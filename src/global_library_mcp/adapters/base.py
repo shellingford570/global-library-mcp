@@ -35,3 +35,6 @@ class LibraryAdapter(ABC):
 
     async def get_page_text(self, page_id: str) -> dict[str, Any]:
         raise AdapterError(self.library_id, "Page text retrieval is not implemented for this adapter")
+
+    async def verify_original(self, page_id: str) -> dict[str, Any]:
+        raise AdapterError(self.library_id, "Original page verification is not implemented for this adapter")

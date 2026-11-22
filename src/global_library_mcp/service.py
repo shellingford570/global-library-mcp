@@ -84,6 +84,29 @@ class LibraryService:
             raise ValueError(f"Unknown library: {library_id}")
         return await adapter.get_page_text(page_id)
 
+    async def verify_page(self, library_id: str, page_id: str) -> dict[str, Any]:
+        """Verify a page against its original (IIIF) representation.
+
+        Returns the adapter's per-check report. Adapters without an
+        implementation yield status ``unsupported`` rather than an
+        exception, so callers can show the page as unverifiable instead
+        of verified.
+        """
+        from global_library_mcp.adapters.base import AdapterError
+
+        adapter = self.adapters.get(library_id)
+        if not adapter:
+            raise ValueError(f"Unknown library: {library_id}")
+        try:
+            return await adapter.verify_original(page_id)
+        except AdapterError as exc:
+            return {
+                "library_id": library_id,
+                "page_id": page_id,
+                "status": "unsupported",
+                "reason": sanitize_error(exc),
+            }
+
     async def answer(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> dict[str, Any]:
         search = await self.search(query, libraries, limit)
         provider = OpenAICompatibleProvider(self.client)

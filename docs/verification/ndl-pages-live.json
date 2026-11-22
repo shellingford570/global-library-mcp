@@ -1,0 +1,122 @@
+[
+  {
+    "library_id": "ndl",
+    "record_id": "994120",
+    "page_id": "994120_50",
+    "digital_frame": 50,
+    "printed_page": "unknown",
+    "status": "verified",
+    "checks": {
+      "page_identity": {
+        "ok": true,
+        "detail": "page payload id/book/frame match: True"
+      },
+      "ocr_present": {
+        "ok": true,
+        "detail": "1086 OCR characters from coordjson"
+      },
+      "manifest": {
+        "ok": true,
+        "detail": "97 canvases"
+      },
+      "canvas": {
+        "ok": true,
+        "detail": "canvas for frame 50: https://dl.ndl.go.jp/api/iiif/994120/canvas/50"
+      },
+      "canvas_image_match": {
+        "ok": true,
+        "detail": "canvas image https://dl.ndl.go.jp/api/iiif/994120/R0000050/full/full/0/default.jpg vs generated https://dl.ndl.go.jp/api/iiif/994120/R0000050/full/full/0/default.jpg"
+      },
+      "image_reachable": {
+        "ok": true,
+        "detail": "HTTP 206, image/jpeg, 1024 bytes (range)"
+      }
+    },
+    "manifest_url": "https://dl.ndl.go.jp/api/iiif/994120/manifest.json",
+    "canvas_id": "https://dl.ndl.go.jp/api/iiif/994120/canvas/50",
+    "image_url": "https://dl.ndl.go.jp/api/iiif/994120/R0000050/full/full/0/default.jpg",
+    "landing_url": "https://dl.ndl.go.jp/pid/994120",
+    "ocr_excerpt": "最少流量每秒一萬一千三百立方尺、 最大三萬一千八百立方尺に達する歐洲第三 の大湖があつて、 適當の貯水工事を施す時はゲタ河の沿岸のみにて優に二十萬 馬力の水力を得べしとの事である、 猶之れにはゲタ、 トロールヘツタン間の運 河工事竝にウヱーネル湖の水量を調整する上に大なる利益を伴ふ事を發見した る爲め、 特に此の工事を第一著に行ふに至つたと云ふ事である。 現在略ぼ落成 して居る工事は一萬馬力の水車",
+    "retrieved_at": "2026-11-22T11:25:14.559350+00:00"
+  },
+  {
+    "library_id": "ndl",
+    "record_id": "1018770",
+    "page_id": "1018770_21",
+    "digital_frame": 21,
+    "printed_page": "unknown",
+    "status": "verified",
+    "checks": {
+      "page_identity": {
+        "ok": true,
+        "detail": "page payload id/book/frame match: True"
+      },
+      "ocr_present": {
+        "ok": true,
+        "detail": "706 OCR characters from coordjson"
+      },
+      "manifest": {
+        "ok": true,
+        "detail": "200 canvases"
+      },
+      "canvas": {
+        "ok": true,
+        "detail": "canvas for frame 21: https://dl.ndl.go.jp/api/iiif/1018770/canvas/21"
+      },
+      "canvas_image_match": {
+        "ok": true,
+        "detail": "canvas image https://dl.ndl.go.jp/api/iiif/1018770/R0000021/full/full/0/default.jpg vs generated https://dl.ndl.go.jp/api/iiif/1018770/R0000021/full/full/0/default.jpg"
+      },
+      "image_reachable": {
+        "ok": true,
+        "detail": "HTTP 206, image/jpeg, 1024 bytes (range)"
+      }
+    },
+    "manifest_url": "https://dl.ndl.go.jp/api/iiif/1018770/manifest.json",
+    "canvas_id": "https://dl.ndl.go.jp/api/iiif/1018770/canvas/21",
+    "image_url": "https://dl.ndl.go.jp/api/iiif/1018770/R0000021/full/full/0/default.jpg",
+    "landing_url": "https://dl.ndl.go.jp/pid/1018770",
+    "ocr_excerpt": "電 カ 工 學 第二章 動 カ 以て實 際に原働機を撰定す る塲合には其機械特有の 能率曲 線を作り て 以て其結果を考 察 せ ざ る 可 ら ず 而 し て 尙注意すべきは個々 の機械を其最良の能率 に 於て使用すること必しも全 體として利益ならざる こ とあり、例へば火力機關を使用する塲合に於て能率多 少低 き も其損失熱量は加熱の目的に利用せられて有 効 な る が 如 き 塲合あり、即ち",
+    "retrieved_at": "2026-11-22T11:25:17.638123+00:00"
+  },
+  {
+    "library_id": "ndl",
+    "record_id": "1886468",
+    "page_id": "1886468_121",
+    "digital_frame": 121,
+    "printed_page": "unknown",
+    "status": "verified",
+    "checks": {
+      "page_identity": {
+        "ok": true,
+        "detail": "page payload id/book/frame match: True"
+      },
+      "ocr_present": {
+        "ok": true,
+        "detail": "1584 OCR characters from coordjson"
+      },
+      "manifest": {
+        "ok": true,
+        "detail": "202 canvases"
+      },
+      "canvas": {
+        "ok": true,
+        "detail": "canvas for frame 121: https://dl.ndl.go.jp/api/iiif/1886468/canvas/121"
+      },
+      "canvas_image_match": {
+        "ok": true,
+        "detail": "canvas image https://dl.ndl.go.jp/api/iiif/1886468/R0000121/full/full/0/default.jpg vs generated https://dl.ndl.go.jp/api/iiif/1886468/R0000121/full/full/0/default.jpg"
+      },
+      "image_reachable": {
+        "ok": true,
+        "detail": "HTTP 206, image/jpeg, 1024 bytes (range)"
+      }
+    },
+    "manifest_url": "https://dl.ndl.go.jp/api/iiif/1886468/manifest.json",
+    "canvas_id": "https://dl.ndl.go.jp/api/iiif/1886468/canvas/121",
+    "image_url": "https://dl.ndl.go.jp/api/iiif/1886468/R0000121/full/full/0/default.jpg",
+    "landing_url": "https://dl.ndl.go.jp/pid/1886468",
+    "ocr_excerpt": "カムチャーツカ州總說 二〇八 し、 埋藏も相當量あり、油質良好且つ採油條件も有利とされ試掘繼續中である。また東岸のペトロパーヴロフ區にはボガチェ フカ礦床がある。 以上の外、 油徴地はチギリ、 ポリシェレーツク兩區およびアナドゥイリ、 チュコートカに若干發見されて ゐる。 右の外、 チュコート半島では、 鉛·亞鉛·金·鐵·錫·砒素·ウォルフラム·モリプデンの豐富な埋藏が近年の調査によ り明かにされ",
+    "retrieved_at": "2026-11-22T11:25:21.048138+00:00"
+  }
+]

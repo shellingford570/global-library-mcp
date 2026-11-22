@@ -135,5 +135,22 @@ async def get_verified_evidence(query: str, libraries: list[str] | None = None, 
         await client.aclose()
 
 
+@mcp.tool()
+async def verify_original_page(library_id: str, page_id: str) -> dict[str, Any]:
+    """Verify a page against its original image via IIIF.
+
+    Checks, as separate results: page payload identity, OCR presence,
+    IIIF manifest, the canvas for the digital frame, the canvas image
+    URL, and actual reachability of the original image. Status is
+    ``verified`` only when every check passes, ``failed`` when a check
+    fails, and ``unsupported`` for adapters without verification.
+    """
+    client, service = await _with_service()
+    try:
+        return await service.verify_page(library_id, page_id)
+    finally:
+        await client.aclose()
+
+
 def run() -> None:
     mcp.run(transport="stdio")

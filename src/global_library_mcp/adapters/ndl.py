@@ -121,6 +121,89 @@ class NdlAdapter(LibraryAdapter):
             raise AdapterError("ndl", "NDL PID must contain digits only")
         return f"https://dl.ndl.go.jp/api/iiif/{book_pid}/R{int(page):07d}/full/full/0/default.jpg"
 
+    def manifest_url(self, book_pid: str) -> str:
+        pid = self._safe_pid(book_pid)
+        return f"{self.image_base}/{pid}/manifest.json"
+
+    async def verify_original(self, page_id: str) -> dict[str, Any]:
+        """Verify one page against its original IIIF representation.
+
+        Each layer is checked separately and reported separately:
+        page payload identity, OCR presence, IIIF manifest, the canvas
+        for the digital frame, the canvas image URL, and the actual
+        reachability of the original image. Generating a URL alone is
+        never treated as verification success.
+        """
+        from global_library_mcp.http import sanitize_error
+
+        safe_page_id = self._safe_page_id(page_id)
+        pid, frame_text = safe_page_id.split("_", 1)
+        frame = int(frame_text)
+        checks: dict[str, dict[str, Any]] = {}
+
+        page: dict[str, Any] = {}
+        try:
+            page = await self.get_page_text(safe_page_id)
+            checks["page_identity"] = {"ok": bool(page.get("verified_mapping")), "detail": f"page payload id/book/frame match: {page.get('verified_mapping')}"}
+            ocr = page.get("contents") or ""
+            checks["ocr_present"] = {"ok": bool(ocr.strip()), "detail": f"{len(ocr)} OCR characters from {page.get('ocr_source')}"}
+        except Exception as exc:  # noqa: BLE001 - recorded as a failed check
+            checks["page_identity"] = {"ok": False, "detail": sanitize_error(exc)}
+            checks["ocr_present"] = {"ok": False, "detail": "page fetch failed"}
+
+        manifest_url = self.manifest_url(pid)
+        canvas_image: str | None = None
+        canvas_id: str | None = None
+        try:
+            response = await self.client.get(manifest_url)
+            response.raise_for_status()
+            manifest = response.json()
+            sequences = manifest.get("sequences") or []
+            canvases = sequences[0].get("canvases", []) if sequences else []
+            checks["manifest"] = {"ok": True, "detail": f"{len(canvases)} canvases"}
+            for canvas in canvases:
+                if str(canvas.get("@id", "")).rstrip("/").endswith(f"/canvas/{frame}"):
+                    canvas_id = canvas.get("@id")
+                    images = canvas.get("images") or []
+                    if images:
+                        canvas_image = (images[0].get("resource") or {}).get("@id")
+                    break
+            checks["canvas"] = {"ok": canvas_id is not None, "detail": f"canvas for frame {frame}: {canvas_id or 'not found'}"}
+        except Exception as exc:  # noqa: BLE001 - recorded as a failed check
+            checks["manifest"] = {"ok": False, "detail": sanitize_error(exc)}
+            checks["canvas"] = {"ok": False, "detail": "manifest unavailable"}
+
+        expected_image = self.image_url(pid, frame)
+        checks["canvas_image_match"] = {
+            "ok": canvas_image == expected_image,
+            "detail": f"canvas image {canvas_image or 'none'} vs generated {expected_image}",
+        }
+
+        try:
+            response = await self.client.get(expected_image, headers={"Range": "bytes=0-1023"})
+            content_type = response.headers.get("content-type", "")
+            ok = response.status_code in (200, 206) and content_type.startswith("image/")
+            checks["image_reachable"] = {"ok": ok, "detail": f"HTTP {response.status_code}, {content_type}, {len(response.content)} bytes (range)"}
+        except Exception as exc:  # noqa: BLE001 - recorded as a failed check
+            checks["image_reachable"] = {"ok": False, "detail": sanitize_error(exc)}
+
+        verified = all(check["ok"] for check in checks.values())
+        return {
+            "library_id": self.library_id,
+            "record_id": pid,
+            "page_id": safe_page_id,
+            "digital_frame": frame,
+            "printed_page": page.get("printed_page", "unknown"),
+            "status": "verified" if verified else "failed",
+            "checks": checks,
+            "manifest_url": manifest_url,
+            "canvas_id": canvas_id,
+            "image_url": expected_image,
+            "landing_url": f"https://dl.ndl.go.jp/pid/{pid}",
+            "ocr_excerpt": (page.get("contents") or "")[:200],
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        }
+
     @staticmethod
     def _safe_pid(value: str) -> str:
         if not value.isdigit():
