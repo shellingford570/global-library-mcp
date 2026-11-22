@@ -125,22 +125,50 @@ class LibraryService:
 
         collected = await self.collect_evidence(query, libraries, limit)
         evidence = collected["evidence"]
+        related = collected.get("related", [])
+        analysis = collected.get("analysis", {})
         base: dict[str, Any] = {
             "query": query,
             "terms": collected["terms"],
+            "analysis": analysis,
             "evidence": evidence,
+            "related": related,
             "unverified": collected["unverified"],
             "search": collected["search"],
         }
         if not evidence:
+            missing = []
+            for item in related:
+                for concept in (item.get("relevance") or {}).get("missing_concepts", []):
+                    if concept not in missing:
+                        missing.append(concept)
+            if not missing:
+                missing = list(analysis.get("core_concepts", []))
+            if missing:
+                reason = f"質問の中心概念（{'、'.join(missing)}）を裏付けるOCR本文が確認できませんでした。"
+            else:
+                reason = "質問に答えるための検証済みOCR本文が確認できませんでした。"
+            limitations = ["No OCR page passed both the quality gate and the relevance gate for this question"]
+            if related:
+                reason += "関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。"
+                limitations.append("Related documents exist but were not adopted as evidence; see related_documents")
+            related_documents = [{
+                "citation_key": item["citation_key"], "library_id": item["library_id"],
+                "record_id": item["record_id"], "page_id": item["page_id"], "title": item["title"],
+                "image_url": item.get("image_url"), "landing_url": item.get("landing_url"),
+                "relevance_status": (item.get("relevance") or {}).get("status"),
+                "relevance_reasons": (item.get("relevance") or {}).get("reasons", []),
+            } for item in related]
             return {
                 **base,
                 "status": "insufficient_evidence",
                 "available": False,
                 "answer": None,
                 "citations": [],
-                "message": "確認できる根拠（検証済みのOCRページ）が見つかりませんでした。",
-                "limitations": ["No verified OCR page evidence was collected for this question"],
+                "reason": reason,
+                "message": reason,
+                "related_documents": related_documents,
+                "limitations": limitations,
             }
         if provider is None:
             if os.getenv("LLM_PROVIDER", "").lower() == "mock":
@@ -199,6 +227,23 @@ class LibraryService:
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
         claims = verify_claims(clean_claims, evidence)
+        blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
+        if blocking:
+            return {
+                **base,
+                "status": "answer_withheld",
+                "available": False,
+                "answer": None,
+                "citations": citations,
+                "claims": claims,
+                "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+                "limitations": [
+                    f"claim not supported by its cited OCR: {c.get('text', '')[:80]}" for c in blocking
+                ] + list(result.get("limitations", [])),
+            }
+        limitations = list(result.get("limitations", []))
+        if any(c.get("support") == "uncertain" for c in claims):
+            limitations.append("一部の主張は自動スクリーニングで裏付けが不確実です（uncertain）。原本ページで確認してください。")
         return {
             **base,
             "status": "answered",
@@ -206,7 +251,7 @@ class LibraryService:
             "answer": result.get("answer"),
             "citations": citations,
             "claims": claims,
-            "limitations": result.get("limitations", []),
+            "limitations": limitations,
         }
 
     async def collect_evidence(
