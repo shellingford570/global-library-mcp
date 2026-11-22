@@ -169,5 +169,23 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
         await client.aclose()
 
 
+@mcp.tool()
+async def compare_documents(documents: list[dict[str, str]], aspects: list[str] | None = None, question: str | None = None) -> dict[str, Any]:
+    """Compare 2-4 documents aspect by aspect on verified OCR pages.
+
+    ``documents`` is a list like ``[{"library_id": "ndl", "record_id": "994120"}]``.
+    For each aspect, returns per-document excerpts from verified pages
+    with citation keys and original-image URLs, shared and unique
+    content terms, explicit gaps where a document has no verified page
+    for the aspect, and era-difference notes. The comparison is
+    textual; it never invents differences the pages do not show.
+    """
+    client, service = await _with_service()
+    try:
+        return await service.compare_documents(documents, aspects=aspects, question=question)
+    finally:
+        await client.aclose()
+
+
 def run() -> None:
     mcp.run(transport="stdio")
