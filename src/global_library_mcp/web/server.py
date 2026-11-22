@@ -117,6 +117,30 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
+        if parsed.path == "/api/compare":
+            params = parse_qs(parsed.query)
+            raw_docs = params.get("docs", [""])[0]
+            documents = []
+            for pair in raw_docs.split(";"):
+                pair = pair.strip()
+                if not pair:
+                    continue
+                library_id, sep, record_id = pair.partition(":")
+                if sep and library_id.strip() and record_id.strip():
+                    documents.append({"library_id": library_id.strip(), "record_id": record_id.strip()})
+            if not 2 <= len(documents) <= 4:
+                self._send(json_bytes({"error": "docs must list 2 to 4 documents as library:record;library:record"}), status=400)
+                return
+            aspects = [item.strip() for item in params.get("aspects", [""])[0].split(",") if item.strip()][:8]
+            question = params.get("q", [""])[0].strip()[:500] or None
+            try:
+                async def execute_compare():
+                    async with httpx.AsyncClient(timeout=90, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        return await LibraryService(client).compare_documents(documents, aspects=aspects, question=question)
+                self._send(json_bytes(asyncio.run(execute_compare())))
+            except Exception as exc:
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
+            return
         if parsed.path in ("/api/document", "/api/page"):
             params = parse_qs(parsed.query)
             library_id = params.get("library", [""])[0]

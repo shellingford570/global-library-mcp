@@ -77,6 +77,13 @@ const ANSWER_PAYLOAD = {
     rights: { statement: '資料単位で確認' },
   }],
   unverified: [{ library_id: 'ndl', record_id: '123456', page_id: '123456_7', reason: 'OCR text is very short' }],
+  claims: [{
+    text: '發電水力の開發は明治四十三年に始まり、臨時發電水力調査局が設置された',
+    citations: ['ndl:994120:994120_50'],
+    support: 'supported',
+    support_detail: 'lexical overlap 1.00 over 1 cited page(s)',
+    overlap: 1.0,
+  }],
   limitations: ['Mock provider'],
   search: { results: [], errors: [] },
 };
@@ -107,8 +114,10 @@ test('answer view links citations to evidence and runs IIIF verification', async
   await expect(page.getByText('検証済みOCR')).toBeVisible();
   await expect(page.getByText(/OCR text is very short/)).toBeVisible();
 
-  const chip = page.locator('.chip');
-  await expect(chip).toHaveCount(1);
+  await expect(page.getByText('裏付けあり')).toBeVisible();
+  await expect(page.locator('.evidence-thumb')).toHaveCount(1);
+
+  const chip = page.locator('.chip').first();
   await chip.click();
   await expect(page.locator('.evidence-card')).toBeInViewport();
 
@@ -137,4 +146,36 @@ test('language toggle switches the UI to English', async ({ page }) => {
   await page.getByRole('button', { name: 'Switch language' }).click();
   await expect(page.getByRole('button', { name: 'Search' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'AI answer' })).toBeVisible();
+});
+
+
+const COMPARE_PAYLOAD = {
+  status: 'compared',
+  aspects: ['送電'],
+  documents: [
+    { library_id: 'ndl', record_id: '994120', title: '發電水力の開發', date: 1911, landing_url: 'https://dl.ndl.go.jp/pid/994120', error: null, verified_pages: 2 },
+    { library_id: 'ndl', record_id: '1018770', title: '水力電気 上巻', date: 1925, landing_url: 'https://dl.ndl.go.jp/pid/1018770', error: null, verified_pages: 2 },
+  ],
+  rows: [{
+    aspect: '送電',
+    documents: {
+      '994120': { found: true, excerpts: [{ aspect: '送電', page_id: '994120_40', citation_key: 'ndl:994120:994120_40', image_url: 'https://dl.ndl.go.jp/api/iiif/994120/R0000040/full/full/0/default.jpg', excerpt: '發電した電力を近傍へ送電した' }] },
+      '1018770': { found: true, excerpts: [{ aspect: '送電', page_id: '1018770_14', citation_key: 'ndl:1018770:1018770_14', image_url: 'https://dl.ndl.go.jp/api/iiif/1018770/R0000014/full/full/0/default.jpg', excerpt: '高壓送電が主流となった' }] },
+    },
+    shared_terms: ['送電', '水力'],
+    unique_terms: { '994120': ['水車'], '1018770': ['資本'] },
+  }],
+  notes: ['比較は検証済みOCRページのテキストに基づく機械的な対照です。'],
+};
+
+test('compare view renders aspect rows from the compare API', async ({ page }) => {
+  await page.route('**/api/compare**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(COMPARE_PAYLOAD) });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: '比較する' }).click();
+  await expect(page.getByText('高壓送電が主流となった')).toBeVisible();
+  await expect(page.getByText('發電した電力を近傍へ送電した')).toBeVisible();
+  await expect(page.getByText(/共通する語/)).toBeVisible();
+  await expect(page.getByText(/機械的な対照/)).toBeVisible();
 });

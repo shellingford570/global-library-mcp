@@ -52,6 +52,23 @@ const I18N = {
     statusUnavailable: 'AI回答は利用できません',
     statusWithheld: '引用の検証に失敗したため、回答を表示しません。',
     evidenceTitle: '根拠ページ',
+    claimsTitle: '主張ごとの根拠チェック（機械的スクリーニング）',
+    supportSupported: '裏付けあり',
+    supportUncertain: '要確認',
+    supportUnsupported: '根拠なし',
+    supportConflicting: '資料間で矛盾',
+    supportNotChecked: '未検証',
+    compareTitle: '文献比較',
+    compareDocA: '文献A（機関:資料ID）',
+    compareDocB: '文献B（機関:資料ID）',
+    compareAspects: '比較観点（カンマ区切り）',
+    compareButton: '比較する',
+    comparing: '比較しています…',
+    compareNotFound: 'この観点の検証済みページは見つかりませんでした',
+    sharedTerms: '共通する語',
+    uniqueTerms: 'この資料だけの語',
+    langHintJa: '日本語の質問として処理します',
+    langHintEn: '英語の質問として処理します（資料は各言語で検索されます）',
   },
   en: {
     status: 'OCR-grounded answers / verified originals',
@@ -96,6 +113,23 @@ const I18N = {
     statusUnavailable: 'The AI answer is unavailable',
     statusWithheld: 'The answer is withheld because citation validation failed.',
     evidenceTitle: 'Evidence pages',
+    claimsTitle: 'Claim-by-claim grounding check (mechanical screening)',
+    supportSupported: 'supported',
+    supportUncertain: 'uncertain',
+    supportUnsupported: 'unsupported',
+    supportConflicting: 'conflicting',
+    supportNotChecked: 'not checked',
+    compareTitle: 'Compare documents',
+    compareDocA: 'Document A (library:record)',
+    compareDocB: 'Document B (library:record)',
+    compareAspects: 'Aspects (comma-separated)',
+    compareButton: 'Compare',
+    comparing: 'Comparing…',
+    compareNotFound: 'No verified page found for this aspect',
+    sharedTerms: 'Shared terms',
+    uniqueTerms: 'Only in this document',
+    langHintJa: 'Detected as a Japanese question',
+    langHintEn: 'Detected as an English question (sources are searched across languages)',
   },
 };
 
@@ -165,6 +199,7 @@ function evidenceCard(item) {
       <div class="verify-box" data-page="${esc(item.page_id)}" data-library="${esc(item.library_id)}"></div>
     </div>
     <div class="card-actions">
+      ${safeHref(item.image_url) ? `<a href="${esc(safeHref(item.image_url))}" target="_blank" rel="noreferrer noopener"><img class="evidence-thumb" src="${esc(safeHref(item.image_url))}" alt="" loading="lazy"></a>` : ''}
       ${sourceLink(item.image_url, t().viewImage)}
       ${sourceLink(item.landing_url, t().viewRecord)}
       <button type="button" class="verify-button">${t().verifyButton}</button>
@@ -180,8 +215,15 @@ function renderAnswer(data) {
   let html = '';
   if (data.status === 'answered' && data.answer) {
     const chips = (data.citations || []).map(c => `<button type="button" class="chip" data-target="ev-${esc(c.citation_key)}">${esc(c.title)} · ${t().frameLabel} ${esc(c.digital_frame ?? '?')}</button>`).join('');
+    const supportLabel = s => ({supported: t().supportSupported, uncertain: t().supportUncertain, unsupported: t().supportUnsupported, conflicting: t().supportConflicting, not_checked: t().supportNotChecked}[s] || s);
+    const claims = (data.claims || []).length ? `<div class="claims"><h4>${t().claimsTitle}</h4><ul>`
+      + data.claims.map(claim => `<li><span class="badge badge-${esc(claim.support || 'not_checked')}">${esc(supportLabel(claim.support))}</span> ${esc(claim.text)} `
+        + (claim.citations || []).map(key => `<button type="button" class="chip chip-small" data-target="ev-${esc(key)}">${esc(key)}</button>`).join(' ')
+        + `</li>`).join('')
+      + `</ul></div>` : '';
     html += `<article class="card answer-card"><div><span class="tag">${t().answerTag}</span><h3>${esc(data.answer)}</h3>`
       + (chips ? `<p class="citations-label">${t().citationsLabel}</p><div class="chips">${chips}</div>` : '')
+      + claims
       + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')
       + `</div></article>`;
   } else if (data.status === 'insufficient_evidence') {
@@ -278,6 +320,64 @@ answerButton.addEventListener('click', async () => {
   } finally {
     setBusy(false);
     answerButton.textContent = t().answerButton;
+  }
+});
+
+const langHint = document.querySelector('#lang-hint');
+query.addEventListener('input', () => {
+  const value = query.value;
+  if (/[ぁ-んァ-ヶ一-龥]/.test(value)) langHint.textContent = t().langHintJa;
+  else if (/[A-Za-z]{2,}/.test(value)) langHint.textContent = t().langHintEn;
+  else langHint.textContent = '';
+});
+
+const compareForm = document.querySelector('#compare-form');
+const compareResults = document.querySelector('#compare-results');
+const compareButton = document.querySelector('#compare-button');
+
+function renderCompare(data) {
+  if (data.status !== 'compared') {
+    compareResults.innerHTML = `<div class="error" role="alert">${esc(data.reason || t().statusInsufficient)}</div>`;
+    return;
+  }
+  const docs = data.documents || [];
+  let html = `<div class="compare-docs">${docs.map(d => `<div class="compare-doc"><strong>${esc(d.title)}</strong><br>${esc(d.library_id)}:${esc(d.record_id)} · ${esc(d.date ?? 'unknown')} · ${t().evidenceTitle}: ${d.verified_pages}${d.error ? `<br><span class="error">${esc(d.error)}</span>` : ''}</div>`).join('')}</div>`;
+  for (const row of data.rows || []) {
+    html += `<div class="compare-row"><h3>${esc(row.aspect)}</h3><div class="compare-sides">`;
+    for (const d of docs) {
+      const side = (row.documents || {})[d.record_id] || {found: false, excerpts: []};
+      html += `<div class="compare-side"><h4>${esc(d.title)}</h4>`;
+      if (!side.found) html += `<p class="rights">${t().compareNotFound}</p>`;
+      for (const ex of side.excerpts || []) {
+        html += `<blockquote class="compare-excerpt">${esc(ex.excerpt)}<footer>${esc(ex.citation_key)}${safeHref(ex.image_url) ? ` · <a href="${esc(safeHref(ex.image_url))}" target="_blank" rel="noreferrer noopener">${t().viewImage}</a>` : ''}</footer></blockquote>`;
+      }
+      const unique = (row.unique_terms || {})[d.record_id] || [];
+      if (unique.length) html += `<p class="rights">${t().uniqueTerms}: ${unique.map(esc).join('、')}</p>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+    if ((row.shared_terms || []).length) html += `<p class="rights">${t().sharedTerms}: ${row.shared_terms.map(esc).join('、')}</p>`;
+    html += `</div>`;
+  }
+  if ((data.notes || []).length) html += `<div class="unverified-box"><ul>${data.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>`;
+  compareResults.innerHTML = html;
+}
+
+compareForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const a = document.querySelector('#cmp-a').value.trim();
+  const b = document.querySelector('#cmp-b').value.trim();
+  const aspects = document.querySelector('#cmp-aspects').value.trim();
+  if (!a || !b) return;
+  compareButton.disabled = true;
+  compareResults.innerHTML = `<div class="empty"><p>${t().comparing}</p></div>`;
+  try {
+    const params = new URLSearchParams({docs: `${a};${b}`, aspects});
+    renderCompare(await fetchJson(`/api/compare?${params.toString()}`));
+  } catch (error) {
+    compareResults.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
+  } finally {
+    compareButton.disabled = false;
   }
 });
 
