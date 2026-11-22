@@ -1,0 +1,960 @@
+{
+  "dataset_version": "phase3-1",
+  "run_at": "2026-11-22T11:53:51Z",
+  "metrics": {
+    "questions": 30,
+    "discovery_rate": 1.0,
+    "ocr_capture_rate": 0.94,
+    "image_reachable_rate": 1.0,
+    "citation_resolution_rate": 1.0,
+    "claim_supported_rate": 1.0,
+    "claim_status_counts": {
+      "supported": 87,
+      "uncertain": 0,
+      "unsupported": 0,
+      "conflicting": 0,
+      "not_checked": 0
+    },
+    "insufficient_correct_rate": 0.2,
+    "avg_seconds": 6.5,
+    "total_requests": 444,
+    "provider": "mock"
+  },
+  "records": [
+    {
+      "id": "q01",
+      "category": "日本史",
+      "question": "明治時代の発電水力の開発について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1168331_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 6.71,
+      "requests": 17
+    },
+    {
+      "id": "q02",
+      "category": "日本史",
+      "question": "明治時代の鉄道開業について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1168331_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 4.66,
+      "requests": 17
+    },
+    {
+      "id": "q03",
+      "category": "日本史",
+      "question": "日露戦争について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:774395:774395_3"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "774395_3",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 10.18,
+      "requests": 17
+    },
+    {
+      "id": "q04",
+      "category": "日本史",
+      "question": "明治時代の郵便制度の始まりについて教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1168331_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 4.99,
+      "requests": 17
+    },
+    {
+      "id": "q05",
+      "category": "日本史",
+      "question": "横浜開港について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:805624:805624_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "805624_1",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 10.98,
+      "requests": 17
+    },
+    {
+      "id": "q06",
+      "category": "日本史",
+      "question": "明治時代の義務教育制度について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1168331_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 4.6,
+      "requests": 17
+    },
+    {
+      "id": "q07",
+      "category": "科学技術史",
+      "question": "明治時代の電信技術の導入について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1168331_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 4.6,
+      "requests": 17
+    },
+    {
+      "id": "q08",
+      "category": "科学技術史",
+      "question": "日本の活版印刷の始まりについて当時の資料は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:1466319:1466319_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1466319_1",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 10.54,
+      "requests": 17
+    },
+    {
+      "id": "q09",
+      "category": "科学技術史",
+      "question": "明治時代の時計製造について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1168331_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 5.0,
+      "requests": 17
+    },
+    {
+      "id": "q10",
+      "category": "科学技術史",
+      "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:1466319:1466319_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "image_check": {
+        "page_id": "1466319_1",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 4.97,
+      "requests": 17
+    },
+    {
+      "id": "q11",
+      "category": "科学技術史",
+      "question": "明治時代のガス灯の普及について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 4.02,
+      "requests": 14
+    },
+    {
+      "id": "q12",
+      "category": "発電・電気工学",
+      "question": "水力発電の仕組みについて当時の技術書は何と説明しているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:3464668:3464668_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 9.11,
+      "requests": 14
+    },
+    {
+      "id": "q13",
+      "category": "発電・電気工学",
+      "question": "発電水力調査はどのように行われたか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:946285:946285_3"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 7.47,
+      "requests": 14
+    },
+    {
+      "id": "q14",
+      "category": "発電・電気工学",
+      "question": "明治時代の電力会社について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 4.21,
+      "requests": 14
+    },
+    {
+      "id": "q15",
+      "category": "発電・電気工学",
+      "question": "電灯の普及について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:945148:945148_3"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 7.55,
+      "requests": 14
+    },
+    {
+      "id": "q16",
+      "category": "発電・電気工学",
+      "question": "水力電気の送電について当時の技術書の説明を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:3464668:3464668_5"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 7.65,
+      "requests": 14
+    },
+    {
+      "id": "q17",
+      "category": "発電・電気工学",
+      "question": "発電所のタービンについて当時の資料はどう記述しているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:1257061:1257061_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 8.31,
+      "requests": 14
+    },
+    {
+      "id": "q18",
+      "category": "医学史",
+      "question": "明治時代の種痘について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 4.04,
+      "requests": 14
+    },
+    {
+      "id": "q19",
+      "category": "医学史",
+      "question": "コレラの流行と対策について当時の記録は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:913850:913850_2"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 7.96,
+      "requests": 14
+    },
+    {
+      "id": "q20",
+      "category": "医学史",
+      "question": "明治時代の病院制度について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 4.06,
+      "requests": 14
+    },
+    {
+      "id": "q21",
+      "category": "医学史",
+      "question": "脚気の原因をめぐる議論について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:834765:834765_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 6.73,
+      "requests": 14
+    },
+    {
+      "id": "q22",
+      "category": "地理・文化史",
+      "question": "明治時代の北海道開拓について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 4.39,
+      "requests": 14
+    },
+    {
+      "id": "q23",
+      "category": "地理・文化史",
+      "question": "神戸の外国人居留地について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:965719:965719_3"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 8.6,
+      "requests": 14
+    },
+    {
+      "id": "q24",
+      "category": "地理・文化史",
+      "question": "明治時代の地震記録について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 8,
+      "unverified": 1,
+      "citations": [
+        "ndl:1168331:1168331_4"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 3.91,
+      "requests": 14
+    },
+    {
+      "id": "q25",
+      "category": "地理・文化史",
+      "question": "富士登山について当時の案内書はどう記述しているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:948106:948106_12"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 6.67,
+      "requests": 14
+    },
+    {
+      "id": "q26",
+      "category": "回答不能",
+      "question": "スマートフォンの普及が明治時代の通信に与えた影響について教えて",
+      "expect": "insufficient",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:759499:759499_3"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 9.44,
+      "requests": 18
+    },
+    {
+      "id": "q27",
+      "category": "回答不能",
+      "question": "インターネットの歴史について教えて",
+      "expect": "insufficient",
+      "status": "answered",
+      "evidence": 3,
+      "unverified": 0,
+      "citations": [
+        "ndl:786868:786868_2"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 5.63,
+      "requests": 11
+    },
+    {
+      "id": "q28",
+      "category": "回答不能",
+      "question": "月面着陸について当時の日本の新聞はどう報じたか",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 1.0,
+      "requests": 2
+    },
+    {
+      "id": "q29",
+      "category": "回答不能",
+      "question": "量子コンピュータの原理について当時の資料の記述を教えて",
+      "expect": "insufficient",
+      "status": "answered",
+      "evidence": 9,
+      "unverified": 0,
+      "citations": [
+        "ndl:826890:826890_1"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 9.36,
+      "requests": 18
+    },
+    {
+      "id": "q30",
+      "category": "回答不能",
+      "question": "ペリー来航時の横浜村の正確な人口を教えて",
+      "expect": "insufficient",
+      "status": "answered",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:1086055:1086055_25"
+      ],
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "seconds": 7.63,
+      "requests": 15
+    }
+  ]
+}

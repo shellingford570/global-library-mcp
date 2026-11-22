@@ -184,12 +184,27 @@ class LibraryService:
                 "image_url": item["image_url"],
                 "landing_url": item["landing_url"],
             })
+        from global_library_mcp.claims import verify_claims
+
+        raw_claims = result.get("claims")
+        if not isinstance(raw_claims, list) or not raw_claims:
+            raw_claims = [{"text": result.get("answer") or "", "citations": keys}]
+        clean_claims = []
+        for claim in raw_claims:
+            if isinstance(claim, dict) and isinstance(claim.get("text"), str):
+                clean_claims.append({
+                    "text": claim["text"],
+                    "citations": [c for c in claim.get("citations", []) if isinstance(c, str)],
+                    **({"conflict": True} if claim.get("conflict") else {}),
+                })
+        claims = verify_claims(clean_claims, evidence)
         return {
             **base,
             "status": "answered",
             "available": True,
             "answer": result.get("answer"),
             "citations": citations,
+            "claims": claims,
             "limitations": result.get("limitations", []),
         }
 
