@@ -247,7 +247,7 @@ class InternetArchiveAdapter(LibraryAdapter):
             if has_djvu and not restricted:
                 pages = await self._pages(identifier)
         except Exception as exc:  # noqa: BLE001 - recorded as failed checks
-            checks["metadata"] = {"ok": False, "detail": sanitize_error(exc)}
+            checks["metadata"] = {"ok": False, "detail": f"{type(exc).__name__}: {sanitize_error(exc)}"}
             checks["access"] = {"ok": False, "detail": "metadata unavailable"}
             checks["djvu_present"] = {"ok": False, "detail": "metadata unavailable"}
         in_range = bool(pages) and 0 <= leaf < len(pages)
@@ -261,7 +261,7 @@ class InternetArchiveAdapter(LibraryAdapter):
             ok = response.status_code in (200, 206) and content_type.startswith("image/")
             checks["image_reachable"] = {"ok": ok, "detail": f"HTTP {response.status_code}, {content_type}, {len(response.content)} bytes (range)"}
         except Exception as exc:  # noqa: BLE001 - recorded as a failed check
-            checks["image_reachable"] = {"ok": False, "detail": sanitize_error(exc)}
+            checks["image_reachable"] = {"ok": False, "detail": f"{type(exc).__name__}: {sanitize_error(exc)}"}
         verified = all(check["ok"] for check in checks.values())
         return {
             "library_id": self.library_id,
