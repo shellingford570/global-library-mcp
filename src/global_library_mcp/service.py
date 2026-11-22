@@ -107,12 +107,91 @@ class LibraryService:
                 "reason": sanitize_error(exc),
             }
 
-    async def answer(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> dict[str, Any]:
-        search = await self.search(query, libraries, limit)
-        provider = OpenAICompatibleProvider(self.client)
-        answer = await provider.answer(query, [item.to_dict() for item in search.results])
-        answer["search"] = search.to_dict()
-        return answer
+    async def answer(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10, provider: Any = None) -> dict[str, Any]:
+        """Answer a question from verified OCR evidence only.
+
+        Flow: collect page-level evidence, hand only the verified pages
+        to the provider, then re-validate every returned citation key
+        against the evidence whitelist in this layer as well, so a
+        misbehaving provider cannot smuggle in a citation. When no
+        verified evidence exists the answer is withheld and the status
+        is ``insufficient_evidence``; bibliographic records alone never
+        ground an answer.
+        """
+        import os
+
+        from global_library_mcp.answer import MockProvider, compact_evidence, validate_citation_keys
+
+        collected = await self.collect_evidence(query, libraries, limit)
+        evidence = collected["evidence"]
+        base: dict[str, Any] = {
+            "query": query,
+            "terms": collected["terms"],
+            "evidence": evidence,
+            "unverified": collected["unverified"],
+            "search": collected["search"],
+        }
+        if not evidence:
+            return {
+                **base,
+                "status": "insufficient_evidence",
+                "available": False,
+                "answer": None,
+                "citations": [],
+                "message": "確認できる根拠（検証済みのOCRページ）が見つかりませんでした。",
+                "limitations": ["No verified OCR page evidence was collected for this question"],
+            }
+        if provider is None:
+            if os.getenv("LLM_PROVIDER", "").lower() == "mock":
+                provider = MockProvider()
+            else:
+                provider = OpenAICompatibleProvider(self.client)
+        payload = compact_evidence(evidence)
+        result = await provider.answer(query, payload)
+        if not result.get("available"):
+            return {
+                **base,
+                "status": "llm_unavailable",
+                "available": False,
+                "answer": None,
+                "citations": [],
+                "reason": result.get("reason"),
+                "limitations": ["The answer provider did not produce an answer; the verified evidence above can be read directly"],
+            }
+        keys = validate_citation_keys(result.get("citations", []), payload)
+        if keys is None:
+            return {
+                **base,
+                "status": "citation_validation_failed",
+                "available": False,
+                "answer": None,
+                "citations": [],
+                "reason": "Provider returned citations outside the supplied evidence; answer withheld",
+                "limitations": ["Citation whitelist validation failed at the service layer"],
+            }
+        by_key = {item["citation_key"]: item for item in evidence}
+        citations = []
+        for key in keys:
+            item = by_key[key]
+            citations.append({
+                "citation_key": key,
+                "library_id": item["library_id"],
+                "library_name": item["library_name"],
+                "record_id": item["record_id"],
+                "page_id": item["page_id"],
+                "digital_frame": item["digital_frame"],
+                "title": item["title"],
+                "image_url": item["image_url"],
+                "landing_url": item["landing_url"],
+            })
+        return {
+            **base,
+            "status": "answered",
+            "available": True,
+            "answer": result.get("answer"),
+            "citations": citations,
+            "limitations": result.get("limitations", []),
+        }
 
     async def collect_evidence(
         self,

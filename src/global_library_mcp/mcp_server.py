@@ -152,5 +152,22 @@ async def verify_original_page(library_id: str, page_id: str) -> dict[str, Any]:
         await client.aclose()
 
 
+@mcp.tool()
+async def research_question(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+    """Answer a question from verified OCR page evidence.
+
+    Collects verified evidence (see get_verified_evidence), lets the
+    configured answer provider respond from those pages only, and
+    whitelist-validates every citation against the evidence. When no
+    verified OCR evidence exists, the status is
+    ``insufficient_evidence`` and no answer is produced.
+    """
+    client, service = await _with_service()
+    try:
+        return await service.answer(query, libraries, min(max(limit, 1), 20))
+    finally:
+        await client.aclose()
+
+
 def run() -> None:
     mcp.run(transport="stdio")
