@@ -301,7 +301,7 @@ libraries:
     rate_limits: "identified User-Agent; 429/Retry-After guidance"
     existing_mcp: unknown
     implementation_status: implemented
-    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'railway')"
+    verification: "Phase 3 live verified 2026-11-22: catalog search (mediatype:texts), in-document search over djvu.xml page OCR, page text by leaf (page_id = identifier@leaf), and original verification (metadata/access/djvu/page-range/OCR/image checks) all pass on hydroelectricdev00koesrich (1909, 506 leaves). Access-restricted items are refused. Note: some items' djvu.txt has no form-feed separators, so djvu.xml is the primary page source; in-document search downloads the item OCR once per session (large books are slow)."
     last_verified: "2026-11-22"
   - id: open-library
     region: Global

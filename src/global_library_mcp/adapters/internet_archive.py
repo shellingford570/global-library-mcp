@@ -21,10 +21,12 @@ class InternetArchiveAdapter(LibraryAdapter):
         super().__init__(client)
         self._metadata_cache: dict[str, dict[str, Any]] = {}
         self._pages_cache: dict[str, list[str]] = {}
+        self._ocr_sources: dict[str, str] = {}
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
+        scoped = query if "mediatype:" in query else f"({query}) AND mediatype:texts"
         payload = await get_json(self.client, f"{self.base_url}/advancedsearch.php", params={
-                "q": query,
+                "q": scoped,
                 "fl[]": ["identifier", "title", "creator", "date", "description", "rights", "licenseurl"],
                 "rows": min(max(limit, 1), 50),
                 "page": 1,
@@ -99,19 +101,22 @@ class InternetArchiveAdapter(LibraryAdapter):
 
     @staticmethod
     def _is_restricted(metadata_payload: dict[str, Any]) -> bool:
-        return bool((metadata_payload.get("metadata") or {}).get("access-restricted-item"))
+        value = (metadata_payload.get("metadata") or {}).get("access-restricted-item")
+        return value is True or (isinstance(value, str) and value.lower() == "true")
 
     @staticmethod
     def _has_file(metadata_payload: dict[str, Any], suffix: str) -> bool:
         return any(str(f.get("name", "")).endswith(suffix) for f in metadata_payload.get("files", []) if isinstance(f, dict))
 
     async def _pages(self, identifier: str) -> list[str]:
-        """Fetch the item's djvu.txt OCR and split it into leaf pages.
+        """Fetch the item's page-level OCR, split by scanned leaf.
 
-        The djvu text file separates scanned leaves with form feeds, so
-        page index == leaf number, the same index the BookReader page
-        images use. Restricted items are refused here, per item-level
-        access conditions.
+        Primary source is djvu.xml: each OBJECT element is one leaf, in
+        order, so page index == leaf number == the BookReader page
+        image index. djvu.txt is only a fallback, because some items'
+        text files contain no form-feed page separators at all (found
+        live on hydroelectricdev00koesrich, 2026-11-22). Restricted
+        items are refused here, per item-level access conditions.
         """
         identifier = self._safe_id(identifier)
         if identifier in self._pages_cache:
@@ -119,12 +124,44 @@ class InternetArchiveAdapter(LibraryAdapter):
         payload = await self._metadata(identifier)
         if self._is_restricted(payload):
             raise AdapterError(self.library_id, f"Item {identifier} is access-restricted; full text is not public")
-        if not self._has_file(payload, "_djvu.txt"):
-            raise AdapterError(self.library_id, f"Item {identifier} has no public djvu.txt OCR file")
-        response = await self.client.get(f"{self.base_url}/download/{identifier}/{identifier}_djvu.txt", follow_redirects=True)
-        response.raise_for_status()
-        pages = response.text.split("\f")
+        pages: list[str] | None = None
+        if self._has_file(payload, "_djvu.xml"):
+            response = await self.client.get(f"{self.base_url}/download/{identifier}/{identifier}_djvu.xml", follow_redirects=True)
+            response.raise_for_status()
+            pages = self._parse_djvu_xml(response.text)
+            self._ocr_sources[identifier] = "djvu.xml"
+        if not pages and self._has_file(payload, "_djvu.txt"):
+            response = await self.client.get(f"{self.base_url}/download/{identifier}/{identifier}_djvu.txt", follow_redirects=True)
+            response.raise_for_status()
+            split = response.text.split("\f")
+            if len(split) > 1:
+                pages = split
+                self._ocr_sources[identifier] = "djvu.txt"
+        if not pages:
+            raise AdapterError(self.library_id, f"Item {identifier} has no usable page-level OCR (djvu.xml/djvu.txt)")
         self._pages_cache[identifier] = pages
+        return pages
+
+    @staticmethod
+    def _parse_djvu_xml(xml_text: str) -> list[str]:
+        import xml.etree.ElementTree as ET
+
+        def local(tag: str) -> str:
+            return tag.rsplit("}", 1)[-1]
+
+        root = ET.fromstring(xml_text)
+        pages: list[str] = []
+        for obj in root.iter():
+            if local(obj.tag) != "OBJECT":
+                continue
+            lines: list[str] = []
+            for line in obj.iter():
+                if local(line.tag) != "LINE":
+                    continue
+                words = [word.text or "" for word in line.iter() if local(word.tag) == "WORD"]
+                if words:
+                    lines.append(" ".join(words))
+            pages.append("\n".join(lines))
         return pages
 
     async def get_document(self, record_id: str) -> dict[str, Any]:
@@ -132,7 +169,7 @@ class InternetArchiveAdapter(LibraryAdapter):
         payload = await self._metadata(identifier)
         md = payload.get("metadata") or {}
         pages = None
-        if not self._is_restricted(payload) and self._has_file(payload, "_djvu.txt"):
+        if not self._is_restricted(payload) and (self._has_file(payload, "_djvu.xml") or self._has_file(payload, "_djvu.txt")):
             try:
                 pages = len(await self._pages(identifier))
             except Exception:  # noqa: BLE001 - page count is informational here
@@ -187,7 +224,7 @@ class InternetArchiveAdapter(LibraryAdapter):
             "digital_frame": leaf,
             "printed_page": "unknown",
             "contents": contents,
-            "ocr_source": "djvu.txt",
+            "ocr_source": self._ocr_sources.get(identifier, "djvu.xml"),
             "image_url": self.image_url(identifier, leaf),
             "page_count": len(pages),
             "source": f"{self.base_url}/download/{identifier}/{identifier}_djvu.txt",
@@ -205,8 +242,8 @@ class InternetArchiveAdapter(LibraryAdapter):
             checks["metadata"] = {"ok": True, "detail": f"item {identifier} found"}
             restricted = self._is_restricted(payload)
             checks["access"] = {"ok": not restricted, "detail": "access-restricted item" if restricted else "public item"}
-            has_djvu = self._has_file(payload, "_djvu.txt")
-            checks["djvu_present"] = {"ok": has_djvu, "detail": "djvu.txt present" if has_djvu else "no djvu.txt file"}
+            has_djvu = self._has_file(payload, "_djvu.xml") or self._has_file(payload, "_djvu.txt")
+            checks["djvu_present"] = {"ok": has_djvu, "detail": "djvu OCR files present" if has_djvu else "no djvu OCR files"}
             if has_djvu and not restricted:
                 pages = await self._pages(identifier)
         except Exception as exc:  # noqa: BLE001 - recorded as failed checks
