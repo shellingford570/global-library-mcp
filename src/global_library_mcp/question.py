@@ -38,7 +38,7 @@ _CHAR_VARIANTS = str.maketrans({
     "黨": "党", "單": "単", "戰": "戦", "觀": "観", "覽": "覧", "顯": "顕",
     "驗": "験", "驅": "駆", "澁": "渋", "櫻": "桜", "舊": "旧", "莊": "荘",
     "乘": "乗", "亂": "乱", "淨": "浄", "增": "増", "寬": "寛", "德": "徳",
-    "聽": "聴", "聲": "声", "賣": "売", "買": "買", "來": "来", "東": "東",
+    "聽": "聴", "聲": "声", "賣": "売", "買": "買", "來": "来", "東": "東", "燈": "灯",
     "ゐ": "い", "ゑ": "え", "ヰ": "イ", "ヱ": "エ", "づ": "ず", "ぢ": "じ",
 })
 
@@ -108,7 +108,8 @@ GENERIC_TERMS = {
     "時代", "歴史", "通信", "原理", "影響", "発達", "発展", "普及", "制度",
     "社会", "文化", "科学", "記録", "資料", "説明", "記述", "内容", "方法",
     "事業", "関係", "状況", "様子", "当時", "日本", "技術", "産業", "明治時代",
-    "大正時代", "昭和時代", "変化", "様相", "概要", "始まり", "導入", "建設",
+    "大正時代", "昭和時代", "変化", "様相", "概要", "始まり", "導入", "建設", "仕組み",
+    "開発", "違い", "原因",
 }
 
 ERAS: dict[str, tuple[int, int]] = {
@@ -219,6 +220,12 @@ def analyze_question(question: str) -> QuestionAnalysis:
     for candidate in candidates:
         if candidate in era_words or candidate in region_words:
             continue
+        if len(candidate) <= 5 and candidate[0] in "ぁ-ん":
+            continue  # hiragana-led fragment from term splitting (めぐる議論, よう)
+        if len(candidate) <= 5 and re.search(r"(われた|された|られた|れた|した.{0,3})$", candidate):
+            continue  # verb-form fragment (行われた, 流行した原因)
+        if re.fullmatch(r"\d{3,4}年", candidate) or _ERA_YEAR_RE.fullmatch(candidate):
+            continue  # a date expression is era information, not a concept
         if candidate in GENERIC_TERMS:
             if candidate not in generic:
                 generic.append(candidate)
@@ -236,7 +243,7 @@ def analyze_question(question: str) -> QuestionAnalysis:
 
     requirements: list[dict[str, Any]] = [{"type": "core_concept", "concept": c} for c in core]
     if era:
-        requirements.append({"type": "era", "label": era["label"], "start": era["start"], "end": era["end"]})
+        requirements.append({"type": "era", "label": era["label"], "era": era.get("era"), "start": era["start"], "end": era["end"]})
     for region in regions:
         requirements.append({"type": "region", "region": region})
     if intent == "numeric":

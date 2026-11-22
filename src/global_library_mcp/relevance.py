@@ -36,8 +36,19 @@ def concept_families(core_concepts: list[str]) -> list[str]:
     return families
 
 
+def _compound_halves_present(text_normalised: str, family: str) -> bool:
+    """Long compounds often appear split in period prose
+    (横浜開港 as 横浜の開港, 日露戦争 as 日露の戦争): accept the family
+    when both halves of a >=4-character compound occur in the page."""
+    if len(family) < 4:
+        return False
+    mid = (len(family) + 1) // 2
+    head, tail = normalize_text(family[:mid]), normalize_text(family[mid:])
+    return bool(head) and bool(tail) and head in text_normalised and tail in text_normalised
+
+
 def _era_signal(text_normalised: str, era: dict[str, Any]) -> tuple[bool, str | None]:
-    name = era.get("era")
+    name = era.get("era") or (era.get("label") if era.get("label") in ERAS else None)
     if name and normalize_text(name) in text_normalised:
         return True, f"時代名「{name}」が本文に現れる"
     for match in _YEAR_RE.finditer(text_normalised):
@@ -60,7 +71,7 @@ def assess_relevance(
     matched: list[str] = []
     missing: list[str] = []
     for family in families:
-        if find_concept(text, family):
+        if find_concept(text, family) or _compound_halves_present(text, family):
             matched.append(family)
         else:
             missing.append(family)
@@ -82,10 +93,12 @@ def assess_relevance(
         reasons.append(f"一致したのは周辺語のみ: {'、'.join(generic_matched)}")
 
     numeric_unmet = False
+    era_signal_found = True  # only meaningful when an era requirement exists
     for requirement in analysis.requirements:
         rtype = requirement.get("type")
         if rtype == "era":
             found, note = _era_signal(text, requirement)
+            era_signal_found = found
             if found:
                 score += 0.15
                 reasons.append(note or "時代の手がかりを確認")
@@ -129,7 +142,17 @@ def assess_relevance(
         else:
             reasons.append(f"出版年（{publication_year}年）は対象時代から離れているが、回顧的記述の可能性は出版年だけでは否定できない")
 
+    era_far = False
+    if analysis.era and not era_signal_found and publication_year is not None:
+        if publication_year > analysis.era["end"] + 40:
+            era_far = True
+            reasons.append("対象時代への言及が本文になく、出版年も時代から大きく離れているため、時代を扱う根拠としては採用しない")
+        elif publication_year > analysis.era["end"] + 20:
+            score -= 0.15
+            reasons.append("対象時代への言及が本文になく、出版年も時代から離れている")
+
     score = max(0.0, min(1.0, score))
+    anchor_matched = bool(families) and families[0] in matched
     if fraction == 0:
         status = "irrelevant"
         score = min(score, 0.2)
@@ -137,10 +160,14 @@ def assess_relevance(
         status = "partially_relevant" if fraction >= 0.5 else "irrelevant"
     elif fraction == 1 and score >= 0.6:
         status = "relevant"
+    elif anchor_matched and fraction >= 0.5 and score >= 0.5:
+        status = "relevant"
     elif fraction >= 0.5:
         status = "partially_relevant" if score < 0.75 else "relevant"
     else:
         status = "partially_relevant" if score >= 0.35 else "irrelevant"
+    if era_far and status == "relevant":
+        status = "partially_relevant"
     return {
         "status": status, "score": round(score, 3),
         "matched_concepts": matched, "missing_concepts": missing,

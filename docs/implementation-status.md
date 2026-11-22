@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-11-22 (branch `feat/global-library-research-v3`, Phase 3).
+Last updated: 2026-11-22 (branch `feat/global-library-reliability-v4`, Phase 4).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
 
@@ -18,8 +18,11 @@ service or a full local test; **not implemented** = absent by design or pending.
 | Evidence-grounded answers | implemented, verified with mock provider | Real LLM is optional and disabled by default; citations whitelist-validated twice (provider and service layer) |
 | Insufficient-evidence handling | implemented, verified | Status `insufficient_evidence`; no answer is produced from bibliographic data alone |
 | Web UI (search + answers + evidence) | implemented, verified | Citation chips jump to evidence cards; inline IIIF verification; JA/EN toggle; claim support badges; IIIF image previews; query-language hint; document comparison view |
-| Claim-level grounding screening | implemented, verified with mock provider | Per-claim support status (lexical screening + date-token checks); not a semantic proof |
-| Answer-quality evaluation | implemented, first live run done | 30-question dataset + runner in `eval/`; results and findings in `docs/evaluation.md` |
+| Claim-level grounding screening | implemented, verified with mock provider | Per-claim support status (lexical screening + date-token checks + material numeric check); not a semantic proof |
+| Question understanding | implemented (Phase 4) | Rule-based analysis: core concepts vs generic terms, era (incl. era-year conversion), region, intent, structured requirements; no LLM required |
+| Relevance gate | implemented (Phase 4), live-evaluated | Per-page relevance screening (relevant / partially_relevant / irrelevant / uncertain) with reasons, separate from the OCR quality gate; only `relevant` pages ground answers, the rest are shown as related reference material |
+| Answer withholding | implemented (Phase 4) | Answers are withheld when a screened claim is unsupported/conflicting (`answer_withheld`), and refusals name the missing core concepts with related documents attached |
+| Answer-quality evaluation | implemented, Phase 4 runs done | 70-question dataset + fixture suite + runner in `eval/`; before/after results and failure analysis in `docs/evaluation.md` |
 | Document comparison | implemented, verified | `compare_documents` (MCP + Web): aspect rows over verified pages, shared/unique terms, gaps, era notes |
 | Web API rate limiting | implemented | Per-IP sliding window, 120 req/min default (`GLM_RATE_LIMIT_PER_MINUTE`), 429 on excess |
 | MCP server | implemented | Tools listed in README.md |

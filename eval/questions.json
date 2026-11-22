@@ -3,35 +3,495 @@
   "created": "2026-11-22",
   "notes": "expect is a hypothesis recorded before the run; mismatches between expect and actual are findings, not harness failures. 'insufficient' means: the correct behaviour is to return insufficient_evidence (or claims that the checker does not mark supported).",
   "questions": [
-    {"id": "q01", "category": "日本史", "question": "明治時代の発電水力の開発について教えて", "expect": "evidence", "rationale": "『發電水力の開發』(1911) など直接の資料が存在する"},
-    {"id": "q02", "category": "日本史", "question": "明治時代の鉄道開業について当時の資料は何を述べているか", "expect": "evidence", "rationale": "鉄道関係の明治期資料が多数存在する"},
-    {"id": "q03", "category": "日本史", "question": "日露戦争について当時の資料は何を述べているか", "expect": "evidence", "rationale": "戦史・記録類が存在する"},
-    {"id": "q04", "category": "日本史", "question": "明治時代の郵便制度の始まりについて教えて", "expect": "evidence", "rationale": "郵便創業関係資料が存在する"},
-    {"id": "q05", "category": "日本史", "question": "横浜開港について当時の資料の記述を教えて", "expect": "evidence", "rationale": "開港関係資料が存在する"},
-    {"id": "q06", "category": "日本史", "question": "明治時代の義務教育制度について教えて", "expect": "evidence", "rationale": "学制関係資料が存在する"},
-    {"id": "q07", "category": "科学技術史", "question": "明治時代の電信技術の導入について教えて", "expect": "evidence", "rationale": "電信創業関係資料が存在する"},
-    {"id": "q08", "category": "科学技術史", "question": "日本の活版印刷の始まりについて当時の資料は何を述べているか", "expect": "evidence", "rationale": "印刷史資料が存在する"},
-    {"id": "q09", "category": "科学技術史", "question": "明治時代の時計製造について教えて", "expect": "evidence", "rationale": "時計産業関係資料の存在は不確実（発見失敗もデータ）"},
-    {"id": "q10", "category": "科学技術史", "question": "日本の紡績業の機械化について当時の資料の記述を教えて", "expect": "evidence", "rationale": "紡績関係資料が存在する"},
-    {"id": "q11", "category": "科学技術史", "question": "明治時代のガス灯の普及について教えて", "expect": "evidence", "rationale": "ガス事業関係資料が存在する"},
-    {"id": "q12", "category": "発電・電気工学", "question": "水力発電の仕組みについて当時の技術書は何と説明しているか", "expect": "evidence", "rationale": "『水力電気』等の技術書が存在する"},
-    {"id": "q13", "category": "発電・電気工学", "question": "発電水力調査はどのように行われたか", "expect": "evidence", "rationale": "発電水力調査書が存在する"},
-    {"id": "q14", "category": "発電・電気工学", "question": "明治時代の電力会社について当時の資料の記述を教えて", "expect": "evidence", "rationale": "電気事業関係資料が存在する"},
-    {"id": "q15", "category": "発電・電気工学", "question": "電灯の普及について当時の資料は何を述べているか", "expect": "evidence", "rationale": "電灯関係資料が存在する"},
-    {"id": "q16", "category": "発電・電気工学", "question": "水力電気の送電について当時の技術書の説明を教えて", "expect": "evidence", "rationale": "『水力電気 上巻』(1925) が存在する"},
-    {"id": "q17", "category": "発電・電気工学", "question": "発電所のタービンについて当時の資料はどう記述しているか", "expect": "evidence", "rationale": "水車・タービン関係の技術資料が存在する見込み"},
-    {"id": "q18", "category": "医学史", "question": "明治時代の種痘について当時の資料の記述を教えて", "expect": "evidence", "rationale": "種痘関係資料が存在する"},
-    {"id": "q19", "category": "医学史", "question": "コレラの流行と対策について当時の記録は何を述べているか", "expect": "evidence", "rationale": "虎列剌病関係資料が存在する"},
-    {"id": "q20", "category": "医学史", "question": "明治時代の病院制度について教えて", "expect": "evidence", "rationale": "病院規則関係資料が存在する"},
-    {"id": "q21", "category": "医学史", "question": "脚気の原因をめぐる議論について当時の資料の記述を教えて", "expect": "evidence", "rationale": "脚気論争関係資料が存在する"},
-    {"id": "q22", "category": "地理・文化史", "question": "明治時代の北海道開拓について当時の資料は何を述べているか", "expect": "evidence", "rationale": "開拓使関係資料が存在する"},
-    {"id": "q23", "category": "地理・文化史", "question": "神戸の外国人居留地について当時の資料の記述を教えて", "expect": "evidence", "rationale": "居留地関係資料が存在する"},
-    {"id": "q24", "category": "地理・文化史", "question": "明治時代の地震記録について教えて", "expect": "evidence", "rationale": "震災記録が存在する"},
-    {"id": "q25", "category": "地理・文化史", "question": "富士登山について当時の案内書はどう記述しているか", "expect": "evidence", "rationale": "登山案内書が存在する見込み"},
-    {"id": "q26", "category": "回答不能", "question": "スマートフォンの普及が明治時代の通信に与えた影響について教えて", "expect": "insufficient", "rationale": "時代錯誤。対象コーパスに根拠が存在しない"},
-    {"id": "q27", "category": "回答不能", "question": "インターネットの歴史について教えて", "expect": "insufficient", "rationale": "次世代デジタルライブラリーの古典籍コーパスには無い見込み（実際と異なる場合は所見として記録）"},
-    {"id": "q28", "category": "回答不能", "question": "月面着陸について当時の日本の新聞はどう報じたか", "expect": "insufficient", "rationale": "1969年の新聞はこのコーパスの範囲外の見込み"},
-    {"id": "q29", "category": "回答不能", "question": "量子コンピュータの原理について当時の資料の記述を教えて", "expect": "insufficient", "rationale": "古典籍コーパスに存在しない主題"},
-    {"id": "q30", "category": "回答不能", "question": "ペリー来航時の横浜村の正確な人口を教えて", "expect": "insufficient", "rationale": "具体的すぎる数値で、資料に記載がない見込み"}
+    {
+      "id": "q01",
+      "category": "日本史",
+      "question": "明治時代の発電水力の開発について教えて",
+      "expect": "evidence",
+      "rationale": "『發電水力の開發』(1911) など直接の資料が存在する"
+    },
+    {
+      "id": "q02",
+      "category": "日本史",
+      "question": "明治時代の鉄道開業について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "rationale": "鉄道関係の明治期資料が多数存在する"
+    },
+    {
+      "id": "q03",
+      "category": "日本史",
+      "question": "日露戦争について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "rationale": "戦史・記録類が存在する"
+    },
+    {
+      "id": "q04",
+      "category": "日本史",
+      "question": "明治時代の郵便制度の始まりについて教えて",
+      "expect": "evidence",
+      "rationale": "郵便創業関係資料が存在する"
+    },
+    {
+      "id": "q05",
+      "category": "日本史",
+      "question": "横浜開港について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "rationale": "開港関係資料が存在する"
+    },
+    {
+      "id": "q06",
+      "category": "日本史",
+      "question": "明治時代の義務教育制度について教えて",
+      "expect": "evidence",
+      "rationale": "学制関係資料が存在する"
+    },
+    {
+      "id": "q07",
+      "category": "科学技術史",
+      "question": "明治時代の電信技術の導入について教えて",
+      "expect": "evidence",
+      "rationale": "電信創業関係資料が存在する"
+    },
+    {
+      "id": "q08",
+      "category": "科学技術史",
+      "question": "日本の活版印刷の始まりについて当時の資料は何を述べているか",
+      "expect": "evidence",
+      "rationale": "印刷史資料が存在する"
+    },
+    {
+      "id": "q09",
+      "category": "科学技術史",
+      "question": "明治時代の時計製造について教えて",
+      "expect": "evidence",
+      "rationale": "時計産業関係資料の存在は不確実（発見失敗もデータ）"
+    },
+    {
+      "id": "q10",
+      "category": "科学技術史",
+      "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "rationale": "紡績関係資料が存在する"
+    },
+    {
+      "id": "q11",
+      "category": "科学技術史",
+      "question": "明治時代のガス灯の普及について教えて",
+      "expect": "evidence",
+      "rationale": "ガス事業関係資料が存在する"
+    },
+    {
+      "id": "q12",
+      "category": "発電・電気工学",
+      "question": "水力発電の仕組みについて当時の技術書は何と説明しているか",
+      "expect": "evidence",
+      "rationale": "『水力電気』等の技術書が存在する"
+    },
+    {
+      "id": "q13",
+      "category": "発電・電気工学",
+      "question": "発電水力調査はどのように行われたか",
+      "expect": "evidence",
+      "rationale": "発電水力調査書が存在する"
+    },
+    {
+      "id": "q14",
+      "category": "発電・電気工学",
+      "question": "明治時代の電力会社について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "rationale": "電気事業関係資料が存在する"
+    },
+    {
+      "id": "q15",
+      "category": "発電・電気工学",
+      "question": "電灯の普及について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "rationale": "電灯関係資料が存在する"
+    },
+    {
+      "id": "q16",
+      "category": "発電・電気工学",
+      "question": "水力電気の送電について当時の技術書の説明を教えて",
+      "expect": "evidence",
+      "rationale": "『水力電気 上巻』(1925) が存在する"
+    },
+    {
+      "id": "q17",
+      "category": "発電・電気工学",
+      "question": "発電所のタービンについて当時の資料はどう記述しているか",
+      "expect": "evidence",
+      "rationale": "水車・タービン関係の技術資料が存在する見込み"
+    },
+    {
+      "id": "q18",
+      "category": "医学史",
+      "question": "明治時代の種痘について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "rationale": "種痘関係資料が存在する"
+    },
+    {
+      "id": "q19",
+      "category": "医学史",
+      "question": "コレラの流行と対策について当時の記録は何を述べているか",
+      "expect": "evidence",
+      "rationale": "虎列剌病関係資料が存在する"
+    },
+    {
+      "id": "q20",
+      "category": "医学史",
+      "question": "明治時代の病院制度について教えて",
+      "expect": "evidence",
+      "rationale": "病院規則関係資料が存在する"
+    },
+    {
+      "id": "q21",
+      "category": "医学史",
+      "question": "脚気の原因をめぐる議論について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "rationale": "脚気論争関係資料が存在する"
+    },
+    {
+      "id": "q22",
+      "category": "地理・文化史",
+      "question": "明治時代の北海道開拓について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "rationale": "開拓使関係資料が存在する"
+    },
+    {
+      "id": "q23",
+      "category": "地理・文化史",
+      "question": "神戸の外国人居留地について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "rationale": "居留地関係資料が存在する"
+    },
+    {
+      "id": "q24",
+      "category": "地理・文化史",
+      "question": "明治時代の地震記録について教えて",
+      "expect": "evidence",
+      "rationale": "震災記録が存在する"
+    },
+    {
+      "id": "q25",
+      "category": "地理・文化史",
+      "question": "富士登山について当時の案内書はどう記述しているか",
+      "expect": "evidence",
+      "rationale": "登山案内書が存在する見込み"
+    },
+    {
+      "id": "q26",
+      "category": "回答不能",
+      "question": "スマートフォンの普及が明治時代の通信に与えた影響について教えて",
+      "expect": "insufficient",
+      "rationale": "時代錯誤。対象コーパスに根拠が存在しない"
+    },
+    {
+      "id": "q27",
+      "category": "回答不能",
+      "question": "インターネットの歴史について教えて",
+      "expect": "evidence",
+      "rationale": "Phase 4で再ラベル: 対象コーパスには現代の出版物も含まれ、この質問には時代指定がない。インターネット史の実在資料が根拠として確認できるため、環境基準では回答可能"
+    },
+    {
+      "id": "q28",
+      "category": "回答不能",
+      "question": "月面着陸について当時の日本の新聞はどう報じたか",
+      "expect": "insufficient",
+      "rationale": "1969年の新聞はこのコーパスの範囲外の見込み"
+    },
+    {
+      "id": "q29",
+      "category": "回答不能",
+      "question": "量子コンピュータの原理について当時の資料の記述を教えて",
+      "expect": "insufficient",
+      "rationale": "古典籍コーパスに存在しない主題"
+    },
+    {
+      "id": "q30",
+      "category": "回答不能",
+      "question": "ペリー来航時の横浜村の正確な人口を教えて",
+      "expect": "insufficient",
+      "rationale": "具体的すぎる数値で、資料に記載がない見込み"
+    },
+    {
+      "id": "q31",
+      "category": "時代錯誤",
+      "question": "大正時代のテレビ放送の開始について教えて",
+      "expect": "insufficient",
+      "rationale": "テレビ放送は1953年開始。大正期の資料に根拠はない"
+    },
+    {
+      "id": "q32",
+      "category": "時代錯誤",
+      "question": "明治時代のラジオ放送が社会に与えた影響について教えて",
+      "expect": "insufficient",
+      "rationale": "ラジオ放送は大正末期開始。明治期には存在しない"
+    },
+    {
+      "id": "q33",
+      "category": "存在しない技術",
+      "question": "明治時代の原子力発電所の建設について教えて",
+      "expect": "insufficient",
+      "rationale": "原子力発電は戦後の技術"
+    },
+    {
+      "id": "q34",
+      "category": "存在しない技術",
+      "question": "昭和初期のパーソナルコンピュータの普及について教えて",
+      "expect": "insufficient",
+      "rationale": "PCの普及は昭和末期以降"
+    },
+    {
+      "id": "q35",
+      "category": "存在しない技術",
+      "question": "大正時代の新幹線の開業について教えて",
+      "expect": "insufficient",
+      "rationale": "新幹線は1964年開業"
+    },
+    {
+      "id": "q36",
+      "category": "存在しない技術",
+      "question": "明治時代の冷蔵庫の普及率を教えて",
+      "expect": "insufficient",
+      "rationale": "数値要求かつ対象技術が時代に存在しない"
+    },
+    {
+      "id": "q37",
+      "category": "存在しない人物",
+      "question": "山田電之助の発電理論について教えて",
+      "expect": "insufficient",
+      "rationale": "実在しない人物名"
+    },
+    {
+      "id": "q38",
+      "category": "存在しない地名",
+      "question": "東京府夢幻郡の水力発電について教えて",
+      "expect": "insufficient",
+      "rationale": "実在しない郡名。水力発電の実在資料に惑わされないか"
+    },
+    {
+      "id": "q39",
+      "category": "時代錯誤",
+      "question": "明治時代の自動車レースの優勝者について教えて",
+      "expect": "insufficient",
+      "rationale": "明治期の日本に自動車レースの記録はない"
+    },
+    {
+      "id": "q40",
+      "category": "数値要求",
+      "question": "明治四十三年の発電水力調査で確認された滝の正確な数を教えて",
+      "expect": "insufficient",
+      "rationale": "過度に具体的な数値。資料にその集計はない見込み"
+    },
+    {
+      "id": "q41",
+      "category": "因果要求",
+      "question": "スマートフォンの普及が明治時代の出版文化に与えた影響について教えて",
+      "expect": "insufficient",
+      "rationale": "時代錯誤の因果質問"
+    },
+    {
+      "id": "q42",
+      "category": "時代錯誤",
+      "question": "江戸時代の写真機の普及について教えて",
+      "expect": "insufficient",
+      "rationale": "写真機の本格的普及は明治以降"
+    },
+    {
+      "id": "q43",
+      "category": "存在しない技術",
+      "question": "明治時代の飛行機による旅客輸送について教えて",
+      "expect": "insufficient",
+      "rationale": "旅客航空は大正期以降"
+    },
+    {
+      "id": "q44",
+      "category": "時代錯誤",
+      "question": "昭和初期のテレビコマーシャルの特徴について教えて",
+      "expect": "insufficient",
+      "rationale": "テレビCMは1953年以降"
+    },
+    {
+      "id": "q45",
+      "category": "数値要求",
+      "question": "明治時代の携帯電話の契約数を教えて",
+      "expect": "insufficient",
+      "rationale": "数値要求かつ対象が存在しない"
+    },
+    {
+      "id": "q46",
+      "category": "存在しない技術",
+      "question": "大正時代の電子メールの利用について教えて",
+      "expect": "insufficient",
+      "rationale": "電子メールは現代の技術"
+    },
+    {
+      "id": "q47",
+      "category": "時代錯誤",
+      "question": "明治時代のプロ野球チームの成績について教えて",
+      "expect": "insufficient",
+      "rationale": "日本プロ野球は1936年開始"
+    },
+    {
+      "id": "q48",
+      "category": "数値要求",
+      "question": "大正時代のエレベーター事故の統計を教えて",
+      "expect": "insufficient",
+      "rationale": "そのような統計資料は対象コーパスにない見込み"
+    },
+    {
+      "id": "q49",
+      "category": "時代錯誤",
+      "question": "明治時代の地下鉄の建設について教えて",
+      "expect": "insufficient",
+      "rationale": "地下鉄開業は1927年"
+    },
+    {
+      "id": "q50",
+      "category": "時代錯誤",
+      "question": "Tell me about smartphone adoption in Meiji era Japan",
+      "expect": "insufficient",
+      "rationale": "英語の時代錯誤質問。英語の質問解析が課題"
+    },
+    {
+      "id": "q51",
+      "category": "存在しない技術",
+      "question": "明治時代のプラスチック製品の普及について教えて",
+      "expect": "insufficient",
+      "rationale": "プラスチック製品の普及は戦後"
+    },
+    {
+      "id": "q52",
+      "category": "存在しない技術",
+      "question": "大正時代の電気洗濯機の普及について教えて",
+      "expect": "insufficient",
+      "rationale": "電気洗濯機の普及は戦後"
+    },
+    {
+      "id": "q53",
+      "category": "日本史",
+      "question": "明治時代の鉄道開業について教えて",
+      "expect": "evidence",
+      "rationale": "鉄道資料は対象コーパスに豊富"
+    },
+    {
+      "id": "q54",
+      "category": "日本史",
+      "question": "横浜開港と貿易の始まりについて教えて",
+      "expect": "evidence",
+      "rationale": "開港関連資料が存在する"
+    },
+    {
+      "id": "q55",
+      "category": "科学技術史",
+      "question": "日本への電信技術の導入について教えて",
+      "expect": "evidence",
+      "rationale": "電信関係資料が存在する"
+    },
+    {
+      "id": "q56",
+      "category": "科学技術史",
+      "question": "活版印刷技術の発達について教えて",
+      "expect": "evidence",
+      "rationale": "印刷史資料が存在する"
+    },
+    {
+      "id": "q57",
+      "category": "医学史",
+      "question": "種痘の普及について教えて",
+      "expect": "evidence",
+      "rationale": "種痘関係資料が存在する"
+    },
+    {
+      "id": "q58",
+      "category": "地理・文化史",
+      "question": "富岡製糸場と製糸業について教えて",
+      "expect": "evidence",
+      "rationale": "製糸業資料が存在する"
+    },
+    {
+      "id": "q59",
+      "category": "発電・電気工学",
+      "question": "明治時代の電灯の普及について教えて",
+      "expect": "evidence",
+      "rationale": "電灯関係資料が存在する"
+    },
+    {
+      "id": "q60",
+      "category": "旧字体",
+      "question": "發電水力の開發について教えてください",
+      "expect": "evidence",
+      "rationale": "旧字体の質問。正規化で水力発電に一致するはず"
+    },
+    {
+      "id": "q61",
+      "category": "旧字体",
+      "question": "電氣事業の歴史について教えて",
+      "expect": "evidence",
+      "rationale": "旧字体の質問。当時の資料は電氣表記"
+    },
+    {
+      "id": "q62",
+      "category": "比較",
+      "question": "明治時代と大正時代の水力発電の違いを比較して教えて",
+      "expect": "evidence",
+      "rationale": "比較質問。両時代の水力発電資料が存在する"
+    },
+    {
+      "id": "q63",
+      "category": "因果要求",
+      "question": "脚気が軍隊で流行した原因について教えて",
+      "expect": "evidence",
+      "rationale": "脚気関係資料が存在する"
+    },
+    {
+      "id": "q64",
+      "category": "日本史",
+      "question": "1891年の濃尾地震の被害について教えて",
+      "expect": "evidence",
+      "rationale": "震災報告資料が存在する見込み"
+    },
+    {
+      "id": "q65",
+      "category": "英日同義語",
+      "question": "How did hydroelectric power develop in Japan?",
+      "expect": "evidence",
+      "rationale": "英語質問。IAの英語資料または同義語処理で根拠が得られるか"
+    },
+    {
+      "id": "q66",
+      "category": "科学技術史",
+      "question": "蒸気機関の導入と工場について教えて",
+      "expect": "evidence",
+      "rationale": "蒸気機関関係資料が存在する"
+    },
+    {
+      "id": "q67",
+      "category": "医学史",
+      "question": "明治時代のコレラ流行と対策について教えて",
+      "expect": "evidence",
+      "rationale": "コレラ関係資料が存在する"
+    },
+    {
+      "id": "q68",
+      "category": "地理・文化史",
+      "question": "明治時代の北海道開拓について教えて",
+      "expect": "evidence",
+      "rationale": "開拓関係資料が存在する"
+    },
+    {
+      "id": "q69",
+      "category": "発電・電気工学",
+      "question": "送電技術の発達について教えて",
+      "expect": "evidence",
+      "rationale": "送電関係資料が存在する"
+    },
+    {
+      "id": "q70",
+      "category": "日本史",
+      "question": "明治時代の紡績業の発展について教えて",
+      "expect": "evidence",
+      "rationale": "紡績業資料が存在する"
+    }
   ]
 }

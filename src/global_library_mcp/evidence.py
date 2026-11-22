@@ -29,12 +29,22 @@ MIN_TERM_LENGTH = 2
 MAX_TERMS = 4
 
 
+_EN_STOPWORDS = {
+    "how", "did", "does", "do", "what", "when", "where", "why", "who",
+    "the", "a", "an", "of", "in", "on", "to", "for", "and", "or", "is",
+    "are", "was", "were", "tell", "me", "about", "please", "explain",
+    "develop", "developed", "history",
+}
+
+
 def extract_terms(query: str) -> list[str]:
     """Extract up to MAX_TERMS content terms from a question string."""
     cleaned = _QUESTION_TAIL_RE.sub("", query.strip())
     parts = [part.strip() for part in _SPLIT_RE.split(cleaned)]
     terms: list[str] = []
     for part in parts:
+        if part.lower() in _EN_STOPWORDS:
+            continue  # English function words are not search concepts
         if len(part) >= MIN_TERM_LENGTH and part not in terms:
             terms.append(part)
         if len(terms) >= MAX_TERMS:

@@ -24,7 +24,7 @@ class InternetArchiveAdapter(LibraryAdapter):
         self._ocr_sources: dict[str, str] = {}
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
-        scoped = query if "mediatype:" in query else f"({query}) AND mediatype:texts"
+        scoped = query if "mediatype:" in query else f"({query}) AND mediatype:texts AND NOT collection:inlibrary"
         payload = await get_json(self.client, f"{self.base_url}/advancedsearch.php", params={
                 "q": scoped,
                 "fl[]": ["identifier", "title", "creator", "date", "description", "rights", "licenseurl"],

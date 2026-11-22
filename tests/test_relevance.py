@@ -80,3 +80,31 @@ async def test_collect_evidence_routes_irrelevant_pages_to_related():
     assert len(result["related"]) == 1
     assert result["related"][0]["relevance"]["status"] == "irrelevant"
     assert result["analysis"]["core_concepts"]
+
+
+def test_compound_halves_match_split_form():
+    analysis = analyze_question("横浜開港について当時の資料の記述を教えて")
+    result = assess_relevance(analysis, "横浜の開港は安政六年に行われ、貿易が始まった。開港場の様子が記録されている。")
+    assert "横浜開港" in result["matched_concepts"]
+    assert result["status"] == "relevant"
+
+
+def test_anchor_match_with_half_concepts_is_relevant():
+    analysis = analyze_question("蒸気機関の導入と工場について教えて")
+    result = assess_relevance(analysis, "蒸気機関は工場に導入され、紡績の機械化が進んだ。蒸気機関の発達は産業を変えた。")
+    assert result["status"] == "relevant"
+
+
+def test_era_far_publication_without_era_mention_is_capped():
+    analysis = analyze_question("明治時代の原子力発電所の建設について教えて")
+    text = "原子力発電所の建設は安全性の検討から始まり、原子力発電所の運転に至るまで多くの工程がある。"
+    result = assess_relevance(analysis, text, publication_year=1980)
+    assert result["status"] == "partially_relevant"
+    assert any("出版年も時代から大きく離れている" in reason for reason in result["reasons"])
+
+
+def test_era_mention_overrides_publication_distance():
+    analysis = analyze_question("明治時代の原子力発電所の建設について教えて")
+    text = "明治時代には原子力発電所は存在しなかった。本書は原子力発電所の建設史を明治の電力事情から説き起こす。"
+    result = assess_relevance(analysis, text, publication_year=1980)
+    assert result["status"] == "relevant"

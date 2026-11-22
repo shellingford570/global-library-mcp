@@ -32,6 +32,7 @@ class LibraryService:
             "europeana": EuropeanaAdapter(client),
         }
         self.client = client
+        self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
 
     async def search(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> SearchResponse:
         selected = list(dict.fromkeys(libraries or self.default_libraries))
@@ -85,6 +86,15 @@ class LibraryService:
             raise ValueError(f"Unknown library: {library_id}")
         return await adapter.get_page_text(page_id)
 
+    async def _get_page_text_cached(self, adapter: LibraryAdapter, library_id: str, page_id: str) -> dict[str, Any]:
+        """Page payloads are immutable; reuse them within this service
+        instance (an answer flow plus a comparison in one process
+        should not refetch the same page). Failures are not cached."""
+        key = (library_id, str(page_id))
+        if key not in self._page_cache:
+            self._page_cache[key] = await adapter.get_page_text(page_id)
+        return self._page_cache[key]
+
     async def verify_page(self, library_id: str, page_id: str) -> dict[str, Any]:
         """Verify a page against its original (IIIF) representation.
 
@@ -137,11 +147,12 @@ class LibraryService:
             "search": collected["search"],
         }
         if not evidence:
+            # Name what the *closest* candidate lacked, not the union
+            # over every related page (which blamed concepts that the
+            # best pages actually contained).
             missing = []
-            for item in related:
-                for concept in (item.get("relevance") or {}).get("missing_concepts", []):
-                    if concept not in missing:
-                        missing.append(concept)
+            if related:
+                missing = list((related[0].get("relevance") or {}).get("missing_concepts", []))
             if not missing:
                 missing = list(analysis.get("core_concepts", []))
             if missing:
@@ -287,7 +298,7 @@ class LibraryService:
         seen_records: set[tuple[str, str]] = set()
         search_errors: list[dict[str, str]] = []
         capable = 0
-        for candidate_query in [query, *search_terms]:
+        for candidate_query in dict.fromkeys([query, *search_terms]):
             resp = await self.search(candidate_query, libraries, limit)
             search_errors.extend(resp.errors)
             for item in resp.results:
@@ -301,11 +312,21 @@ class LibraryService:
             if capable >= max_documents + 3:
                 break
         search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
+        # Try documents whose titles carry a core concept first: the
+        # full-question search surfaces broad survey volumes ahead of
+        # the on-topic monographs the term searches found.
+        from global_library_mcp.question import concept_variants, normalize_text
+
+        def _title_rank(item: Any) -> int:
+            title_n = normalize_text(item.title or "")
+            return 0 if any(variant in title_n for c in analysis.core_concepts for variant in concept_variants(c)) else 1
+
+        ranked = sorted(merged, key=_title_rank)
         verified: list[Evidence] = []
         related: list[dict[str, Any]] = []
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
-        for result in merged:
+        for result in ranked:
             # Keep trying further documents while no page has passed the
             # relevance gate yet (bounded, to cap API use).
             doc_limit = max_documents if verified else max_documents + 3
@@ -316,6 +337,7 @@ class LibraryService:
                 continue
             documents_tried += 1
             page_terms: dict[str, str] = {}
+            doc_failed = False
             for term in search_terms:
                 try:
                     found = await adapter.search_in_document(result.record_id, term, limit=pages_per_document * 2)
@@ -324,7 +346,8 @@ class LibraryService:
                         "library_id": result.library_id, "record_id": result.record_id,
                         "page_id": None, "reason": f"in-document search failed: {sanitize_error(exc)}",
                     })
-                    continue
+                    doc_failed = True
+                    break  # a document-level failure repeats for every term; stop early
                 matches = found.get("matches") if isinstance(found, dict) else None
                 entries = matches.get("list") if isinstance(matches, dict) else matches
                 for entry in entries or []:
@@ -334,14 +357,15 @@ class LibraryService:
                 if len(page_terms) >= pages_per_document:
                     break
             if not page_terms:
-                unverified.append({
-                    "library_id": result.library_id, "record_id": result.record_id,
-                    "page_id": None, "reason": "no in-document page matched the question terms",
-                })
+                if not doc_failed:
+                    unverified.append({
+                        "library_id": result.library_id, "record_id": result.record_id,
+                        "page_id": None, "reason": "no in-document page matched the question terms",
+                    })
                 continue
             for page_id, term in list(page_terms.items())[:pages_per_document]:
                 try:
-                    page = await adapter.get_page_text(page_id)
+                    page = await self._get_page_text_cached(adapter, result.library_id, page_id)
                 except Exception as exc:  # noqa: BLE001 - reported, not hidden
                     unverified.append({
                         "library_id": result.library_id, "record_id": result.record_id,
@@ -459,7 +483,7 @@ class LibraryService:
                         if not page_id or page_id in seen_pages:
                             continue
                         seen_pages.add(page_id)
-                        page = await adapter.get_page_text(page_id)
+                        page = await self._get_page_text_cached(adapter, library_id, page_id)
                         text = page.get("contents") or ""
                         quality = assess_ocr_quality(text)
                         if not page.get("verified_mapping") or not quality["usable"]:
