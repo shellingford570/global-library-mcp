@@ -35,7 +35,7 @@ test('AI answer remains explicit when the provider is unavailable', async ({ pag
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ available: false, reason: 'LLM is disabled', search: { results: [] } }),
+      body: JSON.stringify({ available: false, status: 'llm_unavailable', reason: 'LLM is disabled', query: '発電', evidence: [], unverified: [], search: { results: [], errors: [] } }),
     });
   });
 
@@ -43,4 +43,98 @@ test('AI answer remains explicit when the provider is unavailable', async ({ pag
   await page.locator('#query').fill('発電');
   await page.getByRole('button', { name: 'AI回答' }).click();
   await expect(page.getByText(/AI回答は利用できません/)).toBeVisible();
+});
+
+const ANSWER_PAYLOAD = {
+  status: 'answered',
+  available: true,
+  query: '発電水力の開発',
+  answer: '検証済みの根拠ページのOCR本文に基づく回答です。',
+  citations: [{
+    citation_key: 'ndl:994120:994120_50',
+    library_id: 'ndl',
+    library_name: 'National Diet Library',
+    record_id: '994120',
+    page_id: '994120_50',
+    digital_frame: 50,
+    title: '發電水力の開發',
+    image_url: 'https://dl.ndl.go.jp/api/iiif/994120/R0000050/full/full/0/default.jpg',
+    landing_url: 'https://dl.ndl.go.jp/pid/994120',
+  }],
+  evidence: [{
+    citation_key: 'ndl:994120:994120_50',
+    library_id: 'ndl',
+    library_name: 'National Diet Library',
+    record_id: '994120',
+    page_id: '994120_50',
+    digital_frame: 50,
+    title: '發電水力の開發',
+    ocr_text: '發電水力の開發は明治四十三年に始まり、臨時發電水力調査局が設置された。',
+    ocr_quality: { score: 1.0 },
+    matched_term: '発電水力',
+    image_url: 'https://dl.ndl.go.jp/api/iiif/994120/R0000050/full/full/0/default.jpg',
+    landing_url: 'https://dl.ndl.go.jp/pid/994120',
+    rights: { statement: '資料単位で確認' },
+  }],
+  unverified: [{ library_id: 'ndl', record_id: '123456', page_id: '123456_7', reason: 'OCR text is very short' }],
+  limitations: ['Mock provider'],
+  search: { results: [], errors: [] },
+};
+
+test('answer view links citations to evidence and runs IIIF verification', async ({ page }) => {
+  await page.route('**/api/answer**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ANSWER_PAYLOAD) });
+  });
+  await page.route('**/api/verify**', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'verified',
+        checks: {
+          page_identity: { ok: true, detail: 'match' },
+          image_reachable: { ok: true, detail: 'HTTP 206' },
+        },
+      }),
+    });
+  });
+
+  await page.goto('/');
+  await page.locator('#query').fill('発電水力の開発');
+  await page.getByRole('button', { name: 'AI回答' }).click();
+
+  await expect(page.getByText('検証済みの根拠ページのOCR本文に基づく回答です。')).toBeVisible();
+  await expect(page.getByText('検証済みOCR')).toBeVisible();
+  await expect(page.getByText(/OCR text is very short/)).toBeVisible();
+
+  const chip = page.locator('.chip');
+  await expect(chip).toHaveCount(1);
+  await chip.click();
+  await expect(page.locator('.evidence-card')).toBeInViewport();
+
+  await page.getByRole('button', { name: 'IIIFで原本を検証' }).click();
+  await expect(page.getByText('原本検証: verified')).toBeVisible();
+  await expect(page.getByText(/image_reachable/)).toBeVisible();
+});
+
+test('insufficient evidence is reported plainly', async ({ page }) => {
+  await page.route('**/api/answer**', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'insufficient_evidence', available: false, query: '未知の主題', answer: null, citations: [], evidence: [], unverified: [], message: '確認できる根拠（検証済みのOCRページ）が見つかりませんでした。', search: { results: [], errors: [] } }),
+    });
+  });
+
+  await page.goto('/');
+  await page.locator('#query').fill('未知の主題');
+  await page.getByRole('button', { name: 'AI回答' }).click();
+  await expect(page.getByText(/確認できる根拠/)).toBeVisible();
+});
+
+test('language toggle switches the UI to English', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Switch language' }).click();
+  await expect(page.getByRole('button', { name: 'Search' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'AI answer' })).toBeVisible();
 });
