@@ -33,6 +33,11 @@ Live checks against real library APIs are welcome but keep request counts
 small and record the date and outcome in `libraries.yaml` and
 `docs/api-research.md`.
 
+Dependency versions for the current development environment are pinned in
+`requirements.lock.txt`; the CycloneDX SBOM (`sbom.cyclonedx.json`) is
+regenerated with `python scripts/generate_sbom.py` whenever dependencies
+change. New adapters follow `docs/adapter-guide.md`.
+
 ## Adding a library adapter
 
 1. Research the official API and record it in `libraries.yaml`
