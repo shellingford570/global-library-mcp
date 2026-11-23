@@ -1,0 +1,144 @@
+{
+  "version": "newset2-v1-frozen-2026-11-23",
+  "note": "Phase 7 independent set. Labels and expected_records were fixed from historical facts and verified title-level records BEFORE any evaluation run on this set. Do not adjust labels to fit results.",
+  "questions": [
+    {
+      "id": "v01",
+      "category": "independent-v2",
+      "question": "明治時代の郵便制度の発達について教えて",
+      "expect": "evidence",
+      "label_basis": "郵便は明治4年(1871)に前島密により創業され、全国へ拡大した。",
+      "expected_records": [
+        "805617"
+      ],
+      "expected_record_title": "郵便物種別法"
+    },
+    {
+      "id": "v02",
+      "category": "independent-v2",
+      "question": "江戸時代の寺子屋ではどのような教育が行われていたか教えて",
+      "expect": "evidence",
+      "label_basis": "寺子屋では読み書き・そろばんが庶民教育として広く行われた。"
+    },
+    {
+      "id": "v03",
+      "category": "independent-v2",
+      "question": "明治時代のガス灯の導入と広がりについて教えて",
+      "expect": "evidence",
+      "label_basis": "ガス灯は明治5年(1872)に横浜で初めて点灯され、都市部へ広がった。"
+    },
+    {
+      "id": "v04",
+      "category": "independent-v2",
+      "question": "明治時代の新聞の創刊と発展について教えて",
+      "expect": "evidence",
+      "label_basis": "明治期に新聞は相次いで創刊され、言論・報道機関として発達した。",
+      "expected_records": [
+        "1027651"
+      ],
+      "expected_record_title": "大日本新聞販売総覧"
+    },
+    {
+      "id": "v05",
+      "category": "independent-v2",
+      "question": "昭和初期のラジオ放送の聴取者の広がりについて教えて",
+      "expect": "evidence",
+      "label_basis": "ラジオ放送は1925年に始まり、昭和初期に聴取者が急増した。",
+      "expected_records": [
+        "1222667"
+      ],
+      "expected_record_title": "ラジオ年鑑"
+    },
+    {
+      "id": "v06",
+      "category": "independent-v2",
+      "question": "明治時代の自転車の輸入と国産化について教えて",
+      "expect": "evidence",
+      "label_basis": "自転車は明治期に輸入され、やがて国産化も進んだ。",
+      "expected_records": [
+        "1216885"
+      ],
+      "expected_record_title": "堺の自転車"
+    },
+    {
+      "id": "v07",
+      "category": "independent-v2",
+      "question": "大正時代の電話加入者の増加について教えて",
+      "expect": "evidence",
+      "label_basis": "電話は大正期に加入者が増加し、都市生活に浸透した。",
+      "expected_records_note": "no on-topic record verified at freeze time; Recall A not measured for this item"
+    },
+    {
+      "id": "v08",
+      "category": "independent-v2",
+      "question": "明治時代の鉄道網の拡大について教えて",
+      "expect": "evidence",
+      "label_basis": "鉄道は明治5年の開業後、官設・私設により全国へ拡大した。",
+      "expected_records_note": "no on-topic record verified at freeze time; Recall A not measured for this item"
+    },
+    {
+      "id": "v09",
+      "category": "independent-v2",
+      "question": "江戸時代の電信網の整備について教えて",
+      "expect": "correction",
+      "label_basis": "電信は明治2年(1869)に始まる技術であり、江戸時代には存在しない。"
+    },
+    {
+      "id": "v10",
+      "category": "independent-v2",
+      "question": "大正時代のカラーテレビ放送の普及について教えて",
+      "expect": "insufficient",
+      "label_basis": "カラーテレビ放送は1950年代以降の技術であり、大正時代には存在しない。"
+    },
+    {
+      "id": "v11",
+      "category": "independent-v2",
+      "question": "明治時代の冷蔵電車の運行について教えて",
+      "expect": "insufficient",
+      "label_basis": "冷蔵電車は20世紀後半の技術であり、明治時代には運行されていない。"
+    },
+    {
+      "id": "v12",
+      "category": "independent-v2",
+      "question": "明治時代のテレビ電話の実用化について教えて",
+      "expect": "insufficient",
+      "label_basis": "テレビ電話は20世紀後半の技術であり、明治時代には実用化されていない。"
+    },
+    {
+      "id": "v13",
+      "category": "independent-v2",
+      "question": "明治元年の自動車登録台数を教えて",
+      "expect": "insufficient",
+      "label_basis": "明治元年(1868)には自動車は存在せず、登録台数の記録もない。数値要求の根拠なしケース。"
+    },
+    {
+      "id": "v14",
+      "category": "independent-v2",
+      "question": "大正時代の義務教育の就学状況について教えて",
+      "expect": "evidence",
+      "label_basis": "義務教育の就学率は明治末から大正期にかけて高水準に達した。",
+      "expected_records": [
+        "939281"
+      ],
+      "expected_record_title": "義務教育年限延長問題"
+    },
+    {
+      "id": "v15",
+      "category": "independent-v2",
+      "question": "明治時代の洋食の伝来と広がりについて教えて",
+      "expect": "evidence",
+      "label_basis": "洋食は開港とともに伝来し、明治期の都市部で広がった。",
+      "expected_records": [
+        "849147"
+      ],
+      "expected_record_title": "洋食と菓子のこしらへかた"
+    },
+    {
+      "id": "v16",
+      "category": "independent-v2",
+      "question": "明治時代の地下鉄の建設について教えて",
+      "expect": "correction",
+      "label_basis": "日本の地下鉄の開業は昭和2年(1927)であり、明治時代には建設されていない。"
+    }
+  ]
+}
