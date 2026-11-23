@@ -404,7 +404,7 @@ class LibraryService:
                     "citations": [c for c in claim.get("citations", []) if isinstance(c, str)],
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
-        claims = verify_claims(clean_claims, evidence)
+        claims = verify_claims(clean_claims, evidence, analysis=analysis)
         blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
         if blocking:
             return {

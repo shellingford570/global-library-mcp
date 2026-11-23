@@ -44,7 +44,8 @@ def _date_tokens(text: str) -> set[str]:
     return tokens
 
 
-def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any]],
+                 analysis: Any = None) -> dict[str, Any]:
     """Screen one claim against the evidence it cites."""
     text = claim.get("text") or ""
     keys = claim.get("citations") or []
@@ -84,17 +85,79 @@ def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any
     # cited OCR. Lexical similarity alone never promotes such a claim
     # to supported. Four-digit years are exempt here because era-year
     # conversion (明治四十三年 = 1910) is legitimate; years are handled
-    # by the date-token check above instead.
-    claim_numbers = set(re.findall(r"\d+(?:\.\d+)?", unicodedata.normalize("NFKC", text)))
-    ocr_numbers = set(re.findall(r"\d+(?:\.\d+)?", unicodedata.normalize("NFKC", ocr_text)))
-    missing_numbers = {n for n in claim_numbers if n not in ocr_numbers and not (len(n) == 4 and n.isdigit() and 1000 <= int(n) <= 2099)}
+    # by the date-token check above instead. Quantities are compared
+    # as values across notations (23 == 二十三 == ２３).
+    from global_library_mcp.numeric import numeric_values, quantity_binding
+
+    def _is_year(value: float) -> bool:
+        return value == int(value) and 1000 <= value <= 2099
+
+    claim_numbers = {v for v in numeric_values(text) if not _is_year(v)}
+    ocr_numbers = {v for v in numeric_values(ocr_text) if not _is_year(v)}
+    missing_numbers = claim_numbers - ocr_numbers
     if missing_numbers:
-        detail += f"; numeric value(s) not found in cited OCR: {', '.join(sorted(missing_numbers))}"
+        detail += f"; numeric value(s) not found in cited OCR: {', '.join(str(int(v) if v == int(v) else v) for v in sorted(missing_numbers))}"
         status = "unsupported"
+    # Numeric-demand binding (Phase 7-C): when the question asks for
+    # a quantity, presence is not enough - the value must occur
+    # bound to the asked target in a cited page. A page full of
+    # staff counts does not answer how many waterfalls there are
+    # (Phase 6 q40). Values occurring only on table pages stay
+    # unverified: row/column attachment needs the original image.
+    def _field(obj: Any, name: str) -> Any:
+        # The pipeline hands over the analysis either as the
+        # QuestionAnalysis object or as its serialised dict.
+        if obj is None:
+            return None
+        if isinstance(obj, dict):
+            return obj.get(name)
+        return getattr(obj, name, None)
+
+    numeric_intent = bool(
+        analysis is not None
+        and (_field(analysis, "intent") == "numeric"
+             or any(r.get("type") == "numeric" for r in _field(analysis, "requirements") or []))
+    )
+    if numeric_intent and claim_numbers and not missing_numbers:
+        from global_library_mcp.numeric import target_terms
+
+        targets = target_terms(analysis)
+        bindings: dict[str, Any] = {}
+        unbound: list[float] = []
+        table_only: list[float] = []
+        for value in sorted(claim_numbers):
+            total_occurrences = 0
+            total_bound = 0
+            non_table_occurrences = 0
+            for item in cited:
+                page_text = item.get("ocr_text") or item.get("text") or ""
+                binding = quantity_binding(page_text, value, targets, page_kind=item.get("page_kind"))
+                total_occurrences += binding["occurrences"]
+                total_bound += binding["bound"]
+                if not binding["on_table_page"]:
+                    non_table_occurrences += binding["occurrences"]
+            key = str(int(value) if value == int(value) else value)
+            bindings[key] = {"occurrences": total_occurrences, "bound": total_bound}
+            if total_bound == 0 and non_table_occurrences == 0 and total_occurrences > 0:
+                table_only.append(value)
+            elif total_bound == 0:
+                unbound.append(value)
+        if unbound:
+            detail += ("; numeric value(s) present but not bound to the asked target: "
+                       + ", ".join(str(int(v) if v == int(v) else v) for v in unbound))
+            status = "unsupported"
+        elif table_only:
+            detail += ("; numeric value(s) found only in table layout - attachment unverified, "
+                       "original image confirmation required: "
+                       + ", ".join(str(int(v) if v == int(v) else v) for v in table_only))
+            if status == "supported":
+                status = "uncertain"
+        result["numeric"] = bindings
     result.update({"support": status, "support_detail": detail, "overlap": round(overlap, 3)})
     return result
 
 
-def verify_claims(claims: list[dict[str, Any]], evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def verify_claims(claims: list[dict[str, Any]], evidence: list[dict[str, Any]],
+                  analysis: Any = None) -> list[dict[str, Any]]:
     by_key = {item.get("citation_key"): item for item in evidence if item.get("citation_key")}
-    return [verify_claim(claim, by_key) for claim in claims]
+    return [verify_claim(claim, by_key, analysis=analysis) for claim in claims]
