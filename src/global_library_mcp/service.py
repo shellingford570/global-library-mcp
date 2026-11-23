@@ -811,7 +811,10 @@ class LibraryService:
             evidence.semantics = semantic_checker.assess(analysis, evidence.ocr_text, publication_year=pub_year)
             relation = evidence.semantics.get("relation")
             anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
-            if assessment["status"] == "relevant" and relation == "contradicts":
+            if assessment["status"] == "relevant" and relation == "contradicts" and evidence.page_kind in NARRATIVE_KINDS:
+                # A correction is an assertion too: it may only rest
+                # on narrative pages, never on a heading in a
+                # contents list or an index entry (Phase 7-E).
                 out["contradictions"].append(evidence.to_dict())
                 out["related"].append(evidence.to_dict())
                 state["related_pages"].append(evidence.to_dict())
