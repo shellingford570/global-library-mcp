@@ -48,11 +48,15 @@ Safety rules, enforced in code and tests:
 Verified in this development environment (shared vCPU, ~8 GB RAM,
 512 MB /tmp): the first `pip install sentence-transformers`
 attempt failed with "No space left on device" because pip staged
-the ~540 MB torch wheel in the small /tmp; a retry with TMPDIR on
-the home filesystem was in flight when this document was written.
-Either way, the conclusion for Phase 5 stands: the torch-based
-stack is an *optional* dependency here, never a pipeline
-requirement. The embedding checker's contract is covered by unit
-tests with the model absent (it must return `not_checked`), and
-any environment that has the stack can enable it via
-`GLM_SEMANTIC_EMBED_MODEL` without code changes.
+the ~540 MB torch wheel in the small /tmp. With `TMPDIR` pointed
+at the home filesystem the install succeeded (sentence-
+transformers 6.3.0, torch 2.15.0), proving the stack *can* be
+installed here; the model-weights download / inference smoke test
+did not complete in this environment (an interrupted run left
+only a stub in the Hugging Face cache), so the embedding checker
+is verified at the interface level only — including its
+`not_checked` behaviour when the stack is absent, which is the
+path the pipeline takes by default. The stack was uninstalled
+after the check; it is not a runtime dependency and is not in
+`requirements.lock.txt`. Environments that have it can enable the
+checker via `GLM_SEMANTIC_EMBED_MODEL` without code changes.

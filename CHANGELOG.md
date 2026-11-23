@@ -4,6 +4,32 @@ All notable changes are recorded here. Dates are JST. Anything not
 listed as verified was not live-verified; see
 `docs/implementation-status.md` for the per-feature truth table.
 
+## Phase 5 — semantic grounding (branch feat/global-library-semantic-v5)
+
+- Semantic grounding checker (semantics.py): replaceable
+  SemanticChecker interface; deterministic rule-based primary
+  engine classifying a page's stance toward the question premise
+  (supports / contradicts / mentions_only / insufficient /
+  uncertain / not_checked). Optional embedding checker behind the
+  same interface; never a pipeline dependency.
+- Temporal verification (temporal.py): era-name / western-year /
+  era-year anchors per sentence, onset-after-era detection, and
+  retrospective-source anchoring (undated stance in post-era
+  publications does not support an era premise).
+- Gate integration: contradicting pages become correction
+  material; retrospective mentions-only pages are demoted;
+  semantically supported partially-relevant pages are promoted.
+- New answer status corrected_premise: grounded premise
+  corrections quoting the contradicting page verbatim.
+- Search: graded Stage-1 candidate scoring, one-shot dynamic
+  budget extension, retrieval summary (candidate ranks, failure
+  reasons) feeding Recall@K / MRR in the evaluation runner.
+- Evaluation: 70-question set — insufficient handled 1.000
+  (Phase 4: 0.808), false answers 0, answerable 0.591 (Phase 4:
+  0.682); frozen 32-question holdout — answerable 0.304,
+  correction cases safely refused. See docs/evaluation-phase5.md
+  for the full run history and honest trade-off analysis.
+
 ## Phase 4 — reliability v4 (2026-11-22, branch `feat/global-library-reliability-v4`)
 
 - Question understanding (`question.py`): rule-based analysis —
