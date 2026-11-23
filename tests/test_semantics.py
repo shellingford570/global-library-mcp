@@ -48,3 +48,22 @@ def test_mixed_signals_are_uncertain():
     result = assess("明治時代の電話の普及について教えて",
                     "電話は明治時代には存在しなかったという説もあるが、実際には電話交換が開始され、電話は次第に普及した。")
     assert result["relation"] == "uncertain"
+
+
+def test_onset_after_era_is_contradiction():
+    result = assess("明治時代の地下鉄の建設について教えて",
+                    "地下鉄は昭和二年に開業した。東京の地下鉄は昭和に入ってから建設が進んだ。")
+    assert result["relation"] == "contradicts"
+    assert result["onset_after_era"]
+
+
+def test_radio_starting_in_taisho_contradicts_meiji_premise():
+    result = assess("明治時代のラジオ放送が社会に与えた影響について教えて",
+                    "ラジオ放送は大正十四年に始まった。ラジオ放送の開始は大正時代の出来事である。")
+    assert result["relation"] == "contradicts"
+
+
+def test_in_era_occurrence_still_supports():
+    result = assess("明治時代の鉄道の開業について教えて",
+                    "鉄道は明治五年に開業した。新橋と横浜の間に鉄道が開業し、旅客の輸送が始まった。")
+    assert result["relation"] == "supports"

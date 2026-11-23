@@ -286,8 +286,10 @@ class LibraryService:
         from global_library_mcp.evidence import assess_ocr_quality, extract_terms
         from global_library_mcp.models import Evidence
         from global_library_mcp.question import analyze_question
-        from global_library_mcp.relevance import assess_relevance
+        from global_library_mcp.relevance import assess_relevance, concept_families
+        from global_library_mcp.semantics import get_semantic_checker
 
+        semantic_checker = get_semantic_checker()
         analysis = analyze_question(query)
         search_terms = terms or extract_terms(query)
         # A natural-language question rarely matches bibliographic fields
@@ -323,6 +325,7 @@ class LibraryService:
 
         ranked = sorted(merged, key=_title_rank)
         verified: list[Evidence] = []
+        premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
@@ -403,10 +406,22 @@ class LibraryService:
                         publication_year=int(year_match.group(1)) if year_match else None,
                     )
                     evidence.relevance = assessment
-                    from global_library_mcp.semantics import get_semantic_checker
-
-                    evidence.semantics = get_semantic_checker().assess(analysis, evidence.ocr_text)
-                    if assessment["status"] == "relevant":
+                    evidence.semantics = semantic_checker.assess(analysis, evidence.ocr_text)
+                    relation = evidence.semantics.get("relation")
+                    families = concept_families(analysis.core_concepts)
+                    anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
+                    if assessment["status"] == "relevant" and relation == "contradicts":
+                        # The page denies the question's premise: it is
+                        # correction material, never answer evidence.
+                        premise_contradictions.append(evidence.to_dict())
+                        related.append(evidence.to_dict())
+                    elif assessment["status"] == "partially_relevant" and relation == "supports" and anchor_matched:
+                        # Semantic second opinion: the page asserts what
+                        # the question asks about the anchor concept,
+                        # which the lexical screen could not confirm.
+                        evidence.semantics["promoted"] = True
+                        verified.append(evidence)
+                    elif assessment["status"] == "relevant":
                         verified.append(evidence)
                     else:
                         related.append(evidence.to_dict())
@@ -422,6 +437,7 @@ class LibraryService:
             "terms": search_terms,
             "analysis": analysis.to_dict(),
             "evidence": [item.to_dict() for item in verified],
+            "premise_contradictions": premise_contradictions[:4],
             "related": related[:8],
             "unverified": unverified,
             "search": search_view,

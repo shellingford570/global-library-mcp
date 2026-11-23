@@ -136,11 +136,22 @@ class RuleBasedSemanticChecker:
             if _cue_hits(sentence, _DIFFUSION_CUES):
                 buckets["diffusion"].append(sentence[:120])
 
+        # Temporal anchoring (temporal.py): an occurrence/diffusion
+        # sentence dated AFTER the asked era does not support the
+        # era premise, and an onset explicitly dated after the era
+        # contradicts it (the topic began later than the question
+        # assumes).
+        from global_library_mcp.temporal import anchor_class, onset_after_era
+
+        onset_after = onset_after_era(concept_sentences, analysis.era)
+        occurrence_in = [s for s in buckets["occurrence"] if anchor_class(s, analysis.era) != "after_era"]
+        diffusion_in = [s for s in buckets["diffusion"] if anchor_class(s, analysis.era) != "after_era"]
+
         reasons: list[str] = []
         has_negation = bool(buckets["negation"])
         has_later = bool(buckets["later"])
-        has_occurrence = bool(buckets["occurrence"])
-        has_diffusion = bool(buckets["diffusion"])
+        has_occurrence = bool(occurrence_in)
+        has_diffusion = bool(diffusion_in)
         has_planning_only = bool(buckets["planning"]) and not has_occurrence and not has_diffusion
 
         if demand == "general":
@@ -149,10 +160,12 @@ class RuleBasedSemanticChecker:
         elif has_negation and (has_occurrence or has_diffusion):
             relation = "uncertain"
             reasons.append("否定の記述と肯定の記述が混在するため、意味関係を自動確定できない")
-        elif has_negation or (has_later and not has_occurrence and not has_diffusion):
+        elif has_negation or onset_after or (has_later and not has_occurrence and not has_diffusion):
             relation = "contradicts"
             if has_negation:
                 reasons.append("中心概念について否定的な記述（存在しなかった等）がある")
+            if onset_after:
+                reasons.append("中心概念の開始・開業が対象時代より後の年代と明記されている")
             if has_later:
                 reasons.append("中心概念の登場が後の時代とされている記述がある")
         elif has_planning_only:
@@ -177,6 +190,7 @@ class RuleBasedSemanticChecker:
             "relation": relation, "checker": self.name, "demand": demand,
             "reasons": reasons,
             "stance_sentences": {k: v for k, v in buckets.items() if v},
+            "onset_after_era": onset_after,
         }
 
 
