@@ -159,6 +159,11 @@ class LibraryService:
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
+        # Bibliographic search cache (Phase 7-G): identical queries
+        # recur across questions in a session; caching them is a
+        # pure load reduction with no behavioural change.
+        self._search_cache: dict[tuple[str, tuple[str, ...], int], Any] = {}
+        self.cache_stats = {"search_hits": 0, "search_misses": 0}
 
     async def search(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> SearchResponse:
         selected = list(dict.fromkeys(libraries or self.default_libraries))
@@ -485,8 +490,25 @@ class LibraryService:
         # Run every query variant: stopping as soon as a few
         # candidates exist (the old behaviour) let broad survey
         # volumes fill the pool before the specialist query ran.
-        for candidate_query in dict.fromkeys([query, *search_terms]):
-            resp = await self.search(candidate_query, libraries, limit)
+        # One exception (Phase 7-G): a variant that is a substring
+        # of a longer variant adds almost no discovery - its hits
+        # are the longer query's neighbourhood - but costs a full
+        # search per library. The full question always runs.
+        variants = list(dict.fromkeys([query, *search_terms]))
+        term_variants = variants[1:]
+        variants = variants[:1] + [
+            variant for variant in term_variants
+            if not any(variant != other and variant in other for other in term_variants)
+        ]
+        for candidate_query in variants:
+            cache_key = (candidate_query, tuple(sorted(libraries)), limit)
+            resp = self._search_cache.get(cache_key)
+            if resp is not None:
+                self.cache_stats["search_hits"] += 1
+            else:
+                self.cache_stats["search_misses"] += 1
+                resp = await self.search(candidate_query, libraries, limit)
+                self._search_cache[cache_key] = resp
             search_errors.extend(resp.errors)
             for item in resp.results:
                 key = (item.library_id, item.record_id)
