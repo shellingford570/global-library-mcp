@@ -65,6 +65,11 @@ const I18N = {
     relUncertain: '判定不能',
     relNotChecked: '未検証',
     relatedTitle: '参考資料（回答の根拠には未採用）',
+    semLabel: '意味判定（自動スクリーニング）',
+    semSupports: '前提を支持', semContradicts: '前提と矛盾', semMentionsOnly: '言及のみ',
+    semInsufficient: '情報なし', semUncertain: '判定不能', semNotChecked: '未検証',
+    correctedTag: '前提の訂正',
+    correctionBasis: '訂正の根拠（原文からの引用）',
     statusAnswerWithheld: '回答を保留しました',
     compareTitle: '文献比較',
     compareDocA: '文献A（機関:資料ID）',
@@ -134,6 +139,11 @@ const I18N = {
     relUncertain: 'uncertain',
     relNotChecked: 'not checked',
     relatedTitle: 'Related documents (not used as evidence)',
+    semLabel: 'Semantic check (automated screening)',
+    semSupports: 'supports premise', semContradicts: 'contradicts premise', semMentionsOnly: 'mentions only',
+    semInsufficient: 'no information', semUncertain: 'uncertain', semNotChecked: 'not checked',
+    correctedTag: 'Premise corrected',
+    correctionBasis: 'Correction basis (quoted from the source)',
     statusAnswerWithheld: 'The answer was withheld',
     compareTitle: 'Compare documents',
     compareDocA: 'Document A (library:record)',
@@ -206,6 +216,16 @@ function relevanceLabel(status) {
     uncertain: t().relUncertain, not_checked: t().relNotChecked}[status] || status || '';
 }
 
+function semanticsLine(item) {
+  const sem = item.semantics;
+  if (!sem || !sem.relation) return '';
+  const label = {supports: t().semSupports, contradicts: t().semContradicts, mentions_only: t().semMentionsOnly,
+    insufficient: t().semInsufficient, uncertain: t().semUncertain, not_checked: t().semNotChecked}[sem.relation] || sem.relation;
+  const reasons = (sem.reasons || []).join(' / ');
+  return `<p class="relevance-line">${t().semLabel}: <span class="badge badge-sem-${esc(sem.relation)}">${esc(label)}</span>`
+    + (reasons ? ` <span class="relevance-reasons">${esc(reasons)}</span>` : '') + `</p>`;
+}
+
 function relevanceLine(item) {
   const rel = item.relevance || (item.relevance_status ? {status: item.relevance_status, reasons: item.relevance_reasons || []} : null);
   if (!rel || !rel.status) return '';
@@ -221,6 +241,7 @@ function relatedCard(item) {
       <span class="tag">${esc(item.library_name || item.library_id || '')}</span>
       <h3>${esc(item.title || item.record_id || '')}</h3>
       ${relevanceLine(item)}
+      ${semanticsLine(item)}
     </div>
     <div class="card-actions">
       ${sourceLink(item.image_url, t().viewImage)}
@@ -239,6 +260,7 @@ function evidenceCard(item) {
       <h3>${esc(item.title)}</h3>
       <p>${t().frameLabel} ${esc(item.digital_frame ?? 'unknown')} · ${t().qualityLabel} ${quality ?? 'unknown'} · ${t().matchedTermLabel}: ${esc(item.matched_term || '')}</p>
       ${relevanceLine(item)}
+      ${semanticsLine(item)}
       <p class="ocr-excerpt">${esc(excerpt)}</p>
       <p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p>
       <div class="verify-box" data-page="${esc(item.page_id)}" data-library="${esc(item.library_id)}"></div>
@@ -271,6 +293,15 @@ function renderAnswer(data) {
   if (data.status === 'answered' && data.answer) {
     const chips = (data.citations || []).map(c => `<button type="button" class="chip" data-target="ev-${esc(c.citation_key)}">${esc(c.title)} · ${t().frameLabel} ${esc(c.digital_frame ?? '?')}</button>`).join('');
     html += `<article class="card answer-card"><div><span class="tag">${t().answerTag}</span><h3>${esc(data.answer)}</h3>`
+      + (chips ? `<p class="citations-label">${t().citationsLabel}</p><div class="chips">${chips}</div>` : '')
+      + claimsSection(data)
+      + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')
+      + `</div></article>`;
+  } else if (data.status === 'corrected_premise' && data.answer) {
+    const chips = (data.citations || []).map(c => `<button type="button" class="chip" data-target="ev-${esc(c.citation_key)}">${esc(c.title)} · ${t().frameLabel} ${esc(c.digital_frame ?? '?')}</button>`).join('');
+    const quotes = (data.correction?.quotes || []).map(q => `<blockquote class="correction-quote">${esc(q)}</blockquote>`).join('');
+    html += `<article class="card answer-card correction-card"><div><span class="tag">${t().correctedTag}</span><h3>${esc(data.answer)}</h3>`
+      + (quotes ? `<p class="citations-label">${t().correctionBasis}</p>${quotes}` : '')
       + (chips ? `<p class="citations-label">${t().citationsLabel}</p><div class="chips">${chips}</div>` : '')
       + claimsSection(data)
       + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')

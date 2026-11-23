@@ -142,11 +142,66 @@ class LibraryService:
             "terms": collected["terms"],
             "analysis": analysis,
             "evidence": evidence,
+            "premise_contradictions": collected.get("premise_contradictions", []),
             "related": related,
             "unverified": collected["unverified"],
             "search": collected["search"],
         }
         if not evidence:
+            # Corrected premise: no page supports the question, but a
+            # gated page *contradicts* its premise with quotable text
+            # (negation, or an onset dated after the asked era). That
+            # is a grounded correction, not a plain refusal - and it
+            # is only offered with the contradicting sentences quoted
+            # verbatim from the cited page.
+            contradictions = collected.get("premise_contradictions", [])
+            if contradictions:
+                item = contradictions[0]
+                sem = item.get("semantics") or {}
+                quotes: list[str] = []
+                for sentence in (sem.get("onset_after_era") or []):
+                    if sentence not in quotes:
+                        quotes.append(sentence)
+                for sentence in ((sem.get("stance_sentences") or {}).get("negation") or []):
+                    if sentence not in quotes:
+                        quotes.append(sentence)
+                quotes = quotes[:2]
+                if quotes:
+                    from global_library_mcp.claims import verify_claims
+
+                    era_info = analysis.get("era") or {}
+                    era_label = era_info.get("label") or "その時代"
+                    concepts = analysis.get("core_concepts", [])
+                    topic = concepts[0] if concepts else "その主題"
+                    quoted = "。".join(q.strip().rstrip("。") for q in quotes)
+                    answer_text = (
+                        f"質問の前提（{topic}が{era_label}に存在・実現していた）は、確認できた資料では支持されません。"
+                        f"『{item['title']}』には「{quoted}」とあり、前提とは異なる時期・状況が示されています。"
+                    )
+                    citation = {
+                        "citation_key": item["citation_key"], "library_id": item["library_id"],
+                        "library_name": item["library_name"], "record_id": item["record_id"],
+                        "page_id": item["page_id"], "digital_frame": item.get("digital_frame"),
+                        "title": item["title"], "image_url": item.get("image_url"),
+                        "landing_url": item.get("landing_url"),
+                    }
+                    claims = verify_claims(
+                        [{"text": q, "citations": [item["citation_key"]]} for q in quotes], [item]
+                    )
+                    return {
+                        **base,
+                        "status": "corrected_premise",
+                        "available": True,
+                        "answer": answer_text,
+                        "citations": [citation],
+                        "claims": claims,
+                        "correction": {
+                            "basis_citation_key": item["citation_key"],
+                            "quotes": quotes,
+                            "reasons": sem.get("reasons", []),
+                        },
+                        "limitations": ["前提の訂正は引用した資料の記述に基づきます。その資料自体が誤っている可能性は残るため、原本ページでも確認してください。"],
+                    }
             # Name what the *closest* candidate lacked, not the union
             # over every related page (which blamed concepts that the
             # best pages actually contained).

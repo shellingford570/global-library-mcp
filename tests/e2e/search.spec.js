@@ -76,6 +76,7 @@ const ANSWER_PAYLOAD = {
     landing_url: 'https://dl.ndl.go.jp/pid/994120',
     rights: { statement: '資料単位で確認' },
     relevance: { status: 'relevant', score: 0.85, matched_concepts: ['水力発電'], missing_concepts: [], reasons: ['中心概念を確認: 水力発電', '時代名「明治」が本文に現れる'] },
+    semantics: { relation: 'supports', checker: 'rules-v1', demand: 'occurrence', reasons: ['実現・開始を示す記述が中心概念と結びついている'], stance_sentences: {} },
   }],
   related: [{
     citation_key: 'ndl:111:111_10',
@@ -129,6 +130,7 @@ test('answer view links citations to evidence and runs IIIF verification', async
   await expect(page.getByText('裏付けあり')).toBeVisible();
   await expect(page.locator('.evidence-thumb')).toHaveCount(1);
   await expect(page.getByText('関連性あり', { exact: true })).toBeVisible();
+  await expect(page.getByText('前提を支持', { exact: true })).toBeVisible();
   await expect(page.getByText(/参考資料（回答の根拠には未採用）/)).toBeVisible();
   await expect(page.getByText('電信沿革史')).toBeVisible();
   await expect(page.getByText('一部関連', { exact: true })).toBeVisible();
@@ -167,6 +169,30 @@ test('insufficient evidence is reported plainly', async ({ page }) => {
   await expect(page.getByText(/参考資料（回答の根拠には未採用）/)).toBeVisible();
   await expect(page.getByText('関連性なし', { exact: true })).toBeVisible();
   await expect(page.getByText(/周辺語のみ: 通信/)).toBeVisible();
+});
+
+test('corrected premise is shown with its quoted basis', async ({ page }) => {
+  await page.route('**/api/answer**', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'corrected_premise', available: true, query: '明治時代の地下鉄の建設について教えて',
+        answer: '質問の前提（地下鉄が明治時代に存在・実現していた）は、確認できた資料では支持されません。『東京地下鉄道史』には「地下鉄は昭和二年に開業した」とあり、前提とは異なる時期・状況が示されています。',
+        citations: [{ citation_key: 'ndl:222:222_10', library_id: 'ndl', library_name: 'NDL', record_id: '222', page_id: '222_10', digital_frame: 10, title: '東京地下鉄道史', image_url: null, landing_url: 'https://dl.ndl.go.jp/pid/222' }],
+        correction: { basis_citation_key: 'ndl:222:222_10', quotes: ['地下鉄は昭和二年に開業した'], reasons: ['中心概念の開始・開業が対象時代より後の年代と明記されている'] },
+        claims: [], evidence: [], unverified: [], limitations: [],
+        search: { results: [], errors: [] },
+      }),
+    });
+  });
+
+  await page.goto('/');
+  await page.locator('#query').fill('明治時代の地下鉄の建設について教えて');
+  await page.getByRole('button', { name: 'AI回答' }).click();
+  await expect(page.getByText('前提の訂正', { exact: true })).toBeVisible();
+  await expect(page.getByText(/訂正の根拠（原文からの引用）/)).toBeVisible();
+  await expect(page.getByText('地下鉄は昭和二年に開業した', { exact: true })).toBeVisible();
 });
 
 test('language toggle switches the UI to English', async ({ page }) => {
