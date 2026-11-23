@@ -33,7 +33,7 @@ _CHAR_VARIANTS = str.maketrans({
     "區": "区", "會": "会", "國": "国", "學": "学", "濟": "済", "醫": "医",
     "藥": "薬", "鐵": "鉄", "驛": "駅", "廳": "庁", "縣": "県", "臺": "台",
     "灣": "湾", "滿": "満", "亞": "亜", "歐": "欧", "獨": "独", "佛": "仏",
-    "龍": "竜", "齒": "歯", "邊": "辺", "關": "関", "圖": "図", "號": "号",
+    "龍": "竜", "齒": "歯", "寫": "写", "眞": "真", "橫": "横", "濱": "浜", "邊": "辺", "關": "関", "圖": "図", "號": "号",
     "點": "点", "實": "実", "價": "価", "勞": "労", "壓": "圧", "變": "変",
     "黨": "党", "單": "単", "戰": "戦", "觀": "観", "覽": "覧", "顯": "顕",
     "驗": "験", "驅": "駆", "澁": "渋", "櫻": "桜", "舊": "旧", "莊": "荘",
@@ -109,7 +109,8 @@ GENERIC_TERMS = {
     "社会", "文化", "科学", "記録", "資料", "説明", "記述", "内容", "方法",
     "事業", "関係", "状況", "様子", "当時", "日本", "技術", "産業", "明治時代",
     "大正時代", "昭和時代", "変化", "様相", "概要", "始まり", "導入", "建設", "仕組み",
-    "開発", "違い", "原因",
+    "開発", "違い", "原因", "対策", "議論", "実態", "経緯", "動向", "伝来",
+    "国産化", "機械化", "開始", "運営", "記録する",
 }
 
 ERAS: dict[str, tuple[int, int]] = {
@@ -211,6 +212,7 @@ def analyze_question(question: str) -> QuestionAnalysis:
 
     era_words = set(ERAS) | {"明治時代", "大正時代", "昭和時代", "江戸時代"}
     region_words = set(REGIONS)
+    cities = {"横浜", "神戸", "東京", "大阪", "京都", "長崎", "函館", "新潟", "名古屋", "仙台", "広島", "福岡"}
     core: list[str] = []
     generic: list[str] = []
     candidates: list[str] = []
@@ -220,7 +222,7 @@ def analyze_question(question: str) -> QuestionAnalysis:
     for candidate in candidates:
         if candidate in era_words or candidate in region_words:
             continue
-        if len(candidate) <= 5 and candidate[0] in "ぁ-ん":
+        if len(candidate) <= 5 and "ぁ" <= candidate[0] <= "ん":
             continue  # hiragana-led fragment from term splitting (めぐる議論, よう)
         if len(candidate) <= 5 and re.search(r"(われた|された|られた|れた|した.{0,3})$", candidate):
             continue  # verb-form fragment (行われた, 流行した原因)
@@ -240,6 +242,17 @@ def analyze_question(question: str) -> QuestionAnalysis:
                 if alias not in core:
                     core.append(alias)
                 break
+
+    # A bare city name next to a topical concept is a place
+    # modifier (神戸の外国人居留地): it stays a search term but
+    # leaves the core families, whose fraction it would otherwise
+    # dilute. A compound containing the city (横浜開港) is a topic
+    # and is unaffected.
+    non_city = [c for c in core if c not in cities]
+    if non_city and len(non_city) < len(core):
+        core = non_city
+    # Drop suffixed duplicates (横浜開港後 alongside 横浜開港).
+    core = [c for c in core if not (c.endswith("後") and c[:-1] in core)]
 
     requirements: list[dict[str, Any]] = [{"type": "core_concept", "concept": c} for c in core]
     if era:

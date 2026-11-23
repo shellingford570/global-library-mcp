@@ -18,6 +18,35 @@ from global_library_mcp.http import ResponseCache, sanitize_error
 from global_library_mcp.models import SearchResponse
 
 
+def rank_candidates(analysis: Any, items: list[Any], query_hits: dict[tuple[str, str], int]) -> list[Any]:
+    """Stage-1 (bibliographic) ranking of the merged candidate pool.
+
+    Signals: core-concept families in the title (anchor family
+    weighted double), a family match in author/description, and
+    query multiplicity - a record surfaced by several independent
+    query variants is likelier to be the specialist monograph than
+    one surfaced once by a broad query.
+    """
+    from global_library_mcp.question import concept_variants, normalize_text
+    from global_library_mcp.relevance import concept_families
+
+    families = concept_families(analysis.core_concepts)
+
+    def score(item: Any) -> int:
+        title_n = normalize_text(item.title or "")
+        total = 0
+        for idx, family in enumerate(families):
+            if any(variant in title_n for variant in concept_variants(family)):
+                total += 2 if idx == 0 else 1
+        meta_n = normalize_text(f"{item.author or ''} {item.description or ''}")
+        if families and any(any(variant in meta_n for variant in concept_variants(family)) for family in families):
+            total += 1
+        total += min(query_hits.get((item.library_id, item.record_id), 1) - 1, 2)
+        return total
+
+    return sorted(items, key=lambda item: -score(item))
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -354,42 +383,35 @@ class LibraryService:
         # in-document-capable candidates are found.
         merged: list[Any] = []
         seen_records: set[tuple[str, str]] = set()
+        query_hits: dict[tuple[str, str], int] = {}
         search_errors: list[dict[str, str]] = []
-        capable = 0
+        # Run every query variant: stopping as soon as a few
+        # candidates exist (the old behaviour) let broad survey
+        # volumes fill the pool before the specialist query ran.
         for candidate_query in dict.fromkeys([query, *search_terms]):
             resp = await self.search(candidate_query, libraries, limit)
             search_errors.extend(resp.errors)
             for item in resp.results:
                 key = (item.library_id, item.record_id)
+                query_hits[key] = query_hits.get(key, 0) + 1
                 if key not in seen_records:
                     seen_records.add(key)
                     merged.append(item)
-                    adapter = self.adapters.get(item.library_id)
-                    if adapter is not None and adapter.supports_in_document_search:
-                        capable += 1
-            if capable >= max_documents + 3:
-                break
-        search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
-        # Stage 1 (bibliographic): score candidates on metadata
-        # alone - how many core-concept families the title carries,
-        # with the anchor family weighted double. The full-question
-        # search surfaces broad survey volumes ahead of on-topic
-        # monographs; this ordering is what the document budget is
-        # spent against. Stage 2 (OCR + gates) re-ranks by content.
-        from global_library_mcp.question import concept_variants, normalize_text
-        from global_library_mcp.relevance import concept_families
+        # Series dedupe: identical normalised title + author is one
+        # candidate, however many queries surfaced it.
+        from global_library_mcp.question import normalize_text
 
-        families = concept_families(analysis.core_concepts)
-
-        def _candidate_score(item: Any) -> int:
-            title_n = normalize_text(item.title or "")
-            score = 0
-            for idx, family in enumerate(families):
-                if any(variant in title_n for variant in concept_variants(family)):
-                    score += 2 if idx == 0 else 1
-            return score
-
-        ranked = sorted(merged, key=lambda item: -_candidate_score(item))
+        deduped: list[Any] = []
+        seen_series: set[tuple[str, str, str]] = set()
+        for item in merged:
+            series_key = (item.library_id, normalize_text(item.title or ""), normalize_text(item.author or ""))
+            if series_key in seen_series:
+                continue
+            seen_series.add(series_key)
+            deduped.append(item)
+        merged = deduped[:30]
+        ranked = rank_candidates(analysis, merged, query_hits)
+        search_view = {"query": query, "results": [item.to_dict() for item in ranked], "errors": search_errors}
         verified: list[Evidence] = []
         premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []
