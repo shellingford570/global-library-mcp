@@ -108,3 +108,28 @@ def test_era_mention_overrides_publication_distance():
     text = "明治時代には原子力発電所は存在しなかった。本書は原子力発電所の建設史を明治の電力事情から説き起こす。"
     result = assess_relevance(analysis, text, publication_year=1980)
     assert result["status"] == "relevant"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_collect_evidence_reports_retrieval_summary():
+    book = {"id": "111", "title": "電信沿革史", "responsibility": "逓信省", "published": 1905, "highlights": ["通信"]}
+    respx.get("https://lab.ndl.go.jp/dl/api/book/search").mock(
+        return_value=httpx.Response(200, json={"list": [book]})
+    )
+    respx.get("https://lab.ndl.go.jp/dl/api/page/search").mock(
+        return_value=httpx.Response(200, json={"list": [{"id": "111_10", "book": "111", "page": 10}], "hit": 1})
+    )
+    respx.get("https://lab.ndl.go.jp/dl/api/page/111_10").mock(
+        return_value=httpx.Response(200, json={"id": "111_10", "book": "111", "page": 10, "contents": TELEGRAPH_TEXT})
+    )
+    async with httpx.AsyncClient() as client:
+        result = await LibraryService(client).collect_evidence(
+            "明治時代のスマートフォンの普及について教えて", libraries=["ndl"]
+        )
+    retrieval = result["retrieval"]
+    assert retrieval["candidates"] >= 1
+    assert retrieval["documents_tried"] >= 1
+    assert retrieval["first_evidence_rank"] is None
+    assert retrieval["failure_reason"] == "no_relevant_pages"
+    assert result["premise_contradictions"] == []

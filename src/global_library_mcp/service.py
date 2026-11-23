@@ -314,26 +314,53 @@ class LibraryService:
             if capable >= max_documents + 3:
                 break
         search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
-        # Try documents whose titles carry a core concept first: the
-        # full-question search surfaces broad survey volumes ahead of
-        # the on-topic monographs the term searches found.
+        # Stage 1 (bibliographic): score candidates on metadata
+        # alone - how many core-concept families the title carries,
+        # with the anchor family weighted double. The full-question
+        # search surfaces broad survey volumes ahead of on-topic
+        # monographs; this ordering is what the document budget is
+        # spent against. Stage 2 (OCR + gates) re-ranks by content.
         from global_library_mcp.question import concept_variants, normalize_text
+        from global_library_mcp.relevance import concept_families
 
-        def _title_rank(item: Any) -> int:
+        families = concept_families(analysis.core_concepts)
+
+        def _candidate_score(item: Any) -> int:
             title_n = normalize_text(item.title or "")
-            return 0 if any(variant in title_n for c in analysis.core_concepts for variant in concept_variants(c)) else 1
+            score = 0
+            for idx, family in enumerate(families):
+                if any(variant in title_n for variant in concept_variants(family)):
+                    score += 2 if idx == 0 else 1
+            return score
 
-        ranked = sorted(merged, key=_title_rank)
+        ranked = sorted(merged, key=lambda item: -_candidate_score(item))
         verified: list[Evidence] = []
         premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
-        for result in ranked:
-            # Keep trying further documents while no page has passed the
-            # relevance gate yet (bounded, to cap API use).
-            doc_limit = max_documents if verified else max_documents + 3
+        budget_extended = False
+        evidence_document_ranks: list[int] = []
+        for doc_rank, result in enumerate(ranked, start=1):
+            # Document budget: the base allowance grows while nothing
+            # has passed the gates, extends ONCE more when every page
+            # so far was irrelevant (the right book may sit deeper in
+            # the candidate list), and stops early once enough
+            # evidence is in hand.
+            if verified:
+                doc_limit = max_documents
+            elif budget_extended:
+                doc_limit = max_documents + 6
+            else:
+                doc_limit = max_documents + 3
             if documents_tried >= doc_limit:
+                if (not verified and not budget_extended and documents_tried < len(ranked)
+                        and all((item.get("relevance") or {}).get("status") == "irrelevant" for item in related)):
+                    budget_extended = True
+                    doc_limit = max_documents + 6
+                else:
+                    break
+            if len(verified) >= 3:
                 break
             adapter = self.adapters.get(result.library_id)
             if adapter is None or not adapter.supports_in_document_search:
@@ -421,8 +448,12 @@ class LibraryService:
                         # which the lexical screen could not confirm.
                         evidence.semantics["promoted"] = True
                         verified.append(evidence)
+                        if doc_rank not in evidence_document_ranks:
+                            evidence_document_ranks.append(doc_rank)
                     elif assessment["status"] == "relevant":
                         verified.append(evidence)
+                        if doc_rank not in evidence_document_ranks:
+                            evidence_document_ranks.append(doc_rank)
                     else:
                         related.append(evidence.to_dict())
                 else:
@@ -432,8 +463,29 @@ class LibraryService:
                         "citation_key": evidence.citation_key,
                     })
         related.sort(key=lambda item: (item.get("relevance") or {}).get("score", 0), reverse=True)
+        if verified:
+            failure_reason = None
+        elif not merged:
+            failure_reason = "no_candidates"
+        elif premise_contradictions:
+            failure_reason = "premise_contradicted"
+        elif related:
+            failure_reason = "no_relevant_pages"
+        elif unverified:
+            failure_reason = "all_pages_failed_verification"
+        else:
+            failure_reason = "budget_exhausted"
+        retrieval = {
+            "candidates": len(merged),
+            "documents_tried": documents_tried,
+            "budget_extended": budget_extended,
+            "first_evidence_rank": evidence_document_ranks[0] if evidence_document_ranks else None,
+            "evidence_document_ranks": evidence_document_ranks,
+            "failure_reason": failure_reason,
+        }
         return {
             "query": query,
+            "retrieval": retrieval,
             "terms": search_terms,
             "analysis": analysis.to_dict(),
             "evidence": [item.to_dict() for item in verified],
