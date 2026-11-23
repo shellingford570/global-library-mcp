@@ -67,3 +67,34 @@ def test_in_era_occurrence_still_supports():
     result = assess("明治時代の鉄道の開業について教えて",
                     "鉄道は明治五年に開業した。新橋と横浜の間に鉄道が開業し、旅客の輸送が始まった。")
     assert result["relation"] == "supports"
+
+
+def test_retrospective_unanchored_occurrence_does_not_support():
+    checker = RuleBasedSemanticChecker()
+    result = checker.assess(
+        analyze_question("明治時代の地下鉄の建設について教えて"),
+        "地下鉄は多くの乗客を運び、建設は困難を極めた。地下鉄の開業は都市の交通を一変させた。",
+        publication_year=1934,
+    )
+    assert result["retrospective"] is True
+    assert result["relation"] == "mentions_only"
+
+
+def test_retrospective_in_era_anchored_occurrence_supports():
+    checker = RuleBasedSemanticChecker()
+    result = checker.assess(
+        analyze_question("明治時代の鉄道の開業について教えて"),
+        "鉄道は明治五年に開業した。新橋と横浜の間に鉄道が開業し、旅客の輸送が始まった。",
+        publication_year=1934,
+    )
+    assert result["relation"] == "supports"
+
+
+def test_contemporary_source_keeps_unanchored_support():
+    checker = RuleBasedSemanticChecker()
+    result = checker.assess(
+        analyze_question("明治時代の鉄道の開業について教えて"),
+        "鉄道が開業した。新橋と横浜の間に鉄道が開業し、旅客の輸送が始まった。",
+        publication_year=1905,
+    )
+    assert result["relation"] == "supports"

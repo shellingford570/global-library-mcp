@@ -489,7 +489,10 @@ class LibraryService:
                         publication_year=int(year_match.group(1)) if year_match else None,
                     )
                     evidence.relevance = assessment
-                    evidence.semantics = semantic_checker.assess(analysis, evidence.ocr_text)
+                    evidence.semantics = semantic_checker.assess(
+                        analysis, evidence.ocr_text,
+                        publication_year=int(year_match.group(1)) if year_match else None,
+                    )
                     relation = evidence.semantics.get("relation")
                     families = concept_families(analysis.core_concepts)
                     anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
@@ -497,6 +500,13 @@ class LibraryService:
                         # The page denies the question's premise: it is
                         # correction material, never answer evidence.
                         premise_contradictions.append(evidence.to_dict())
+                        related.append(evidence.to_dict())
+                    elif (assessment["status"] == "relevant" and relation == "mentions_only"
+                          and evidence.semantics.get("retrospective")
+                          and evidence.semantics.get("demand") in ("occurrence", "diffusion")):
+                        # A retrospective page that never asserts the
+                        # topic in the asked era cannot ground an
+                        # era-premise answer either.
                         related.append(evidence.to_dict())
                     elif assessment["status"] == "partially_relevant" and relation == "supports" and anchor_matched:
                         # Semantic second opinion: the page asserts what

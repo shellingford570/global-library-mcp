@@ -100,7 +100,7 @@ def question_demand(analysis: QuestionAnalysis) -> str:
 class SemanticChecker(Protocol):
     name: str
 
-    def assess(self, analysis: QuestionAnalysis, ocr_text: str) -> dict[str, Any]:
+    def assess(self, analysis: QuestionAnalysis, ocr_text: str, publication_year: int | None = None) -> dict[str, Any]:
         ...
 
 
@@ -109,7 +109,7 @@ class RuleBasedSemanticChecker:
 
     name = "rules-v1"
 
-    def assess(self, analysis: QuestionAnalysis, ocr_text: str) -> dict[str, Any]:
+    def assess(self, analysis: QuestionAnalysis, ocr_text: str, publication_year: int | None = None) -> dict[str, Any]:
         text = normalize_text(ocr_text or "")
         families = concept_families(analysis.core_concepts)
         demand = question_demand(analysis)
@@ -144,8 +144,26 @@ class RuleBasedSemanticChecker:
         from global_library_mcp.temporal import anchor_class, onset_after_era
 
         onset_after = onset_after_era(concept_sentences, analysis.era)
-        occurrence_in = [s for s in buckets["occurrence"] if anchor_class(s, analysis.era) != "after_era"]
-        diffusion_in = [s for s in buckets["diffusion"] if anchor_class(s, analysis.era) != "after_era"]
+        # Retrospective sources (published after the asked era) need
+        # stricter anchoring: in a 1934 history, an undated "the
+        # subway was built" describes 1927, not the Meiji era it
+        # mentions as background. Undated stance sentences in such
+        # sources therefore do not count as era support; sentences
+        # anchored to the era itself (era name or in-range year) do.
+        retrospective = bool(
+            analysis.era and publication_year and publication_year > analysis.era["end"]
+        )
+
+        def _counts(sentence: str) -> bool:
+            anchor = anchor_class(sentence, analysis.era)
+            if anchor == "after_era":
+                return False
+            if retrospective and anchor == "none":
+                return False
+            return True
+
+        occurrence_in = [s for s in buckets["occurrence"] if _counts(s)]
+        diffusion_in = [s for s in buckets["diffusion"] if _counts(s)]
 
         reasons: list[str] = []
         has_negation = bool(buckets["negation"])
@@ -186,11 +204,14 @@ class RuleBasedSemanticChecker:
         else:
             relation = "uncertain"
             reasons.append("立場を示す手がかりが不足している")
+        if retrospective and relation == "mentions_only":
+            reasons.append("刊行が対象時代より後の回顧的資料であり、対象時代に結びつく実現・普及の記述が確認できない")
         return {
             "relation": relation, "checker": self.name, "demand": demand,
             "reasons": reasons,
             "stance_sentences": {k: v for k, v in buckets.items() if v},
             "onset_after_era": onset_after,
+            "retrospective": retrospective,
         }
 
 
@@ -219,7 +240,7 @@ class EmbeddingSemanticChecker:
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
-    def assess(self, analysis: QuestionAnalysis, ocr_text: str) -> dict[str, Any]:
+    def assess(self, analysis: QuestionAnalysis, ocr_text: str, publication_year: int | None = None) -> dict[str, Any]:
         try:
             model = self._load()
         except Exception as exc:  # noqa: BLE001 - availability is reported, not hidden
