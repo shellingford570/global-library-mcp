@@ -67,6 +67,11 @@ _OCCURRENCE_CUES = (
     "開業", "営業を開始", "運転を開始", "運行を開始", "放送を開始",
     "建設され", "完成し", "落成", "敷設", "創業", "設立され",
     "始まつた", "始まった", "開始され", "導入され", "実用化され",
+    # Institutional vocabulary of the period: telegraph/telephone
+    # offices 開局, lines 開通/架設, railways 開通, factories 操業,
+    # lighting 点灯, newspapers 創刊, laws 施行/発布, companies 創立.
+    "開局", "開通", "架設", "創設", "創立", "開設", "操業", "点灯",
+    "創刊", "発刊", "施行", "発布", "制定",
 )
 _DIFFUSION_CUES = (
     "普及", "広まつた", "広まった", "一般化", "浸透", "全国各地", "家庭にまで",
@@ -113,10 +118,17 @@ class RuleBasedSemanticChecker:
         text = normalize_text(ocr_text or "")
         families = concept_families(analysis.core_concepts)
         demand = question_demand(analysis)
+        # Discourse units: period prose states the topic once and
+        # continues with zero anaphora ("the offices opened in year
+        # 2, four more in year 3" - the second sentence names no
+        # topic). Stance and anchors are therefore read over a
+        # concept sentence plus the sentence that follows it.
+        all_sentences = _sentences(text)
         concept_sentences: list[str] = []
-        for sentence in _sentences(text):
+        for idx, sentence in enumerate(all_sentences):
             if any(find_concept(sentence, family) for family in families):
-                concept_sentences.append(sentence)
+                following = all_sentences[idx + 1] if idx + 1 < len(all_sentences) else ""
+                concept_sentences.append(sentence + following)
         if not concept_sentences:
             return {
                 "relation": "insufficient", "checker": self.name, "demand": demand,
@@ -165,6 +177,9 @@ class RuleBasedSemanticChecker:
         occurrence_in = [s for s in buckets["occurrence"] if _counts(s)]
         diffusion_in = [s for s in buckets["diffusion"] if _counts(s)]
 
+        import re as _re
+
+        dated_event = bool(_re.search(r"(1[4-9]\d{2}|20\d{2})\s*年", analysis.raw))
         reasons: list[str] = []
         has_negation = bool(buckets["negation"])
         has_later = bool(buckets["later"])
@@ -175,17 +190,18 @@ class RuleBasedSemanticChecker:
         if demand == "general":
             relation = "uncertain"
             reasons.append("時代・存在・普及を問う形の質問ではないため、意味判定の対象外（語彙ゲートの判定に従う）")
+        elif dated_event and not has_negation:
+            relation = "uncertain"
+            reasons.append("質問が出来事の年代を明示しているため、前提検証の対象外（語彙ゲートの判定に従う）")
         elif has_negation and (has_occurrence or has_diffusion):
             relation = "uncertain"
             reasons.append("否定の記述と肯定の記述が混在するため、意味関係を自動確定できない")
-        elif has_negation or onset_after or (has_later and not has_occurrence and not has_diffusion):
+        elif has_negation or onset_after:
             relation = "contradicts"
             if has_negation:
                 reasons.append("中心概念について否定的な記述（存在しなかった等）がある")
             if onset_after:
                 reasons.append("中心概念の開始・開業が対象時代より後の年代と明記されている")
-            if has_later:
-                reasons.append("中心概念の登場が後の時代とされている記述がある")
         elif has_planning_only:
             relation = "mentions_only"
             reasons.append("計画・構想の段階の記述のみで、実現・普及の記述がない")

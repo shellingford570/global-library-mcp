@@ -98,3 +98,33 @@ def test_contemporary_source_keeps_unanchored_support():
         publication_year=1905,
     )
     assert result["relation"] == "supports"
+
+
+def test_telegraph_office_opening_vocabulary_supports():
+    checker = RuleBasedSemanticChecker()
+    result = checker.assess(
+        analyze_question("明治時代の電信技術の導入について教えて"),
+        "明治政府購入の電信機が届いた。明治二年に開局されたもの五局、三年に開局されたもの四局であった。電信の開通は各地に広がった。",
+        publication_year=1934,
+    )
+    assert result["relation"] == "supports"
+
+
+def test_later_developments_alone_are_not_a_contradiction():
+    checker = RuleBasedSemanticChecker()
+    result = checker.assess(
+        analyze_question("明治時代の電信技術の導入について教えて"),
+        "本邦電信の将来の動向を確立するに至ったが、明治時代における電信の経緯を総合して見る必要がある。やがて通信機械は印刷機によるを原則とすることになった。",
+        publication_year=1934,
+    )
+    assert result["relation"] != "contradicts"
+
+
+def test_dated_event_question_is_out_of_scope():
+    checker = RuleBasedSemanticChecker()
+    result = checker.assess(
+        analyze_question("1891年の濃尾地震の被害について教えて"),
+        "濃尾地震は各地に大きな被害をもたらした。家屋の倒壊は数万に及んだ。",
+        publication_year=1935,
+    )
+    assert result["relation"] == "uncertain"
