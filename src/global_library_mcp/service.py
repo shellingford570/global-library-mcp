@@ -553,7 +553,8 @@ class LibraryService:
                 obj for obj in objects
                 if (obj.semantics or {}).get("relation") != "contradicts"
                 and not ((obj.semantics or {}).get("relation") == "mentions_only" and (obj.semantics or {}).get("retrospective"))
-                and not (analysis.era is not None and (obj.semantics or {}).get("relation") in ("mentions_only", "insufficient"))
+                and not (analysis.era is not None and obj.page_kind in ("front_matter", "photo_plate")
+                         and (obj.semantics or {}).get("relation") in ("mentions_only", "insufficient"))
             ]
             candidates.sort(key=lambda o: -(o.relevance or {}).get("score", 0))
             for obj in candidates[:2]:
@@ -698,15 +699,17 @@ class LibraryService:
                 out["related"].append(evidence.to_dict())
                 state["related_pages"].append(evidence.to_dict())
             elif (assessment["status"] == "relevant" and relation in ("mentions_only", "insufficient")
-                  and analysis.era is not None):
-                # Era-premise questions (Phase 6 tightening): a page
-                # that only mentions the topic - a listing, a table
-                # of contents, an index - or yields no concept
-                # sentence at all cannot ground an era claim on
-                # lexical relevance alone. Phase 5 applied this only
-                # to retrospective sources; Phase 6's deeper fetching
-                # showed contemporary listings carry the same trap
-                # (the washing-machine table-of-contents case).
+                  and analysis.era is not None and evidence.page_kind in ("front_matter", "photo_plate")):
+                # Era-premise questions (Phase 6 tightening, scoped
+                # by page kind): an enumerative page - a table of
+                # contents, an index, a plate list - that only
+                # mentions the topic cannot ground an era claim.
+                # Body pages keep the Phase 5 behaviour: the
+                # checker's mentions_only/insufficient verdicts are
+                # too conservative to demote narrative prose (the
+                # first, unscoped version of this rule cost more
+                # true answers than false ones - see
+                # docs/evaluation-phase6.md).
                 out["related"].append(evidence.to_dict())
                 state["related_pages"].append(evidence.to_dict())
             elif (assessment["status"] == "relevant" and relation == "mentions_only"
