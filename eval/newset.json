@@ -1,0 +1,30 @@
+{
+  "version": "newset-v1-frozen-2026-11-23",
+  "note": "Phase 6 independent final-verification set. Topics are disjoint from the 70-question set and the Phase 5 holdout. Labels were fixed from historical facts BEFORE any run of this set; never adjust them to fit results.",
+  "questions": [
+    {"id": "n01", "question": "明治時代の鉄道開業について、新橋と横浜の間の鉄道がどのように開通したか当時の資料の記述を教えて", "expect": "evidence", "label_basis": "鉄道は明治5年（1872）に新橋・横浜間で開業。当時の記録・沿革史が多数デジタル化されている。"},
+    {"id": "n02", "question": "明治時代の郵便制度の創設について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "郵便制度は明治4年（1871）に前島密により創設。郵便史資料が存在する。"},
+    {"id": "n03", "question": "明治時代の東京におけるガス灯の設置について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "東京のガス灯は明治7年（1874）頃から設置。ガス事業史が存在する。"},
+    {"id": "n04", "question": "大正時代の関東大震災について当時の記録は何を述べているか", "expect": "evidence", "label_basis": "関東大震災は大正12年（1923）。震災記録・報告書が多数存在する。"},
+    {"id": "n05", "question": "明治時代の尋常小学校で使われた教科書について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "明治期の国定・検定教科書と教育史資料が存在する。"},
+    {"id": "n06", "question": "明治時代のビール醸造の始まりについて当時の資料の記述を教えて", "expect": "evidence", "label_basis": "開拓使麦酒醸造所は明治9年（1876）に札幌で開業。醸造史が存在する。"},
+    {"id": "n07", "question": "明治時代の断髪令と洋服の着用について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "散髪脱刀令は明治4年（1871）。風俗史資料が存在する。"},
+    {"id": "n08", "question": "明治時代の三越呉服店の百貨店化について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "三越は明治37年（1904）にデパート宣言。商業史資料が存在する。"},
+    {"id": "n09", "question": "明治時代の横浜における水道の建設について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "横浜水道は明治20年（1887）に給水開始。水道史が存在する。"},
+    {"id": "n10", "question": "江戸時代の蘭学と解体新書について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "解体新書は安永3年（1774）刊行。蘭学史資料が存在する。"},
+    {"id": "n11", "question": "明治時代の大日本帝国憲法の発布について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "憲法発布は明治22年（1889）。当時の記録が存在する。"},
+    {"id": "n12", "question": "大正時代の米騒動について当時の記録は何を述べているか", "expect": "evidence", "label_basis": "米騒動は大正7年（1918）。社会史資料が存在する。"},
+    {"id": "n13", "question": "明治時代の野球の伝来について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "野球は明治5年（1872）頃に伝来。体育史資料が存在する。"},
+    {"id": "n14", "question": "明治時代の活版印刷の導入について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "本木昌造による活版印刷は明治初期。印刷史資料が存在する。"},
+    {"id": "n15", "question": "明治時代の服部時計店と時計製造について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "服部時計店は明治14年（1881）創業、精工舎は明治25年設立。時計史資料が存在する。"},
+    {"id": "n16", "question": "How did railways expand in Japan during the Meiji era?", "expect": "evidence", "label_basis": "English-language books on Meiji Japan and railway histories exist in Internet Archive; NDL holds English materials too."},
+    {"id": "n17", "question": "What did early twentieth-century books say about electric lighting in Japan?", "expect": "evidence", "label_basis": "English travel/engineering books of the 1900s-1910s describe electric lighting in Japanese cities (IA holdings)."},
+    {"id": "n18", "question": "明治時代のテレビ放送の開始について当時の資料の記述を教えて", "expect": "correction", "label_basis": "テレビ放送は昭和28年（1953）開始。明治には存在しない。"},
+    {"id": "n19", "question": "明治時代の原子力発電について当時の資料の記述を教えて", "expect": "correction", "label_basis": "原子力発電は20世紀後半の技術。明治には存在しない。"},
+    {"id": "n20", "question": "江戸時代の電信の導入について当時の資料の記述を教えて", "expect": "correction", "label_basis": "電信の導入は明治2年（1869）。江戸時代には存在しない。"},
+    {"id": "n21", "question": "明治時代の旅客飛行機の定期運航について当時の資料の記述を教えて", "expect": "correction", "label_basis": "日本の定期航空輸送は大正11年（1922）開始。明治には存在しない。"},
+    {"id": "n22", "question": "明治時代のプラスチック製品の製造について当時の資料の記述を教えて", "expect": "insufficient", "label_basis": "合成樹脂（ベークライト）は1907年の発明で、日本での製造は大正以降。明治の製造記録は見込めない。"},
+    {"id": "n23", "question": "江戸時代のガス灯の設置について当時の資料の記述を教えて", "expect": "insufficient", "label_basis": "ガス灯は明治以降の技術。江戸時代の設置記録は存在しない。"},
+    {"id": "n24", "question": "大正時代の活動写真の興行について当時の資料の記述を教えて", "expect": "evidence", "label_basis": "大正期には映画（活動写真）の興行が各地に広がった。映画史資料が存在する。"}
+  ]
+}
