@@ -1,0 +1,625 @@
+{
+  "dataset_version": "newset2-v1-frozen-2026-11-23",
+  "run_at": "2026-11-23T13:01:37Z",
+  "metrics": {
+    "questions": 16,
+    "discovery_rate": 0.3,
+    "ocr_capture_rate": 0.095,
+    "image_reachable_rate": 0.667,
+    "citation_resolution_rate": 1.0,
+    "claim_supported_rate": 1.0,
+    "claim_status_counts": {
+      "supported": 4,
+      "uncertain": 0,
+      "unsupported": 0,
+      "conflicting": 0,
+      "not_checked": 0
+    },
+    "insufficient_correct_rate": 1.0,
+    "refusal_correct_rate": 1.0,
+    "answerable_success_rate": 0.3,
+    "false_answer_rate": 0.0,
+    "false_refusal_rate": 0.7,
+    "related_status_counts": {
+      "relevant": 19,
+      "partially_relevant": 37,
+      "irrelevant": 0,
+      "uncertain": 0,
+      "not_checked": 0
+    },
+    "requests_per_question": 26.6,
+    "avg_seconds": 171.98,
+    "total_requests": 426,
+    "provider": "mock",
+    "insufficient_handled_rate": 1.0,
+    "corrections_on_insufficient": 0,
+    "false_corrections": 0,
+    "correction_success_rate": 0.0,
+    "correction_safe_rate": 1.0,
+    "correction_false_answer_rate": 0.0,
+    "recall_at_3": 0.2,
+    "recall_at_6": 0.2,
+    "mrr": 0.214,
+    "retrieval_failure_counts": {
+      "no_candidates": 1,
+      "budget_exhausted": 0,
+      "no_relevant_pages": 4,
+      "premise_contradicted": 0,
+      "all_pages_failed_verification": 8
+    }
+  },
+  "records": [
+    {
+      "id": "v01",
+      "category": "independent-v2",
+      "question": "明治時代の郵便制度の発達について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 0,
+      "citations": [
+        "ndl:1900539:1900539_2"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1900539_2",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 14.8,
+      "requests": 41
+    },
+    {
+      "id": "v02",
+      "category": "independent-v2",
+      "question": "江戸時代の寺子屋ではどのような教育が行われていたか教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（寺子屋）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 17.52,
+      "requests": 39
+    },
+    {
+      "id": "v03",
+      "category": "independent-v2",
+      "question": "明治時代のガス灯の導入と広がりについて教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（ガス灯）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 18.1,
+      "requests": 57
+    },
+    {
+      "id": "v04",
+      "category": "independent-v2",
+      "question": "明治時代の新聞の創刊と発展について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 1,
+      "citations": [
+        "ndl:1106288:1106288_9"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 1,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1106288_9",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 20.17,
+      "requests": 37
+    },
+    {
+      "id": "v05",
+      "category": "independent-v2",
+      "question": "昭和初期のラジオ放送の聴取者の広がりについて教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（ラジオ、昭和初期）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 32.54,
+      "requests": 72
+    },
+    {
+      "id": "v06",
+      "category": "independent-v2",
+      "question": "明治時代の自転車の輸入と国産化について教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 1,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（自転車）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 18.5,
+      "requests": 66
+    },
+    {
+      "id": "v07",
+      "category": "independent-v2",
+      "question": "大正時代の電話加入者の増加について教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 2,
+      "unverified": 0,
+      "citations": [
+        "ndl:1914945:1914945_28"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 7,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1914945_28",
+        "status": "failed",
+        "image_reachable": false
+      },
+      "seconds": 107.86,
+      "requests": 51
+    },
+    {
+      "id": "v08",
+      "category": "independent-v2",
+      "question": "明治時代の鉄道網の拡大について教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 5,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（鉄道網、拡大）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 320.25,
+      "requests": 8
+    },
+    {
+      "id": "v09",
+      "category": "independent-v2",
+      "question": "江戸時代の電信網の整備について教えて",
+      "expect": "correction",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 3,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（電信網、整備）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 240.2,
+      "requests": 6
+    },
+    {
+      "id": "v10",
+      "category": "independent-v2",
+      "question": "大正時代のカラーテレビ放送の普及について教えて",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 4,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（カラーテレビ、カラーテレビ放送）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 280.26,
+      "requests": 7
+    },
+    {
+      "id": "v11",
+      "category": "independent-v2",
+      "question": "明治時代の冷蔵電車の運行について教えて",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 5,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（冷蔵電車、運行）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 320.35,
+      "requests": 8
+    },
+    {
+      "id": "v12",
+      "category": "independent-v2",
+      "question": "明治時代のテレビ電話の実用化について教えて",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 5,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（テレビ、テレビ電話、実用化）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 320.26,
+      "requests": 8
+    },
+    {
+      "id": "v13",
+      "category": "independent-v2",
+      "question": "明治元年の自動車登録台数を教えて",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（明治元年、自動車登録台数）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_candidates",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 120.11,
+      "requests": 3
+    },
+    {
+      "id": "v14",
+      "category": "independent-v2",
+      "question": "大正時代の義務教育の就学状況について教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 4,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（義務教育、就学状況）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 280.22,
+      "requests": 7
+    },
+    {
+      "id": "v15",
+      "category": "independent-v2",
+      "question": "明治時代の洋食の伝来と広がりについて教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 5,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（洋食）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 320.29,
+      "requests": 8
+    },
+    {
+      "id": "v16",
+      "category": "independent-v2",
+      "question": "明治時代の地下鉄の建設について教えて",
+      "expect": "correction",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 5,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "質問の中心概念（地下鉄）を裏付けるOCR本文が確認できませんでした。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        },
+        {
+          "library_id": "ndl",
+          "error": ""
+        }
+      ],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "all_pages_failed_verification",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 320.3,
+      "requests": 8
+    }
+  ]
+}
