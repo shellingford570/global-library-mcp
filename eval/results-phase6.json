@@ -1,50 +1,50 @@
 {
   "dataset_version": "phase3-1",
-  "run_at": "2026-11-23T09:05:28Z",
+  "run_at": "2026-11-23T09:32:39Z",
   "metrics": {
     "questions": 70,
-    "discovery_rate": 0.705,
-    "ocr_capture_rate": 0.929,
+    "discovery_rate": 0.841,
+    "ocr_capture_rate": 0.94,
     "image_reachable_rate": 1.0,
     "citation_resolution_rate": 1.0,
-    "claim_supported_rate": 0.989,
+    "claim_supported_rate": 0.991,
     "claim_status_counts": {
-      "supported": 89,
+      "supported": 106,
       "uncertain": 1,
       "unsupported": 0,
       "conflicting": 0,
       "not_checked": 0
     },
-    "insufficient_correct_rate": 0.846,
-    "refusal_correct_rate": 0.846,
-    "answerable_success_rate": 0.705,
-    "false_answer_rate": 0.115,
-    "false_refusal_rate": 0.273,
+    "insufficient_correct_rate": 0.808,
+    "refusal_correct_rate": 0.808,
+    "answerable_success_rate": 0.841,
+    "false_answer_rate": 0.154,
+    "false_refusal_rate": 0.159,
     "related_status_counts": {
-      "relevant": 138,
-      "partially_relevant": 133,
-      "irrelevant": 116,
+      "relevant": 105,
+      "partially_relevant": 142,
+      "irrelevant": 111,
       "uncertain": 0,
       "not_checked": 0
     },
-    "requests_per_question": 30.5,
-    "avg_seconds": 10.42,
-    "total_requests": 2136,
+    "requests_per_question": 28.9,
+    "avg_seconds": 11.69,
+    "total_requests": 2024,
     "provider": "mock",
-    "insufficient_handled_rate": 0.885,
+    "insufficient_handled_rate": 0.846,
     "corrections_on_insufficient": 1,
-    "false_corrections": 1,
+    "false_corrections": 0,
     "correction_success_rate": null,
     "correction_safe_rate": null,
     "correction_false_answer_rate": null,
-    "recall_at_3": 0.682,
-    "recall_at_6": 0.705,
-    "mrr": 0.591,
+    "recall_at_3": 0.75,
+    "recall_at_6": 0.841,
+    "mrr": 0.678,
     "retrieval_failure_counts": {
       "no_candidates": 1,
       "budget_exhausted": 0,
-      "no_relevant_pages": 33,
-      "premise_contradicted": 2,
+      "no_relevant_pages": 27,
+      "premise_contradicted": 1,
       "all_pages_failed_verification": 0
     }
   },
@@ -54,11 +54,11 @@
       "category": "日本史",
       "question": "明治時代の発電水力の開発について教えて",
       "expect": "evidence",
-      "status": "corrected_premise",
-      "evidence": 0,
+      "status": "answered",
+      "evidence": 2,
       "unverified": 0,
       "citations": [
-        "ndl:967539:967539_6"
+        "ndl:994120:994120_4"
       ],
       "related": 8,
       "related_statuses": [
@@ -75,19 +75,26 @@
       "claims": [
         {
           "support": "supported",
-          "overlap": 0.849
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
         }
       ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "premise_contradicted",
+      "first_evidence_rank": 5,
+      "retrieval_failure_reason": null,
       "premise_contradictions": 1,
-      "correction_quotes": [
-        "発電水力調査〓況 第一章 発電水力調査ノ沿革 明治三十七八年戦役後經済界ノ好況ニ遭逢シ水力電気ノ開発セラルヽモノ著シク増 加シ来リシカ當時ハ設計ノ基礎トナルヘキ河川ノ流量ニ関スル資料殆ト皆無ナリシタ 剴切 計畫ヲ施スコト能ハス從ツテ事業經營"
-      ],
-      "seconds": 28.89,
-      "requests": 66
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "994120_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 18.49,
+      "requests": 39
     },
     {
       "id": "q02",
@@ -131,7 +138,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 6.17,
+      "seconds": 7.71,
       "requests": 18
     },
     {
@@ -162,7 +169,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 5.36,
+      "seconds": 6.59,
       "requests": 17
     },
     {
@@ -209,7 +216,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 7.24,
+      "seconds": 9.1,
       "requests": 25
     },
     {
@@ -251,7 +258,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 3.03,
+      "seconds": 3.91,
       "requests": 11
     },
     {
@@ -282,8 +289,8 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 6.94,
-      "requests": 23
+      "seconds": 9.37,
+      "requests": 25
     },
     {
       "id": "q07",
@@ -296,10 +303,8 @@
       "citations": [
         "ndl:787501:787501_5"
       ],
-      "related": 5,
+      "related": 3,
       "related_statuses": [
-        "relevant",
-        "relevant",
         "relevant",
         "relevant",
         "relevant"
@@ -330,8 +335,8 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 10.19,
-      "requests": 25
+      "seconds": 7.55,
+      "requests": 20
     },
     {
       "id": "q08",
@@ -372,7 +377,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 3.98,
+      "seconds": 4.91,
       "requests": 14
     },
     {
@@ -380,10 +385,12 @@
       "category": "科学技術史",
       "question": "明治時代の時計製造について教えて",
       "expect": "evidence",
-      "status": "insufficient_evidence",
-      "evidence": 0,
+      "status": "answered",
+      "evidence": 1,
       "unverified": 0,
-      "citations": [],
+      "citations": [
+        "ndl:984057:984057_4"
+      ],
       "related": 8,
       "related_statuses": [
         "relevant",
@@ -395,16 +402,26 @@
         "relevant",
         "relevant"
       ],
-      "reason": "質問の中心概念（時計製造）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
-      "claims": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "no_relevant_pages",
+      "first_evidence_rank": 5,
+      "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.54,
-      "requests": 29
+      "image_check": {
+        "page_id": "984057_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 11.85,
+      "requests": 30
     },
     {
       "id": "q10",
@@ -447,7 +464,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 5.36,
+      "seconds": 5.38,
       "requests": 13
     },
     {
@@ -455,31 +472,46 @@
       "category": "科学技術史",
       "question": "明治時代のガス灯の普及について教えて",
       "expect": "evidence",
-      "status": "insufficient_evidence",
-      "evidence": 0,
+      "status": "answered",
+      "evidence": 3,
       "unverified": 0,
-      "citations": [],
-      "related": 8,
+      "citations": [
+        "ndl:848275:848275_76"
+      ],
+      "related": 3,
       "related_statuses": [
         "relevant",
         "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant"
+        "irrelevant"
       ],
-      "reason": "質問の中心概念（ガス灯）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
-      "claims": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "no_relevant_pages",
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.89,
-      "requests": 61
+      "image_check": {
+        "page_id": "848275_76",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 8.73,
+      "requests": 21
     },
     {
       "id": "q12",
@@ -520,7 +552,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 5.05,
+      "seconds": 5.69,
       "requests": 13
     },
     {
@@ -559,13 +591,8 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 1,
       "correction_quotes": [],
-      "image_check": {
-        "page_id": "946285_4",
-        "status": "verified",
-        "image_reachable": true
-      },
-      "seconds": 4.98,
-      "requests": 11
+      "seconds": 3.78,
+      "requests": 8
     },
     {
       "id": "q14",
@@ -595,7 +622,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.38,
+      "seconds": 11.14,
       "requests": 31
     },
     {
@@ -632,13 +659,8 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "image_check": {
-        "page_id": "945148_4",
-        "status": "verified",
-        "image_reachable": true
-      },
-      "seconds": 5.85,
-      "requests": 12
+      "seconds": 3.16,
+      "requests": 9
     },
     {
       "id": "q16",
@@ -680,13 +702,8 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "image_check": {
-        "page_id": "979091_5",
-        "status": "verified",
-        "image_reachable": true
-      },
-      "seconds": 5.52,
-      "requests": 16
+      "seconds": 4.77,
+      "requests": 13
     },
     {
       "id": "q17",
@@ -731,7 +748,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 6.99,
+      "seconds": 8.49,
       "requests": 23
     },
     {
@@ -740,19 +757,13 @@
       "question": "明治時代の種痘について当時の資料の記述を教えて",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 3,
+      "evidence": 4,
       "unverified": 0,
       "citations": [
         "ndl:797106:797106_4"
       ],
-      "related": 5,
-      "related_statuses": [
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant"
-      ],
+      "related": 0,
+      "related_statuses": [],
       "reason": null,
       "claims": [
         {
@@ -774,8 +785,8 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.0,
-      "requests": 19
+      "seconds": 4.08,
+      "requests": 11
     },
     {
       "id": "q19",
@@ -811,7 +822,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.98,
+      "seconds": 3.73,
       "requests": 10
     },
     {
@@ -819,10 +830,12 @@
       "category": "医学史",
       "question": "明治時代の病院制度について教えて",
       "expect": "evidence",
-      "status": "insufficient_evidence",
-      "evidence": 0,
+      "status": "answered",
+      "evidence": 2,
       "unverified": 0,
-      "citations": [],
+      "citations": [
+        "ndl:833199:833199_8"
+      ],
       "related": 8,
       "related_statuses": [
         "relevant",
@@ -834,16 +847,25 @@
         "relevant",
         "relevant"
       ],
-      "reason": "質問の中心概念（病院制度、病院）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
-      "claims": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "no_relevant_pages",
+      "first_evidence_rank": 2,
+      "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.76,
-      "requests": 29
+      "seconds": 9.7,
+      "requests": 27
     },
     {
       "id": "q21",
@@ -879,7 +901,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.98,
+      "seconds": 3.79,
       "requests": 10
     },
     {
@@ -888,24 +910,23 @@
       "question": "明治時代の北海道開拓について当時の資料は何を述べているか",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 1,
+      "evidence": 4,
       "unverified": 0,
       "citations": [
-        "ndl:801020:801020_8"
+        "ndl:801018:801018_7"
       ],
-      "related": 8,
-      "related_statuses": [
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant"
-      ],
+      "related": 0,
+      "related_statuses": [],
       "reason": null,
       "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
         {
           "support": "supported",
           "overlap": 1.0
@@ -913,12 +934,12 @@
       ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": 3,
+      "first_evidence_rank": 1,
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 10.4,
-      "requests": 27
+      "seconds": 4.16,
+      "requests": 11
     },
     {
       "id": "q23",
@@ -957,7 +978,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 5.24,
+      "seconds": 6.5,
       "requests": 17
     },
     {
@@ -988,7 +1009,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.46,
+      "seconds": 10.97,
       "requests": 29
     },
     {
@@ -1025,7 +1046,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.41,
+      "seconds": 2.86,
       "requests": 8
     },
     {
@@ -1056,8 +1077,8 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.7,
-      "requests": 39
+      "seconds": 17.89,
+      "requests": 49
     },
     {
       "id": "q27",
@@ -1093,7 +1114,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.5,
+      "seconds": 4.57,
       "requests": 12
     },
     {
@@ -1115,7 +1136,7 @@
       "retrieval_failure_reason": "no_candidates",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 0.67,
+      "seconds": 0.81,
       "requests": 2
     },
     {
@@ -1146,7 +1167,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 6.64,
+      "seconds": 8.27,
       "requests": 23
     },
     {
@@ -1177,7 +1198,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 17.7,
+      "seconds": 22.39,
       "requests": 61
     },
     {
@@ -1215,7 +1236,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.91,
+      "seconds": 15.07,
       "requests": 42
     },
     {
@@ -1246,7 +1267,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 21.04,
+      "seconds": 26.61,
       "requests": 74
     },
     {
@@ -1277,7 +1298,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.83,
+      "seconds": 24.26,
       "requests": 66
     },
     {
@@ -1308,7 +1329,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 14.13,
+      "seconds": 18.01,
       "requests": 48
     },
     {
@@ -1346,7 +1367,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 12.05,
+      "seconds": 16.37,
       "requests": 41
     },
     {
@@ -1377,7 +1398,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 6.71,
+      "seconds": 8.6,
       "requests": 22
     },
     {
@@ -1408,7 +1429,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 7.44,
+      "seconds": 9.44,
       "requests": 26
     },
     {
@@ -1439,7 +1460,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.17,
+      "seconds": 11.59,
       "requests": 29
     },
     {
@@ -1479,7 +1500,7 @@
       "correction_quotes": [
         "樋口自動車商会 營 業 所 京橋区新富町一ノ六 電 話 京橋 九〇七二番 創 立 昭和三年四月 資 本 金 貳萬圓 沿革 昭和三年自動車販売を開業して中古自動車販売 界に進出、 漸次タクシー營業、 車庫業に業務を擴張し、 各部門共に逐日事業"
       ],
-      "seconds": 18.54,
+      "seconds": 31.41,
       "requests": 64
     },
     {
@@ -1517,7 +1538,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 12.75,
+      "seconds": 21.54,
       "requests": 42
     },
     {
@@ -1548,7 +1569,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 17.07,
+      "seconds": 40.09,
       "requests": 58
     },
     {
@@ -1579,7 +1600,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 16.43,
+      "seconds": 30.6,
       "requests": 58
     },
     {
@@ -1610,7 +1631,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 19.79,
+      "seconds": 33.45,
       "requests": 70
     },
     {
@@ -1641,7 +1662,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 12.23,
+      "seconds": 14.91,
       "requests": 40
     },
     {
@@ -1672,7 +1693,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 14.82,
+      "seconds": 14.88,
       "requests": 40
     },
     {
@@ -1703,7 +1724,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.09,
+      "seconds": 11.31,
       "requests": 31
     },
     {
@@ -1734,7 +1755,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 15.74,
+      "seconds": 10.57,
       "requests": 27
     },
     {
@@ -1765,7 +1786,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 29.53,
+      "seconds": 18.16,
       "requests": 46
     },
     {
@@ -1796,7 +1817,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.4,
+      "seconds": 15.89,
       "requests": 42
     },
     {
@@ -1827,7 +1848,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 36.85,
+      "seconds": 29.32,
       "requests": 69
     },
     {
@@ -1841,60 +1862,16 @@
       "citations": [],
       "related": 8,
       "related_statuses": [
-        "irrelevant",
-        "irrelevant",
-        "irrelevant",
-        "irrelevant",
-        "irrelevant",
-        "irrelevant",
-        "irrelevant",
-        "irrelevant"
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
       ],
-      "reason": "質問の中心概念（プラスチック）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
-      "claims": [],
-      "citations_resolve": true,
-      "search_errors": [
-        {
-          "library_id": "ndl",
-          "error": "Server error '500 Internal Server Error' for url 'https://lab.ndl.go.jp/dl/api/book/search?keyword=%E6%98%8E%E6%B2%BB%E6%99%82%E4%BB%A3%E3%81%AE%E3%83%97%E3%83%A9%E3%82%B9%E3%83%81%E3%83%83%E3%82%AF%E8%A3%BD%E5%93%81%E3%81%AE%E6%99%AE%E5%8F%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6%E6%95%99%E3%81%88%E3%81%A6&size=5'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
-        },
-        {
-          "library_id": "ndl",
-          "error": "Server error '500 Internal Server Error' for url 'https://lab.ndl.go.jp/dl/api/book/search?keyword=%E3%83%97%E3%83%A9%E3%82%B9%E3%83%81%E3%83%83%E3%82%AF%E8%A3%BD%E5%93%81&size=5'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
-        },
-        {
-          "library_id": "ndl",
-          "error": "Server error '500 Internal Server Error' for url 'https://lab.ndl.go.jp/dl/api/book/search?keyword=%E6%99%AE%E5%8F%8A&size=5'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
-        }
-      ],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "no_relevant_pages",
-      "premise_contradictions": 0,
-      "correction_quotes": [],
-      "seconds": 9.62,
-      "requests": 11
-    },
-    {
-      "id": "q52",
-      "category": "存在しない技術",
-      "question": "大正時代の電気洗濯機の普及について教えて",
-      "expect": "insufficient",
-      "status": "insufficient_evidence",
-      "evidence": 0,
-      "unverified": 0,
-      "citations": [],
-      "related": 8,
-      "related_statuses": [
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "irrelevant",
-        "irrelevant",
-        "irrelevant"
-      ],
-      "reason": "質問の中心概念（電気洗濯機）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "reason": "質問の中心概念（プラスチック、プラスチック製品）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
       "claims": [],
       "citations_resolve": true,
       "search_errors": [],
@@ -1902,8 +1879,46 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 25.47,
-      "requests": 44
+      "seconds": 22.25,
+      "requests": 60
+    },
+    {
+      "id": "q52",
+      "category": "存在しない技術",
+      "question": "大正時代の電気洗濯機の普及について教えて",
+      "expect": "insufficient",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 0,
+      "citations": [
+        "ndl:961250:961250_10"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 2,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 11.42,
+      "requests": 32
     },
     {
       "id": "q53",
@@ -1942,7 +1957,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.77,
+      "seconds": 4.03,
       "requests": 9
     },
     {
@@ -1979,7 +1994,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.11,
+      "seconds": 2.44,
       "requests": 6
     },
     {
@@ -2016,7 +2031,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.77,
+      "seconds": 3.44,
       "requests": 9
     },
     {
@@ -2053,7 +2068,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.09,
+      "seconds": 3.77,
       "requests": 10
     },
     {
@@ -2090,7 +2105,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 1.52,
+      "seconds": 1.79,
       "requests": 5
     },
     {
@@ -2121,7 +2136,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.8,
+      "seconds": 12.48,
       "requests": 34
     },
     {
@@ -2129,13 +2144,14 @@
       "category": "発電・電気工学",
       "question": "明治時代の電灯の普及について教えて",
       "expect": "evidence",
-      "status": "insufficient_evidence",
-      "evidence": 0,
+      "status": "answered",
+      "evidence": 3,
       "unverified": 0,
-      "citations": [],
-      "related": 8,
+      "citations": [
+        "ndl:1083189:1083189_4"
+      ],
+      "related": 7,
       "related_statuses": [
-        "relevant",
         "relevant",
         "relevant",
         "relevant",
@@ -2144,16 +2160,29 @@
         "relevant",
         "relevant"
       ],
-      "reason": "質問の中心概念（電灯）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
-      "claims": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "no_relevant_pages",
+      "first_evidence_rank": 3,
+      "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 13.96,
-      "requests": 42
+      "seconds": 7.11,
+      "requests": 20
     },
     {
       "id": "q60",
@@ -2197,7 +2226,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.47,
+      "seconds": 3.0,
       "requests": 8
     },
     {
@@ -2234,7 +2263,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.68,
+      "seconds": 3.31,
       "requests": 9
     },
     {
@@ -2242,10 +2271,12 @@
       "category": "比較",
       "question": "明治時代と大正時代の水力発電の違いを比較して教えて",
       "expect": "evidence",
-      "status": "insufficient_evidence",
-      "evidence": 0,
+      "status": "answered",
+      "evidence": 2,
       "unverified": 0,
-      "citations": [],
+      "citations": [
+        "ndl:1193204:1193204_5"
+      ],
       "related": 8,
       "related_statuses": [
         "relevant",
@@ -2254,19 +2285,28 @@
         "relevant",
         "relevant",
         "relevant",
-        "relevant",
-        "relevant"
+        "partially_relevant",
+        "irrelevant"
       ],
-      "reason": "質問の中心概念（水力発電）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
-      "claims": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": null,
-      "retrieval_failure_reason": "no_relevant_pages",
+      "first_evidence_rank": 4,
+      "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.24,
-      "requests": 48
+      "seconds": 9.36,
+      "requests": 25
     },
     {
       "id": "q63",
@@ -2296,7 +2336,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 17.74,
+      "seconds": 22.32,
       "requests": 62
     },
     {
@@ -2338,7 +2378,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 14.26,
+      "seconds": 17.97,
       "requests": 46
     },
     {
@@ -2377,7 +2417,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.92,
+      "seconds": 4.99,
       "requests": 11
     },
     {
@@ -2415,7 +2455,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.85,
+      "seconds": 18.23,
       "requests": 41
     },
     {
@@ -2446,7 +2486,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 17.18,
+      "seconds": 22.52,
       "requests": 60
     },
     {
@@ -2455,24 +2495,23 @@
       "question": "明治時代の北海道開拓について教えて",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 1,
+      "evidence": 4,
       "unverified": 0,
       "citations": [
-        "ndl:801020:801020_8"
+        "ndl:801018:801018_7"
       ],
-      "related": 8,
-      "related_statuses": [
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant",
-        "relevant"
-      ],
+      "related": 0,
+      "related_statuses": [],
       "reason": null,
       "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
         {
           "support": "supported",
           "overlap": 1.0
@@ -2480,12 +2519,12 @@
       ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": 3,
+      "first_evidence_rank": 1,
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 5.06,
-      "requests": 17
+      "seconds": 2.64,
+      "requests": 7
     },
     {
       "id": "q69",
@@ -2521,7 +2560,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.89,
+      "seconds": 3.68,
       "requests": 9
     },
     {
@@ -2563,7 +2602,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 7.45,
+      "seconds": 9.37,
       "requests": 26
     }
   ]

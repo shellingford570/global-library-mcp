@@ -117,6 +117,15 @@ def classify_page_kind(text: str | None) -> str:
     digits = sum(ch.isdigit() for ch in compact)
     if len(compact) >= 200 and digits / len(compact) > 0.25:
         return "table"
+    # A contents listing can run long: several chapter/section
+    # headings with almost no full sentences is enumerative
+    # front matter at any length.
+    headings = len(re.findall(r"第[一二三四五六七八九十百]+[章節編]", compact))
+    enumerations = len(re.findall(r"[一二三四五六七八九十]+、", compact))
+    if headings >= 2 and compact.count("。") <= 2:
+        return "front_matter"
+    if headings >= 1 and enumerations >= 4 and compact.count("。") <= 2:
+        return "front_matter"
     if len(compact) < 300 and _FRONT_MATTER_RE.search(compact):
         return "front_matter"
     if len(compact) < 200 and _PLATE_RE.search(compact):

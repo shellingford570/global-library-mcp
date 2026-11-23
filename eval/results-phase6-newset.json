@@ -1,10 +1,10 @@
 {
   "dataset_version": "newset-v1-frozen-2026-11-23",
-  "run_at": "2026-11-23T08:44:26Z",
+  "run_at": "2026-11-23T09:59:56Z",
   "metrics": {
     "questions": 24,
     "discovery_rate": 0.667,
-    "ocr_capture_rate": 0.857,
+    "ocr_capture_rate": 0.848,
     "image_reachable_rate": 1.0,
     "citation_resolution_rate": 1.0,
     "claim_supported_rate": 1.0,
@@ -21,15 +21,15 @@
     "false_answer_rate": 0.0,
     "false_refusal_rate": 0.333,
     "related_status_counts": {
-      "relevant": 44,
-      "partially_relevant": 106,
+      "relevant": 47,
+      "partially_relevant": 108,
       "irrelevant": 14,
       "uncertain": 0,
       "not_checked": 0
     },
-    "requests_per_question": 48.7,
-    "avg_seconds": 25.77,
-    "total_requests": 1169,
+    "requests_per_question": 49.5,
+    "avg_seconds": 31.3,
+    "total_requests": 1189,
     "provider": "mock",
     "insufficient_handled_rate": 1.0,
     "corrections_on_insufficient": 0,
@@ -39,7 +39,7 @@
     "correction_false_answer_rate": 0.0,
     "recall_at_3": 0.556,
     "recall_at_6": 0.611,
-    "mrr": 0.464,
+    "mrr": 0.436,
     "retrieval_failure_counts": {
       "no_candidates": 0,
       "budget_exhausted": 0,
@@ -91,7 +91,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 8.29,
+      "seconds": 10.63,
       "requests": 18
     },
     {
@@ -142,7 +142,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 21.1,
+      "seconds": 24.36,
       "requests": 45
     },
     {
@@ -173,7 +173,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 28.52,
+      "seconds": 39.88,
       "requests": 76
     },
     {
@@ -182,13 +182,15 @@
       "question": "大正時代の関東大震災について当時の記録は何を述べているか",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 4,
+      "evidence": 3,
       "unverified": 0,
       "citations": [
-        "ndl:979903:979903_4"
+        "ndl:979903:979903_7"
       ],
-      "related": 0,
-      "related_statuses": [],
+      "related": 1,
+      "related_statuses": [
+        "relevant"
+      ],
       "reason": null,
       "claims": [
         {
@@ -211,11 +213,11 @@
       "premise_contradictions": 0,
       "correction_quotes": [],
       "image_check": {
-        "page_id": "979903_4",
+        "page_id": "979903_7",
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 9.7,
+      "seconds": 8.92,
       "requests": 14
     },
     {
@@ -263,7 +265,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 16.78,
+      "seconds": 13.89,
       "requests": 24
     },
     {
@@ -310,7 +312,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 21.24,
+      "seconds": 22.93,
       "requests": 35
     },
     {
@@ -341,7 +343,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 43.48,
+      "seconds": 47.6,
       "requests": 75
     },
     {
@@ -384,7 +386,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 27.64,
+      "seconds": 38.12,
       "requests": 46
     },
     {
@@ -415,7 +417,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 34.62,
+      "seconds": 52.85,
       "requests": 67
     },
     {
@@ -446,7 +448,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 34.11,
+      "seconds": 36.26,
       "requests": 65
     },
     {
@@ -493,7 +495,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 28.45,
+      "seconds": 26.77,
       "requests": 45
     },
     {
@@ -502,13 +504,15 @@
       "question": "大正時代の米騒動について当時の記録は何を述べているか",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 4,
+      "evidence": 3,
       "unverified": 0,
       "citations": [
-        "ndl:911788:911788_8"
+        "ndl:911788:911788_48"
       ],
-      "related": 0,
-      "related_statuses": [],
+      "related": 1,
+      "related_statuses": [
+        "relevant"
+      ],
       "reason": null,
       "claims": [
         {
@@ -531,11 +535,11 @@
       "premise_contradictions": 0,
       "correction_quotes": [],
       "image_check": {
-        "page_id": "911788_8",
+        "page_id": "911788_48",
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 9.56,
+      "seconds": 7.25,
       "requests": 14
     },
     {
@@ -566,7 +570,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 30.88,
+      "seconds": 28.84,
       "requests": 56
     },
     {
@@ -609,7 +613,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 18.96,
+      "seconds": 17.71,
       "requests": 33
     },
     {
@@ -652,7 +656,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 28.04,
+      "seconds": 27.92,
       "requests": 49
     },
     {
@@ -690,7 +694,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 46.03,
+      "seconds": 42.69,
       "requests": 73
     },
     {
@@ -721,7 +725,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 33.4,
+      "seconds": 31.8,
       "requests": 55
     },
     {
@@ -752,7 +756,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 28.35,
+      "seconds": 41.06,
       "requests": 71
     },
     {
@@ -783,7 +787,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.51,
+      "seconds": 19.14,
       "requests": 39
     },
     {
@@ -814,7 +818,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 26.61,
+      "seconds": 23.83,
       "requests": 47
     },
     {
@@ -845,7 +849,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 40.84,
+      "seconds": 51.87,
       "requests": 74
     },
     {
@@ -876,7 +880,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 34.26,
+      "seconds": 59.14,
       "requests": 74
     },
     {
@@ -907,7 +911,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 21.88,
+      "seconds": 40.83,
       "requests": 54
     },
     {
@@ -919,10 +923,13 @@
       "evidence": 3,
       "unverified": 0,
       "citations": [
-        "ndl:1183859:1183859_5"
+        "ndl:1871739:1871739_5"
       ],
-      "related": 5,
+      "related": 8,
       "related_statuses": [
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
         "partially_relevant",
         "partially_relevant",
         "partially_relevant",
@@ -946,12 +953,12 @@
       ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": 1,
+      "first_evidence_rank": 2,
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 7.26,
-      "requests": 20
+      "seconds": 36.88,
+      "requests": 40
     }
   ]
 }
