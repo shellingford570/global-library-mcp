@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-11-23 (branch `feat/global-library-retrieval-v6`, Phase 6).
+Last updated: 2026-11-23 (branch `feat/global-library-evidence-safety-v7`, Phase 7).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
 
@@ -19,6 +19,10 @@ service or a full local test; **not implemented** = absent by design or pending.
 | Page kinds + document-union promotion (Phase 6) | implemented, verified | `classify_page_kind` (front_matter/photo_plate/table/body); union promotion when one document's pages jointly cover all concept families under era + non-contradiction guards |
 | Semantic / temporal screening (Phase 5, maintained Phase 6) | implemented, verified | Rule-based stance checker + temporal anchoring; onset detection per sentence; year-gated anchor inheritance; `GLM_SEMANTIC_EMBED_MODEL` attaches the embedding checker as a signal (model itself unverified in this environment) |
 | English question analysis (Phase 6) | implemented, verified live | Content-word phrases, word-century/decade/era-name dates; IA and NDL both yield evidence for the reference questions |
+| Evidence admission rule (Phase 7) | implemented, verified | `admission_decision` governs direct/promotion/union paths: era answers need anchored assertions; mentions never ground era answers; structured promotion record on every admitted page |
+| Numeric binding (Phase 7) | implemented, verified | Kanji/Arabic quantity values; a numeric claim needs the value bound to the asked target; table-only values unverified (`numeric.py`) |
+| Page kinds v2 + usage policy (Phase 7) | implemented, verified | index/colophon/admin_list/title_page/damaged added; bibliographic questions may use title/colophon, structure questions front matter |
+| Search cache (Phase 7) | implemented, verified | Per-instance bibliographic cache + substring-variant dedupe (`cache_stats`) |
 | Original verification | implemented (NDL IIIF, IA), verified | NDL: manifest/canvas/image checks. IA: metadata/access/djvu/page-range/OCR/image checks. Gallica IIIF verification implemented, not live-verified |
 | Evidence-grounded answers | implemented, verified with mock provider | Real LLM is optional and disabled by default; citations whitelist-validated twice (provider and service layer) |
 | Insufficient-evidence handling | implemented, verified | Status `insufficient_evidence`; no answer is produced from bibliographic data alone |

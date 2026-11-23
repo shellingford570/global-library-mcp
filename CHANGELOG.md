@@ -1,3 +1,27 @@
+## Phase 7 — evidence-promotion safety (2026-11-23)
+
+- The eight Phase 6 false answers reproduced as fixed fixtures
+  (7-A); four generalised mechanisms (docs/phase7-diagnosis.md).
+- One admission rule for every evidence path (7-B): era-bound
+  answers require anchored assertions; mentions_only /
+  insufficient never ground era answers; unions need an
+  asserting member and per-page era conditions; structured
+  promotion records on admitted pages.
+- Numeric binding (7-C): kanji-numeral quantities, target-bound
+  claim screening, table-only values unverified.
+- Page kinds v2 (7-D): index/colophon/admin_list/title_page/
+  damaged + per-question-kind usage policy. Corrections rest
+  on narrative pages only (7-E).
+- Independent set v2 frozen before any run (7-F); Recall split
+  into A (record reached: 0.667) and B (verified page obtained).
+- Load (7-G): search cache + variant dedupe; refused questions
+  still exhaust the fetch waves, so totals rose - documented
+  in docs/evaluation-phase7.md.
+- Measured outcome: main-set false answers 4 -> 0 and handled
+  1.000, at answerable 0.841 -> 0.591 (the brief's safety-first
+  tradeoff, reported unresolved); holdout keeps 2 false answers
+  via non-fixture pages.
+
 ## Phase 6 — retrieval reachability (2026-11-23)
 
 - Failure diagnosis (6-A): the 34 failed answerable questions
