@@ -51,12 +51,14 @@ attempt failed with "No space left on device" because pip staged
 the ~540 MB torch wheel in the small /tmp. With `TMPDIR` pointed
 at the home filesystem the install succeeded (sentence-
 transformers 6.3.0, torch 2.15.0), proving the stack *can* be
-installed here; the model-weights download / inference smoke test
-did not complete in this environment (an interrupted run left
-only a stub in the Hugging Face cache), so the embedding checker
-is verified at the interface level only — including its
-`not_checked` behaviour when the stack is absent, which is the
-path the pipeline takes by default. The stack was uninstalled
+installed here. The model-weights download from Hugging Face
+failed repeatedly from this network (server disconnects through
+the proxy), and the smoke test therefore verified the failure
+path end to end: the checker returned `not_checked` with the
+reason recorded, instead of a fabricated verdict — the behaviour
+the pipeline relies on whenever the model is unavailable.
+Similarity scoring itself remains unverified in this
+environment. The stack was uninstalled
 after the check; it is not a runtime dependency and is not in
 `requirements.lock.txt`. Environments that have it can enable the
 checker via `GLM_SEMANTIC_EMBED_MODEL` without code changes.
