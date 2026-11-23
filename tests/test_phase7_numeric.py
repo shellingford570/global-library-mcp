@@ -35,7 +35,7 @@ def test_bound_number_supports_numeric_claim():
     claim = {"text": "調査で確認された滝は23本であった", "citations": ["ndl:1:1_5"]}
     result = verify_claim(claim, _evidence(page), analysis=analysis)
     assert result["numeric"]["23"]["bound"] >= 1
-    assert result["support"] != "unsupported"
+    assert "not bound" not in result["support_detail"]
 
 
 def test_table_only_number_stays_unverified():

@@ -159,6 +159,11 @@ def quantity_binding(
     """
     normalized = unicodedata.normalize("NFKC", ocr_text or "")
     occurrences = [q for q in extract_quantities(ocr_text or "") if q["value"] == value]
+    if page_kind == "table":
+        # Proximity on a table page is column noise, not binding:
+        # the value is present but its attachment is unverified.
+        return {"value": value, "occurrences": len(occurrences), "bound": 0,
+                "on_table_page": len(occurrences) > 0}
     bound = 0
     for occurrence in occurrences:
         start = max(0, occurrence["start"] - window)
