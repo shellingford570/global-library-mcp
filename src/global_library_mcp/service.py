@@ -403,6 +403,9 @@ class LibraryService:
                         publication_year=int(year_match.group(1)) if year_match else None,
                     )
                     evidence.relevance = assessment
+                    from global_library_mcp.semantics import get_semantic_checker
+
+                    evidence.semantics = get_semantic_checker().assess(analysis, evidence.ocr_text)
                     if assessment["status"] == "relevant":
                         verified.append(evidence)
                     else:
