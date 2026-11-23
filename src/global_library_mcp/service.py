@@ -142,6 +142,7 @@ class LibraryService:
             "terms": collected["terms"],
             "analysis": analysis,
             "evidence": evidence,
+            "retrieval": collected.get("retrieval", {}),
             "premise_contradictions": collected.get("premise_contradictions", []),
             "related": related,
             "unverified": collected["unverified"],
