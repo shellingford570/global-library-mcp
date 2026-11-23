@@ -93,6 +93,7 @@ class Evidence:
     verification_notes: list[str] = field(default_factory=list)
     relevance: dict[str, Any] = field(default_factory=dict)
     semantics: dict[str, Any] = field(default_factory=dict)
+    page_kind: str | None = None
     rights: Rights = field(default_factory=Rights)
     retrieved_at: str = field(default_factory=now_iso)
 

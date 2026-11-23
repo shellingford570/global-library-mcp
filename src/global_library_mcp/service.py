@@ -421,7 +421,7 @@ class LibraryService:
         evidence_document_ranks: list[int] = []
         doc_states: dict[int, dict[str, Any]] = {}
 
-        async def screen(rank: int, result: Any, page_budget: int) -> None:
+        async def screen(rank: int, result: Any, page_budget: int, include_adjacent: bool = False) -> None:
             nonlocal documents_tried
             adapter = self.adapters.get(result.library_id)
             if adapter is None or not adapter.supports_in_document_search:
@@ -434,6 +434,7 @@ class LibraryService:
                 state["counted"] = True
             outcome = await self._gate_document_pages(
                 adapter, result, analysis, search_terms, page_budget, state, semantic_checker,
+                include_adjacent=include_adjacent,
             )
             for ev in outcome["verified"]:
                 verified.append(ev)
@@ -459,7 +460,7 @@ class LibraryService:
             for rank, result in enumerate(wave1, start=1):
                 state = doc_states.get(rank)
                 if state and any((p.get("relevance") or {}).get("status") == "partially_relevant" for p in state["related_pages"]):
-                    await screen(rank, result, 2)
+                    await screen(rank, result, 2, include_adjacent=True)
         # Wave 3 extends to deeper candidates.
         if not verified and len(ranked) > len(wave1):
             budget_extended = True
@@ -467,6 +468,15 @@ class LibraryService:
                 await screen(rank, result, 2)
                 if len(verified) >= 3:
                     break
+        if not verified:
+            promoted, promoted_keys = self._union_promote(doc_states, analysis)
+            for ev in promoted:
+                verified.append(ev)
+                for rank, state in doc_states.items():
+                    if any(obj is ev for obj in state.get("partial_objects", [])) and rank not in evidence_document_ranks:
+                        evidence_document_ranks.append(rank)
+            if promoted_keys:
+                related = [item for item in related if item.get("citation_key") not in promoted_keys]
         related.sort(key=lambda item: (item.get("relevance") or {}).get("score", 0), reverse=True)
         if verified:
             failure_reason = None
@@ -500,9 +510,61 @@ class LibraryService:
             "search": search_view,
         }
 
+    def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
+        """Document-level union promotion (Phase 6-D).
+
+        Multi-concept questions often spread coverage across the
+        pages of one document: no single page reaches the relevance
+        fraction although the document plainly covers the question.
+        When one document's partially_relevant pages jointly cover
+        every concept family, the anchor page carries the anchor
+        family, the era condition is met somewhere in the document,
+        and no page of the document contradicts the premise, the
+        best pages are promoted to evidence. Per-page standards are
+        unchanged for everything else, and front-matter pages never
+        carry a union.
+        """
+        from global_library_mcp.relevance import concept_families
+
+        families = concept_families(analysis.core_concepts)
+        if not families:
+            return [], set()
+        promoted: list[Any] = []
+        keys: set[str] = set()
+        for state in doc_states.values():
+            objects = [o for o in state.get("partial_objects", []) if o.page_kind != "front_matter"]
+            if not objects:
+                continue
+            covered: set[str] = set()
+            for obj in objects:
+                covered |= set((obj.relevance or {}).get("matched_concepts", []))
+            if not all(family in covered for family in families):
+                continue
+            if not any(families[0] in (obj.relevance or {}).get("matched_concepts", []) for obj in objects):
+                continue
+            doc_dicts = state.get("related_pages", [])
+            if any((p.get("semantics") or {}).get("relation") == "contradicts" for p in doc_dicts):
+                continue
+            if analysis.era is not None and not any(
+                "時代条件を満たす" in " ".join((obj.relevance or {}).get("reasons", [])) for obj in objects
+            ):
+                continue
+            candidates = [
+                obj for obj in objects
+                if (obj.semantics or {}).get("relation") != "contradicts"
+                and not ((obj.semantics or {}).get("relation") == "mentions_only" and (obj.semantics or {}).get("retrospective"))
+            ]
+            candidates.sort(key=lambda o: -(o.relevance or {}).get("score", 0))
+            for obj in candidates[:2]:
+                obj.semantics["union_promoted"] = True
+                promoted.append(obj)
+                keys.add(obj.citation_key)
+        return promoted, keys
+
     async def _gate_document_pages(
         self, adapter: Any, result: Any, analysis: Any, search_terms: list[str],
         page_budget: int, state: dict[str, Any], semantic_checker: Any,
+        include_adjacent: bool = False,
     ) -> dict[str, Any]:
         """Fetch and gate up to ``page_budget`` NEW pages of one document.
 
@@ -512,7 +574,7 @@ class LibraryService:
         Phase 4/5 pipeline: identity + OCR quality, relevance,
         semantics.
         """
-        from global_library_mcp.evidence import assess_ocr_quality
+        from global_library_mcp.evidence import assess_ocr_quality, classify_page_kind
         from global_library_mcp.models import Evidence
         from global_library_mcp.relevance import assess_relevance, concept_families
 
@@ -545,7 +607,40 @@ class LibraryService:
                     "page_id": None, "reason": "no in-document page matched the question terms",
                 })
                 return out
-        fresh = [pid for pid in state["hits"] if pid not in state["seen"]][:page_budget]
+        def _frame(page_id: str) -> int:
+            digits = re.search(r"(\d+)$", str(page_id))
+            return int(digits.group(1)) if digits else 0
+
+        core_terms = set(analysis.terms)
+
+        def _selection_key(page_id: str) -> tuple:
+            hitting = state["hit_terms"].get(page_id, set())
+            return (
+                -len(hitting),  # pages hit by several terms first
+                0 if hitting & core_terms else 1,  # core-concept hits before generic-term hits
+                1 if _frame(page_id) <= 3 else 0,  # title/TOC frames last, never excluded
+                _frame(page_id),
+            )
+
+        fresh = sorted(
+            (pid for pid in state["hits"] if pid not in state["seen"]),
+            key=_selection_key,
+        )[:page_budget]
+        if include_adjacent and len(fresh) < page_budget:
+            neighbours: list[str] = []
+            for page in state["related_pages"]:
+                pid = str(page.get("page_id") or "")
+                digits = re.search(r"(\d+)$", pid)
+                if not digits:
+                    continue
+                width = len(digits.group(1))
+                base = pid[: -width]
+                for delta in (1, -1):
+                    nid = f"{base}{int(digits.group(1)) + delta:0{width}d}"
+                    if nid not in state["seen"] and nid not in state["hits"] and nid not in neighbours:
+                        neighbours.append(nid)
+                        state["hits"][nid] = state["hits"].get(pid, "")
+            fresh.extend(neighbours[: page_budget - len(fresh)])
         year_match = re.search(r"(1[4-9]\d{2}|20\d{2})", str(result.date or ""))
         pub_year = int(year_match.group(1)) if year_match else None
         families = concept_families(analysis.core_concepts)
@@ -584,6 +679,7 @@ class LibraryService:
                 verification_notes=notes,
                 rights=result.rights,
             )
+            evidence.page_kind = classify_page_kind(page.get("contents"))
             if not is_verified:
                 out["unverified"].append({
                     "library_id": result.library_id, "record_id": result.record_id,
@@ -613,6 +709,8 @@ class LibraryService:
             else:
                 out["related"].append(evidence.to_dict())
                 state["related_pages"].append(evidence.to_dict())
+                if assessment["status"] == "partially_relevant":
+                    state.setdefault("partial_objects", []).append(evidence)
         return out
 
     async def compare_documents(
