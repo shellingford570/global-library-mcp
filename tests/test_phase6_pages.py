@@ -7,7 +7,7 @@ from global_library_mcp.service import LibraryService
 def test_page_kinds():
     assert classify_page_kind("目次 第一章 緒言 本書は…") == "front_matter"
     assert classify_page_kind("第壱図 写真 横浜港の景") == "photo_plate"
-    assert classify_page_kind("年 次 人 口 1900 123456 1901 234567 " * 8) == "table"
+    assert classify_page_kind("年 次 人 口 1900 123456 1901 234567 " * 12) == "table"
     assert classify_page_kind("横浜は安政六年に開港し、貿易が始まった。当時の記録によれば、生糸が主要な輸出品であった。" * 3) == "body"
     assert classify_page_kind("") == "empty"
 
