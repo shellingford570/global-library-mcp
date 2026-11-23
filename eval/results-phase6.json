@@ -1,15 +1,15 @@
 {
   "dataset_version": "phase3-1",
-  "run_at": "2026-11-23T09:32:39Z",
+  "run_at": "2026-11-23T10:19:59Z",
   "metrics": {
     "questions": 70,
     "discovery_rate": 0.841,
-    "ocr_capture_rate": 0.94,
+    "ocr_capture_rate": 0.938,
     "image_reachable_rate": 1.0,
     "citation_resolution_rate": 1.0,
-    "claim_supported_rate": 0.991,
+    "claim_supported_rate": 0.99,
     "claim_status_counts": {
-      "supported": 106,
+      "supported": 104,
       "uncertain": 1,
       "unsupported": 0,
       "conflicting": 0,
@@ -21,15 +21,15 @@
     "false_answer_rate": 0.154,
     "false_refusal_rate": 0.159,
     "related_status_counts": {
-      "relevant": 105,
-      "partially_relevant": 142,
+      "relevant": 110,
+      "partially_relevant": 143,
       "irrelevant": 111,
       "uncertain": 0,
       "not_checked": 0
     },
-    "requests_per_question": 28.9,
-    "avg_seconds": 11.69,
-    "total_requests": 2024,
+    "requests_per_question": 29.1,
+    "avg_seconds": 16.35,
+    "total_requests": 2037,
     "provider": "mock",
     "insufficient_handled_rate": 0.846,
     "corrections_on_insufficient": 1,
@@ -39,7 +39,7 @@
     "correction_false_answer_rate": null,
     "recall_at_3": 0.75,
     "recall_at_6": 0.841,
-    "mrr": 0.678,
+    "mrr": 0.662,
     "retrieval_failure_counts": {
       "no_candidates": 1,
       "budget_exhausted": 0,
@@ -93,7 +93,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 18.49,
+      "seconds": 21.73,
       "requests": 39
     },
     {
@@ -138,7 +138,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 7.71,
+      "seconds": 9.22,
       "requests": 18
     },
     {
@@ -169,7 +169,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 6.59,
+      "seconds": 11.77,
       "requests": 17
     },
     {
@@ -216,7 +216,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 9.1,
+      "seconds": 12.33,
       "requests": 25
     },
     {
@@ -258,7 +258,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 3.91,
+      "seconds": 5.57,
       "requests": 11
     },
     {
@@ -289,7 +289,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.37,
+      "seconds": 15.94,
       "requests": 25
     },
     {
@@ -335,7 +335,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 7.55,
+      "seconds": 13.19,
       "requests": 20
     },
     {
@@ -377,7 +377,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 4.91,
+      "seconds": 7.37,
       "requests": 14
     },
     {
@@ -420,7 +420,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 11.85,
+      "seconds": 21.4,
       "requests": 30
     },
     {
@@ -464,7 +464,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 5.38,
+      "seconds": 9.17,
       "requests": 13
     },
     {
@@ -473,15 +473,18 @@
       "question": "明治時代のガス灯の普及について教えて",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 3,
+      "evidence": 4,
       "unverified": 0,
       "citations": [
-        "ndl:848275:848275_76"
+        "ndl:907904:907904_10"
       ],
-      "related": 3,
+      "related": 6,
       "related_statuses": [
         "relevant",
         "relevant",
+        "relevant",
+        "relevant",
+        "partially_relevant",
         "irrelevant"
       ],
       "reason": null,
@@ -501,17 +504,17 @@
       ],
       "citations_resolve": true,
       "search_errors": [],
-      "first_evidence_rank": 1,
+      "first_evidence_rank": 3,
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
       "image_check": {
-        "page_id": "848275_76",
+        "page_id": "907904_10",
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 8.73,
-      "requests": 21
+      "seconds": 17.34,
+      "requests": 30
     },
     {
       "id": "q12",
@@ -552,7 +555,7 @@
         "status": "verified",
         "image_reachable": true
       },
-      "seconds": 5.69,
+      "seconds": 8.75,
       "requests": 13
     },
     {
@@ -591,7 +594,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 1,
       "correction_quotes": [],
-      "seconds": 3.78,
+      "seconds": 7.3,
       "requests": 8
     },
     {
@@ -622,7 +625,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.14,
+      "seconds": 18.48,
       "requests": 31
     },
     {
@@ -659,7 +662,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.16,
+      "seconds": 5.28,
       "requests": 9
     },
     {
@@ -702,7 +705,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 4.77,
+      "seconds": 10.17,
       "requests": 13
     },
     {
@@ -748,7 +751,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.49,
+      "seconds": 25.76,
       "requests": 23
     },
     {
@@ -785,7 +788,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 4.08,
+      "seconds": 7.11,
       "requests": 11
     },
     {
@@ -822,7 +825,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.73,
+      "seconds": 8.76,
       "requests": 10
     },
     {
@@ -831,10 +834,10 @@
       "question": "明治時代の病院制度について教えて",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 2,
+      "evidence": 1,
       "unverified": 0,
       "citations": [
-        "ndl:833199:833199_8"
+        "ndl:833199:833199_115"
       ],
       "related": 8,
       "related_statuses": [
@@ -852,10 +855,6 @@
         {
           "support": "supported",
           "overlap": 1.0
-        },
-        {
-          "support": "supported",
-          "overlap": 1.0
         }
       ],
       "citations_resolve": true,
@@ -864,7 +863,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.7,
+      "seconds": 19.93,
       "requests": 27
     },
     {
@@ -901,7 +900,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.79,
+      "seconds": 10.02,
       "requests": 10
     },
     {
@@ -910,13 +909,15 @@
       "question": "明治時代の北海道開拓について当時の資料は何を述べているか",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 4,
+      "evidence": 3,
       "unverified": 0,
       "citations": [
         "ndl:801018:801018_7"
       ],
-      "related": 0,
-      "related_statuses": [],
+      "related": 1,
+      "related_statuses": [
+        "relevant"
+      ],
       "reason": null,
       "claims": [
         {
@@ -938,7 +939,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 4.16,
+      "seconds": 7.59,
       "requests": 11
     },
     {
@@ -978,7 +979,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 6.5,
+      "seconds": 10.56,
       "requests": 17
     },
     {
@@ -1009,7 +1010,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 10.97,
+      "seconds": 14.54,
       "requests": 29
     },
     {
@@ -1046,7 +1047,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.86,
+      "seconds": 4.72,
       "requests": 8
     },
     {
@@ -1077,7 +1078,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 17.89,
+      "seconds": 26.39,
       "requests": 49
     },
     {
@@ -1114,7 +1115,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 4.57,
+      "seconds": 6.97,
       "requests": 12
     },
     {
@@ -1136,7 +1137,7 @@
       "retrieval_failure_reason": "no_candidates",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 0.81,
+      "seconds": 1.14,
       "requests": 2
     },
     {
@@ -1167,7 +1168,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.27,
+      "seconds": 13.12,
       "requests": 23
     },
     {
@@ -1198,7 +1199,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 22.39,
+      "seconds": 31.88,
       "requests": 61
     },
     {
@@ -1236,7 +1237,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 15.07,
+      "seconds": 17.33,
       "requests": 42
     },
     {
@@ -1267,7 +1268,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 26.61,
+      "seconds": 37.53,
       "requests": 74
     },
     {
@@ -1298,7 +1299,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 24.26,
+      "seconds": 30.54,
       "requests": 66
     },
     {
@@ -1329,7 +1330,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.01,
+      "seconds": 24.52,
       "requests": 48
     },
     {
@@ -1367,7 +1368,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 16.37,
+      "seconds": 21.91,
       "requests": 41
     },
     {
@@ -1398,7 +1399,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 8.6,
+      "seconds": 10.26,
       "requests": 22
     },
     {
@@ -1429,7 +1430,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.44,
+      "seconds": 14.59,
       "requests": 26
     },
     {
@@ -1460,7 +1461,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.59,
+      "seconds": 15.78,
       "requests": 29
     },
     {
@@ -1500,7 +1501,7 @@
       "correction_quotes": [
         "樋口自動車商会 營 業 所 京橋区新富町一ノ六 電 話 京橋 九〇七二番 創 立 昭和三年四月 資 本 金 貳萬圓 沿革 昭和三年自動車販売を開業して中古自動車販売 界に進出、 漸次タクシー營業、 車庫業に業務を擴張し、 各部門共に逐日事業"
       ],
-      "seconds": 31.41,
+      "seconds": 33.32,
       "requests": 64
     },
     {
@@ -1538,7 +1539,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 21.54,
+      "seconds": 22.79,
       "requests": 42
     },
     {
@@ -1569,7 +1570,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 40.09,
+      "seconds": 24.05,
       "requests": 58
     },
     {
@@ -1600,7 +1601,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 30.6,
+      "seconds": 29.21,
       "requests": 58
     },
     {
@@ -1631,7 +1632,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 33.45,
+      "seconds": 34.87,
       "requests": 70
     },
     {
@@ -1662,7 +1663,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 14.91,
+      "seconds": 19.97,
       "requests": 40
     },
     {
@@ -1693,7 +1694,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 14.88,
+      "seconds": 19.75,
       "requests": 40
     },
     {
@@ -1724,7 +1725,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.31,
+      "seconds": 16.23,
       "requests": 31
     },
     {
@@ -1755,7 +1756,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 10.57,
+      "seconds": 15.59,
       "requests": 27
     },
     {
@@ -1786,7 +1787,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.16,
+      "seconds": 27.83,
       "requests": 46
     },
     {
@@ -1817,7 +1818,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 15.89,
+      "seconds": 26.91,
       "requests": 42
     },
     {
@@ -1848,7 +1849,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 29.32,
+      "seconds": 60.89,
       "requests": 69
     },
     {
@@ -1879,7 +1880,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 22.25,
+      "seconds": 39.12,
       "requests": 60
     },
     {
@@ -1917,7 +1918,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 11.42,
+      "seconds": 15.91,
       "requests": 32
     },
     {
@@ -1957,7 +1958,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 4.03,
+      "seconds": 3.34,
       "requests": 9
     },
     {
@@ -1994,7 +1995,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.44,
+      "seconds": 2.88,
       "requests": 6
     },
     {
@@ -2031,7 +2032,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.44,
+      "seconds": 4.19,
       "requests": 9
     },
     {
@@ -2068,7 +2069,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.77,
+      "seconds": 6.48,
       "requests": 10
     },
     {
@@ -2105,7 +2106,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 1.79,
+      "seconds": 1.88,
       "requests": 5
     },
     {
@@ -2136,7 +2137,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 12.48,
+      "seconds": 19.17,
       "requests": 34
     },
     {
@@ -2145,13 +2146,14 @@
       "question": "明治時代の電灯の普及について教えて",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 3,
+      "evidence": 2,
       "unverified": 0,
       "citations": [
         "ndl:1083189:1083189_4"
       ],
-      "related": 7,
+      "related": 8,
       "related_statuses": [
+        "relevant",
         "relevant",
         "relevant",
         "relevant",
@@ -2169,10 +2171,6 @@
         {
           "support": "supported",
           "overlap": 1.0
-        },
-        {
-          "support": "supported",
-          "overlap": 1.0
         }
       ],
       "citations_resolve": true,
@@ -2181,8 +2179,8 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 7.11,
-      "requests": 20
+      "seconds": 11.71,
+      "requests": 24
     },
     {
       "id": "q60",
@@ -2226,7 +2224,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.0,
+      "seconds": 4.48,
       "requests": 8
     },
     {
@@ -2263,7 +2261,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.31,
+      "seconds": 4.45,
       "requests": 9
     },
     {
@@ -2305,7 +2303,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.36,
+      "seconds": 10.65,
       "requests": 25
     },
     {
@@ -2336,7 +2334,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 22.32,
+      "seconds": 30.55,
       "requests": 62
     },
     {
@@ -2378,7 +2376,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 17.97,
+      "seconds": 25.02,
       "requests": 46
     },
     {
@@ -2417,7 +2415,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 4.99,
+      "seconds": 6.15,
       "requests": 11
     },
     {
@@ -2455,7 +2453,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 18.23,
+      "seconds": 21.08,
       "requests": 41
     },
     {
@@ -2486,7 +2484,7 @@
       "retrieval_failure_reason": "no_relevant_pages",
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 22.52,
+      "seconds": 30.6,
       "requests": 60
     },
     {
@@ -2495,13 +2493,15 @@
       "question": "明治時代の北海道開拓について教えて",
       "expect": "evidence",
       "status": "answered",
-      "evidence": 4,
+      "evidence": 3,
       "unverified": 0,
       "citations": [
         "ndl:801018:801018_7"
       ],
-      "related": 0,
-      "related_statuses": [],
+      "related": 1,
+      "related_statuses": [
+        "relevant"
+      ],
       "reason": null,
       "claims": [
         {
@@ -2523,7 +2523,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 2.64,
+      "seconds": 2.49,
       "requests": 7
     },
     {
@@ -2560,7 +2560,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 3.68,
+      "seconds": 4.5,
       "requests": 9
     },
     {
@@ -2602,7 +2602,7 @@
       "retrieval_failure_reason": null,
       "premise_contradictions": 0,
       "correction_quotes": [],
-      "seconds": 9.37,
+      "seconds": 12.33,
       "requests": 26
     }
   ]

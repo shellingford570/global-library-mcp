@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-11-22 (branch `feat/global-library-reliability-v4`, Phase 4).
+Last updated: 2026-11-23 (branch `feat/global-library-retrieval-v6`, Phase 6).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
 
@@ -14,6 +14,11 @@ service or a full local test; **not implemented** = absent by design or pending.
 | Page OCR retrieval | implemented (NDL, IA), verified | NDL Book/Page APIs; IA djvu.xml by leaf (djvu.txt fallback). Gallica page text implemented via texteBrut but NOT live-verified (upstream 403) |
 | Evidence model + OCR quality gate | implemented, verified | `Evidence` records; quality is a screening heuristic, not a correctness proof |
 | Verified evidence collection | implemented, verified | `LibraryService.collect_evidence`, MCP tool `get_verified_evidence`, Web `/api/evidence` |
+| Candidate pool + bibliographic ranking (Phase 6) | implemented, verified | All query variants run; series dedupe; ranking by title families, metadata match, query multiplicity (`rank_candidates`) |
+| Staged document fetching (Phase 6) | implemented, verified | Wave 1 screens up to max_documents+6 candidates x2 pages, wave 2 deepens partially relevant documents (incl. adjacent pages), wave 3 extends to deeper candidates |
+| Page kinds + document-union promotion (Phase 6) | implemented, verified | `classify_page_kind` (front_matter/photo_plate/table/body); union promotion when one document's pages jointly cover all concept families under era + non-contradiction guards |
+| Semantic / temporal screening (Phase 5, maintained Phase 6) | implemented, verified | Rule-based stance checker + temporal anchoring; onset detection per sentence; year-gated anchor inheritance; `GLM_SEMANTIC_EMBED_MODEL` attaches the embedding checker as a signal (model itself unverified in this environment) |
+| English question analysis (Phase 6) | implemented, verified live | Content-word phrases, word-century/decade/era-name dates; IA and NDL both yield evidence for the reference questions |
 | Original verification | implemented (NDL IIIF, IA), verified | NDL: manifest/canvas/image checks. IA: metadata/access/djvu/page-range/OCR/image checks. Gallica IIIF verification implemented, not live-verified |
 | Evidence-grounded answers | implemented, verified with mock provider | Real LLM is optional and disabled by default; citations whitelist-validated twice (provider and service layer) |
 | Insufficient-evidence handling | implemented, verified | Status `insufficient_evidence`; no answer is produced from bibliographic data alone |
