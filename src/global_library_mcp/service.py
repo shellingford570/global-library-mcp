@@ -124,8 +124,23 @@ def admission_decision(
     if relation in ("uncertain", "not_checked"):
         # The checker has no stance opinion (dated events, general
         # demands): narrative prose may ground the answer, an
-        # enumerative page may not.
-        return page_kind in NARRATIVE_KINDS, record
+        # enumerative page may not - unless the question asks for
+        # exactly what that page kind is authoritative for
+        # (Phase 7-D usage policy): a title page or colophon for a
+        # bibliographic question, front matter for a structure
+        # question. Factual era questions get no such bypass.
+        if page_kind in NARRATIVE_KINDS:
+            return True, record
+        raw = getattr(analysis, "raw", "") or ""
+        bibliographic = any(w in raw for w in ("書名", "題名", "タイトル", "著者", "誰が書", "出版社", "いつの本"))
+        structure = any(w in raw for w in ("目次", "章構成", "何章", "構成を"))
+        if bibliographic and page_kind in ("title_page", "colophon"):
+            checks["kind_purpose"] = "bibliographic"
+            return True, record
+        if structure and page_kind == "front_matter":
+            checks["kind_purpose"] = "structure"
+            return True, record
+        return False, record
     return False, record
 
 
