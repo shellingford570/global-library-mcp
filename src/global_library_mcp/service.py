@@ -448,6 +448,8 @@ class LibraryService:
         # second pass read the missing ocr_text and sent an
         # empty body to the LLM.
         result = await provider.answer(query, evidence)
+        if isinstance(result.get("usage"), dict):
+            base["llm_usage"] = result["usage"]
         if not result.get("available"):
             return {
                 **base,
