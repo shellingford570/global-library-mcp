@@ -8,24 +8,33 @@ Headline practice for the Research Beta:
 - **Default posture everywhere: short excerpts + a link to
   the original.** Nothing is presented as freely
   redistributable unless the library's own terms say so.
-- **NDL**: per-item rights metadata is shown verbatim.
-  Materials in the "internet publication" scope are the
-  ones the NDL itself publishes online; the beta links to
-  the original for anything beyond short excerpts. The
-  official terms page could not be fully extracted in this
-  pass (JS-gated) - redistribution conditions beyond
-  excerpts are therefore recorded as NOT VERIFIED, and the
-  beta does not rely on them.
+- **NDL**: three rule sets apply (full research below).
+  Digital Collections content is governed per item by its
+  publication scope （公開範囲）: only
+  「インターネット公開（保護期間満了）」 items are freely
+  reusable; adjudicated/licensed/transmission-limited
+  items need the rights holder's permission, and IIIF
+  fetchability is not a licence. The NDL Lab corpus the
+  adapter uses is protection-expired material carrying the
+  Public Domain Mark, free except for commercial +
+  continuous use. NDL Search API metadata terms are per
+  provider, with commercial use requiring an application.
+  The beta shows per-item rights verbatim and links to the
+  original beyond short excerpts.
 - **Internet Archive**: open items' OCR is openly served;
   lending/borrow-restricted items are NEVER fetched for
   full text (the adapter refuses them; only BookReader
   preview-level access would be sanctioned, and the beta
   does not use it). Metadata carries archive.org
   attribution.
-- **Gallica/BnF**: public-domain marks are shown per item;
-  the official reuse-conditions page returned 403 to
-  automated access (not evaded), so conditions beyond
-  per-item marks are recorded as partially verified.
+- **Gallica/BnF**: metadata is under the Licence Ouverte
+  (commercial use allowed with attribution). Content reuse
+  is non-commercial-free with the exact credit
+  "Source gallica.bnf.fr / Bibliothèque nationale de
+  France"; commercial reuse needs a paid BnF licence, and
+  third-party/partner items are excluded even from that.
+  The upstream 403 seen from this network must not be
+  circumvented.
 - **LoC / Europeana / DDB** (aggregator or adapter
   coverage): metadata is openly licensed (CC0 / public
   domain) per their terms; item-level rights statements
