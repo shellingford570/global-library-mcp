@@ -1,0 +1,1507 @@
+{
+ "version": "balanced-v1",
+ "human_verified": false,
+ "note": "Fixed-evidence cases for verifier comparison and (with fresh approval) the next real-LLM experiment. Labels fixed 2026-11-24 before any run, from gold v2 admission-independent labels.",
+ "cases": [
+  {
+   "id": "b01",
+   "category": "support",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1914945:1914945_28"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1914945:1914945_28#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1914945:1914945_28",
+     "passages": [
+      {
+       "citation_key": "ndl:1914945:1914945_28",
+       "passage_id": "ndl:1914945:1914945_28#p1",
+       "text": "第五 電話加入者ノ現況ト累年比較 明治二十三年電話創業當時ニ於ケル電話加入者數ハ僅カニ三百四十三名ニ過キサリシカ、 爾來事業ノ 擴張ト共ニ漸次增加シ、昭和五年三月末日現在ニ於テハ總加入者數六十九萬四十三名ニ及ヘリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g003"
+  },
+  {
+   "id": "b02",
+   "category": "support",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1900042:1900042_26"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900042:1900042_26#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900042:1900042_26",
+     "passages": [
+      {
+       "citation_key": "ndl:1900042:1900042_26",
+       "passage_id": "ndl:1900042:1900042_26#p1",
+       "text": "第五 電話加入者ノ現況ト累年比較 明治二十三年電話創業當時ニ於ケル電話加入者數ハ僅カニ三百四十三名ニ過キサリシカ、 爾來事業ノ 擴張ト共ニ漸次增加シ、 昭和五年三月末日現在ニ於テハ總加入者數六十九萬四十三名ニ及ヘリ 更ノ、 度數制 之ヲ細別スレハ普通電話加入者五十三萬六千五百九十名中六大都市(お行かん加入者二十四萬二千三百三 十三名、 六大都市以外(均一制施行地)ノ加入者二十九萬四千一一百五十七名、 又特設電話加入者ハ十五 又特設電話加入者ハ十五 萬三千四百五十三名ナリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g005"
+  },
+  {
+   "id": "b03",
+   "category": "support",
+   "question": "明治時代の郵便制度の創設について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1900539:1900539_10"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_10#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900539:1900539_10",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_10",
+       "passage_id": "ndl:1900539:1900539_10#p1",
+       "text": " (イ) 小形包裝物ノ創設 關稅ヲ課セラルヘキ輕量ノ物品ヲ通常郵便ニ依リ迅速ニ輸送スル爲前回ノ 會議ニ於テハ之ヲ書狀ノ料金率ニテ發送シ得ルコトヲ認メタルカ、 右ハ料金高額ニ失シ寧ロ禁止 的ノ憾アルノミナラス、 嵩高ナル課稅物品ヲ信書ト共ニ取扱フコトハ事務上ニモ支障アルヲ以テ 通常郵便ノ一種トシテ小形包裝物ナル制度ヲ創設スルコトトナレルカ、 其ノ大要左ノ如ク之レニ 因リテ關稅ヲ課セラルヘキ小形商品ノ送達ヲ迅速容易ナラシムルヲ得ルニ至レリ。",
+       "char_start": 100,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g010"
+  },
+  {
+   "id": "b04",
+   "category": "support",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": "42 十三、 郵便制度の創設 かく力を地方開發に致した梧陵は、 明治四年五月二十七日、 改めて、 東京藩廳詰を命ぜられ、 た。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g024"
+  },
+  {
+   "id": "b05",
+   "category": "support",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": " しか し彼が明治の新政府に入つて、 その短き在官の間にも、 郵便制度の創設に盡した功勞は、 決し て沒すべからざるところである。",
+       "char_start": 665,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g025"
+  },
+  {
+   "id": "b06",
+   "category": "support",
+   "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "日本で紡績業が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1065292:1065292_4"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1065292:1065292_4#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1065292:1065292_4",
+     "passages": [
+      {
+       "citation_key": "ndl:1065292:1065292_4",
+       "passage_id": "ndl:1065292:1065292_4#p1",
+       "text": " の實相を世に報告 すると共に、 し、 昭和二十三年六月 日 日 本 委員長 紡 績 堀 協 會 文 平 發 刊 のことば 日本における綿糸紡績業が開始せられて以來八十年、 今日程その重要性が理解せられ云爲せられたことは未だかつ てない。",
+       "char_start": 338,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g030"
+  },
+  {
+   "id": "b07",
+   "category": "support",
+   "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "日本で紡績業が存在した",
+     "expected": "entailment",
+     "claim_style": "hypothesis",
+     "citations": [
+      "ndl:1065292:1065292_5"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1065292:1065292_5#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1065292:1065292_5",
+     "passages": [
+      {
+       "citation_key": "ndl:1065292:1065292_5",
+       "passage_id": "ndl:1065292:1065292_5#p1",
+       "text": " わが紡績業の復興中間目標たる四百萬錘は昭和二十四年を以て達成せられることとなり、 現實の復興の歩みは各種 の障害を克服しつゝこの目標に向つて着實にすゝめられている。",
+       "char_start": 55,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "body page; era-anchored quantitative statement about the topic",
+   "source_case": "g032"
+  },
+  {
+   "id": "b08",
+   "category": "support",
+   "question": "明治時代の郵便制度の発達について教えて",
+   "claims": [
+    {
+     "text": "(四) (三)(二)(一) 第二、 (五) (四)(三)(二)( 第一、 H67 帝國ノ聯合加入 萬國郵便聯合ノ端〓 現行萬國郵便聯合條約類 萬國郵便聯合ノ創立-第一回萬國郵便會議 第二回以後ノ萬國郵便會議-第七回及第八回萬國郵便會議-國際航空 郵便會議-第九回萬國郵便會議 萬國郵便聯合ノ沿革 我外國郵便制度·· 現行制度 小包郵便ニ關スル締約 我外國郵便ノ起源-皇米條約 我外國郵便ノ發達-通常郵便物數-小包郵便物數 目 次 I 種 W *1200600089588* 二〇 一 四 八 七 七 五 三 二 一",
+     "expected": "entailment",
+     "claim_style": "verbatim",
+     "citations": [
+      "ndl:1900539:1900539_2"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_2#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900539:1900539_2",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_2",
+       "passage_id": "ndl:1900539:1900539_2#p1",
+       "text": "(四) (三)(二)(一) 第二、 (五) (四)(三)(二)( 第一、 H67 帝國ノ聯合加入 萬國郵便聯合ノ端〓 現行萬國郵便聯合條約類 萬國郵便聯合ノ創立-第一回萬國郵便會議 第二回以後ノ萬國郵便會議-第七回及第八回萬國郵便會議-國際航空 郵便會議-第九回萬國郵便會議 萬國郵便聯合ノ沿革 我外國郵便制度·· 現行制度 小包郵便ニ關スル締約 我外國郵便ノ起源-皇米條約 我外國郵便ノ發達-通常郵便物數-小包郵便物數 目 次 I 種 W *1200600089588* 二〇 一 四 八 七 七 五 三 二 一",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "claim is a verbatim sentence of the fixed passage (self-evident entailment, verbatim claim style)",
+   "source_case": "g001"
+  },
+  {
+   "id": "b09",
+   "category": "support",
+   "question": "明治時代の新聞の創刊と発展について教えて",
+   "claims": [
+    {
+     "text": "東 朝日新聞 東京朝日新聞創刊號第一頁 (明治二十一年七月十日) 錄 附 號 一 十 四 百 十 千 三 第開新日朝阪大日九十二月一十年三十二治明 最近の東京朝日新聞 来次席員議院換責 社 社 屋 (日九十二月一十年三十二治明)錄附給紙本の念記會聞會議國帝回一第",
+     "expected": "entailment",
+     "claim_style": "verbatim",
+     "citations": [
+      "ndl:1106288:1106288_9"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1106288:1106288_9#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1106288:1106288_9",
+     "passages": [
+      {
+       "citation_key": "ndl:1106288:1106288_9",
+       "passage_id": "ndl:1106288:1106288_9#p1",
+       "text": "東 朝日新聞 東京朝日新聞創刊號第一頁 (明治二十一年七月十日) 錄 附 號 一 十 四 百 十 千 三 第開新日朝阪大日九十二月一十年三十二治明 最近の東京朝日新聞 来次席員議院換責 社 社 屋 (日九十二月一十年三十二治明)錄附給紙本の念記會聞會議國帝回一第",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "claim is a verbatim sentence of the fixed passage (self-evident entailment, verbatim claim style)",
+   "source_case": "g002"
+  },
+  {
+   "id": "b10",
+   "category": "support",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "更ニ之 ヲ細別スレハ普通電話加入者五十三萬六千五百九十名中六大都市(遞信省曲) 加速行425m)加入者二十四萬二千三百三十 六大都市以外(均一制施行地)ノ加入者二十九萬四千二百五十七名、 又特設電話加入者ハ十五萬 三名、 又特設電話加入者ハ十五萬 三千四百五十三名ナリ",
+     "expected": "entailment",
+     "claim_style": "verbatim",
+     "citations": [
+      "ndl:1914945:1914945_28"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1914945:1914945_28#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1914945:1914945_28",
+     "passages": [
+      {
+       "citation_key": "ndl:1914945:1914945_28",
+       "passage_id": "ndl:1914945:1914945_28#p1",
+       "text": "更ニ之 ヲ細別スレハ普通電話加入者五十三萬六千五百九十名中六大都市(遞信省曲) 加速行425m)加入者二十四萬二千三百三十 六大都市以外(均一制施行地)ノ加入者二十九萬四千二百五十七名、 又特設電話加入者ハ十五萬 三名、 又特設電話加入者ハ十五萬 三千四百五十三名ナリ。",
+       "char_start": 107,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "claim is a verbatim sentence of the fixed passage (self-evident entailment, verbatim claim style)",
+   "source_case": "g004"
+  },
+  {
+   "id": "b11",
+   "category": "support",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": " 電話加入者現況 (昭和五年三月末日現在) 度數制施行地 (六大都市) 二四二、三三三 普通電話加入者數 五三六、五九〇 均一制施行地 (六大都市以外) 二九四、二五七 電話加入者總數 六九〇、〇四三 特設電話加入者數 一五三、四五三 三",
+     "expected": "entailment",
+     "claim_style": "verbatim",
+     "citations": [
+      "ndl:1900042:1900042_26"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900042:1900042_26#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900042:1900042_26",
+     "passages": [
+      {
+       "citation_key": "ndl:1900042:1900042_26",
+       "passage_id": "ndl:1900042:1900042_26#p1",
+       "text": " 電話加入者現況 (昭和五年三月末日現在) 度數制施行地 (六大都市) 二四二、三三三 普通電話加入者數 五三六、五九〇 均一制施行地 (六大都市以外) 二九四、二五七 電話加入者總數 六九〇、〇四三 特設電話加入者數 一五三、四五三 三",
+       "char_start": 325,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "claim is a verbatim sentence of the fixed passage (self-evident entailment, verbatim claim style)",
+   "source_case": "g006"
+  },
+  {
+   "id": "b12",
+   "category": "support",
+   "question": "明治時代の鉄道開業について、新橋と横浜の間の鉄道がどのように開通したか当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "30 第廿九 第三十 第卅一 T 卅二 卅三 天長節繭宴ヲ賜フ敕詔 鉄道開業式救語 太陽曆頒行ノ詔書 徵兵ノ詔書 太政官ノ職制章程ヲ改定スル 敕著 改定律例ヲ頒スルノ敕書 地租改正ノ敕諭 地方官開議ヲ開クノ敕書 漸次ニカ憲政體ヲ立ツルノ敕 第卅四 第卅五 第卅六 き册七 書 第卅八 憲法ヲ起草セン〓ヲ元老院ニ命 スル救書 第卅九 减租ノ詔書 第四十 明治廿三年ヲ以テ國會ヲ開設ス スル敕啻 第四十一 軍人一般ヘ敕諭 第四十二 陸海軍ヲ擴張セラルヽノ敕諭 31 目次 終",
+     "expected": "entailment",
+     "claim_style": "verbatim",
+     "citations": [
+      "ndl:861769:861769_17"
+     ],
+     "evidence_passage_ids": [
+      "ndl:861769:861769_17#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:861769:861769_17",
+     "passages": [
+      {
+       "citation_key": "ndl:861769:861769_17",
+       "passage_id": "ndl:861769:861769_17#p1",
+       "text": "30 第廿九 第三十 第卅一 T 卅二 卅三 天長節繭宴ヲ賜フ敕詔 鉄道開業式救語 太陽曆頒行ノ詔書 徵兵ノ詔書 太政官ノ職制章程ヲ改定スル 敕著 改定律例ヲ頒スルノ敕書 地租改正ノ敕諭 地方官開議ヲ開クノ敕書 漸次ニカ憲政體ヲ立ツルノ敕 第卅四 第卅五 第卅六 き册七 書 第卅八 憲法ヲ起草セン〓ヲ元老院ニ命 スル救書 第卅九 减租ノ詔書 第四十 明治廿三年ヲ以テ國會ヲ開設ス スル敕啻 第四十一 軍人一般ヘ敕諭 第四十二 陸海軍ヲ擴張セラルヽノ敕諭 31 目次 終",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "claim is a verbatim sentence of the fixed passage (self-evident entailment, verbatim claim style)",
+   "source_case": "g007"
+  },
+  {
+   "id": "b13",
+   "category": "insufficient",
+   "question": "明治時代の郵便制度の発達について教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "page kind front_matter: lists/mentions the topic but asserts nothing",
+   "source_case": "g001"
+  },
+  {
+   "id": "b14",
+   "category": "insufficient",
+   "question": "明治時代の新聞の創刊と発展について教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で新聞が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "page kind title_page: lists/mentions the topic but asserts nothing",
+   "source_case": "g002"
+  },
+  {
+   "id": "b15",
+   "category": "insufficient",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g003"
+  },
+  {
+   "id": "b16",
+   "category": "insufficient",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "body page admitted by the pipeline, but no asserting sentence re-derived in the audit",
+   "source_case": "g004"
+  },
+  {
+   "id": "b17",
+   "category": "insufficient",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "body page; 1 sentence(s) bind the topic to an occurrence/diffusion cue",
+   "source_case": "g005"
+  },
+  {
+   "id": "b18",
+   "category": "insufficient",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "page kind title_page: lists/mentions the topic but asserts nothing",
+   "source_case": "g006"
+  },
+  {
+   "id": "b19",
+   "category": "insufficient",
+   "question": "明治時代の鉄道開業について、新橋と横浜の間の鉄道がどのように開通したか当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で鉄道開業が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "page kind front_matter: lists/mentions the topic but asserts nothing",
+   "source_case": "g007"
+  },
+  {
+   "id": "b20",
+   "category": "insufficient",
+   "question": "明治時代の郵便制度の創設について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "no_answer",
+     "citations": [],
+     "evidence_passage_ids": []
+    }
+   ],
+   "evidence": [],
+   "human_verified": false,
+   "label_basis": "body page admitted by the pipeline, but no asserting sentence re-derived in the audit",
+   "source_case": "g008"
+  },
+  {
+   "id": "b21",
+   "category": "related_not_supporting",
+   "question": "明治時代の郵便制度の発達について教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:1900539:1900539_2"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_2#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900539:1900539_2",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_2",
+       "passage_id": "ndl:1900539:1900539_2#p1",
+       "text": "(四) (三)(二)(一) 第二、 (五) (四)(三)(二)( 第一、 H67 帝國ノ聯合加入 萬國郵便聯合ノ端〓 現行萬國郵便聯合條約類 萬國郵便聯合ノ創立-第一回萬國郵便會議 第二回以後ノ萬國郵便會議-第七回及第八回萬國郵便會議-國際航空 郵便會議-第九回萬國郵便會議 萬國郵便聯合ノ沿革 我外國郵便制度·· 現行制度 小包郵便ニ關スル締約 我外國郵便ノ起源-皇米條約 我外國郵便ノ發達-通常郵便物數-小包郵便物數 目 次 I 種 W *1200600089588* 二〇 一 四 八 七 七 五 三 二 一",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "page kind front_matter: lists/mentions the topic but asserts nothing",
+   "source_case": "g001"
+  },
+  {
+   "id": "b22",
+   "category": "related_not_supporting",
+   "question": "明治時代の新聞の創刊と発展について教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で新聞が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:1106288:1106288_9"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1106288:1106288_9#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1106288:1106288_9",
+     "passages": [
+      {
+       "citation_key": "ndl:1106288:1106288_9",
+       "passage_id": "ndl:1106288:1106288_9#p1",
+       "text": "東 朝日新聞 東京朝日新聞創刊號第一頁 (明治二十一年七月十日) 錄 附 號 一 十 四 百 十 千 三 第開新日朝阪大日九十二月一十年三十二治明 最近の東京朝日新聞 来次席員議院換責 社 社 屋 (日九十二月一十年三十二治明)錄附給紙本の念記會聞會議國帝回一第",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "page kind title_page: lists/mentions the topic but asserts nothing",
+   "source_case": "g002"
+  },
+  {
+   "id": "b23",
+   "category": "related_not_supporting",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:1900042:1900042_26"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900042:1900042_26#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900042:1900042_26",
+     "passages": [
+      {
+       "citation_key": "ndl:1900042:1900042_26",
+       "passage_id": "ndl:1900042:1900042_26#p1",
+       "text": " 電話加入者現況 (昭和五年三月末日現在) 度數制施行地 (六大都市) 二四二、三三三 普通電話加入者數 五三六、五九〇 均一制施行地 (六大都市以外) 二九四、二五七 電話加入者總數 六九〇、〇四三 特設電話加入者數 一五三、四五三 三",
+       "char_start": 325,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "page kind title_page: lists/mentions the topic but asserts nothing",
+   "source_case": "g006"
+  },
+  {
+   "id": "b24",
+   "category": "related_not_supporting",
+   "question": "明治時代の鉄道開業について、新橋と横浜の間の鉄道がどのように開通したか当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で鉄道開業が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:861769:861769_17"
+     ],
+     "evidence_passage_ids": [
+      "ndl:861769:861769_17#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:861769:861769_17",
+     "passages": [
+      {
+       "citation_key": "ndl:861769:861769_17",
+       "passage_id": "ndl:861769:861769_17#p1",
+       "text": "30 第廿九 第三十 第卅一 T 卅二 卅三 天長節繭宴ヲ賜フ敕詔 鉄道開業式救語 太陽曆頒行ノ詔書 徵兵ノ詔書 太政官ノ職制章程ヲ改定スル 敕著 改定律例ヲ頒スルノ敕書 地租改正ノ敕諭 地方官開議ヲ開クノ敕書 漸次ニカ憲政體ヲ立ツルノ敕 第卅四 第卅五 第卅六 き册七 書 第卅八 憲法ヲ起草セン〓ヲ元老院ニ命 スル救書 第卅九 减租ノ詔書 第四十 明治廿三年ヲ以テ國會ヲ開設ス スル敕啻 第四十一 軍人一般ヘ敕諭 第四十二 陸海軍ヲ擴張セラルヽノ敕諭 31 目次 終",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "page kind front_matter: lists/mentions the topic but asserts nothing",
+   "source_case": "g007"
+  },
+  {
+   "id": "b25",
+   "category": "related_not_supporting",
+   "question": "大正時代の新幹線の開業について教えて",
+   "claims": [
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:1879393:1879393_6"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1879393:1879393_6#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1879393:1879393_6",
+     "passages": [
+      {
+       "citation_key": "ndl:1879393:1879393_6",
+       "passage_id": "ndl:1879393:1879393_6#p1",
+       "text": "線 (福知山) 宮 田 線 (門 司) 宮之城線 (鹿児島) 宮 原 線 (大亦分) (む) 年 岐 線 (四 国) 室 木 線 (門 司) 室 蘭本線 (全 線) 同 (青函船舶) 同 (札 幌) (め) 名 松 線 (天王寺) (も) 真 岡 線 (水 戸) (や) 島 田) 線線 (秋 矢弥 彦 (新 潟) (熊 矢山 山 部口 線線 線 本) (中 国) 田 (盛 岡) 山 手 線 (東 京) 山 野 線 (鹿児島) 380 381 382 383 夕 湧 線 (旭 川) 木 (門 司) 線 線 前 (熊 本) (よ) 横 須 賀 線 (東 京) 横 浜 (東 京) 線 線 予讃本 (円 国) 坂 線 (全 線) 同 (秋 田) 同 (新 潟) (り) 陸羽西線 (秋 田) 陸羽東線 (全 線) 同 (仙 台) 同 (秋 田) 両 毛 線 (高 崎) (る) (旭 川) 留萠本線 ",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "must-reject fixture, category unanchored_support: topical at most, asserts nothing for the claim",
+   "source_case": "g013"
+  },
+  {
+   "id": "b26",
+   "category": "related_not_supporting",
+   "question": "明治四十三年の発電水力調査で確認された滝の正確な数を教えて",
+   "claims": [
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:946285:946285_10"
+     ],
+     "evidence_passage_ids": [
+      "ndl:946285:946285_10#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:946285:946285_10",
+     "passages": [
+      {
+       "citation_key": "ndl:946285:946285_10",
+       "passage_id": "ndl:946285:946285_10#p1",
+       "text": "第一編 師 第一編 發電水力調査要項 技 師 專任 十九人內一人ヲ勅任ト爲スコ トヲ得 屬 專任 六人 技 手 專任 九十人 技師ニシテ兼任ノ者其ノ本官勅任ナルトキハ之ヲ勅 任ト爲スコトヲ得 第三條 長官ハ遞信次官ヲ以テ之ニ充ツ遞信大臣ノ指 揮監督ヲ受ケ局務ヲ掌理ス 第四條 次長ハ電氣局長ヲ以テ之ニ充ツ長官ヲ補佐シ 長官事故アルトキハ其ノ職務ヲ代理ス 第五條 事務官ハ奏任トス上官ノ命ヲ承ケ局務ヲ掌ル 第六條 技師ハ上官ノ指揮ヲ受ケ技術ヲ掌ル 第七條 屬ハ判任トス上官ノ指揮ヲ受ケ庶務ニ從事ス 第八條 技手ハ上官ノ指揮ヲ受ケ技術ニ從事ス 第九條 遞信大臣ハ必要ノ地ニ支局ヲ置キ事務ヲ分掌 セシムルコトヲ得 支局長ハ其ノ局所在地ノ遞信管理局長ヲ以テ之ニ充 官制公布ニ次キ同月十八日公達第四百二十四號ヲ以テ 其ノ分課規程ヲ定ム卽チ左ノ如シ 臨時發電水力調査局分課規程 第一條 臨時發電水力調査局ニ左ノ三",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "must-reject fixture, category numeric_mismatch_enumerative_page: topical at most, asserts nothing for the claim",
+   "source_case": "g014"
+  },
+  {
+   "id": "b27",
+   "category": "related_not_supporting",
+   "question": "大正時代の電気洗濯機の普及について教えて",
+   "claims": [
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:961250:961250_10"
+     ],
+     "evidence_passage_ids": [
+      "ndl:961250:961250_10#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:961250:961250_10",
+     "passages": [
+      {
+       "citation_key": "ndl:961250:961250_10",
+       "passage_id": "ndl:961250:961250_10#p1",
+       "text": "一六、 電氣洗濯機· 第參 章 電氣設備と其經費 一、 適當なる電氣設備 ニ、 配線工事及接地 三、 使用電壓と格定電壓 四、 配 電 盤 五、 自動操作裝置 六、 開閉器栓受及差込 七、 電氣消費量と季節の關係 八 電氣料金制と其經濟的施設· 九、 受電容量と人數の關係及電氣經費 ◇人數と受電容量及消費電力量〓に電氣料金と其經費一覽表 ·〇· 設備費と電熱器の價格· 三 三 一 三一 三四 三五 三六 三七 四二 四五 ·〇· 四七 第 四 A 章 電 氣 料 家庭に於ける電氣料理 一、 進步の進行: 二、 電氣料理の利便 三、 取扱輕便 特別の利益 〓電氣飯焚、 ◇肉の電氣料理、 五、 適當なる鍋類の撰擇 六、 器具の經濟的取扱·· 七、 煙突の除去及家屋保存 八 召使に對する考慮 九、 器具使用者に對する注意 旅館料理店に於ける電氣料理 理 四九 二、 三、 五〇 五〇 五 五四 五",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "must-reject fixture, category mentions_only_contents_page: topical at most, asserts nothing for the claim",
+   "source_case": "g015"
+  },
+  {
+   "id": "b28",
+   "category": "related_not_supporting",
+   "question": "昭和時代のインターネットの普及過程について教えて",
+   "claims": [
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:1455614:1455614_21"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1455614:1455614_21#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1455614:1455614_21",
+     "passages": [
+      {
+       "citation_key": "ndl:1455614:1455614_21",
+       "passage_id": "ndl:1455614:1455614_21#p1",
+       "text": "所在 彩形 200元 一、一、一、一、一、一、自然保護 、得出 POIN 炭火の移動は 電信に電話は20分---------()- 式發售を示す 其中せて ストロードリートインターネットサレートしてみください。の共有国 北の横浜は高橋上の ひじしみやとうながら明治無料プレゼント其の 酸性物品生物性化粧 多く含んなる場合により勝くして福利物理学校の終 の実験を維するとしArtworkstoryなり線してお疲れしますCMT Stop和初台 LTH〓sour trunter要目の和大利媒体育て、後、 出演して、 一、一、一、一、、排行(電話し-18)2北海の所 堤防水力防水 然心动 水の1-2-3 053831221建物十分 育發 の戦-第一交付宝具有する程度でする何必然未に SULLY の生物に對する法246-1971- 體せなべ物流しては、HYMは生ビールに 交付は其材の水道は有効純今甘み渡",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "must-reject fixture, category mentions_only_index: topical at most, asserts nothing for the claim",
+   "source_case": "g016"
+  },
+  {
+   "id": "b29",
+   "category": "contradiction",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で電話加入者が存在した",
+     "expected": "contradiction",
+     "citations": [
+      "ndl:1914945:1914945_28"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1914945:1914945_28#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1914945:1914945_28",
+     "passages": [
+      {
+       "citation_key": "ndl:1914945:1914945_28",
+       "passage_id": "ndl:1914945:1914945_28#p1",
+       "text": "第五 電話加入者ノ現況ト累年比較 明治二十三年電話創業當時ニ於ケル電話加入者數ハ僅カニ三百四十三名ニ過キサリシカ、 爾來事業ノ 擴張ト共ニ漸次增加シ、昭和五年三月末日現在ニ於テハ總加入者數六十九萬四十三名ニ及ヘリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "constructed: claim era shifted 大正->明治; the passage anchors 大正",
+   "source_case": "x000e"
+  },
+  {
+   "id": "b30",
+   "category": "contradiction",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で電話加入者が存在した",
+     "expected": "contradiction",
+     "citations": [
+      "ndl:1900042:1900042_26"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900042:1900042_26#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900042:1900042_26",
+     "passages": [
+      {
+       "citation_key": "ndl:1900042:1900042_26",
+       "passage_id": "ndl:1900042:1900042_26#p1",
+       "text": "第五 電話加入者ノ現況ト累年比較 明治二十三年電話創業當時ニ於ケル電話加入者數ハ僅カニ三百四十三名ニ過キサリシカ、 爾來事業ノ 擴張ト共ニ漸次增加シ、 昭和五年三月末日現在ニ於テハ總加入者數六十九萬四十三名ニ及ヘリ 更ノ、 度數制 之ヲ細別スレハ普通電話加入者五十三萬六千五百九十名中六大都市(お行かん加入者二十四萬二千三百三 十三名、 六大都市以外(均一制施行地)ノ加入者二十九萬四千一一百五十七名、 又特設電話加入者ハ十五 又特設電話加入者ハ十五 萬三千四百五十三名ナリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "constructed: claim era shifted 大正->明治; the passage anchors 大正",
+   "source_case": "x001e"
+  },
+  {
+   "id": "b31",
+   "category": "contradiction",
+   "question": "明治時代の郵便制度の創設について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "江戸時代に日本で郵便制度が存在した",
+     "expected": "contradiction",
+     "citations": [
+      "ndl:1900539:1900539_10"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_10#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900539:1900539_10",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_10",
+       "passage_id": "ndl:1900539:1900539_10#p1",
+       "text": " (イ) 小形包裝物ノ創設 關稅ヲ課セラルヘキ輕量ノ物品ヲ通常郵便ニ依リ迅速ニ輸送スル爲前回ノ 會議ニ於テハ之ヲ書狀ノ料金率ニテ發送シ得ルコトヲ認メタルカ、 右ハ料金高額ニ失シ寧ロ禁止 的ノ憾アルノミナラス、 嵩高ナル課稅物品ヲ信書ト共ニ取扱フコトハ事務上ニモ支障アルヲ以テ 通常郵便ノ一種トシテ小形包裝物ナル制度ヲ創設スルコトトナレルカ、 其ノ大要左ノ如ク之レニ 因リテ關稅ヲ課セラルヘキ小形商品ノ送達ヲ迅速容易ナラシムルヲ得ルニ至レリ。",
+       "char_start": 100,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "constructed: claim era shifted 明治->江戸; the passage anchors 明治",
+   "source_case": "x002e"
+  },
+  {
+   "id": "b32",
+   "category": "contradiction",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "江戸時代に日本で郵便制度が存在した",
+     "expected": "contradiction",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": "42 十三、 郵便制度の創設 かく力を地方開發に致した梧陵は、 明治四年五月二十七日、 改めて、 東京藩廳詰を命ぜられ、 た。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "constructed: claim era shifted 明治->江戸; the passage anchors 明治",
+   "source_case": "x003e"
+  },
+  {
+   "id": "b33",
+   "category": "contradiction",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "江戸時代に日本で郵便制度が存在した",
+     "expected": "contradiction",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": " しか し彼が明治の新政府に入つて、 その短き在官の間にも、 郵便制度の創設に盡した功勞は、 決し て沒すべからざるところである。",
+       "char_start": 665,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "constructed: claim era shifted 明治->江戸; the passage anchors 明治",
+   "source_case": "x004e"
+  },
+  {
+   "id": "b34",
+   "category": "contradiction",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で郵便制度が存在した",
+     "expected": "contradiction",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": "42 十三、 郵便制度の創設 かく力を地方開發に致した梧陵は、 明治四年五月二十七日、 改めて、 東京藩廳詰を命ぜられ、 た。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "constructed era-shift contradiction (claim era moved Meiji->Taisho against a Meiji-anchored passage)",
+   "source_case": "g024"
+  },
+  {
+   "id": "b35",
+   "category": "partial",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1914945:1914945_28"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1914945:1914945_28#p1"
+     ]
+    },
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    },
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:1028572:1028572_10"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1028572:1028572_10#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1914945:1914945_28",
+     "passages": [
+      {
+       "citation_key": "ndl:1914945:1914945_28",
+       "passage_id": "ndl:1914945:1914945_28#p1",
+       "text": "第五 電話加入者ノ現況ト累年比較 明治二十三年電話創業當時ニ於ケル電話加入者數ハ僅カニ三百四十三名ニ過キサリシカ、 爾來事業ノ 擴張ト共ニ漸次增加シ、昭和五年三月末日現在ニ於テハ總加入者數六十九萬四十三名ニ及ヘリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": "42 十三、 郵便制度の創設 かく力を地方開發に致した梧陵は、 明治四年五月二十七日、 改めて、 東京藩廳詰を命ぜられ、 た。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1028572:1028572_10",
+     "passages": [
+      {
+       "citation_key": "ndl:1028572:1028572_10",
+       "passage_id": "ndl:1028572:1028572_10#p1",
+       "text": "の運轉を繼續し得たのに過ぎない。 而も其の速度は僅に一時間4粁であつた。 其後15年 (西曆 1784 年) 位して有名な蒸氣機關の發明者と稱せられて居る 英人ゼームス·ワツト氏が同じ試驗をしたが、 此の時は不成功に終つた。 其の後16年 (西曆 1800年) を經てから英人リチヤード·ツレベシツク氏も 亦同じ〓究をなし、 西曆 1802年初めて蒸氣車を造つた。 之は現今の機關車の 樣に車輪と軌條との摩擦力を應用して前進し得る樣にし、 且つ排出蒸氣を利用 して罐の通風を起すことを工夫して可なり完全なもので、 倫敦市中に於ては客 を乘せて走行した。 之れ即ち今日の機關車、 又は自動車の元祖であると言ふも 更に進步した機關車を作り、 之を鑛山の馬車鐵道に應用した。 其の後.1829年 リバープール及マンチエスター間の鐵道開通に際して、 同會社に於ては種々な る條件を附し、 懸賞金附で機關車の設",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "composed from gold v2 entailment/neutral cases; expected outcome is a partial answer of exactly the two entailed claims",
+   "source_case": "g003"
+  },
+  {
+   "id": "b36",
+   "category": "partial",
+   "question": "大正時代の電話加入者の増加について教えて",
+   "claims": [
+    {
+     "text": "大正時代に日本で電話加入者が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1900042:1900042_26"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900042:1900042_26#p1"
+     ]
+    },
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    },
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:920472:920472_4"
+     ],
+     "evidence_passage_ids": [
+      "ndl:920472:920472_4#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900042:1900042_26",
+     "passages": [
+      {
+       "citation_key": "ndl:1900042:1900042_26",
+       "passage_id": "ndl:1900042:1900042_26#p1",
+       "text": "第五 電話加入者ノ現況ト累年比較 明治二十三年電話創業當時ニ於ケル電話加入者數ハ僅カニ三百四十三名ニ過キサリシカ、 爾來事業ノ 擴張ト共ニ漸次增加シ、 昭和五年三月末日現在ニ於テハ總加入者數六十九萬四十三名ニ及ヘリ 更ノ、 度數制 之ヲ細別スレハ普通電話加入者五十三萬六千五百九十名中六大都市(お行かん加入者二十四萬二千三百三 十三名、 六大都市以外(均一制施行地)ノ加入者二十九萬四千一一百五十七名、 又特設電話加入者ハ十五 又特設電話加入者ハ十五 萬三千四百五十三名ナリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": " しか し彼が明治の新政府に入つて、 その短き在官の間にも、 郵便制度の創設に盡した功勞は、 決し て沒すべからざるところである。",
+       "char_start": 665,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:920472:920472_4",
+     "passages": [
+      {
+       "citation_key": "ndl:920472:920472_4",
+       "passage_id": "ndl:920472:920472_4#p1",
+       "text": "はしが なるのでございます。 = せ かい ぶんめい すゝ 世界の文明を進めますにも、 かいぜん に かてい しふくわんふうぞく 一國の改善を圖りますにも、 풋 つと 良から務めねばなりません。 せい どてんしやう くわんび いかほど制度典章が完備いたしましても、 りくかい ぐんび じゆうじつ だうろ けんちく かうつう き 65 せいとん 陸海の軍備が充實いたしましても、 道路、 建築、 交通機關が整頓いたしましても、 농촌 こうげふ はつたつ こく か ぶんめい ぐわやくわん 、商工業が發達いたしましても- いはゆる國家文明の外觀を裝飾いたしますには、 デコレイ さしつかへ しやくわい あつじよ か てい き りつ じんかく おそらく差支ありますまいが。 社會の秩序、 しうやう 家庭の紀律、 にんげんてきしつせいくわつ 人格の修養、 ぜんび かうした人間的實生活の善美が りうろ 、 流",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "composed from gold v2 entailment/neutral cases; expected outcome is a partial answer of exactly the two entailed claims",
+   "source_case": "g005"
+  },
+  {
+   "id": "b37",
+   "category": "partial",
+   "question": "明治時代の郵便制度の創設について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1900539:1900539_10"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_10#p1"
+     ]
+    },
+    {
+     "text": "日本で紡績業が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1065292:1065292_4"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1065292:1065292_4#p1"
+     ]
+    },
+    {
+     "text": null,
+     "expected": "neutral",
+     "citations": [
+      "ndl:957092:957092_6"
+     ],
+     "evidence_passage_ids": [
+      "ndl:957092:957092_6#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1900539:1900539_10",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_10",
+       "passage_id": "ndl:1900539:1900539_10#p1",
+       "text": " (イ) 小形包裝物ノ創設 關稅ヲ課セラルヘキ輕量ノ物品ヲ通常郵便ニ依リ迅速ニ輸送スル爲前回ノ 會議ニ於テハ之ヲ書狀ノ料金率ニテ發送シ得ルコトヲ認メタルカ、 右ハ料金高額ニ失シ寧ロ禁止 的ノ憾アルノミナラス、 嵩高ナル課稅物品ヲ信書ト共ニ取扱フコトハ事務上ニモ支障アルヲ以テ 通常郵便ノ一種トシテ小形包裝物ナル制度ヲ創設スルコトトナレルカ、 其ノ大要左ノ如ク之レニ 因リテ關稅ヲ課セラルヘキ小形商品ノ送達ヲ迅速容易ナラシムルヲ得ルニ至レリ。",
+       "char_start": 100,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1065292:1065292_4",
+     "passages": [
+      {
+       "citation_key": "ndl:1065292:1065292_4",
+       "passage_id": "ndl:1065292:1065292_4#p1",
+       "text": " の實相を世に報告 すると共に、 し、 昭和二十三年六月 日 日 本 委員長 紡 績 堀 協 會 文 平 發 刊 のことば 日本における綿糸紡績業が開始せられて以來八十年、 今日程その重要性が理解せられ云爲せられたことは未だかつ てない。",
+       "char_start": 338,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:957092:957092_6",
+     "passages": [
+      {
+       "citation_key": "ndl:957092:957092_6",
+       "passage_id": "ndl:957092:957092_6#p1",
+       "text": "4 なるが一八九五年の交支那人排斥熱其の極に達し華州々內各地に於ても排支暴動起り田駒、 シヤトル、 スノーホーミツシ各地より在留支那人を悉くシヤトルに拉致し來りクイン號なる汽船に積み加州へ放逐 せんとせる事すらあり華州內に於ては久しく支那人の居住する事すら許さゞりし例に之しからず然るに 當時州內に移住し來りたる日本人に對しては頗る好感情を以て迎へ各種の勞働に從事せしめたり、 斯く の如くして支那人に代り大平洋沿岸に移住したる日本人は鐵道鑛山農園に就働し就中鐵道就働者は全勞 働者中の六割を占め農業一割、 製材勞働二割、 家內勞働一割の狀態にありたり、 其の後鐵道勞働は一九 ○六年來减少し農園、 製材勞働增加し更らに其の後に至り獨立農業者及雜商業者の出現するに至り現在 に及べるものなり而して一九〇六年布哇轉航禁止來移民勞働者の渡航の途杜絕せるを以て各般の社會經 濟狀態は變化し邦人は故國より妻子",
+       "char_start": null,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "composed from gold v2 entailment/neutral cases; expected outcome is a partial answer of exactly the two entailed claims",
+   "source_case": "g010"
+  },
+  {
+   "id": "b38",
+   "category": "partial",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    },
+    {
+     "text": "日本で紡績業が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1065292:1065292_5"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1065292:1065292_5#p1"
+     ]
+    },
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:1900539:1900539_12"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_12#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": "42 十三、 郵便制度の創設 かく力を地方開發に致した梧陵は、 明治四年五月二十七日、 改めて、 東京藩廳詰を命ぜられ、 た。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1065292:1065292_5",
+     "passages": [
+      {
+       "citation_key": "ndl:1065292:1065292_5",
+       "passage_id": "ndl:1065292:1065292_5#p1",
+       "text": " わが紡績業の復興中間目標たる四百萬錘は昭和二十四年を以て達成せられることとなり、 現實の復興の歩みは各種 の障害を克服しつゝこの目標に向つて着實にすゝめられている。",
+       "char_start": 55,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1900539:1900539_12",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_12",
+       "passage_id": "ndl:1900539:1900539_12#p1",
+       "text": "現金取立約定 五 新聞紙及定期刊行物豫約約定 五二 價格ヲ表記セル有價證劵ヲ包有スル書狀並珠玉及貴重品ヲ包有スル箱物ヲ内容トスル保險郵便ニ關 スル約定ナリ。",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "composed from gold v2 entailment/neutral cases; expected outcome is a partial answer of exactly the two entailed claims",
+   "source_case": "g024"
+  },
+  {
+   "id": "b39",
+   "category": "partial",
+   "question": "明治時代の郵便制度の始まりについて教えて",
+   "claims": [
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1876786:1876786_31"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1876786:1876786_31#p1"
+     ]
+    },
+    {
+     "text": "明治時代に日本で郵便制度が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1900539:1900539_2"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1900539:1900539_2#p1"
+     ]
+    },
+    {
+     "text": "日本で活版印刷が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:1056304:1056304_8"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1056304:1056304_8#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1876786:1876786_31",
+     "passages": [
+      {
+       "citation_key": "ndl:1876786:1876786_31",
+       "passage_id": "ndl:1876786:1876786_31#p1",
+       "text": " しか し彼が明治の新政府に入つて、 その短き在官の間にも、 郵便制度の創設に盡した功勞は、 決し て沒すべからざるところである。",
+       "char_start": 665,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1900539:1900539_2",
+     "passages": [
+      {
+       "citation_key": "ndl:1900539:1900539_2",
+       "passage_id": "ndl:1900539:1900539_2#p1",
+       "text": "(四) (三)(二)(一) 第二、 (五) (四)(三)(二)( 第一、 H67 帝國ノ聯合加入 萬國郵便聯合ノ端〓 現行萬國郵便聯合條約類 萬國郵便聯合ノ創立-第一回萬國郵便會議 第二回以後ノ萬國郵便會議-第七回及第八回萬國郵便會議-國際航空 郵便會議-第九回萬國郵便會議 萬國郵便聯合ノ沿革 我外國郵便制度·· 現行制度 小包郵便ニ關スル締約 我外國郵便ノ起源-皇米條約 我外國郵便ノ發達-通常郵便物數-小包郵便物數 目 次 I 種 W *1200600089588* 二〇 一 四 八 七 七 五 三 二 一",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1056304:1056304_8",
+     "passages": [
+      {
+       "citation_key": "ndl:1056304:1056304_8",
+       "passage_id": "ndl:1056304:1056304_8#p1",
+       "text": "V 00 6 10 010 N 3 4 5 の 8 9187 龍宋活字 新 發 賣 新發賣龍宋體 初號蔽宋體 五〇字 春頌暑舞恭謹發 三十六ボ觀宋 四〇字 用途萬能、ペン字の味 壹 號 溫 宋 七一〇五字 貳 號 龍 宋 未だ會てなき清新の書風は 七三六五字 參 號 龍 宋 近代味豊かに盛り上げた豪華版にて 七二一〇字 四 號 龍 宋 高級印刷物に出版用事務用に理想的の型 七二八〇字 十二ポ龍宋 アート紙の如き光澤紙に、印刷して、最高美術の 七〇〇〇字 五 號 龍 宋 種々な印刷樣式の見本を作成して御一覽に供したいと 七二五〇字 七 ポ 長 宋 名刺の樣な小物には小字に七ポ長宋を併用して非常に面白きものが出來上ります 五五〇〇字 邦字印刷の始 初號丸ゴヂツク 三五〇〇字 長崎の人本木昌造氏 壹號丸ゴヂツク 三五〇〇字 和蘭人に就きて始めて歐州 貳號丸ゴヂツク 三〇〇〇字 參號丸ゴデツク 歐洲式の活版術を學び明治二年長崎 三〇〇〇字 四號丸ゴヂツク 三〇〇〇字 に活版傳授所を設け、自ら鉛版活字を製造 五號丸ゴデツク して之を出版界に供給するや此新活字の効用漸く認め 三〇〇〇字 六號太型丸ゴ 三〇〇〇字 世人注目を惹き遂に政府の印刷局設置となり爾來活版業者の全國に業を 七號丸ゴヂツク 陸續髪出するに從つて日本の出版はは次の勢学 を使用するに至れり當時の欧州の文明諸國は是れが採 三〇〇〇字 新活字正楷 初號正楷書 四〇字 春頌福恭見舞 三十六ポ正楷書 四〇字 漢文正楷書新發賣 壹號正楷書 七一一八字 貳號正楷書 上品なる書風趣味的印刷 七三〇〇字 十八ポ正楷書 物も書籍出版物等に用ひ最大 七一三四字 四號正楷書 効果を齋らして非常な歡迎を蒙りつ有 七二〇〇字 五號正楷書 ポイント格も有り新時代の楷書として諸種の印刷に 七二八〇字 九ボ正格書 全く無限の用途を持つてゐる新楷書の御愛用を切に御薦め申 ■ 七二四つ字 印刷機械材料 初 號 * 書 三三〇〇字 四 號 豪 書 我活版印刷用に、各種の書體活字の續出は 五〇〇〇字 五 號 五〇〇〇字 家 書 全く歐米活字のボデイタイプに對するジョップ型と同 六 號 菜 書 と仝じ目的に造られしものにして使用範圍の廣大と印刷物の美的効果を 五〇〇〇学 新書體 十四ポイント を文 四五〇〇字 七倍明朝錢金版 十二 ポイント し大 七〇〇〇字 (七十ニポイント) 三三〇〇字 十一ボ 六五 し其 七〇〇〇字 十一ポ二五 たる車 陸續出現 七〇〇〇学 六倍明朝鍍金版 十 ポイント半 九〇〇〇字 んに出 (六十三ポイント) 十ポイント 三三〇〇字 して百 九〇〇〇学 九半 ポイント 由報復 文久元年幕 八五〇〇字 しうつんんいい 初 號 明 朝 九ボ半假名付 出版界 一〇〇〇〇字 四五〇〇字 九ポイ シ 若くば 八五〇〇字 九ボ 假名付 が始て使節を米國 壹 號明朝 八五〇〇子 なる黃 五〇〇〇芋 八 半 ポイント 有數の 八〇〇〇字 貳號明朝 に派遣せるに當り其一員 八半 ポ假名付 港ノ本 一〇〇〇〇字 八五00字 八ボイント 八二〇〇字 繪入小 參 號明朝 小栗豐後守親しく新聞紙の米國に 八〇〇〇字 七ポイント七五 八五〇〇字 るもの 四 號 明 朝 八五〇〇字 國に行はれて官民に利益あるを目擊し 七ボ七五假名付 八五〇〇字 版物少な 五 號 一〇五〇〇字 明 朝 朝其後隨員たりし福澤諭吉氏をして之を我國に起さ 七半 ポイント 八五〇〇字 る活字 六 號 明 朝 起さしめんと銳意幹旋したりしが幕議之を不可とし同僚皆之に 七 半 ポ器名付 生 八五〇〇字 の遺書 八五〇〇字 七 號 明 朝 反對せして其を元治元年積ににてて閉閉紙と國せる線に木版にて見せせ 七 ポ イ ン 四五〇〇字 地院に下 八五〇〇半 七 ポ 假名 付 要の姫き ÷ 我國出版事業 八五00字 六 ポ イ ン 三十六ポイント 六四〇〇字 木の大醫 四五〇〇字 五ボイ ン 四五〇〇字 船所活字を 新七 號明 朝 は德川時代於 の進歩を 四六〇〇字 三十五ポイント 四五〇〇学 勘 初號方体宋朝 既に世界に誇 四〇字 三十二ポイント 四〇〇〇字 宋 に足る可き發達 壹號方体 宋朝 五〇〇〇字 三十一ポイント 四〇〇〇字 貳號方体方朝 文 遂げたり是幕府 五八〇〇学 三十 ポイント 三五00字 參號方体宋朝 と 五八〇〇字 二十八ボイント 始め各藩相競圖書 四號方体 宋朝 方宋 四五〇〇字 五八〇〇字 五號方体 宋朝 生か の刋行を奬勵した結 五八〇〇字 二十四ポイント 四三〇〇字 六號方体宋朝 となし 五八〇〇字 二十三ポ二五 果也就中幕府が昌平 四〇〇〇字 壹 號 草 書 恭 二〇字 二十二ボ半 黌に命じて飜刻せし 四000字 貳號 草 書 三〇〇字 華 二十一ポイント 支那古典及史籍は其製本 一〇〇〇〇字 參 號 草 書 三五〇〇字 ふァ 二十ポイント 印刷及び紙質の精美なる 五 號 草 書 六〇〇〇字 三七〇〇字 すくの 六 號 草 書 十九 ポイント 原書に優り最讀書社會愛重 三五〇〇字 黑中己 六〇〇〇字 十八ボイント する所也所謂官版なるもの是 貳號新體明朝 邦 五三00字 五九00字 十七ポイント 此以外に聲價ありし水戶家金 四號新體明朝 活字 五三00字 八000字 五號新體明朝 先づ 十六ポイント 德島及津藩等の藩版にして特に 九000字 八〇〇〇字 九ボ新情明朝 八〇〇〇字 作家製 十五ポイント半 水戶藩の出版界に於ける貢献は殊 八〇〇〇字 六號新體明朝 八五00字 最初の 十五ポイント 八〇〇〇字 に著にして盍し德川光圀深はく意 六ボ新體明朝 六二〇〇学 殊に優秀 新 發 表覽一格規及體書の字活文邦 部一の品製堂文龍川森 種八拾貳百壹類種體書文邦 勘 初號方体宋朝 四〇字 宋 壹號方体 宋朝 五〇〇〇字 貳號方体方朝 文 五八〇〇学 參號方体宋朝 と 五八〇〇字 四號方体 宋朝 方宋 五八〇〇字 五號方体 宋朝 生か 五八〇〇字 六號方体宋朝 となし 五八〇〇字 壹 號 草 書 恭 二〇字 貳號 草 書 三〇〇字 華 參 號 草 書 三五〇〇字 ふァ 五 號 草 書 三七〇〇字 すくの 六 號 草 書 三五〇〇字 黑中己 貳號新體明朝 邦 五九00字 四號新體明朝 活字 八000字 五號新體明朝 先づ 九000字 九ボ新情明朝 八〇〇〇字 作家製 六號新體明朝 八五00字 最初の 六ボ新體明朝 六二〇〇学 殊に優秀 見本印刷中■印は活字軸の大きさを示す R邦文活字合計六十四萬五千餘種",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "composed from gold v2 entailment/neutral cases; expected outcome is a partial answer of exactly the two entailed claims",
+   "source_case": "g025"
+  },
+  {
+   "id": "b40",
+   "category": "partial",
+   "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+   "claims": [
+    {
+     "text": "日本で紡績業が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1065292:1065292_4"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1065292:1065292_4#p1"
+     ]
+    },
+    {
+     "text": "明治時代に日本で新聞が存在した",
+     "expected": "entailment",
+     "citations": [
+      "ndl:1106288:1106288_9"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1106288:1106288_9#p1"
+     ]
+    },
+    {
+     "text": "日本で活版印刷が存在した",
+     "expected": "neutral",
+     "citations": [
+      "ndl:1056304:1056304_9"
+     ],
+     "evidence_passage_ids": [
+      "ndl:1056304:1056304_9#p1"
+     ]
+    }
+   ],
+   "evidence": [
+    {
+     "citation_key": "ndl:1065292:1065292_4",
+     "passages": [
+      {
+       "citation_key": "ndl:1065292:1065292_4",
+       "passage_id": "ndl:1065292:1065292_4#p1",
+       "text": " の實相を世に報告 すると共に、 し、 昭和二十三年六月 日 日 本 委員長 紡 績 堀 協 會 文 平 發 刊 のことば 日本における綿糸紡績業が開始せられて以來八十年、 今日程その重要性が理解せられ云爲せられたことは未だかつ てない。",
+       "char_start": 338,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1106288:1106288_9",
+     "passages": [
+      {
+       "citation_key": "ndl:1106288:1106288_9",
+       "passage_id": "ndl:1106288:1106288_9#p1",
+       "text": "東 朝日新聞 東京朝日新聞創刊號第一頁 (明治二十一年七月十日) 錄 附 號 一 十 四 百 十 千 三 第開新日朝阪大日九十二月一十年三十二治明 最近の東京朝日新聞 来次席員議院換責 社 社 屋 (日九十二月一十年三十二治明)錄附給紙本の念記會聞會議國帝回一第",
+       "char_start": 0,
+       "char_end": null
+      }
+     ]
+    },
+    {
+     "citation_key": "ndl:1056304:1056304_9",
+     "passages": [
+      {
+       "citation_key": "ndl:1056304:1056304_9",
+       "passage_id": "ndl:1056304:1056304_9#p1",
+       "text": "黃柴版 八五〇〇字 十幕 しゃつほんかい 出版界に功績ありしは京都の寺』なる可し黄栗版叡山と おうばくはんねいざん 九ボ半假名付 一〇〇〇〇字 九ボイ ン 若くば叡山版と稱する佛典は皆寺院の刊行したるものなり 八五〇〇学 九 ボ 假名付 なる黃葉版一切藏經の如くは全部六千九百三十卷恐ニらく世界 を ご ょ くちんおそ ぶ を米國 八五〇〇子 八半 ポイント 有數の大出版物たるを失はじ又此時代に於は民間の文學頗る 八〇〇〇字 り其一員 八半 ポ假名付 〓 ちよしよ しゆつはん んそうじうとうた 八五〇〇字 達し之に關せる著書の出版せらるもの汗牛充棟書ならずして 八ポイント 八二〇〇字 繪入小說本の如きは細字の總平假名文と精密なる挿〓とを、木版刷に 聞紙の米國に 七ポイント七五 八五〇〇字 るもの多く其技倆巧妙なりしは、 殆ど後人を驚歎せしむるに足るの出■ あるを目擊し 七ポ七五怪名付 版物少なからず日日本には四百年師より既に植字版或は一字版と名づ K 児 롯 八五〇〇字 して之を我國に起さ 七半 ポイント 八五〇〇字 る活字行はれ德川家康は關原役後足利學校に三十萬の木版活字を與て 之を不可とし同僚皆之に 七半 ポ假名付 の遺書を刊行せし事で慶長十九年始めて鋼字十萬を鑄造し之を京都の 노 と 八五〇〇字 て せるに、り是れ我風■ 七ポイ ン ト 八五〇〇字 地院に下附して大藏一覽を刊行せしめたることあり元和年間に出版したる群 七ボ 第七 付 要の如き元祿年間に出版したる四言集註周易本義の如き享保年間に出版した ¥ 元声ほん C 1/3 事業 八五〇〇字 六 ポ イ ン 六四〇〇字 本の大聲若經全部三百卷を木字印刷したるものなり幕末に至り歐洲式の活阪術傳り全國に 五味 イ ン 四五〇〇字 館版活字を製造して出版界に供給し專ら世人の注目をひき政府の印刷局の設置となり爾來日本出所界は長■ 新七 號明朝 代於 四六〇〇字 の進歩をなしたる明治年間に入りてより新聞書籍の發刊又隆盛に赴き今日の盛 鞠躬健康進 初號方体 宋朝 に誇 四〇字 發逹 壹號方体 宋朝 宋朝方体古代支那 五〇〇〇字 貳號方体方朗 文化爛熟期に於ける書風 幕府 五八〇〇字 參號方体宋朝 として識者の推奬措かざるものに 五八〇〇字 競圖書 四號方体宋朝 方宋体を以て正體となし其書風を現代 五八〇〇学 五號方体 宋朝 生か、して趣味性に合致せしむ可く彫刻して新活字の した結 五八〇〇字 六號方体 宋朝 となし江湖に發賣せしもの今や長休と共に活版印刷界に於ける寵見と■ 五八〇〇字 が昌平 壹 號草 書 恭營賀年新李流候 二〇· 刻せし 貳號 草 書 華書體活字は主に趣味 三〇〇字 は其製本 # 號 草 書 三五〇〇字 小品印刷に適し変り書體中でも 柄美なる 五 號 草 書 三七〇〇字 多くの應用範圍を有して居ります殊に変状小福音問 六 號 草 書 社會愛重 三五〇〇字 黑中巴蠡名刺小小卵創範園に於て多数の利用を待て居ります なるもの是 貳號新體明朝 邦字印刷之進步向上に對 五九〇〇字 水戶家金 四號新體明朝 活字にて美術印刷に向く書風を選ぶに 五號新體明朝 八〇〇〇字 先づ第一に弊所の新刻になりし新體明朝を以て印刷 にして特に 九〇〇〇字 九ポ新情明朝 八〇〇〇字 作成せられよ字面の良く整つた美しさは活版印刷上の美觀を りる貢献は殊 六號新體明朝 八五00字 最新の出版物及型錄に用ひて絕大の好評を博せしもの斯界定評の逸品 〓深深はく意 六ポ新體明朝 六二〇〇字 殊に優秀地金を以て人念に鑄造し有れば高級紙に印刷して遺憾無く特色を發揮するために多 文運の進歩 初號長體宋朝 二二〇〇字 三十六ボ長宋 奉祝恭禧伺暑 三〇字 向上は益々隆盛也 壹號長體宋朝 三二〇〇字 貳號長體宋朝 就中活版印刷界は學術及 六〇〇〇字 參 號 長體宋朝 尙なる趣味性之要求に和歐新活字 六〇〇〇字 四號 長体宋朝 新書風の續出は新流行によりて時代色 五五〇〇字 五號 長體宋朝 の簇生と成り就中吾が宋朝書体は中華民國に發祥じ 六〇〇〇字 六號 長體宋朝 我國に於て新刻發費され電來一躍印圖界の寵兒としてされつゝ有 五〇〇〇字 七 ポ 長體宋朝 初頭より七ポに至る長体と方体と十五種有り新活字と絶大の歡を · 五五〇〇字 恭禧奉祝、春賀新暑中 壹 號 楷 書 (〓朝) 二〇字 舊幕府時代の新聞機開は一 貳 號楷書 五〇〇〇字 歩 號 楷 書 般人民に、何等の利益をも與へず (十七ポ)五〇〇〇字 小形 (者三三)と同角) 參號楷書 民間に於て市井に讀賣頻りに行はれ 五〇〇〇字 四 號 楷 書 幕末に及びて益々盛んなりき、閣老參政三 玉五〇〇学 五 號 楷 書 奉行を主として重職及髙官の任免朝廷幕府の重典擧行 五〇〇〇字 六 號 槽 書 行及重大事變非常大災あらば香具師際物帥の輩は其事實をも極め 四〇〇〇字 印刷美 七倍角ゴヂッ 版ク 錢 七十三ポイント 三〇〇〇字 六倍角ゴヂツク 効果滿點 金 鍍 版 一六十三ポイント 三000字 初號ゴヂツク 德川時代の 四〇〇〇字 壹號ゴヂツク 三八〇〇字 聞機關は其當初よ 貳號ゴヂツク 種々の手段によりて不完 四四〇〇字 十八ポ角吳竹 全とは言へ共其當時の時勢と 四〇〇〇字 參號ゴヂツク ては諸種の幕府の發令等を迅速に 四〇〇〇字 四號ゴデツク 四二〇〇字 窺ひ知るを得たり其方法は殿中御沙汰 十二ポゴヂツク とて幕府の發令布告諸大名旗本へ〓示官吏任 四二〇〇字 五號ゴヂツク 四二〇〇字 色諸種の典禮等の行事は皆悉く御目附方に於當日旣 九 ポ ゴヂツク 四五〇〇字 係るものを謄寫して即日内外の諸局に頒布する殿中御沙汰書 六 號 ゴヂツク 四二〇〇字 又封廻狀秘密公文書等なりしが專ら政府及上流社會の間に用ひられし■ 七 ポ ゴヂツク 間に用ひられしに止まり一般社會の大衆に何等の利益をもたらさざりしものな 三七〇〇字 六 ポ ゴデツク 一三〇十 イロハニホヘトチリヌルヲワカヨタレソツネナラムウヰ一二三四五六七○千万金圓厦昭和 七號ゴヂツク 特花草谷貯赤語座段演淺濱牛之京屋小局山川下丸 和年月日壹貳參拾 二三四五六七八九十〇 一五〇字 萬般書體完備 初號細型 角ゴチツク 三五00字 堂安内區南市阪大 寺 目丁壹通町 四二四一六阪大替振二四六三東話電 壹 森 川 文龍 堂 大 阪 市 西 區 靱 南 通 四 丁 目 九 電 話 土 佐 堀 七 壹 五 五 番 〓邦文活字合計六十四萬五千餘種あり 〓 見易き所に御貼付置き下きい",
+       "char_start": 241,
+       "char_end": null
+      }
+     ]
+    }
+   ],
+   "human_verified": false,
+   "label_basis": "composed from gold v2 entailment/neutral cases; expected outcome is a partial answer of exactly the two entailed claims",
+   "source_case": "g030"
+  }
+ ]
+}
