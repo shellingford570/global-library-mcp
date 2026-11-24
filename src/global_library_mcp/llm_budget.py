@@ -50,12 +50,25 @@ class UsageLedger:
     """
 
     def __init__(self, model: str, max_cost_usd: float, max_calls: int,
-                 max_input_tokens: int = 12000, max_output_tokens: int = 1200):
+                 max_input_tokens: int = 12000, max_output_tokens: int | None = None):
+        import os
+
         self.model = model
         self.max_cost_usd = max_cost_usd
         self.max_calls = max_calls
         self.max_input_tokens = max_input_tokens
-        self.max_output_tokens = max_output_tokens
+        # Phase 10-G: the ledger's output-token assumption and
+        # the provider's max_tokens now share ONE source - the
+        # LLM_MAX_OUTPUT_TOKENS env (default 1200). Before, the
+        # two 1200s matched by coincidence, not construction.
+        self.max_output_tokens = (
+            max_output_tokens if max_output_tokens is not None
+            else int(os.getenv("LLM_MAX_OUTPUT_TOKENS", "1200") or 1200)
+        )
+        import threading
+
+        self._lock = threading.Lock()
+        self._reserved_usd = 0.0
         self.calls = 0
         self.input_tokens = 0
         self.output_tokens = 0
@@ -76,9 +89,32 @@ class UsageLedger:
         worst = self.worst_case_next_usd()
         if worst is None or self.calls >= self.max_calls:
             return False
-        return self.spent_usd + worst <= self.max_cost_usd
+        return self.spent_usd + self._reserved_usd + worst <= self.max_cost_usd
+
+    def reserve(self) -> bool:
+        """Atomically check affordability and hold the worst
+        case (Phase 10-G: check-then-act raced under concurrent
+        callers; reserve+settle closes the window). Returns
+        False without holding anything when the next call could
+        breach the cap."""
+        with self._lock:
+            if not self.can_afford():
+                return False
+            self._reserved_usd += self.worst_case_next_usd() or 0.0
+            return True
+
+    def settle(self, usage: dict | None) -> None:
+        """Release the oldest reservation and book the actual
+        (or, when unreported, the worst case - never zero)."""
+        with self._lock:
+            self._reserved_usd = max(0.0, self._reserved_usd - (self.worst_case_next_usd() or 0.0))
+            self._book(usage)
 
     def record(self, usage: dict | None) -> None:
+        with self._lock:
+            self._book(usage)
+
+    def _book(self, usage: dict | None) -> None:
         self.calls += 1
         prompt = (usage or {}).get("prompt_tokens")
         completion = (usage or {}).get("completion_tokens")
@@ -93,6 +129,25 @@ class UsageLedger:
             self.usage_estimated += 1
             cost = self.worst_case_next_usd()
         self.spent_usd += cost or 0.0
+
+    def to_state(self) -> dict:
+        """Persisted form, so a resumed run keeps the accumulated
+        spend (Phase 10-G: the cap is per-campaign, not
+        per-process, when the operator resumes with --resume)."""
+        return {"model": self.model, "calls": self.calls,
+                "input_tokens": self.input_tokens, "output_tokens": self.output_tokens,
+                "spent_usd": self.spent_usd, "usage_reported": self.usage_reported,
+                "usage_estimated": self.usage_estimated}
+
+    def restore(self, state: dict) -> None:
+        if state.get("model") not in (None, self.model):
+            raise ValueError("saved ledger state is for a different model")
+        self.calls = int(state.get("calls") or 0)
+        self.input_tokens = int(state.get("input_tokens") or 0)
+        self.output_tokens = int(state.get("output_tokens") or 0)
+        self.spent_usd = float(state.get("spent_usd") or 0.0)
+        self.usage_reported = int(state.get("usage_reported") or 0)
+        self.usage_estimated = int(state.get("usage_estimated") or 0)
 
     def summary(self) -> dict:
         return {

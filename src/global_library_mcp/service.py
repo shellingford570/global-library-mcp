@@ -807,7 +807,13 @@ class LibraryService:
         # evidence exists".
         import os as _os
 
-        request_budget = int(_os.getenv("GLM_REQUEST_BUDGET", "0") or 0)
+        # Phase 10-A: Research Beta default is the Standard
+        # budget (25 units per question). An operator may set
+        # GLM_REQUEST_BUDGET explicitly; values are clamped to
+        # the Deep hard cap of 200 - unbounded searching is no
+        # longer the default posture.
+        _raw_budget = _os.getenv("GLM_REQUEST_BUDGET")
+        request_budget = 25 if _raw_budget is None else min(int(_raw_budget or 0), 200)
         request_units = 0
         budget_exhausted = False
         evidence_document_ranks: list[int] = []

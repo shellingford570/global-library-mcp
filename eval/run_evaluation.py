@@ -55,6 +55,8 @@ async def main() -> int:
     parser.add_argument("--image-checks", type=int, default=10, help="max questions whose first evidence page gets a full IIIF verify")
     parser.add_argument("--dataset", type=Path, default=ROOT / "eval" / "questions.json")
     parser.add_argument("--max-calls", type=int, default=0, help="stop starting new questions once this many HTTP requests were made (0 = no cap)")
+    parser.add_argument("--resume", default=None,
+                        help="previous results JSON whose llm_usage seeds the ledger (cap stays per-campaign)")
     parser.add_argument("--mode", choices=("generative", "extractive"), default="generative",
                         help="Phase 10-D answer mode; extractive never calls a provider")
     parser.add_argument("--provider", choices=("mock", "openai"), default="mock",
@@ -89,6 +91,12 @@ async def main() -> int:
             print("no API call was made")
             return 2
         ledger = UsageLedger(model=model, max_cost_usd=float(cap_raw), max_calls=len(questions))
+        resume_path = getattr(args, "resume", None)
+        if resume_path:
+            prior = json.loads(Path(resume_path).read_text(encoding="utf-8"))
+            state = (prior.get("llm_usage") or {})
+            ledger.restore({**state, "spent_usd": state.get("spent_usd", 0.0)})
+            print(f"resumed ledger from {resume_path}: {ledger.summary()}")
     counter = RequestCounter()
     records = []
     image_checks_done = 0
@@ -99,7 +107,7 @@ async def main() -> int:
                 records.append({"id": item["id"], "category": item["category"], "question": item["question"],
                                 "expect": item["expect"], "status": "skipped_cap", "seconds": 0, "requests": 0})
                 continue
-            if ledger is not None and not ledger.can_afford():
+            if ledger is not None and not ledger.reserve():
                 records.append({"id": item["id"], "category": item["category"], "question": item["question"],
                                 "expect": item["expect"], "status": "skipped_budget", "seconds": 0, "requests": 0})
                 print(f"{item['id']} -> skipped_budget (ledger: {ledger.summary()})")
@@ -111,7 +119,7 @@ async def main() -> int:
                 provider = MockProvider() if args.provider == "mock" else OpenAICompatibleProvider(client)
                 result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=provider, mode=args.mode)
                 if ledger is not None and result.get("llm_called"):
-                    ledger.record(result.get("llm_usage"))
+                    ledger.settle(result.get("llm_usage"))
                     record["llm_usage"] = result.get("llm_usage")
                 record["status"] = result["status"]
                 record["evidence"] = len(result.get("evidence", []))
@@ -120,7 +128,29 @@ async def main() -> int:
                 record["related"] = len(result.get("related", []))
                 record["related_statuses"] = [(r.get("relevance") or {}).get("status") for r in result.get("related", [])]
                 record["reason"] = result.get("reason")
-                record["claims"] = [{"support": c.get("support"), "overlap": c.get("overlap")} for c in result.get("claims", [])]
+                # Phase 10-E: save enough to audit the run
+                # afterwards WITHOUT re-running paid calls -
+                # full claim objects with verdicts and reasons,
+                # the evidence excerpts actually supplied, the
+                # llm_called flag and per-record usage. No API
+                # keys or personal data are ever recorded.
+                record["claims"] = [{
+                    "text": c.get("text"), "citations": c.get("citations"),
+                    "evidence_passage_ids": c.get("evidence_passage_ids"),
+                    "support": c.get("support"), "support_detail": c.get("support_detail"),
+                    "overlap": c.get("overlap"),
+                    "verified_against": c.get("verified_against"),
+                } for c in result.get("claims", [])]
+                record["llm_called"] = bool(result.get("llm_called"))
+                record["provider"] = result.get("provider")
+                record["sent_evidence"] = [{
+                    "citation_key": e.get("citation_key"),
+                    "passages": [{"passage_id": p.get("passage_id"), "text": (p.get("text") or "")[:400]}
+                                 for p in (e.get("passages") or [])],
+                } for e in result.get("evidence", [])]
+                record["failure_code"] = (
+                    None if result["status"] in ("answered", "answered_partial", "answered_extractive")
+                    else result["status"])
                 evidence_keys = {e["citation_key"] for e in result.get("evidence", [])}
                 evidence_keys |= {p["citation_key"] for p in result.get("premise_contradictions", [])}
                 record["citations_resolve"] = all(k in evidence_keys for k in record["citations"])
