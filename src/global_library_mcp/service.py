@@ -830,6 +830,16 @@ class LibraryService:
             {"stage": "evidence_assessment", "status": "ok" if verified else "no_admission",
              "detail": f"{len(verified)} assessed evidence, {len(related)} rejected candidates, {len(premise_contradictions)} contradictions"},
         ]
+        # Phase 9-F shadow mode: with GLM_SHADOW_NLI=1, NLI
+        # verdicts on admitted passages are recorded beside the
+        # governing decision for later comparison. They are
+        # never consulted by admission.
+        if _os.getenv("GLM_SHADOW_NLI") == "1" and verified:
+            from global_library_mcp.nli import shadow_verdicts as _shadow
+            _rows = []
+            for _item in verified:
+                _rows.extend(_shadow(analysis, _item.get("passages") or []))
+            stage_log.append({"stage": "shadow_nli", "status": "recorded", "detail": f"{len(_rows)} shadow verdicts", "verdicts": _rows})
         return {
             "query": query,
             "retrieval": retrieval,

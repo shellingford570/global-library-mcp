@@ -1,0 +1,510 @@
+{
+ "summary": {
+  "anchor_saved": 7,
+  "over_acceptance": 5,
+  "agree_support": 5,
+  "excluded_label": 18,
+  "agree_refuse": 34,
+  "under_recognition": 2
+ },
+ "rows": [
+  {
+   "id": "g001",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "g002",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": true,
+   "class": "over_acceptance"
+  },
+  {
+   "id": "g003",
+   "label": "entailment",
+   "relation": "supports",
+   "anchored": false,
+   "class": "agree_support"
+  },
+  {
+   "id": "g004",
+   "label": "unverified",
+   "relation": "supports",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g005",
+   "label": "entailment",
+   "relation": "supports",
+   "anchored": false,
+   "class": "agree_support"
+  },
+  {
+   "id": "g006",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g007",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": true,
+   "class": "over_acceptance"
+  },
+  {
+   "id": "g008",
+   "label": "unverified",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g009",
+   "label": "unverified",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g010",
+   "label": "entailment",
+   "relation": "supports",
+   "anchored": false,
+   "class": "agree_support"
+  },
+  {
+   "id": "g011",
+   "label": "unverified",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g012",
+   "label": "ambiguous",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g013",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g014",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g015",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g016",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g017",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g018",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g019",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g020",
+   "label": "unverified",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g021",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g022",
+   "label": "unverified",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g023",
+   "label": "unverified",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g024",
+   "label": "entailment",
+   "relation": "supports",
+   "anchored": true,
+   "class": "agree_support"
+  },
+  {
+   "id": "g025",
+   "label": "entailment",
+   "relation": "supports",
+   "anchored": true,
+   "class": "agree_support"
+  },
+  {
+   "id": "g026",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g027",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g028",
+   "label": "neutral",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g029",
+   "label": "unverified",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g030",
+   "label": "entailment",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "under_recognition"
+  },
+  {
+   "id": "g031",
+   "label": "unverified",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g032",
+   "label": "entailment",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "under_recognition"
+  },
+  {
+   "id": "g033",
+   "label": "unverified",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g034",
+   "label": "neutral",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g035",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g036",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "g037",
+   "label": "unverified",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g038",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "g039",
+   "label": "unverified",
+   "relation": "supports",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g040",
+   "label": "unverified",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g041",
+   "label": "ambiguous",
+   "relation": "uncertain",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g042",
+   "label": "ambiguous",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g043",
+   "label": "unverified",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "excluded_label"
+  },
+  {
+   "id": "g044",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "x000e",
+   "label": "contradiction",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "x001e",
+   "label": "contradiction",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "x002e",
+   "label": "contradiction",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "x003e",
+   "label": "contradiction",
+   "relation": "supports",
+   "anchored": true,
+   "class": "over_acceptance"
+  },
+  {
+   "id": "x004e",
+   "label": "contradiction",
+   "relation": "supports",
+   "anchored": true,
+   "class": "over_acceptance"
+  },
+  {
+   "id": "x001s",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "x004s",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": true,
+   "class": "over_acceptance"
+  },
+  {
+   "id": "n052",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n053",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n054",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n055",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n056",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n057",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n058",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n059",
+   "label": "neutral",
+   "relation": "supports",
+   "anchored": false,
+   "class": "anchor_saved"
+  },
+  {
+   "id": "n060",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n061",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n062",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n063",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n064",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n065",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n066",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n067",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n068",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n069",
+   "label": "neutral",
+   "relation": "insufficient",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n070",
+   "label": "neutral",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "agree_refuse"
+  },
+  {
+   "id": "n071",
+   "label": "unverified",
+   "relation": "mentions_only",
+   "anchored": false,
+   "class": "excluded_label"
+  }
+ ],
+ "note": "shadow analysis only; no admission decision was influenced"
+}
