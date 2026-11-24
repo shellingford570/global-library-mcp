@@ -20,6 +20,46 @@ def json_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False).encode("utf-8")
 
 
+class RateLimiter:
+    """Per-client sliding-window limiter for the API routes.
+
+    In-memory and per-process by design (the web UI is a local /
+    single-instance tool); a multi-instance deployment should enforce
+    quotas at its gateway instead. The limit is configurable with the
+    GLM_RATE_LIMIT_PER_MINUTE environment variable (default 120).
+    """
+
+    def __init__(self, limit_per_minute: int | None = None) -> None:
+        import os
+        import threading
+        import time
+
+        if limit_per_minute is None:
+            try:
+                limit_per_minute = int(os.environ.get("GLM_RATE_LIMIT_PER_MINUTE", "120"))
+            except ValueError:
+                limit_per_minute = 120
+        self.limit = max(limit_per_minute, 1)
+        self.window = 60.0
+        self._hits: dict[str, list[float]] = {}
+        self._lock = threading.Lock()
+        self._now = time.monotonic
+
+    def allow(self, client: str) -> bool:
+        now = self._now()
+        with self._lock:
+            hits = [stamp for stamp in self._hits.get(client, []) if now - stamp < self.window]
+            if len(hits) >= self.limit:
+                self._hits[client] = hits
+                return False
+            hits.append(now)
+            self._hits[client] = hits
+            return True
+
+
+RATE_LIMITER = RateLimiter()
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "GlobalLibrary/0.1"
 
@@ -37,6 +77,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/") and not RATE_LIMITER.allow(self.client_address[0]):
+            self._send(json_bytes({"error": "rate limit exceeded; slow down and retry shortly"}), status=429)
+            return
         if parsed.path == "/health":
             self._send(json_bytes({"ok": True, "service": "global-library-mcp"}))
             return
@@ -114,6 +157,30 @@ class Handler(BaseHTTPRequestHandler):
                     async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
                         return await LibraryService(client).verify_page(library_id, page_id)
                 self._send(json_bytes(asyncio.run(execute_verify())))
+            except Exception as exc:
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
+            return
+        if parsed.path == "/api/compare":
+            params = parse_qs(parsed.query)
+            raw_docs = params.get("docs", [""])[0]
+            documents = []
+            for pair in raw_docs.split(";"):
+                pair = pair.strip()
+                if not pair:
+                    continue
+                library_id, sep, record_id = pair.partition(":")
+                if sep and library_id.strip() and record_id.strip():
+                    documents.append({"library_id": library_id.strip(), "record_id": record_id.strip()})
+            if not 2 <= len(documents) <= 4:
+                self._send(json_bytes({"error": "docs must list 2 to 4 documents as library:record;library:record"}), status=400)
+                return
+            aspects = [item.strip() for item in params.get("aspects", [""])[0].split(",") if item.strip()][:8]
+            question = params.get("q", [""])[0].strip()[:500] or None
+            try:
+                async def execute_compare():
+                    async with httpx.AsyncClient(timeout=90, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        return await LibraryService(client).compare_documents(documents, aspects=aspects, question=question)
+                self._send(json_bytes(asyncio.run(execute_compare())))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return

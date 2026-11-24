@@ -1,46 +1,72 @@
-# Global Library MCP Phase 0：評価
+# Answer-quality evaluation
 
-- **確認日**：2026-11-19
-- **結論**：本番採用判断は保留。Phase 1の小規模検証へ進む前提条件のみ定義した。
+Evaluation harness: `eval/run_evaluation.py` over `eval/questions.json`
+(30 questions: Japanese history, history of science/technology,
+hydroelectric/electrical engineering, history of medicine,
+geography/culture, and deliberately unanswerable questions).
+Raw results: `eval/results-phase3.json`.
 
-## 評価軸
+## What is measured — and what is not
 
-|軸|確認方法|合格目安|
-|---|---|---|
-|機能|検索、record、全文/OCR、IIIF、ページ、権利のツール別テスト|能力をtrue/false/unknownで正確に返す|
-|出典性|原URL、ID、manifest/canvas、取得時刻、OCR座標|全結果に追跡可能な根拠|
-|正確性|fixtureとライブサンプルの契約テスト|主要フィールド欠落・型崩れなし|
-|回復性|429、5xx、timeout、空結果、schema変更|構造化エラーと安全な再試行|
-|権利|license、rights、access、attributionの保持|unknownを許諾扱いしない|
-|安全性|SSRF、XXE、サイズ、URL、APIキー、ログ|危険入力を拒否し秘密を漏らさない|
-|保守性|依存固定、CI、SBOM、API変更監視|再現可能なビルドと警告|
+The default run uses the deterministic **MockProvider**. It measures the
+*pipeline* (discovery, OCR capture, citation resolution, claim-grounding
+screening, insufficient-evidence behaviour, cost) — **not** the prose
+quality of a real LLM. Mock claims quote OCR sentences verbatim, so a
+100% claim-supported rate is expected by construction and proves only
+that the checker accepts genuinely grounded text. Real-LLM answer
+quality requires an operator-approved API key and has **not** been
+measured yet.
 
-## 既存候補の評価
+## Live run, 2026-11-22 (NDL, mock provider)
 
-`heritage-research-mcp`は7資料源、Record/Rights/Media正規化、キーredaction、download安全層を備える設計参考として高評価だが、Alphaで公式MCP Registry登録は確認できず、機関APIの全能力は不均一である。[1] ScriptoriaはIIIFプロバイダ解決とページ取得が強い一方、GPL-3.0-or-laterで直接採用に制約がある。[2] NDL系OSSはNDL専用コネクタのたたき台に適するが、LICENSE不一致、実装不足、テスト／保守の不確実性がある。[3][4]
+| Metric | Result |
+|---|---|
+| Questions | 30 |
+| Discovery rate (expected-evidence questions with ≥1 verified page) | **1.00** (25/25) |
+| OCR capture rate (verified / attempted pages) | 0.94 |
+| Original-image reachability (10 sampled evidence pages, full IIIF verify) | 1.00 |
+| Citation resolution rate | 1.00 |
+| Claims screened | 87, all `supported` (see caveat above) |
+| Insufficient-evidence correctness (5 unanswerable questions) | **0.20** (1/5) |
+| Average time per question | 6.5 s |
+| Total external API requests | 444 |
 
-公式API候補では、LoCが書誌、OCR、IIIF、SRUを同一機関で確認できるため最初の評価対象とする。[5] Europeanaは横断探索、GallicaはALTO/OCR/IIIF、DDBは機関横断とmanifestで補完的だが、認証・レート・権利・適用範囲は別途評価する。[6][7][8]
+## Findings
 
-## Phase 1の試験ケース
+1. **Grounding holds; topical relevance is the weak point.** Four of the
+   five "unanswerable" questions (smartphones in the Meiji era, the
+   history of the Internet, quantum computing, the exact population of
+   Yokohama village in 1853) still produced answers, because term
+   extraction falls back to generic terms (通信, 歴史, 原理, 人口) that
+   match loosely related period documents. The answers were grounded in
+   real pages — citations resolved and claims were lexically supported —
+   but the pages do not actually answer the question. A citation being
+   real is not the same as an answer being right.
+2. **Run-to-run variance is material.** A duplicate run on the same day
+   scored discovery 0.84 and insufficient-correctness 0.6 with 620
+   requests: live catalog results and term fallbacks fluctuate, so
+   single-run numbers should be read as samples, not constants.
+3. **OCR misrecognition propagates into evidence excerpts** (e.g. mixed
+   old/new character forms, broken tokens in Meiji-era print). The
+   quality gate filters empty/broken pages, not subtle misreadings;
+   claims screening is lexical, so a misread token can pass. The
+   original image link is therefore kept on every citation.
 
-1. 通常のタイトル検索とゼロ件検索。
-2. 多言語・Unicode・RTL・ダイアクリティカルマーク。
-3. OCRスニペットと座標の原ページ対応。
-4. IIIF manifestからCanvasとImage API URLの解決。
-5. rights unknown、restricted、knownの表示。
-6. APIキーなし／期限切れ／429／Retry-After。
-7. XMLの外部エンティティ、巨大レスポンス、悪意あるURL。
-8. 同一資料が複数ソースに出る場合の重複・provenance。
+## Improvement backlog (in order)
 
-## 未確定事項
-Global Libraryの現行ツール・対象機関・スキーマ・利用者数・SLA・予算・認証・保守責任者、各機関の数値レート制限、全コレクションのOCR適用範囲、画像・本文の再配布権はunknownである。したがって現時点で「重複率」「既存OSSで置換可能」「本番SLA達成」を数値化しない。
+1. Relevance gate: require the question's most specific term(s) to
+   appear in a page's OCR before the page can ground an answer, and
+   expose a per-evidence relevance signal next to the grounding status.
+2. Real-LLM evaluation with an approved key, scoring claim support on
+   paraphrased (not quoted) claims.
+3. Era-mismatch checks: compare the question's era tokens with the
+   document's publication era and flag answers that bridge them silently.
 
-## References
-[1]: https://github.com/magicianmarty/heritage-research-mcp "heritage-research-mcp"
-[2]: https://github.com/nikazzio/scriptoria "Scriptoria"
-[3]: https://github.com/knagata/ndl-mcp "knagata/ndl-mcp"
-[4]: https://github.com/sho0318/ndl-mcp "sho0318/ndl-mcp"
-[5]: https://www.loc.gov/apis/ "Library of Congress APIs"
-[6]: https://api.europeana.eu/ "Europeana APIs"
-[7]: https://api.bnf.fr/fr/api-document-de-gallica "Gallica API"
-[8]: https://labs.deutsche-digitale-bibliothek.de/app/ddbapi/ "DDB API"
+## Unit-level coverage of the failure cases
+
+The brief's failure cases are covered deterministically in tests:
+no matching documents, page-id mismatch, missing OCR, low-quality OCR
+(`tests/test_evidence.py`, `tests/test_verify.py`); claims with no
+citation, unrelated claims, unverified date tokens, provider-flagged
+conflicts (`tests/test_claims.py`); invented citation keys withheld at
+the service layer (`tests/test_research.py`).

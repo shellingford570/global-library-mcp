@@ -16,11 +16,11 @@ global-library-mcp web --port 8000
 
 `http://127.0.0.1:8000` を開いてください。MCPサーバー（stdio）は `global-library-mcp mcp` で起動し、MCPクライアントにそのコマンドを設定します。
 
-Web UIのエンドポイント: `/health`、`/api/libraries`、`/api/search?q=...`、`/api/evidence?q=...`、`/api/answer?q=...`、`/api/verify?library=ndl&id=...`、`/api/document`、`/api/page`。MCPツール: `list_libraries`、`get_library_capabilities`、`search_catalog`、`search_across_libraries`、`get_document`、`search_in_document`、`get_page_text`、`get_page_image`、`get_citation`、`get_rights`、`get_verified_evidence`、`verify_original_page`、`research_question`。
+Web UIのエンドポイント: `/health`、`/api/libraries`、`/api/search?q=...`、`/api/evidence?q=...`、`/api/answer?q=...`、`/api/verify?library=ndl&id=...`、`/api/compare?docs=ndl:994120;ndl:1018770&aspects=...`、`/api/document`、`/api/page`。MCPツール: `list_libraries`、`get_library_capabilities`、`search_catalog`、`search_across_libraries`、`get_document`、`search_in_document`、`get_page_text`、`get_page_image`、`get_citation`、`get_rights`、`get_verified_evidence`、`verify_original_page`、`research_question`、`compare_documents`。
 
 ## 回答と根拠
 
-`research_question`（Web UIでは「AI回答」ボタン）は根拠パイプラインを実行します: 書誌検索 → 書籍内ページ検索 → 同一性照合とOCR品質ゲート付きのページOCR取得 → 回答生成 → 引用のホワイトリスト検証。検証済みOCRページが1件も集まらなければ結果は `insufficient_evidence` となり、回答は生成されません。書誌情報だけを根拠に回答することはありません。
+`research_question`（Web UIでは「AI回答」ボタン）は根拠パイプラインを実行します: 書誌検索 → 書籍内ページ検索 → 同一性照合とOCR品質ゲート付きのページOCR取得 → 回答生成 → 引用のホワイトリスト検証。検証済みOCRページが1件も集まらなければ結果は `insufficient_evidence` となり、回答は生成されません。書誌情報だけを根拠に回答することはありません。回答には主張ごとの根拠スクリーニングも付き、`compare_documents` は2つの文献を検証済みページだけで観点別に比較します。Internet Archiveの資料もNDLと同等のページ根拠経路（djvu.xmlのleaf単位OCR）を持ち、アクセス制限つき資料は取得を拒否します。
 
 AI回答はデフォルト無効で、LLMなしでも全機能が動作します。OpenAI互換プロバイダを使う場合は `LLM_ENABLED=true`、`LLM_API_KEY`、任意で `LLM_API_BASE`/`LLM_MODEL` を設定してください。オフラインのデモやテストには `LLM_PROVIDER=mock`（最初の根拠ページから決定的に回答するモック）も使えます。検索・根拠取得・原本リンクにLLMキーは不要です。
 

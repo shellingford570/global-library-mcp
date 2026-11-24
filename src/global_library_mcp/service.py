@@ -184,12 +184,27 @@ class LibraryService:
                 "image_url": item["image_url"],
                 "landing_url": item["landing_url"],
             })
+        from global_library_mcp.claims import verify_claims
+
+        raw_claims = result.get("claims")
+        if not isinstance(raw_claims, list) or not raw_claims:
+            raw_claims = [{"text": result.get("answer") or "", "citations": keys}]
+        clean_claims = []
+        for claim in raw_claims:
+            if isinstance(claim, dict) and isinstance(claim.get("text"), str):
+                clean_claims.append({
+                    "text": claim["text"],
+                    "citations": [c for c in claim.get("citations", []) if isinstance(c, str)],
+                    **({"conflict": True} if claim.get("conflict") else {}),
+                })
+        claims = verify_claims(clean_claims, evidence)
         return {
             **base,
             "status": "answered",
             "available": True,
             "answer": result.get("answer"),
             "citations": citations,
+            "claims": claims,
             "limitations": result.get("limitations", []),
         }
 
@@ -318,4 +333,118 @@ class LibraryService:
             "evidence": [item.to_dict() for item in verified],
             "unverified": unverified,
             "search": search_view,
+        }
+
+    async def compare_documents(
+        self,
+        documents: list[dict[str, str]],
+        aspects: list[str] | None = None,
+        question: str | None = None,
+        pages_per_aspect: int = 2,
+    ) -> dict[str, Any]:
+        """Compare 2-4 documents aspect by aspect on verified OCR pages.
+
+        Only pages passing the same identity + quality gates as the
+        evidence pipeline are used. The comparison is textual: excerpts
+        per aspect with citations, shared/unique content tokens, and
+        explicit gaps where a document has no verified page for an
+        aspect. Nothing is inferred beyond what the pages contain.
+        """
+        import re
+
+        from global_library_mcp.adapters.base import AdapterError
+        from global_library_mcp.compare import compare_aspect
+        from global_library_mcp.evidence import assess_ocr_quality, extract_terms
+
+        refs = [doc for doc in documents if doc.get("library_id") and doc.get("record_id")][:4]
+        if len(refs) < 2:
+            return {"status": "invalid_request", "reason": "compare_documents needs at least two documents", "documents": []}
+        aspect_list = [a.strip() for a in (aspects or []) if a and a.strip()]
+        if not aspect_list and question:
+            aspect_list = extract_terms(question)
+        if not aspect_list:
+            aspect_list = ["概要"]
+
+        doc_results: list[dict[str, Any]] = []
+        per_aspect_texts: dict[str, dict[str, str]] = {aspect: {} for aspect in aspect_list}
+        for ref in refs:
+            library_id, record_id = ref["library_id"], ref["record_id"]
+            entry: dict[str, Any] = {"library_id": library_id, "record_id": record_id, "title": record_id,
+                                     "date": None, "landing_url": None, "pages": [], "error": None}
+            try:
+                adapter = self.adapters.get(library_id)
+                if adapter is None:
+                    raise AdapterError(library_id, f"Unknown library: {library_id}")
+                if not adapter.supports_in_document_search:
+                    raise AdapterError(library_id, "adapter does not support in-document search")
+                try:
+                    doc = await adapter.get_document(record_id)
+                    book = doc.get("book") if isinstance(doc.get("book"), dict) else {}
+                    entry["title"] = doc.get("title") or book.get("title") or record_id
+                    entry["date"] = doc.get("date") or book.get("published") or book.get("date") or book.get("issued")
+                    entry["landing_url"] = doc.get("landing_url")
+                except Exception:  # noqa: BLE001 - metadata is best-effort; pages are the evidence
+                    pass
+                seen_pages: set[str] = set()
+                for aspect in aspect_list:
+                    found = await adapter.search_in_document(record_id, aspect)
+                    matches = (found.get("matches") or {}).get("list", []) if isinstance(found, dict) else []
+                    for match in matches[:pages_per_aspect]:
+                        page_id = match.get("id") if isinstance(match, dict) else None
+                        if not page_id or page_id in seen_pages:
+                            continue
+                        seen_pages.add(page_id)
+                        page = await adapter.get_page_text(page_id)
+                        text = page.get("contents") or ""
+                        quality = assess_ocr_quality(text)
+                        if not page.get("verified_mapping") or not quality["usable"]:
+                            continue
+                        position = text.find(aspect)
+                        excerpt = text[max(0, position - 60):position + 220] if position >= 0 else text[:280]
+                        entry["pages"].append({
+                            "aspect": aspect,
+                            "page_id": page.get("page_id"),
+                            "digital_frame": page.get("digital_frame"),
+                            "citation_key": f"{library_id}:{record_id}:{page.get('page_id')}",
+                            "image_url": page.get("image_url"),
+                            "excerpt": excerpt.strip(),
+                        })
+                        per_aspect_texts[aspect][record_id] = per_aspect_texts[aspect].get(record_id, "") + "\n" + text
+            except Exception as exc:  # noqa: BLE001 - per-document failure is reported, not raised
+                entry["error"] = str(exc) if isinstance(exc, AdapterError) else sanitize_error(exc)
+            doc_results.append(entry)
+
+        rows = []
+        for aspect in aspect_list:
+            texts = per_aspect_texts[aspect]
+            comparison = compare_aspect(aspect, texts) if len(texts) == 2 else {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
+            rows.append({
+                "aspect": aspect,
+                "documents": {
+                    entry["record_id"]: {
+                        "found": any(p["aspect"] == aspect for p in entry["pages"]),
+                        "excerpts": [p for p in entry["pages"] if p["aspect"] == aspect],
+                    } for entry in doc_results
+                },
+                "shared_terms": comparison["shared_terms"],
+                "unique_terms": comparison["unique_terms"],
+            })
+
+        notes = ["比較は検証済みOCRページのテキストに基づく機械的な対照です。語の有無は意味の同一・相違を証明しません。",
+                 "翻訳は行っていません。抜粋は原文のままです。"]
+        years = []
+        for entry in doc_results:
+            match = re.search(r"(1[5-9]\d{2}|20\d{2})", str(entry.get("date") or ""))
+            if match:
+                years.append((entry["record_id"], int(match.group(1))))
+        if len(years) == 2 and abs(years[0][1] - years[1][1]) >= 10:
+            notes.append(f"刊行年に差があります（{years[0][0]}: {years[0][1]}年 / {years[1][0]}: {years[1][1]}年）。資料が扱う内容の年代と刊行年は同一とは限りません。")
+        with_pages = [entry for entry in doc_results if entry["pages"]]
+        return {
+            "status": "compared" if len(with_pages) >= 2 else "insufficient_evidence",
+            "question": question,
+            "aspects": aspect_list,
+            "documents": [{key: entry[key] for key in ("library_id", "record_id", "title", "date", "landing_url", "error")} | {"verified_pages": len(entry["pages"])} for entry in doc_results],
+            "rows": rows,
+            "notes": notes,
         }

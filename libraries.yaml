@@ -151,6 +151,22 @@ libraries:
     implementation_status: implemented
     verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'Berlin' without an API key on the used endpoint)"
     last_verified: "2026-11-22"
+  - id: bsb
+    region: Europe
+    country: DE
+    official_site: https://www.digitale-sammlungen.de/
+    api_specs: [https://www.digitale-sammlungen.de/en/]
+    languages: [de, multi]
+    material_types: [books, manuscripts, maps, images]
+    capabilities: {bibliographic: unknown, fulltext: unknown, ocr: unknown, image: true, page: unknown, iiif: true}
+    standards: [IIIF]
+    auth: unknown
+    terms_rights: "BSB/item-specific; many works public domain, verify per item"
+    rate_limits: unknown
+    existing_mcp: unknown
+    implementation_status: research-only
+    verification: "Phase 3 research note (2026-11-22, not live-verified): the Bavarian State Library's MDZ (digitale-sammlungen.de) exposes IIIF Presentation manifests and per-work full text/OCR downloads for many digitised works, which makes it the most promising German page-evidence candidate after DDB; no adapter implemented yet."
+    last_verified: "2026-11-22"
   - id: gallica
     region: Europe
     country: FR
@@ -165,7 +181,7 @@ libraries:
     rate_limits: unknown
     existing_mcp: [https://github.com/raphink/newspapers-mcp]
     implementation_status: implemented
-    verification: "adapter implemented; live check 2026-11-22 was denied by the upstream (HTTP 403, challenge or policy restriction) from this network, so live search is not verified here; specs (SRU/IIIF/ALTO) reviewed"
+    verification: "search adapter implemented; live check 2026-11-22 was denied by the upstream (HTTP 403, challenge or policy restriction) from this network, so live search is not verified here; specs (SRU/IIIF/ALTO) reviewed. Phase 3: page-level methods implemented and unit-tested (get_page_text via the official per-page texteBrut view, get_document and verify_original via the IIIF manifest/image service); a live probe on 2026-11-22 still returned upstream 403, so page methods are NOT live-verified. In-document search has no official Gallica API and stays unsupported."
     last_verified: "2026-11-22"
   - id: bl
     region: Europe
@@ -301,7 +317,7 @@ libraries:
     rate_limits: "identified User-Agent; 429/Retry-After guidance"
     existing_mcp: unknown
     implementation_status: implemented
-    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'railway')"
+    verification: "Phase 3 live verified 2026-11-22: catalog search (mediatype:texts), in-document search over djvu.xml page OCR, page text by leaf (page_id = identifier@leaf), and original verification (metadata/access/djvu/page-range/OCR/image checks) all pass on hydroelectricdev00koesrich (1909, 506 leaves). Access-restricted items are refused. Note: some items' djvu.txt has no form-feed separators, so djvu.xml is the primary page source; in-document search downloads the item OCR once per session (large books are slow)."
     last_verified: "2026-11-22"
   - id: open-library
     region: Global

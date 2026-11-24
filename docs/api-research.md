@@ -81,3 +81,22 @@ IIIF Image API 3.0は領域・サイズ・回転・品質・形式、Presentatio
 | DDB | 検索成功（"Berlin" で結果取得、使用エンドポイントではキー不要だった） |
 | Gallica / BnF | 上流が HTTP 403（challenge or policy restriction）を返し、このネットワークからは未検証 |
 | Europeana | `EUROPEANA_API_KEY` が必要なため未実施（資格情報待ち） |
+
+## Phase 3 追記（2026-11-22）
+
+### Internet Archive：ページOCRの実測知見
+
+- ページ単位OCRの正解は `djvu.xml`（OBJECT要素＝leaf、BookReader画像と同番号）。`djvu.txt` は項目によっては改ページ文字（\f）を一切含まない（実測: hydroelectricdev00koesrich、1,008,286 bytes中 \f は0件）ため、txt分割はフォールバックに格下げした。
+- 書籍内検索は公式の inside.php（hOCR/Abbyy依存で対象外項目が多い）ではなく、公開OCRのローカル検索として実装し、出所を明示している。
+- `access-restricted-item` が真の項目は全文取得を拒否する（項目単位のアクセス条件を優先）。
+- カタログ検索は `mediatype:texts` で絞らないと動画等が混入する。
+
+### Gallica / BnF：ページ取得ルート
+
+- ページ本文: 公式のページ単位表示 `ark:/12148/{ark}/f{n}.texteBrut`、原本確認: IIIF Manifest `iiif/ark:/12148/{ark}/manifest.json` と画像サービス。アダプターに実装し単体テスト済み。
+- ただし開発ネットワークからは検索・ページとも上流HTTP 403（2026-11-22再確認）。回避は行わず、ライブ未検証として記録する。
+- 書籍内検索の公式APIは存在しないため unsupported のまま。
+
+### ドイツ：BSB（バイエルン州立図書館）
+
+- DDBは検索のみ実装済み（OCR/ページは unknown）。BSBのMDZ（digitale-sammlungen.de）はIIIF Manifestと資料単位の全文/OCR提供があり、ドイツ語資料のページ根拠候補として最有力。レジストリに research-only で追加した（未実装・ライブ未検証）。
