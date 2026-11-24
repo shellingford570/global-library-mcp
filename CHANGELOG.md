@@ -4,6 +4,36 @@ All notable changes are recorded here. Dates are JST. Anything not
 listed as verified was not live-verified; see
 `docs/implementation-status.md` for the per-feature truth table.
 
+## Phase 4 — reliability v4 (2026-11-22, branch `feat/global-library-reliability-v4`)
+
+- Question understanding (`question.py`): rule-based analysis —
+  core concepts vs generic terms (old-form/synonym normalisation),
+  era detection incl. era-year conversion, regions, intent, and
+  structured requirements. No LLM required.
+- Relevance gate (`relevance.py`): every quality-passed page is
+  screened against the question (relevant / partially_relevant /
+  irrelevant / uncertain, with reasons). Only relevant pages ground
+  answers; the rest are returned as related reference material.
+  Era-distance, numeric-requirement, compound and anchor rules are
+  documented in `docs/evaluation.md`.
+- Answer withholding: answers whose claims screen unsupported or
+  conflicting are withheld whole (`answer_withheld`); refusals name
+  the missing core concepts and attach related documents. Claims
+  with invented quantities are now screened unsupported.
+- Evaluation v2: 70-question dataset + deterministic fixture suite.
+  Live NDL/mock runs (see `docs/evaluation.md`): insufficient-
+  evidence correctness 0.20 → 0.808, answerable success 0.682,
+  citation resolution 1.00; targets of 0.90 are not yet met and the
+  residual failure classes (retrospective era mentions; retrieval
+  misses) are documented with examples. One label (q27) was
+  corrected with disclosed rationale.
+- Web UI: relevance badges and reasons on evidence cards, a related
+  documents section, withheld-answer display; efficiency: query
+  deduplication, per-instance page caching, early termination on
+  document-level search failure (requests/question 26.1 → 18.8).
+- IA catalog search excludes lending-only items; English function
+  words no longer become search terms or core concepts.
+
 ## Phase 3 — research v3 (2026-11-22, branch `feat/global-library-research-v3`)
 
 - Claim-level grounding: answers carry per-claim support screening

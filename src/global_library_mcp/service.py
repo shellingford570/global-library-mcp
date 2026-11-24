@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import Iterable
 from typing import Any
 
@@ -31,6 +32,7 @@ class LibraryService:
             "europeana": EuropeanaAdapter(client),
         }
         self.client = client
+        self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
 
     async def search(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> SearchResponse:
         selected = list(dict.fromkeys(libraries or self.default_libraries))
@@ -84,6 +86,15 @@ class LibraryService:
             raise ValueError(f"Unknown library: {library_id}")
         return await adapter.get_page_text(page_id)
 
+    async def _get_page_text_cached(self, adapter: LibraryAdapter, library_id: str, page_id: str) -> dict[str, Any]:
+        """Page payloads are immutable; reuse them within this service
+        instance (an answer flow plus a comparison in one process
+        should not refetch the same page). Failures are not cached."""
+        key = (library_id, str(page_id))
+        if key not in self._page_cache:
+            self._page_cache[key] = await adapter.get_page_text(page_id)
+        return self._page_cache[key]
+
     async def verify_page(self, library_id: str, page_id: str) -> dict[str, Any]:
         """Verify a page against its original (IIIF) representation.
 
@@ -124,22 +135,51 @@ class LibraryService:
 
         collected = await self.collect_evidence(query, libraries, limit)
         evidence = collected["evidence"]
+        related = collected.get("related", [])
+        analysis = collected.get("analysis", {})
         base: dict[str, Any] = {
             "query": query,
             "terms": collected["terms"],
+            "analysis": analysis,
             "evidence": evidence,
+            "related": related,
             "unverified": collected["unverified"],
             "search": collected["search"],
         }
         if not evidence:
+            # Name what the *closest* candidate lacked, not the union
+            # over every related page (which blamed concepts that the
+            # best pages actually contained).
+            missing = []
+            if related:
+                missing = list((related[0].get("relevance") or {}).get("missing_concepts", []))
+            if not missing:
+                missing = list(analysis.get("core_concepts", []))
+            if missing:
+                reason = f"質問の中心概念（{'、'.join(missing)}）を裏付けるOCR本文が確認できませんでした。"
+            else:
+                reason = "質問に答えるための検証済みOCR本文が確認できませんでした。"
+            limitations = ["No OCR page passed both the quality gate and the relevance gate for this question"]
+            if related:
+                reason += "関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。"
+                limitations.append("Related documents exist but were not adopted as evidence; see related_documents")
+            related_documents = [{
+                "citation_key": item["citation_key"], "library_id": item["library_id"],
+                "record_id": item["record_id"], "page_id": item["page_id"], "title": item["title"],
+                "image_url": item.get("image_url"), "landing_url": item.get("landing_url"),
+                "relevance_status": (item.get("relevance") or {}).get("status"),
+                "relevance_reasons": (item.get("relevance") or {}).get("reasons", []),
+            } for item in related]
             return {
                 **base,
                 "status": "insufficient_evidence",
                 "available": False,
                 "answer": None,
                 "citations": [],
-                "message": "確認できる根拠（検証済みのOCRページ）が見つかりませんでした。",
-                "limitations": ["No verified OCR page evidence was collected for this question"],
+                "reason": reason,
+                "message": reason,
+                "related_documents": related_documents,
+                "limitations": limitations,
             }
         if provider is None:
             if os.getenv("LLM_PROVIDER", "").lower() == "mock":
@@ -198,6 +238,23 @@ class LibraryService:
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
         claims = verify_claims(clean_claims, evidence)
+        blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
+        if blocking:
+            return {
+                **base,
+                "status": "answer_withheld",
+                "available": False,
+                "answer": None,
+                "citations": citations,
+                "claims": claims,
+                "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+                "limitations": [
+                    f"claim not supported by its cited OCR: {c.get('text', '')[:80]}" for c in blocking
+                ] + list(result.get("limitations", [])),
+            }
+        limitations = list(result.get("limitations", []))
+        if any(c.get("support") == "uncertain" for c in claims):
+            limitations.append("一部の主張は自動スクリーニングで裏付けが不確実です（uncertain）。原本ページで確認してください。")
         return {
             **base,
             "status": "answered",
@@ -205,7 +262,7 @@ class LibraryService:
             "answer": result.get("answer"),
             "citations": citations,
             "claims": claims,
-            "limitations": result.get("limitations", []),
+            "limitations": limitations,
         }
 
     async def collect_evidence(
@@ -228,7 +285,10 @@ class LibraryService:
         """
         from global_library_mcp.evidence import assess_ocr_quality, extract_terms
         from global_library_mcp.models import Evidence
+        from global_library_mcp.question import analyze_question
+        from global_library_mcp.relevance import assess_relevance
 
+        analysis = analyze_question(query)
         search_terms = terms or extract_terms(query)
         # A natural-language question rarely matches bibliographic fields
         # verbatim, so search with the question first and then with each
@@ -238,7 +298,7 @@ class LibraryService:
         seen_records: set[tuple[str, str]] = set()
         search_errors: list[dict[str, str]] = []
         capable = 0
-        for candidate_query in [query, *search_terms]:
+        for candidate_query in dict.fromkeys([query, *search_terms]):
             resp = await self.search(candidate_query, libraries, limit)
             search_errors.extend(resp.errors)
             for item in resp.results:
@@ -249,20 +309,35 @@ class LibraryService:
                     adapter = self.adapters.get(item.library_id)
                     if adapter is not None and adapter.supports_in_document_search:
                         capable += 1
-            if capable >= max_documents:
+            if capable >= max_documents + 3:
                 break
         search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
+        # Try documents whose titles carry a core concept first: the
+        # full-question search surfaces broad survey volumes ahead of
+        # the on-topic monographs the term searches found.
+        from global_library_mcp.question import concept_variants, normalize_text
+
+        def _title_rank(item: Any) -> int:
+            title_n = normalize_text(item.title or "")
+            return 0 if any(variant in title_n for c in analysis.core_concepts for variant in concept_variants(c)) else 1
+
+        ranked = sorted(merged, key=_title_rank)
         verified: list[Evidence] = []
+        related: list[dict[str, Any]] = []
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
-        for result in merged:
-            if documents_tried >= max_documents:
+        for result in ranked:
+            # Keep trying further documents while no page has passed the
+            # relevance gate yet (bounded, to cap API use).
+            doc_limit = max_documents if verified else max_documents + 3
+            if documents_tried >= doc_limit:
                 break
             adapter = self.adapters.get(result.library_id)
             if adapter is None or not adapter.supports_in_document_search:
                 continue
             documents_tried += 1
             page_terms: dict[str, str] = {}
+            doc_failed = False
             for term in search_terms:
                 try:
                     found = await adapter.search_in_document(result.record_id, term, limit=pages_per_document * 2)
@@ -271,7 +346,8 @@ class LibraryService:
                         "library_id": result.library_id, "record_id": result.record_id,
                         "page_id": None, "reason": f"in-document search failed: {sanitize_error(exc)}",
                     })
-                    continue
+                    doc_failed = True
+                    break  # a document-level failure repeats for every term; stop early
                 matches = found.get("matches") if isinstance(found, dict) else None
                 entries = matches.get("list") if isinstance(matches, dict) else matches
                 for entry in entries or []:
@@ -281,14 +357,15 @@ class LibraryService:
                 if len(page_terms) >= pages_per_document:
                     break
             if not page_terms:
-                unverified.append({
-                    "library_id": result.library_id, "record_id": result.record_id,
-                    "page_id": None, "reason": "no in-document page matched the question terms",
-                })
+                if not doc_failed:
+                    unverified.append({
+                        "library_id": result.library_id, "record_id": result.record_id,
+                        "page_id": None, "reason": "no in-document page matched the question terms",
+                    })
                 continue
             for page_id, term in list(page_terms.items())[:pages_per_document]:
                 try:
-                    page = await adapter.get_page_text(page_id)
+                    page = await self._get_page_text_cached(adapter, result.library_id, page_id)
                 except Exception as exc:  # noqa: BLE001 - reported, not hidden
                     unverified.append({
                         "library_id": result.library_id, "record_id": result.record_id,
@@ -320,17 +397,29 @@ class LibraryService:
                     rights=result.rights,
                 )
                 if is_verified:
-                    verified.append(evidence)
+                    year_match = re.search(r"(1[4-9]\d{2}|20\d{2})", str(result.date or ""))
+                    assessment = assess_relevance(
+                        analysis, evidence.ocr_text,
+                        publication_year=int(year_match.group(1)) if year_match else None,
+                    )
+                    evidence.relevance = assessment
+                    if assessment["status"] == "relevant":
+                        verified.append(evidence)
+                    else:
+                        related.append(evidence.to_dict())
                 else:
                     unverified.append({
                         "library_id": result.library_id, "record_id": result.record_id,
                         "page_id": page_id, "reason": "; ".join(notes) or "unverified",
                         "citation_key": evidence.citation_key,
                     })
+        related.sort(key=lambda item: (item.get("relevance") or {}).get("score", 0), reverse=True)
         return {
             "query": query,
             "terms": search_terms,
+            "analysis": analysis.to_dict(),
             "evidence": [item.to_dict() for item in verified],
+            "related": related[:8],
             "unverified": unverified,
             "search": search_view,
         }
@@ -394,7 +483,7 @@ class LibraryService:
                         if not page_id or page_id in seen_pages:
                             continue
                         seen_pages.add(page_id)
-                        page = await adapter.get_page_text(page_id)
+                        page = await self._get_page_text_cached(adapter, library_id, page_id)
                         text = page.get("contents") or ""
                         quality = assess_ocr_quality(text)
                         if not page.get("verified_mapping") or not quality["usable"]:

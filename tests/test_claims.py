@@ -70,3 +70,18 @@ async def test_answer_includes_verified_claims():
     assert result["claims"]
     assert result["claims"][0]["support"] == "supported"
     assert result["claims"][0]["citations"] == ["ndl:994120:994120_50"]
+
+
+def test_claim_with_invented_number_is_unsupported():
+    evidence = [{"citation_key": "ndl:1:p1", "ocr_text": "臨時發電水力調査局は全国の河川を調査し、發電水力の適地を選定した"}]
+    claim = {"text": "臨時發電水力調査局は全国の河川を調査し、發電水力の適地を選定した。調査した河川は850本にのぼる", "citations": ["ndl:1:p1"]}
+    result = verify_claims([claim], evidence)[0]
+    assert result["support"] == "unsupported"
+    assert "850" in result["support_detail"]
+
+
+def test_claim_with_number_present_in_ocr_stays_supported():
+    evidence = [{"citation_key": "ndl:1:p1", "ocr_text": "調査した河川は850本にのぼり、臨時發電水力調査局が發電水力の適地を選定した"}]
+    claim = {"text": "調査した河川は850本にのぼり、臨時發電水力調査局が發電水力の適地を選定した", "citations": ["ndl:1:p1"]}
+    result = verify_claims([claim], evidence)[0]
+    assert result["support"] == "supported"

@@ -51,7 +51,7 @@ class RequestCounter:
 async def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=0)
-    parser.add_argument("--out", type=Path, default=ROOT / "eval" / "results-phase3.json")
+    parser.add_argument("--out", type=Path, default=ROOT / "eval" / "results-phase4.json")
     parser.add_argument("--image-checks", type=int, default=10, help="max questions whose first evidence page gets a full IIIF verify")
     args = parser.parse_args()
 
@@ -72,6 +72,9 @@ async def main() -> int:
                 record["evidence"] = len(result.get("evidence", []))
                 record["unverified"] = len(result.get("unverified", []))
                 record["citations"] = [c["citation_key"] for c in result.get("citations", [])]
+                record["related"] = len(result.get("related", []))
+                record["related_statuses"] = [(r.get("relevance") or {}).get("status") for r in result.get("related", [])]
+                record["reason"] = result.get("reason")
                 record["claims"] = [{"support": c.get("support"), "overlap": c.get("overlap")} for c in result.get("claims", [])]
                 evidence_keys = {e["citation_key"] for e in result.get("evidence", [])}
                 record["citations_resolve"] = all(k in evidence_keys for k in record["citations"])
@@ -106,6 +109,12 @@ async def main() -> int:
         "claim_supported_rate": round(sum(1 for c in all_claims if c["support"] == "supported") / max(len(all_claims), 1), 3) if all_claims else None,
         "claim_status_counts": {s: sum(1 for c in all_claims if c["support"] == s) for s in ("supported", "uncertain", "unsupported", "conflicting", "not_checked")},
         "insufficient_correct_rate": round(sum(1 for r in expect_insufficient if r["status"] == "insufficient_evidence") / max(len(expect_insufficient), 1), 3),
+        "refusal_correct_rate": round(sum(1 for r in expect_insufficient if r["status"] in ("insufficient_evidence", "answer_withheld")) / max(len(expect_insufficient), 1), 3),
+        "answerable_success_rate": round(sum(1 for r in expect_evidence if r["status"] == "answered") / max(len(expect_evidence), 1), 3),
+        "false_answer_rate": round(sum(1 for r in expect_insufficient if r["status"] == "answered") / max(len(expect_insufficient), 1), 3),
+        "false_refusal_rate": round(sum(1 for r in expect_evidence if r["status"] in ("insufficient_evidence", "answer_withheld")) / max(len(expect_evidence), 1), 3),
+        "related_status_counts": {s: sum(1 for r in records for st in r.get("related_statuses", []) if st == s) for s in ("relevant", "partially_relevant", "irrelevant", "uncertain", "not_checked")},
+        "requests_per_question": round(counter.count / max(len(records), 1), 1),
         "avg_seconds": round(sum(r["seconds"] for r in records) / max(len(records), 1), 2),
         "total_requests": counter.count,
         "provider": "mock",

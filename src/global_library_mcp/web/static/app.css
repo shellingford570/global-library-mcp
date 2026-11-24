@@ -11,6 +11,15 @@
 .badge-unsupported{background:#b03a2e;color:#fff}
 .badge-conflicting{background:#6c3483;color:#fff}
 .badge-not_checked{background:#777;color:#fff}
+.badge-rel-relevant{background:#1d7a3a;color:#fff}
+.badge-rel-partially_relevant{background:#b8860b;color:#fff}
+.badge-rel-irrelevant{background:#8a8a8a;color:#fff}
+.badge-rel-uncertain{background:#b8860b;color:#fff}
+.badge-rel-not_checked{background:#777;color:#fff}
+.rel-reasons{font-size:11px;color:var(--muted)}
+.related-box{margin-top:14px}
+.related-box h4{font-size:13px;color:var(--muted)}
+.related-card{border-left:3px solid #b8860b;margin-bottom:10px}
 .evidence-thumb{display:block;width:100%;max-width:180px;aspect-ratio:3/4;object-fit:cover;object-position:top;border:1px solid var(--border,#ccc);border-radius:6px;margin-bottom:.5rem;background:#f4f1ea}
 .compare-panel form{display:grid;gap:.4rem;max-width:640px}
 .compare-panel input{padding:.5rem;border:1px solid var(--border,#bbb);border-radius:6px}

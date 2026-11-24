@@ -22,6 +22,7 @@ and is linked from every evidence record.
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Any
 
 SUPPORTED_THRESHOLD = 0.5
@@ -77,6 +78,18 @@ def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any
     elif overlap >= UNCERTAIN_THRESHOLD:
         status = "uncertain"
     else:
+        status = "unsupported"
+    # Material-condition check: a concrete quantity stated in the claim
+    # (a count, a population, a capacity) must literally appear in the
+    # cited OCR. Lexical similarity alone never promotes such a claim
+    # to supported. Four-digit years are exempt here because era-year
+    # conversion (明治四十三年 = 1910) is legitimate; years are handled
+    # by the date-token check above instead.
+    claim_numbers = set(re.findall(r"\d+(?:\.\d+)?", unicodedata.normalize("NFKC", text)))
+    ocr_numbers = set(re.findall(r"\d+(?:\.\d+)?", unicodedata.normalize("NFKC", ocr_text)))
+    missing_numbers = {n for n in claim_numbers if n not in ocr_numbers and not (len(n) == 4 and n.isdigit() and 1000 <= int(n) <= 2099)}
+    if missing_numbers:
+        detail += f"; numeric value(s) not found in cited OCR: {', '.join(sorted(missing_numbers))}"
         status = "unsupported"
     result.update({"support": status, "support_detail": detail, "overlap": round(overlap, 3)})
     return result

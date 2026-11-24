@@ -58,6 +58,14 @@ const I18N = {
     supportUnsupported: '根拠なし',
     supportConflicting: '資料間で矛盾',
     supportNotChecked: '未検証',
+    relevanceLabel: '質問への関連性（機械的スクリーニング）',
+    relRelevant: '関連性あり',
+    relPartial: '一部関連',
+    relIrrelevant: '関連性なし',
+    relUncertain: '判定不能',
+    relNotChecked: '未検証',
+    relatedTitle: '参考資料（回答の根拠には未採用）',
+    statusAnswerWithheld: '回答を保留しました',
     compareTitle: '文献比較',
     compareDocA: '文献A（機関:資料ID）',
     compareDocB: '文献B（機関:資料ID）',
@@ -119,6 +127,14 @@ const I18N = {
     supportUnsupported: 'unsupported',
     supportConflicting: 'conflicting',
     supportNotChecked: 'not checked',
+    relevanceLabel: 'Relevance to the question (mechanical screening)',
+    relRelevant: 'relevant',
+    relPartial: 'partially relevant',
+    relIrrelevant: 'not relevant',
+    relUncertain: 'uncertain',
+    relNotChecked: 'not checked',
+    relatedTitle: 'Related documents (not used as evidence)',
+    statusAnswerWithheld: 'The answer was withheld',
     compareTitle: 'Compare documents',
     compareDocA: 'Document A (library:record)',
     compareDocB: 'Document B (library:record)',
@@ -185,6 +201,34 @@ function renderSearch(data) {
   results.innerHTML = html || `<div class="empty"><span class="empty-mark">∅</span><p>${t().noMatches}</p></div>`;
 }
 
+function relevanceLabel(status) {
+  return {relevant: t().relRelevant, partially_relevant: t().relPartial, irrelevant: t().relIrrelevant,
+    uncertain: t().relUncertain, not_checked: t().relNotChecked}[status] || status || '';
+}
+
+function relevanceLine(item) {
+  const rel = item.relevance || (item.relevance_status ? {status: item.relevance_status, reasons: item.relevance_reasons || []} : null);
+  if (!rel || !rel.status) return '';
+  return `<p>${t().relevanceLabel}: <span class="badge badge-rel-${esc(rel.status)}">${esc(relevanceLabel(rel.status))}</span>`
+    + (rel.score != null ? ` (${esc(rel.score)})` : '')
+    + ((rel.reasons || []).length ? `<br><span class="rel-reasons">${esc(rel.reasons.join(' / '))}</span>` : '')
+    + `</p>`;
+}
+
+function relatedCard(item) {
+  return `<article class="card related-card">
+    <div>
+      <span class="tag">${esc(item.library_name || item.library_id || '')}</span>
+      <h3>${esc(item.title || item.record_id || '')}</h3>
+      ${relevanceLine(item)}
+    </div>
+    <div class="card-actions">
+      ${sourceLink(item.image_url, t().viewImage)}
+      ${sourceLink(item.landing_url, t().viewRecord)}
+    </div>
+  </article>`;
+}
+
 function evidenceCard(item) {
   const excerpt = (item.ocr_text || '').slice(0, 300);
   const quality = item.ocr_quality?.score;
@@ -194,6 +238,7 @@ function evidenceCard(item) {
       <span class="tag">${esc(item.library_name)}</span> <span class="badge badge-verified">${t().verifiedBadge}</span>
       <h3>${esc(item.title)}</h3>
       <p>${t().frameLabel} ${esc(item.digital_frame ?? 'unknown')} · ${t().qualityLabel} ${quality ?? 'unknown'} · ${t().matchedTermLabel}: ${esc(item.matched_term || '')}</p>
+      ${relevanceLine(item)}
       <p class="ocr-excerpt">${esc(excerpt)}</p>
       <p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p>
       <div class="verify-box" data-page="${esc(item.page_id)}" data-library="${esc(item.library_id)}"></div>
@@ -207,6 +252,16 @@ function evidenceCard(item) {
   </article>`;
 }
 
+function claimsSection(data) {
+  const supportLabel = s => ({supported: t().supportSupported, uncertain: t().supportUncertain, unsupported: t().supportUnsupported, conflicting: t().supportConflicting, not_checked: t().supportNotChecked}[s] || s);
+  if (!(data.claims || []).length) return '';
+  return `<div class="claims"><h4>${t().claimsTitle}</h4><ul>`
+    + data.claims.map(claim => `<li><span class="badge badge-${esc(claim.support || 'not_checked')}">${esc(supportLabel(claim.support))}</span> ${esc(claim.text)} `
+      + (claim.citations || []).map(key => `<button type="button" class="chip chip-small" data-target="ev-${esc(key)}">${esc(key)}</button>`).join(' ')
+      + `</li>`).join('')
+    + `</ul></div>`;
+}
+
 function renderAnswer(data) {
   title.textContent = t().recordsFor(data.query || query.value.trim());
   const evidence = data.evidence || [];
@@ -215,25 +270,25 @@ function renderAnswer(data) {
   let html = '';
   if (data.status === 'answered' && data.answer) {
     const chips = (data.citations || []).map(c => `<button type="button" class="chip" data-target="ev-${esc(c.citation_key)}">${esc(c.title)} · ${t().frameLabel} ${esc(c.digital_frame ?? '?')}</button>`).join('');
-    const supportLabel = s => ({supported: t().supportSupported, uncertain: t().supportUncertain, unsupported: t().supportUnsupported, conflicting: t().supportConflicting, not_checked: t().supportNotChecked}[s] || s);
-    const claims = (data.claims || []).length ? `<div class="claims"><h4>${t().claimsTitle}</h4><ul>`
-      + data.claims.map(claim => `<li><span class="badge badge-${esc(claim.support || 'not_checked')}">${esc(supportLabel(claim.support))}</span> ${esc(claim.text)} `
-        + (claim.citations || []).map(key => `<button type="button" class="chip chip-small" data-target="ev-${esc(key)}">${esc(key)}</button>`).join(' ')
-        + `</li>`).join('')
-      + `</ul></div>` : '';
     html += `<article class="card answer-card"><div><span class="tag">${t().answerTag}</span><h3>${esc(data.answer)}</h3>`
       + (chips ? `<p class="citations-label">${t().citationsLabel}</p><div class="chips">${chips}</div>` : '')
-      + claims
+      + claimsSection(data)
       + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')
       + `</div></article>`;
   } else if (data.status === 'insufficient_evidence') {
-    html += `<div class="error" role="alert">${esc(data.message || t().statusInsufficient)}</div>`;
+    html += `<div class="error" role="alert">${esc(data.reason || data.message || t().statusInsufficient)}</div>`;
+  } else if (data.status === 'answer_withheld') {
+    html += `<div class="error" role="alert">${t().statusAnswerWithheld}: ${esc(data.reason || '')}</div>` + claimsSection(data);
   } else if (data.status === 'citation_validation_failed') {
     html += `<div class="error" role="alert">${t().statusWithheld} ${esc(data.reason || '')}</div>`;
   } else {
     html += `<div class="error" role="alert">${t().statusUnavailable}: ${esc(data.reason || '')}</div>`;
   }
   html += evidence.map(evidenceCard).join('');
+  const relatedItems = (data.related_documents && data.related_documents.length) ? data.related_documents : (data.related || []);
+  if (relatedItems.length) {
+    html += `<div class="related-box"><h4>${t().relatedTitle}</h4>` + relatedItems.map(relatedCard).join('') + `</div>`;
+  }
   if (unverified.length) {
     html += `<div class="unverified-box"><h4>${t().unverifiedTitle}</h4><ul>`
       + unverified.map(u => `<li>${esc(u.library_id)} / ${esc(u.record_id)}${u.page_id ? ' / ' + esc(u.page_id) : ''} — ${esc(u.reason)}</li>`).join('')
