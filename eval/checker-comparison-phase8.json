@@ -1,0 +1,96 @@
+{
+ "fixtures": 8,
+ "nli_model": "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
+ "nli_load_error": "ModuleNotFoundError: No module named 'transformers'",
+ "rows": [
+  {
+   "id": "q31",
+   "question": "大正時代のテレビ放送の開始について教えて",
+   "hypothesis": "大正時代に日本でテレビ放送が存在した",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "insufficient",
+   "rule_ms": 0.22,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.68
+  },
+  {
+   "id": "q35",
+   "question": "大正時代の新幹線の開業について教えて",
+   "hypothesis": "大正時代に日本で新幹線が存在した",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "supports",
+   "rule_ms": 4.03,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.01
+  },
+  {
+   "id": "q40",
+   "question": "明治四十三年の発電水力調査で確認された滝の正確な数を教えて",
+   "hypothesis": "明治四十三年時代に日本で発電水力調査が存在した",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "insufficient",
+   "rule_ms": 0.43,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.0
+  },
+  {
+   "id": "q52",
+   "question": "大正時代の電気洗濯機の普及について教えて",
+   "hypothesis": "大正時代に日本で電気洗濯機が普及していた",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "insufficient",
+   "rule_ms": 0.12,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.0
+  },
+  {
+   "id": "h03",
+   "question": "昭和時代のインターネットの普及過程について教えて",
+   "hypothesis": "昭和時代に日本でインターネットが普及していた",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "mentions_only",
+   "rule_ms": 0.37,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.0
+  },
+  {
+   "id": "h05",
+   "question": "江戸時代の蒸気機関車の運行について教えて",
+   "hypothesis": "江戸時代に日本で蒸気機関車が存在した",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "insufficient",
+   "rule_ms": 0.29,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.0
+  },
+  {
+   "id": "h22",
+   "question": "大正時代の家庭への電気冷蔵庫の普及について教えて",
+   "hypothesis": "大正時代に日本で電気冷蔵庫が普及していた",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "mentions_only",
+   "rule_ms": 0.69,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.0
+  },
+  {
+   "id": "h31",
+   "question": "明治時代の日本人による宇宙飛行の記録について教えて",
+   "hypothesis": "明治時代に日本で宇宙飛行が存在した",
+   "expected_safe_outcome": "must not ground an answer",
+   "rule_relation": "insufficient",
+   "rule_ms": 0.24,
+   "nli_verdict": "not_checked",
+   "nli_reason": "ModuleNotFoundError: No module named 'transformers'",
+   "nli_ms": 0.0
+  }
+ ],
+ "note": "NLI verdicts are signals only; admission remains with the rule/admission path."
+}
