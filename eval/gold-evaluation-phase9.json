@@ -1,0 +1,28 @@
+{
+ "version": "gold-passages-v2-2026-11-24",
+ "scoring": "strict: supports only",
+ "by_split": {
+  "dev": {
+   "entailment_cases": 1,
+   "recognised_strict": 1,
+   "recognised_strict_rate": 1.0,
+   "recognised_legacy_incl_uncertain": 1,
+   "negative_cases": 22,
+   "negatives_refused_certification": 21,
+   "negatives_refused_rate": 0.955,
+   "negatives_raw_supports_verdicts": 4,
+   "excluded_ambiguous_unverified": 5
+  },
+  "eval": {
+   "entailment_cases": 6,
+   "recognised_strict": 4,
+   "recognised_strict_rate": 0.667,
+   "recognised_legacy_incl_uncertain": 6,
+   "negative_cases": 24,
+   "negatives_refused_certification": 20,
+   "negatives_refused_rate": 0.833,
+   "negatives_raw_supports_verdicts": 8,
+   "excluded_ambiguous_unverified": 13
+  }
+ }
+}

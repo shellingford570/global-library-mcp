@@ -1,0 +1,819 @@
+{
+  "dataset_version": "phase3-1",
+  "run_at": "2026-11-24T11:04:10Z",
+  "metrics": {
+    "questions": 20,
+    "discovery_rate": 0.6,
+    "ocr_capture_rate": 0.932,
+    "image_reachable_rate": 1.0,
+    "citation_resolution_rate": 1.0,
+    "claim_supported_rate": 0.263,
+    "claim_status_counts": {
+      "supported": 5,
+      "uncertain": 4,
+      "unsupported": 10,
+      "conflicting": 0,
+      "not_checked": 0
+    },
+    "insufficient_correct_rate": 0.0,
+    "refusal_correct_rate": 0.0,
+    "answerable_success_rate": 0.2,
+    "partial_answer_rate": 0.0,
+    "false_answer_rate": 0.0,
+    "false_refusal_rate": 0.75,
+    "related_status_counts": {
+      "relevant": 72,
+      "partially_relevant": 2,
+      "irrelevant": 17,
+      "uncertain": 0,
+      "not_checked": 0
+    },
+    "requests_per_question": 24.9,
+    "avg_seconds": 18.71,
+    "total_requests": 499,
+    "provider": "openai-compatible:grok-4.3",
+    "insufficient_handled_rate": 0.0,
+    "corrections_on_insufficient": 0,
+    "false_corrections": 0,
+    "correction_success_rate": null,
+    "correction_safe_rate": null,
+    "correction_false_answer_rate": null,
+    "recall_at_3": 0.6,
+    "recall_at_6": 0.6,
+    "mrr": 0.6,
+    "retrieval_failure_counts": {
+      "no_candidates": 0,
+      "budget_exhausted": 0,
+      "no_relevant_pages": 8,
+      "premise_contradicted": 0,
+      "all_pages_failed_verification": 0
+    }
+  },
+  "records": [
+    {
+      "id": "q01",
+      "category": "日本史",
+      "question": "明治時代の発電水力の開発について教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（発電水力）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 25.49,
+      "requests": 66
+    },
+    {
+      "id": "q02",
+      "category": "日本史",
+      "question": "明治時代の鉄道開業について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 1344,
+        "completion_tokens": 157
+      },
+      "status": "answered",
+      "evidence": 2,
+      "unverified": 0,
+      "citations": [
+        "ndl:1061125:1061125_157"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1061125_8",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 19.16,
+      "requests": 24
+    },
+    {
+      "id": "q03",
+      "category": "日本史",
+      "question": "日露戦争について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": "質問の中心概念（日露戦争）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 7.42,
+      "requests": 17
+    },
+    {
+      "id": "q04",
+      "category": "日本史",
+      "question": "明治時代の郵便制度の始まりについて教えて",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 2426,
+        "completion_tokens": 359
+      },
+      "status": "answered",
+      "evidence": 2,
+      "unverified": 0,
+      "citations": [
+        "ndl:1900539:1900539_12"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1900539_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 24.34,
+      "requests": 33
+    },
+    {
+      "id": "q05",
+      "category": "日本史",
+      "question": "横浜開港について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 6459,
+        "completion_tokens": 52
+      },
+      "status": "answer_withheld",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": null
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "805624_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 10.83,
+      "requests": 12
+    },
+    {
+      "id": "q06",
+      "category": "日本史",
+      "question": "明治時代の義務教育制度について教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 3,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": "質問の中心概念（義務教育制度、義務教育）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 8.71,
+      "requests": 22
+    },
+    {
+      "id": "q07",
+      "category": "科学技術史",
+      "question": "明治時代の電信技術の導入について教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（電信技術、電信）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 15.05,
+      "requests": 48
+    },
+    {
+      "id": "q08",
+      "category": "科学技術史",
+      "question": "日本の活版印刷の始まりについて当時の資料は何を述べているか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 3093,
+        "completion_tokens": 69
+      },
+      "status": "answer_withheld",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": null
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1017790_7",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 13.44,
+      "requests": 14
+    },
+    {
+      "id": "q09",
+      "category": "科学技術史",
+      "question": "明治時代の時計製造について教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（時計製造）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 10.71,
+      "requests": 28
+    },
+    {
+      "id": "q10",
+      "category": "科学技術史",
+      "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 3876,
+        "completion_tokens": 66
+      },
+      "status": "answer_withheld",
+      "evidence": 3,
+      "unverified": 0,
+      "citations": [],
+      "related": 1,
+      "related_statuses": [
+        "irrelevant"
+      ],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": null
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1065292_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 15.69,
+      "requests": 13
+    },
+    {
+      "id": "q11",
+      "category": "科学技術史",
+      "question": "明治時代のガス灯の普及について教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（ガス灯）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 19.05,
+      "requests": 60
+    },
+    {
+      "id": "q12",
+      "category": "発電・電気工学",
+      "question": "水力発電の仕組みについて当時の技術書は何と説明しているか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 3589,
+        "completion_tokens": 214
+      },
+      "status": "answer_withheld",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:1059700:1059700_5",
+        "ndl:3464668:3464668_6"
+      ],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": 0.008
+        },
+        {
+          "support": "unsupported",
+          "overlap": 0.073
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "3464668_5",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 25.6,
+      "requests": 14
+    },
+    {
+      "id": "q13",
+      "category": "発電・電気工学",
+      "question": "発電水力調査はどのように行われたか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 2294,
+        "completion_tokens": 524
+      },
+      "status": "answered",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:946285:946285_4",
+        "ndl:946285:946285_5",
+        "ndl:967539:967539_6"
+      ],
+      "related": 0,
+      "related_statuses": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "uncertain",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "946285_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 32.3,
+      "requests": 12
+    },
+    {
+      "id": "q14",
+      "category": "発電・電気工学",
+      "question": "明治時代の電力会社について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（電力会社）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 11.27,
+      "requests": 30
+    },
+    {
+      "id": "q15",
+      "category": "発電・電気工学",
+      "question": "電灯の普及について当時の資料は何を述べているか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 2862,
+        "completion_tokens": 60
+      },
+      "status": "answer_withheld",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": null
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "945148_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 28.51,
+      "requests": 12
+    },
+    {
+      "id": "q16",
+      "category": "発電・電気工学",
+      "question": "水力電気の送電について当時の技術書の説明を教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "llm_unavailable",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [],
+      "related": 2,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "LLM returned an invalid structured answer",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "3464668_6",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 19.07,
+      "requests": 13
+    },
+    {
+      "id": "q17",
+      "category": "発電・電気工学",
+      "question": "発電所のタービンについて当時の資料はどう記述しているか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 3684,
+        "completion_tokens": 89
+      },
+      "status": "answer_withheld",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": null
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1054523_7",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 16.27,
+      "requests": 15
+    },
+    {
+      "id": "q18",
+      "category": "医学史",
+      "question": "明治時代の種痘について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 2158,
+        "completion_tokens": 339
+      },
+      "status": "answered",
+      "evidence": 2,
+      "unverified": 0,
+      "citations": [
+        "ndl:797106:797106_4",
+        "ndl:901910:901910_5"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "uncertain",
+          "overlap": 0.467
+        },
+        {
+          "support": "uncertain",
+          "overlap": 0.324
+        },
+        {
+          "support": "uncertain",
+          "overlap": 0.484
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 30.43,
+      "requests": 27
+    },
+    {
+      "id": "q19",
+      "category": "医学史",
+      "question": "コレラの流行と対策について当時の記録は何を述べているか",
+      "expect": "evidence",
+      "llm_usage": {
+        "prompt_tokens": 4589,
+        "completion_tokens": 422
+      },
+      "status": "answer_withheld",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:1175139:1175139_4",
+        "ndl:1175139:1175139_6",
+        "ndl:913850:913850_4",
+        "ndl:913850:913850_5"
+      ],
+      "related": 0,
+      "related_statuses": [],
+      "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+      "claims": [
+        {
+          "support": "unsupported",
+          "overlap": 0.0
+        },
+        {
+          "support": "unsupported",
+          "overlap": 0.009
+        },
+        {
+          "support": "unsupported",
+          "overlap": 0.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 29.55,
+      "requests": 11
+    },
+    {
+      "id": "q20",
+      "category": "医学史",
+      "question": "明治時代の病院制度について教えて",
+      "expect": "evidence",
+      "llm_usage": null,
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（病院制度、病院）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 11.27,
+      "requests": 28
+    }
+  ],
+  "llm_usage": {
+    "model": "grok-4.3",
+    "calls": 20,
+    "input_tokens": 144374,
+    "output_tokens": 13151,
+    "spent_usd": 0.213345,
+    "max_cost_usd": 1.0,
+    "max_calls": 20,
+    "remaining_usd": 0.786655,
+    "usage_reported": 11,
+    "usage_estimated": 9
+  }
+}

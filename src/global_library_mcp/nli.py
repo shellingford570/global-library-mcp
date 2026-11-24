@@ -63,6 +63,27 @@ def build_hypothesis(analysis: Any) -> str | None:
     return f"{era_part}日本で{concept}が{verb}"
 
 
+
+def shadow_verdicts(analysis, passages: list[dict]) -> list[dict]:
+    """Phase 9-F shadow mode: run the NLI checker ALONGSIDE the
+    governing rule checker and record where they disagree.
+
+    The result is data for comparison only - it is never read
+    by any admission decision. When no backend can load, the
+    shadow is empty and the pipeline is unchanged.
+    """
+    checker = NliChecker()
+    out = []
+    for passage in passages:
+        verdict = checker.assess(analysis, passage.get("text") or "")
+        out.append({
+            "passage_id": passage.get("passage_id"),
+            "nli_relation": verdict.get("relation"),
+            "nli_backend": verdict.get("backend"),
+        })
+    return out
+
+
 def nli_verdict(scores: dict[str, float] | None) -> str:
     """Map raw NLI class scores to a verdict label."""
     if not scores:

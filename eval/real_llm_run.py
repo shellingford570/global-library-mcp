@@ -34,7 +34,12 @@ def main() -> int:
 
     import os
 
-    os.environ.setdefault("LLM_MODEL", args.model)
+    # Phase 9-B model consistency: the approved model, the
+    # priced model and the executed model must be identical. A
+    # pre-existing LLM_MODEL that differs is a blocker - the old
+    # setdefault let the environment silently override the
+    # approved model.
+    env_model = os.environ.get("LLM_MODEL")
     from global_library_mcp.llm_budget import BudgetPlan
 
     plan = BudgetPlan(
@@ -44,11 +49,22 @@ def main() -> int:
         cap_usd=args.max_cost_usd,
         approved=args.approve,
     ).evaluate()
+    if env_model and env_model != args.model:
+        plan.blockers.append(
+            f"environment LLM_MODEL ({env_model}) differs from the approved model ({args.model}); unset or align it"
+        )
+    print(f"base_url: {os.environ.get('LLM_API_BASE', 'https://api.openai.com/v1')}")
     print(plan.describe())
     if not plan.runnable:
         print("no API call was made")
         return 2
-    out = ROOT / "eval" / f"results-phase8-llm-{args.model}.json"
+    # Force the approved model + hand the approval and cap to
+    # the evaluation process, whose own gate re-checks them.
+    os.environ["LLM_MODEL"] = args.model
+    os.environ["LLM_ENABLED"] = "true"
+    os.environ["GLM_LLM_APPROVED"] = "1"
+    os.environ["GLM_LLM_MAX_COST_USD"] = str(args.max_cost_usd)
+    out = ROOT / "eval" / f"results-phase9-llm-{args.model}.json"
     cmd = [sys.executable, "-m", "eval.run_evaluation", "--provider", "openai",
            "--limit", str(args.questions), "--out", str(out)]
     print("running:", " ".join(cmd))

@@ -1,3 +1,28 @@
+## Phase 9 — AI validation readiness (2026-11-24)
+
+- Critical fix (9-A): the real-LLM path compacted evidence
+  twice and sent an empty OCR body; compaction now happens
+  exactly once, passage-aware and idempotent, with the actual
+  HTTP payload under test. Published answers are composed
+  from verified claims; unsupplied passage IDs invalidate a
+  claim.
+- Runtime cost enforcement (9-B): UsageLedger refuses a call
+  whose worst case could exceed the remaining budget; the
+  evaluation runner cannot be driven directly (approval
+  hand-off required); approved/priced/executed/recorded
+  models are forced identical.
+- Gold data v2 (9-C): audited labels (entailment /
+  contradiction / neutral / ambiguous / unverified),
+  group-wise splits, strict scoring (uncertain no longer
+  counts as recognition).
+- Shadow mode (9-F): auxiliary checker verdicts recorded,
+  never consulted by admission.
+- Materials mode (9-G): citation copy, record-page links,
+  admitted-only filter.
+- Security audit and PR integration plan (9-I / 9-J) under
+  docs/. Real-LLM evaluation remains unapproved and unrun;
+  the approval request is docs/phase9-llm-experiment-plan.md.
+
 ## Phase 8 — research-engine restructure (2026-11-24)
 
 - Architecture audit (8-A, docs/phase8-audit.md): the single

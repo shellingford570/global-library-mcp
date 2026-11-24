@@ -20,6 +20,7 @@ const I18N = {
     answerButton: 'AI回答',
     materialsButton: '研究資料',
     materialsTitle: '研究資料（関連候補）',
+    copyCitation: '引用をコピー', copied: 'コピーしました', admittedOnly: '根拠として採用された資料のみ', sourcePage: '資料ページ',
     materialsNote: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
     stateDiscovered: '資料発見', stateAccessible: 'ページ取得', stateVerified: '原本対応確認',
     stateCandidate: '関連候補', stateAssessed: '根拠として採用', stateRejected: '回答には不採用',
@@ -103,6 +104,7 @@ const I18N = {
     answerButton: 'AI answer',
     materialsButton: 'Research materials',
     materialsTitle: 'Research materials (candidates)',
+    copyCitation: 'Copy citation', copied: 'Copied', admittedOnly: 'Admitted as evidence only', sourcePage: 'Record page',
     materialsNote: 'Candidates do not prove an answer. Read the excerpts and originals and judge for yourself.',
     stateDiscovered: 'Discovered', stateAccessible: 'Page fetched', stateVerified: 'Source verified',
     stateCandidate: 'Relevant candidate', stateAssessed: 'Admitted as evidence', stateRejected: 'Not admitted for answers',
@@ -442,26 +444,59 @@ function stateChips(states) {
   return chips.map(c => `<span class="chip static">${esc(c)}</span>`).join('');
 }
 
+let lastMaterials = null;
+let materialsAdmittedOnly = false;
+
+function citationText(item) {
+  const parts = [item.title || item.record_id, item.author, item.date,
+    `${item.library_id}:${item.record_id}${item.page_id ? ':' + item.page_id : ''}`,
+    item.landing_url || item.image_url || ''].filter(Boolean);
+  return parts.join('. ');
+}
+
 function renderMaterials(data) {
+  lastMaterials = data;
   title.textContent = t().materialsTitle;
-  meta.textContent = `${(data.materials || []).length}${t().countSuffix}`;
-  let html = `<div class="notice">${esc(data.note || t().materialsNote)}</div>`;
-  for (const item of data.materials || []) {
+  const all = data.materials || [];
+  const items = materialsAdmittedOnly ? all.filter(i => i.admitted_as_evidence) : all;
+  meta.textContent = `${items.length}${t().countSuffix}`;
+  let html = `<div class="notice">${esc(data.note || t().materialsNote)}</div>`
+    + `<label class="filter-toggle"><input type="checkbox" id="materials-admitted-only" ${materialsAdmittedOnly ? 'checked' : ''}> ${t().admittedOnly}</label>`;
+  for (const item of items) {
     const excerpts = (item.excerpts || []).map(p => `<blockquote class="correction-quote">${esc(p.text)}</blockquote>`).join('');
     const reasons = (item.not_admitted_reasons || []).length
       ? `<p class="rights">${t().notAdmittedLabel}: ${esc(item.not_admitted_reasons.join(' / '))}</p>` : '';
     const image = item.image_url ? `<p>${sourceLink(item.image_url, t().backToSource)}</p>` : '';
+    const landing = item.landing_url ? `<p>${sourceLink(item.landing_url, t().sourcePage)}</p>` : '';
+    const copyBtn = `<p><button type="button" class="copy-citation" data-citation="${esc(citationText(item))}">${t().copyCitation}</button></p>`;
     const rights = item.rights && (item.rights.status || item.rights.label)
       ? `<p class="rights">${t().rightsLabel}: ${esc(item.rights.status || item.rights.label)}</p>` : '';
     html += `<article class="card"><div><h3>${esc(item.title || item.record_id)}</h3>`
       + `<p class="meta-line">${esc(item.author || '')} ${esc(item.date || '')} · ${esc(item.library_id)}:${esc(item.record_id)}${item.page_id ? ' · ' + esc(item.page_id) : ''}</p>`
       + `<div class="chips">${stateChips(item.states)}</div>`
       + (excerpts ? `<p class="citations-label">${t().excerptsLabel}</p>${excerpts}` : '')
-      + reasons + rights + image
+      + reasons + rights + image + landing + copyBtn
       + `</div></article>`;
   }
   results.innerHTML = html || `<div class="empty"><p>${t().noMatches}</p></div>`;
 }
+
+results.addEventListener('change', (event) => {
+  if (event.target && event.target.id === 'materials-admitted-only') {
+    materialsAdmittedOnly = event.target.checked;
+    if (lastMaterials) renderMaterials(lastMaterials);
+  }
+});
+results.addEventListener('click', async (event) => {
+  const btn = event.target.closest ? event.target.closest('.copy-citation') : null;
+  if (!btn) return;
+  try {
+    await navigator.clipboard.writeText(btn.dataset.citation || '');
+    btn.textContent = t().copied;
+  } catch (error) {
+    btn.textContent = btn.dataset.citation || '';
+  }
+});
 
 materialsButton.addEventListener('click', async () => {
   const q = query.value.trim();

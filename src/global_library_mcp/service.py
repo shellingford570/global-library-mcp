@@ -441,8 +441,16 @@ class LibraryService:
         # Phase 8-J: the UI must never present a MockProvider
         # result as a real AI answer - name the provider.
         base["provider"] = provider.__class__.__name__
-        payload = compact_evidence(evidence)
-        result = await provider.answer(query, payload)
+        # Phase 9-A: providers receive the RAW evidence records.
+        # Compaction into the LLM payload happens exactly once,
+        # inside the provider layer (compact_evidence) - the old
+        # flow compacted here AND again in the provider, and the
+        # second pass read the missing ocr_text and sent an
+        # empty body to the LLM.
+        result = await provider.answer(query, evidence)
+        base["llm_called"] = True
+        if isinstance(result.get("usage"), dict):
+            base["llm_usage"] = result["usage"]
         if not result.get("available"):
             return {
                 **base,
@@ -453,7 +461,7 @@ class LibraryService:
                 "reason": result.get("reason"),
                 "limitations": ["The answer provider did not produce an answer; the verified evidence above can be read directly"],
             }
-        keys = validate_citation_keys(result.get("citations", []), payload)
+        keys = validate_citation_keys(result.get("citations", []), evidence)
         if keys is None:
             return {
                 **base,
@@ -490,9 +498,28 @@ class LibraryService:
                 clean_claims.append({
                     "text": claim["text"],
                     "citations": [c for c in claim.get("citations", []) if isinstance(c, str)],
+                    "evidence_passage_ids": [p for p in claim.get("evidence_passage_ids", []) if isinstance(p, str)],
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
+        # Phase 9-A.2: a claim naming a passage that was never
+        # supplied is unverifiable - mark it so the screening and
+        # the partial-answer logic treat it as unsupported.
+        known_passage_ids = {
+            p["passage_id"] for item in evidence for p in (item.get("passages") or [])
+        }
+        for claim in clean_claims:
+            claimed = claim.get("evidence_passage_ids") or []
+            if claimed and not any(pid in known_passage_ids for pid in claimed):
+                claim["passage_id_unknown"] = True
         claims = verify_claims(clean_claims, evidence, analysis=analysis)
+        for claim, clean in zip(claims, clean_claims):
+            if clean.get("passage_id_unknown"):
+                claim["support"] = "unsupported"
+                claim.setdefault("reasons", []).append("claim cites a passage_id that was not supplied")
+            elif clean.get("evidence_passage_ids"):
+                claim["evidence_passage_ids"] = [
+                    pid for pid in clean["evidence_passage_ids"] if pid in known_passage_ids
+                ]
         # Phase 8-H: claims are structured - id, passage links,
         # temporal scope, numeric values, support status,
         # limitations - and unverifiable claims are REMOVED from
@@ -512,11 +539,12 @@ class LibraryService:
                 {"value": q["value"], "counter": q.get("unit"), "raw": q["raw"]}
                 for q in extract_quantities(claim.get("text", ""))
             ]
-            passage_ids: list[str] = []
-            for key in claim.get("citations", []):
-                for passage in passages_by_key.get(key, [])[:2]:
-                    if passage["passage_id"] not in passage_ids:
-                        passage_ids.append(passage["passage_id"])
+            passage_ids: list[str] = list(claim.get("evidence_passage_ids") or [])
+            if not passage_ids:
+                for key in claim.get("citations", []):
+                    for passage in passages_by_key.get(key, [])[:2]:
+                        if passage["passage_id"] not in passage_ids:
+                            passage_ids.append(passage["passage_id"])
             claim["evidence_passage_ids"] = passage_ids
             claim_limitations = []
             if claim.get("support") == "uncertain":
@@ -564,11 +592,19 @@ class LibraryService:
                 "claims": claims,
                 "limitations": limitations,
             }
+        # Phase 9-A.2: the published answer text is composed from
+        # the verified claims, not the provider's free text - an
+        # unverified assertion in the provider's prose cannot
+        # survive into the answer.
+        composed = "".join(
+            c["text"] if c["text"].endswith("。") else c["text"] + "。"
+            for c in claims
+        ) if claims else result.get("answer")
         return {
             **base,
             "status": "answered",
             "available": True,
-            "answer": result.get("answer"),
+            "answer": composed,
             "citations": citations,
             "claims": claims,
             "limitations": limitations,
@@ -795,6 +831,16 @@ class LibraryService:
             {"stage": "evidence_assessment", "status": "ok" if verified else "no_admission",
              "detail": f"{len(verified)} assessed evidence, {len(related)} rejected candidates, {len(premise_contradictions)} contradictions"},
         ]
+        # Phase 9-F shadow mode: with GLM_SHADOW_NLI=1, NLI
+        # verdicts on admitted passages are recorded beside the
+        # governing decision for later comparison. They are
+        # never consulted by admission.
+        if _os.getenv("GLM_SHADOW_NLI") == "1" and verified:
+            from global_library_mcp.nli import shadow_verdicts as _shadow
+            _rows = []
+            for _item in verified:
+                _rows.extend(_shadow(analysis, _item.get("passages") or []))
+            stage_log.append({"stage": "shadow_nli", "status": "recorded", "detail": f"{len(_rows)} shadow verdicts", "verdicts": _rows})
         return {
             "query": query,
             "retrieval": retrieval,

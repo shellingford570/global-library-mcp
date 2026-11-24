@@ -263,4 +263,9 @@ test('research materials mode shows candidates with states and reasons', async (
   await expect(page.getByText('電信は明治二年に開局した。')).toBeVisible();
   await expect(page.getByText(/回答に採用しない理由/)).toBeVisible();
   await expect(page.getByText(/証明する資料ではありません/)).toBeVisible();
+  // Phase 9-G: citation copy button is present, and the
+  // admitted-only filter hides this non-admitted candidate.
+  await expect(page.locator('.copy-citation')).toHaveCount(1);
+  await page.locator('#materials-admitted-only').check();
+  await expect(page.getByText('電信史')).toHaveCount(0);
 });

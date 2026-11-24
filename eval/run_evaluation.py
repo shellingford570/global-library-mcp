@@ -61,6 +61,32 @@ async def main() -> int:
 
     dataset = json.loads(args.dataset.read_text(encoding="utf-8"))
     questions = dataset["questions"][: args.limit or None]
+    # Phase 9-B: the real-LLM path cannot be driven directly.
+    # It requires the approval hand-off that eval/real_llm_run.py
+    # performs (GLM_LLM_APPROVED + a USD cap + a named model),
+    # and a UsageLedger enforces the cap DURING the run: a call
+    # whose worst case could exceed the remaining budget is
+    # never made. There is no --approve flag here to flip.
+    ledger = None
+    if args.provider == "openai":
+        import os as _os
+        from global_library_mcp.llm_budget import UsageLedger
+        gate_errors = []
+        if _os.environ.get("GLM_LLM_APPROVED") != "1":
+            gate_errors.append("GLM_LLM_APPROVED is not set - run via eval/real_llm_run.py after operator approval")
+        cap_raw = _os.environ.get("GLM_LLM_MAX_COST_USD")
+        model = _os.environ.get("LLM_MODEL")
+        if not cap_raw:
+            gate_errors.append("GLM_LLM_MAX_COST_USD is not set")
+        if not model:
+            gate_errors.append("LLM_MODEL is not set")
+        if gate_errors:
+            print("BLOCKED (Phase 9-B guard):")
+            for e in gate_errors:
+                print("  -", e)
+            print("no API call was made")
+            return 2
+        ledger = UsageLedger(model=model, max_cost_usd=float(cap_raw), max_calls=len(questions))
     counter = RequestCounter()
     records = []
     image_checks_done = 0
@@ -71,12 +97,20 @@ async def main() -> int:
                 records.append({"id": item["id"], "category": item["category"], "question": item["question"],
                                 "expect": item["expect"], "status": "skipped_cap", "seconds": 0, "requests": 0})
                 continue
+            if ledger is not None and not ledger.can_afford():
+                records.append({"id": item["id"], "category": item["category"], "question": item["question"],
+                                "expect": item["expect"], "status": "skipped_budget", "seconds": 0, "requests": 0})
+                print(f"{item['id']} -> skipped_budget (ledger: {ledger.summary()})")
+                continue
             started = time.perf_counter()
             before = counter.count
             record = {"id": item["id"], "category": item["category"], "question": item["question"], "expect": item["expect"]}
             try:
                 provider = MockProvider() if args.provider == "mock" else OpenAICompatibleProvider(client)
                 result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=provider)
+                if ledger is not None and result.get("llm_called"):
+                    ledger.record(result.get("llm_usage"))
+                    record["llm_usage"] = result.get("llm_usage")
                 record["status"] = result["status"]
                 record["evidence"] = len(result.get("evidence", []))
                 record["unverified"] = len(result.get("unverified", []))
@@ -149,6 +183,8 @@ async def main() -> int:
     }
     payload = {"dataset_version": dataset["version"], "run_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                "metrics": metrics, "records": records}
+    if ledger is not None:
+        payload["llm_usage"] = ledger.summary()
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
     print(f"saved: {args.out}")
