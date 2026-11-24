@@ -931,6 +931,19 @@ class LibraryService:
                 if record["path"] == "semantic" and admitted:
                     evidence.semantics["promoted"] = True
                 if admitted:
+                    # Phase 8-C: admitted evidence carries its
+                    # passages - the located, verbatim units the
+                    # answer may actually cite.
+                    from global_library_mcp.passages import extract_passages
+
+                    evidence.passages = extract_passages(
+                        analysis, evidence.ocr_text, evidence.citation_key,
+                        image_url=evidence.image_url,
+                    )
+                    if evidence.states is not None:
+                        evidence.states["supporting_passage"] = any(
+                            p["stance_cues"] for p in evidence.passages
+                        ) or bool(evidence.passages)
                     out["verified"].append(evidence)
                 else:
                     out["related"].append(evidence.to_dict())
