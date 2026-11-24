@@ -26,7 +26,7 @@ import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from global_library_mcp.answer import MockProvider  # noqa: E402
+from global_library_mcp.answer import MockProvider, OpenAICompatibleProvider  # noqa: E402
 from global_library_mcp.service import LibraryService  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +55,8 @@ async def main() -> int:
     parser.add_argument("--image-checks", type=int, default=10, help="max questions whose first evidence page gets a full IIIF verify")
     parser.add_argument("--dataset", type=Path, default=ROOT / "eval" / "questions.json")
     parser.add_argument("--max-calls", type=int, default=0, help="stop starting new questions once this many HTTP requests were made (0 = no cap)")
+    parser.add_argument("--provider", choices=("mock", "openai"), default="mock",
+                        help="answer provider; 'openai' is the real-LLM path and must go through eval/real_llm_run.py's budget guard")
     args = parser.parse_args()
 
     dataset = json.loads(args.dataset.read_text(encoding="utf-8"))
@@ -73,7 +75,8 @@ async def main() -> int:
             before = counter.count
             record = {"id": item["id"], "category": item["category"], "question": item["question"], "expect": item["expect"]}
             try:
-                result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=MockProvider())
+                provider = MockProvider() if args.provider == "mock" else OpenAICompatibleProvider(client)
+                result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=provider)
                 record["status"] = result["status"]
                 record["evidence"] = len(result.get("evidence", []))
                 record["unverified"] = len(result.get("unverified", []))
@@ -131,7 +134,7 @@ async def main() -> int:
         "requests_per_question": round(counter.count / max(len(records), 1), 1),
         "avg_seconds": round(sum(r["seconds"] for r in records) / max(len(records), 1), 2),
         "total_requests": counter.count,
-        "provider": "mock",
+        "provider": "mock" if args.provider == "mock" else f"openai-compatible:{__import__('os').getenv('LLM_MODEL', 'gpt-4o-mini')}",
         "insufficient_handled_rate": round(sum(1 for r in expect_insufficient if r["status"] in ("insufficient_evidence", "answer_withheld", "corrected_premise")) / max(len(expect_insufficient), 1), 3),
         "corrections_on_insufficient": sum(1 for r in expect_insufficient if r["status"] == "corrected_premise"),
         "false_corrections": sum(1 for r in expect_evidence if r["status"] == "corrected_premise"),
