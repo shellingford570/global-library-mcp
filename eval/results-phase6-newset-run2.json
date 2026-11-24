@@ -1,0 +1,957 @@
+{
+  "dataset_version": "newset-v1-frozen-2026-11-23",
+  "run_at": "2026-11-23T08:51:36Z",
+  "metrics": {
+    "questions": 24,
+    "discovery_rate": 0.667,
+    "ocr_capture_rate": 0.857,
+    "image_reachable_rate": 1.0,
+    "citation_resolution_rate": 1.0,
+    "claim_supported_rate": 1.0,
+    "claim_status_counts": {
+      "supported": 26,
+      "uncertain": 0,
+      "unsupported": 0,
+      "conflicting": 0,
+      "not_checked": 0
+    },
+    "insufficient_correct_rate": 1.0,
+    "refusal_correct_rate": 1.0,
+    "answerable_success_rate": 0.667,
+    "false_answer_rate": 0.0,
+    "false_refusal_rate": 0.333,
+    "related_status_counts": {
+      "relevant": 44,
+      "partially_relevant": 106,
+      "irrelevant": 14,
+      "uncertain": 0,
+      "not_checked": 0
+    },
+    "requests_per_question": 48.7,
+    "avg_seconds": 17.63,
+    "total_requests": 1169,
+    "provider": "mock",
+    "insufficient_handled_rate": 1.0,
+    "corrections_on_insufficient": 0,
+    "false_corrections": 0,
+    "correction_success_rate": 0.0,
+    "correction_safe_rate": 1.0,
+    "correction_false_answer_rate": 0.0,
+    "recall_at_3": 0.556,
+    "recall_at_6": 0.611,
+    "mrr": 0.464,
+    "retrieval_failure_counts": {
+      "no_candidates": 0,
+      "budget_exhausted": 0,
+      "no_relevant_pages": 12,
+      "premise_contradicted": 0,
+      "all_pages_failed_verification": 0
+    }
+  },
+  "records": [
+    {
+      "id": "n01",
+      "category": "answerable",
+      "question": "明治時代の鉄道開業について、新橋と横浜の間の鉄道がどのように開通したか当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:1061125:1061125_8"
+      ],
+      "related": 2,
+      "related_statuses": [
+        "relevant",
+        "relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1061125_8",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 8.67,
+      "requests": 18
+    },
+    {
+      "id": "n02",
+      "category": "answerable",
+      "question": "明治時代の郵便制度の創設について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:1900539:1900539_4"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1900539_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 17.74,
+      "requests": 45
+    },
+    {
+      "id": "n03",
+      "category": "answerable",
+      "question": "明治時代の東京におけるガス灯の設置について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（おけるガス灯）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 26.15,
+      "requests": 76
+    },
+    {
+      "id": "n04",
+      "category": "answerable",
+      "question": "大正時代の関東大震災について当時の記録は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:979903:979903_4"
+      ],
+      "related": 0,
+      "related_statuses": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "979903_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 6.96,
+      "requests": 14
+    },
+    {
+      "id": "n05",
+      "category": "answerable",
+      "question": "明治時代の尋常小学校で使われた教科書について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 3,
+      "unverified": 0,
+      "citations": [
+        "ndl:810555:810555_4"
+      ],
+      "related": 5,
+      "related_statuses": [
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "810555_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 9.96,
+      "requests": 24
+    },
+    {
+      "id": "n06",
+      "category": "answerable",
+      "question": "明治時代のビール醸造の始まりについて当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 2,
+      "unverified": 0,
+      "citations": [
+        "ndl:902204:902204_5"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 3,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "902204_5",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 14.34,
+      "requests": 35
+    },
+    {
+      "id": "n07",
+      "category": "answerable",
+      "question": "明治時代の断髪令と洋服の着用について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 1,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": "質問の中心概念（断髪令）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 26.01,
+      "requests": 75
+    },
+    {
+      "id": "n08",
+      "category": "answerable",
+      "question": "明治時代の三越呉服店の百貨店化について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 0,
+      "citations": [
+        "ndl:898624:898624_110"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 3,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "898624_110",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 17.34,
+      "requests": 46
+    },
+    {
+      "id": "n09",
+      "category": "answerable",
+      "question": "明治時代の横浜における水道の建設について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 1,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": "質問の中心概念（横浜）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 23.01,
+      "requests": 67
+    },
+    {
+      "id": "n10",
+      "category": "answerable",
+      "question": "江戸時代の蘭学と解体新書について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 1,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（蘭学、解体新書）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 22.22,
+      "requests": 65
+    },
+    {
+      "id": "n11",
+      "category": "answerable",
+      "question": "明治時代の大日本帝国憲法の発布について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 2,
+      "unverified": 1,
+      "citations": [
+        "ndl:1271505:1271505_7"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1271505_7",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 16.74,
+      "requests": 45
+    },
+    {
+      "id": "n12",
+      "category": "answerable",
+      "question": "大正時代の米騒動について当時の記録は何を述べているか",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 4,
+      "unverified": 0,
+      "citations": [
+        "ndl:911788:911788_8"
+      ],
+      "related": 0,
+      "related_statuses": [],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "911788_8",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 5.92,
+      "requests": 14
+    },
+    {
+      "id": "n13",
+      "category": "answerable",
+      "question": "明治時代の野球の伝来について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": "質問の中心概念（野球）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 19.7,
+      "requests": 56
+    },
+    {
+      "id": "n14",
+      "category": "answerable",
+      "question": "明治時代の活版印刷の導入について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 0,
+      "citations": [
+        "ndl:1056970:1056970_4"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 4,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "1056970_4",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 12.68,
+      "requests": 33
+    },
+    {
+      "id": "n15",
+      "category": "answerable",
+      "question": "明治時代の服部時計店と時計製造について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 0,
+      "citations": [
+        "ndl:777764:777764_121"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 3,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "image_check": {
+        "page_id": "777764_121",
+        "status": "verified",
+        "image_reachable": true
+      },
+      "seconds": 18.42,
+      "requests": 49
+    },
+    {
+      "id": "n16",
+      "category": "answerable",
+      "question": "How did railways expand in Japan during the Meiji era?",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 1,
+      "unverified": 0,
+      "citations": [
+        "ndl:2937065:2937065_10"
+      ],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 10,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 26.72,
+      "requests": 73
+    },
+    {
+      "id": "n17",
+      "category": "answerable",
+      "question": "What did early twentieth-century books say about electric lighting in Japan?",
+      "expect": "evidence",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant",
+        "irrelevant"
+      ],
+      "reason": "質問の中心概念（twentieth-century、lighting）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 20.21,
+      "requests": 55
+    },
+    {
+      "id": "n18",
+      "category": "false-premise",
+      "question": "明治時代のテレビ放送の開始について当時の資料の記述を教えて",
+      "expect": "correction",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "relevant",
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（テレビ、テレビ放送）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 24.4,
+      "requests": 71
+    },
+    {
+      "id": "n19",
+      "category": "false-premise",
+      "question": "明治時代の原子力発電について当時の資料の記述を教えて",
+      "expect": "correction",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（原子力発電）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 13.29,
+      "requests": 39
+    },
+    {
+      "id": "n20",
+      "category": "false-premise",
+      "question": "江戸時代の電信の導入について当時の資料の記述を教えて",
+      "expect": "correction",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "relevant",
+        "relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（電信）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 16.5,
+      "requests": 47
+    },
+    {
+      "id": "n21",
+      "category": "false-premise",
+      "question": "明治時代の旅客飛行機の定期運航について当時の資料の記述を教えて",
+      "expect": "correction",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（旅客飛行機）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 25.42,
+      "requests": 74
+    },
+    {
+      "id": "n22",
+      "category": "insufficient-topic",
+      "question": "明治時代のプラスチック製品の製造について当時の資料の記述を教えて",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 1,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（プラスチック、プラスチック製品、製造）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 25.53,
+      "requests": 74
+    },
+    {
+      "id": "n23",
+      "category": "insufficient-topic",
+      "question": "江戸時代のガス灯の設置について当時の資料の記述を教えて",
+      "expect": "insufficient",
+      "status": "insufficient_evidence",
+      "evidence": 0,
+      "unverified": 0,
+      "citations": [],
+      "related": 8,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": "質問の中心概念（ガス灯）を裏付けるOCR本文が確認できませんでした。関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。",
+      "claims": [],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": null,
+      "retrieval_failure_reason": "no_relevant_pages",
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 18.36,
+      "requests": 54
+    },
+    {
+      "id": "n24",
+      "category": "answerable",
+      "question": "大正時代の活動写真の興行について当時の資料の記述を教えて",
+      "expect": "evidence",
+      "status": "answered",
+      "evidence": 3,
+      "unverified": 0,
+      "citations": [
+        "ndl:1183859:1183859_5"
+      ],
+      "related": 5,
+      "related_statuses": [
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant",
+        "partially_relevant"
+      ],
+      "reason": null,
+      "claims": [
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        },
+        {
+          "support": "supported",
+          "overlap": 1.0
+        }
+      ],
+      "citations_resolve": true,
+      "search_errors": [],
+      "first_evidence_rank": 1,
+      "retrieval_failure_reason": null,
+      "premise_contradictions": 0,
+      "correction_quotes": [],
+      "seconds": 6.91,
+      "requests": 20
+    }
+  ]
+}

@@ -1,3 +1,30 @@
+## Phase 6 — retrieval reachability (2026-11-23)
+
+- Failure diagnosis (6-A): the 34 failed answerable questions
+  split into gate rejects 15 / candidate misses 10 / budget
+  misses 6 / semantic rejects 3 — three different problems, three
+  different fixes (docs/phase6-diagnosis.md).
+- Search (6-B): full query-variant pool (no early stop), series
+  dedupe, multiplicity-aware bibliographic ranking; question
+  analysis drops aspect pseudo-concepts, demotes bare city
+  names, folds 寫眞/橫濱-type period spellings, and the
+  hiragana-fragment filter now uses a real Unicode range.
+- Fetching (6-C/6-D): three waves (screen / deepen / extend),
+  hit-multiplicity page selection, adjacent pages, page-kind
+  classification, document-level union promotion.
+- English (6-E): phrase concepts, word-century eras; IA + NDL
+  verified live. Phrase families match on all content words.
+- Semantics (6-F): onset cues 開通/実現, scoped bare negation,
+  per-sentence onset detection, year-gated anchor inheritance;
+  GLM_SEMANTIC_EMBED_MODEL now actually activates the embedding
+  signal. Era-bound enumerative pages that only mention a topic
+  no longer ground answers.
+- Evaluation (6-G): answerable 0.591 -> 0.841 (main), 0.304 ->
+  0.652 (holdout), 0.667 on a new frozen independent set with
+  zero false answers; false answers on the tuning sets rose
+  0 -> 4 / 2 -> 4 (mechanisms and rejected mitigations in
+  docs/evaluation-phase6.md). Requests/question ~1.5-2.3x.
+
 # Changelog
 
 All notable changes are recorded here. Dates are JST. Anything not

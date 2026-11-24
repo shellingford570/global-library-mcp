@@ -1,0 +1,1852 @@
+{
+  "run_at": "2026-11-23T07:50:16Z",
+  "diagnoses": [
+    {
+      "dataset": "results-phase5.json",
+      "id": "q03",
+      "question": "日露戦争について当時の資料は何を述べているか",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 5,
+      "topical_ranks": [
+        1,
+        2,
+        3
+      ],
+      "documents_tried": 5,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:774395:774395_3",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 日露戦争"
+          ]
+        },
+        {
+          "key": "ndl:774395:774395_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 日露戦争"
+          ]
+        },
+        {
+          "key": "ndl:774395:774395_6",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 日露戦争"
+          ]
+        },
+        {
+          "key": "ndl:774419:774419_1",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 日露戦争"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q05",
+      "question": "横浜開港について当時の資料の記述を教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 5,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "documents_tried": 5,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:805624:805624_1",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 横浜開港"
+          ]
+        },
+        {
+          "key": "ndl:805624:805624_2",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 横浜開港"
+          ]
+        },
+        {
+          "key": "ndl:805624:805624_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 横浜開港"
+          ]
+        },
+        {
+          "key": "ndl:991373:991373_2",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 横浜開港"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q06",
+      "question": "明治時代の義務教育制度について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S5 semantic_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:939281:939281_8",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 義務教育",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1461840:1461840_184",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 義務教育",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:939281:939281_7",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 義務教育",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:939281:939281_16",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 義務教育",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "no in-document page matched the question terms",
+        "no in-document page matched the question terms",
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q09",
+      "question": "明治時代の時計製造について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S2 budget_miss",
+      "candidates": 10,
+      "topical_ranks": [
+        9
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:955096:955096_5",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 時計製造",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:955096:955096_16",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 時計製造",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:955096:955096_17",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 時計製造",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 時計製造",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q10",
+      "question": "日本の紡績業の機械化について当時の資料の記述を教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1065292:1065292_3",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "中心概念が本文にない: 機械化"
+          ]
+        },
+        {
+          "key": "ndl:944650:944650_27",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "中心概念が本文にない: 機械化"
+          ]
+        },
+        {
+          "key": "ndl:1065292:1065292_2",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "中心概念が本文にない: 機械化"
+          ]
+        },
+        {
+          "key": "ndl:944650:944650_13",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "中心概念が本文にない: 機械化"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q13",
+      "question": "発電水力調査はどのように行われたか",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:946285:946285_3",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 発電水力調査",
+            "中心概念が本文にない: よう"
+          ]
+        },
+        {
+          "key": "ndl:946285:946285_4",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 発電水力調査",
+            "中心概念が本文にない: よう"
+          ]
+        },
+        {
+          "key": "ndl:946285:946285_5",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 発電水力調査",
+            "中心概念が本文にない: よう"
+          ]
+        },
+        {
+          "key": "ndl:967539:967539_4",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 発電水力調査",
+            "中心概念が本文にない: よう"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q14",
+      "question": "明治時代の電力会社について当時の資料の記述を教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:979091:979091_5",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 電力会社",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:979091:979091_6",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 電力会社",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:979091:979091_7",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 電力会社",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 電力会社",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q19",
+      "question": "コレラの流行と対策について当時の記録は何を述べているか",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        6,
+        7
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1175139:1175139_2",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: コレラ、流行",
+            "中心概念が本文にない: 対策"
+          ]
+        },
+        {
+          "key": "ndl:1175139:1175139_4",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: コレラ、流行",
+            "中心概念が本文にない: 対策"
+          ]
+        },
+        {
+          "key": "ndl:913850:913850_2",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: コレラ、流行",
+            "中心概念が本文にない: 対策"
+          ]
+        },
+        {
+          "key": "ndl:913850:913850_3",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: コレラ、流行",
+            "中心概念が本文にない: 対策"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q20",
+      "question": "明治時代の病院制度について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S2 budget_miss",
+      "candidates": 10,
+      "topical_ranks": [
+        7
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:949949:949949_2",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 病院",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:949949:949949_4",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 病院",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 病院",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 病院",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q21",
+      "question": "脚気の原因をめぐる議論について当時の資料の記述を教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:834765:834765_3",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: めぐる議論"
+          ]
+        },
+        {
+          "key": "ndl:834765:834765_4",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: めぐる議論"
+          ]
+        },
+        {
+          "key": "ndl:834766:834766_3",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: めぐる議論"
+          ]
+        },
+        {
+          "key": "ndl:834766:834766_4",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: めぐる議論"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q23",
+      "question": "神戸の外国人居留地について当時の資料の記述を教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 9,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1117589:1117589_5",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 外国人居留地",
+            "中心概念が本文にない: 神戸"
+          ]
+        },
+        {
+          "key": "ndl:765678:765678_4",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 神戸",
+            "中心概念が本文にない: 外国人居留地"
+          ]
+        },
+        {
+          "key": "ndl:765678:765678_5",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 神戸",
+            "中心概念が本文にない: 外国人居留地"
+          ]
+        },
+        {
+          "key": "ndl:965719:965719_3",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 神戸、外国人居留地"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short",
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q24",
+      "question": "明治時代の地震記録について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 9,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 地震記録",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 地震記録",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 地震記録",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_10",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 地震記録",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q54",
+      "question": "横浜開港と貿易の始まりについて教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:805624:805624_4",
+          "relevance": "partially_relevant",
+          "semantics": "supports",
+          "reasons": [
+            "中心概念を確認: 貿易",
+            "中心概念が本文にない: 横浜開港"
+          ]
+        },
+        {
+          "key": "ndl:991373:991373_4",
+          "relevance": "partially_relevant",
+          "semantics": "supports",
+          "reasons": [
+            "中心概念を確認: 貿易",
+            "中心概念が本文にない: 横浜開港"
+          ]
+        },
+        {
+          "key": "ndl:991373:991373_5",
+          "relevance": "partially_relevant",
+          "semantics": "supports",
+          "reasons": [
+            "中心概念を確認: 貿易",
+            "中心概念が本文にない: 横浜開港"
+          ]
+        },
+        {
+          "key": "ndl:991372:991372_3",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 貿易",
+            "中心概念が本文にない: 横浜開港"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q58",
+      "question": "富岡製糸場と製糸業について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        2,
+        3,
+        6,
+        7,
+        8
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:841034:841034_2",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 製糸業",
+            "中心概念が本文にない: 富岡製糸場"
+          ]
+        },
+        {
+          "key": "ndl:841033:841033_1",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 製糸業",
+            "中心概念が本文にない: 富岡製糸場"
+          ]
+        },
+        {
+          "key": "ndl:841033:841033_14",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 製糸業",
+            "中心概念が本文にない: 富岡製糸場"
+          ]
+        },
+        {
+          "key": "ndl:959786:959786_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 富岡製糸場、製糸業"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "no in-document page matched the question terms",
+        "no in-document page matched the question terms",
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q62",
+      "question": "明治時代と大正時代の水力発電の違いを比較して教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 9,
+      "topical_ranks": [],
+      "documents_tried": 9,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 水力発電",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 水力発電",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 水力発電",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_10",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 水力発電",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q63",
+      "question": "脚気が軍隊で流行した原因について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "documents_tried": 9,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:834765:834765_3",
+          "relevance": "irrelevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: 軍隊、流行した原因"
+          ]
+        },
+        {
+          "key": "ndl:834765:834765_4",
+          "relevance": "irrelevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: 軍隊、流行した原因"
+          ]
+        },
+        {
+          "key": "ndl:834766:834766_3",
+          "relevance": "irrelevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: 軍隊、流行した原因"
+          ]
+        },
+        {
+          "key": "ndl:834766:834766_4",
+          "relevance": "irrelevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 脚気",
+            "中心概念が本文にない: 軍隊、流行した原因"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q67",
+      "question": "明治時代のコレラ流行と対策について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S2 budget_miss",
+      "candidates": 10,
+      "topical_ranks": [
+        9
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_10",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5.json",
+      "id": "q70",
+      "question": "明治時代の紡績業の発展について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S5 semantic_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1065292:1065292_4",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:944650:944650_2",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:944650:944650_3",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:944650:944650_4",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 紡績業",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h06",
+      "question": "明治時代の電話交換事業の開始について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1087225:1087225_6",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 電話交換",
+            "中心概念が本文にない: 開始"
+          ]
+        },
+        {
+          "key": "ndl:1087225:1087225_52",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 電話交換",
+            "中心概念が本文にない: 開始"
+          ]
+        },
+        {
+          "key": "ndl:1087225:1087225_53",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 電話交換",
+            "中心概念が本文にない: 開始"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 電話交換、開始",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h07",
+      "question": "大正時代のラジオ放送の開始について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S2 budget_miss",
+      "candidates": 10,
+      "topical_ranks": [
+        7,
+        10
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:919583:919583_63",
+          "relevance": "partially_relevant",
+          "semantics": "supports",
+          "reasons": [
+            "中心概念を確認: 開始",
+            "中心概念が本文にない: ラジオ"
+          ]
+        },
+        {
+          "key": "ndl:2530057:2530057_3",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: ラジオ",
+            "中心概念が本文にない: 開始"
+          ]
+        },
+        {
+          "key": "ndl:2530057:2530057_9",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: ラジオ",
+            "中心概念が本文にない: 開始"
+          ]
+        },
+        {
+          "key": "ndl:2530057:2530057_10",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: ラジオ",
+            "中心概念が本文にない: 開始"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h08",
+      "question": "明治時代の白熱電灯の導入について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S5 semantic_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:945215:945215_2",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 白熱電灯",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:945215:945215_3",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 白熱電灯",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:945215:945215_9",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 白熱電灯",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 白熱電灯",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h09",
+      "question": "横浜開港後の生糸貿易の発展について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:804165:804165_1",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 生糸貿易",
+            "中心概念が本文にない: 横浜開港後"
+          ]
+        },
+        {
+          "key": "ndl:804165:804165_3",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 生糸貿易",
+            "中心概念が本文にない: 横浜開港後"
+          ]
+        },
+        {
+          "key": "ndl:804165:804165_5",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 生糸貿易",
+            "中心概念が本文にない: 横浜開港後"
+          ]
+        },
+        {
+          "key": "ndl:804166:804166_1",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: 生糸貿易",
+            "中心概念が本文にない: 横浜開港後"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h10",
+      "question": "明治時代のコレラ流行への対策について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S2 budget_miss",
+      "candidates": 10,
+      "topical_ranks": [
+        9
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_10",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: コレラ、対策",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h13",
+      "question": "大正時代の結核療養の実態について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S2 budget_miss",
+      "candidates": 10,
+      "topical_ranks": [
+        8,
+        10
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1029845:1029845_3",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 結核療養",
+            "中心概念が本文にない: 実態"
+          ]
+        },
+        {
+          "key": "ndl:1029845:1029845_4",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 結核療養",
+            "中心概念が本文にない: 実態"
+          ]
+        },
+        {
+          "key": "ndl:1034726:1034726_1",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 結核療養",
+            "中心概念が本文にない: 実態"
+          ]
+        },
+        {
+          "key": "ndl:1034726:1034726_2",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 結核療養",
+            "中心概念が本文にない: 実態"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h14",
+      "question": "明治時代の水力発電所の建設について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1177939:1177939_6",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 水力発電所",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1177939:1177939_3",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 水力発電所",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1177939:1177939_5",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 水力発電所",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 水力発電所",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h15",
+      "question": "昭和時代のトランジスタラジオの登場について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1699034:1699034_40",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: トランジスタラジオ",
+            "中心概念が本文にない: 登場"
+          ]
+        },
+        {
+          "key": "ndl:1053144:1053144_3",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: トランジスタラジオ、登場",
+            "時代名「昭和」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1053144:1053144_110",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: トランジスタラジオ、登場",
+            "時代名「昭和」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1461807:1461807_31",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: トランジスタラジオ、登場",
+            "時代名「昭和」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h16",
+      "question": "大正時代の活動写真の興行について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "documents_tried": 9,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1183859:1183859_5",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 活動写真、興行",
+            "時代名「大正」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1871739:1871739_5",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 活動写真、興行",
+            "時代名「大正」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:913348:913348_2",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 活動写真、興行",
+            "時代名「大正」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:913348:913348_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 活動写真、興行",
+            "時代名「大正」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h18",
+      "question": "明治時代のガス灯の設置について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:848275:848275_7",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: ガス灯",
+            "中心概念が本文にない: 設置"
+          ]
+        },
+        {
+          "key": "ndl:848275:848275_76",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: ガス灯",
+            "中心概念が本文にない: 設置"
+          ]
+        },
+        {
+          "key": "ndl:848275:848275_77",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: ガス灯",
+            "中心概念が本文にない: 設置"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: ガス灯、設置",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h20",
+      "question": "明治時代にコレラ対策として上水道が整備された経緯について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 9,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1352250:1352250_259",
+          "relevance": "irrelevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: コレラ",
+            "中心概念が本文にない: して上水道、整備された経緯"
+          ]
+        },
+        {
+          "key": "ndl:1352250:1352250_269",
+          "relevance": "irrelevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: コレラ",
+            "中心概念が本文にない: して上水道、整備された経緯"
+          ]
+        },
+        {
+          "key": "ndl:1352250:1352250_270",
+          "relevance": "irrelevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: コレラ",
+            "中心概念が本文にない: して上水道、整備された経緯"
+          ]
+        },
+        {
+          "key": "ndl:1340419:1340419_45",
+          "relevance": "irrelevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: コレラ",
+            "中心概念が本文にない: して上水道、整備された経緯"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h24",
+      "question": "明治時代の自転車の輸入と国産化について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7,
+        9,
+        10
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:919583:919583_10",
+          "relevance": "partially_relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 輸入",
+            "中心概念が本文にない: 自転車、国産化"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 自転車、輸入、国産化",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 自転車、輸入、国産化",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 自転車、輸入、国産化",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short",
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h25",
+      "question": "明治時代の新聞発行の始まりについて教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1112238:1112238_27",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 新聞発行",
+            "対象時代（明治）への言及は本文で確認できない"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 新聞発行",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_7",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 新聞発行",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 新聞発行",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h26",
+      "question": "明治時代の写真術の伝来と広がりについて教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "documents_tried": 9,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:1088345:1088345_172",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 写真術、伝来",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:853853:853853_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 写真術、伝来",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:853859:853859_3",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 写真術、伝来",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 写真術、伝来",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h28",
+      "question": "明治時代の日本が欧米から導入した紡績技術について教えて",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S1 candidate_miss",
+      "candidates": 10,
+      "topical_ranks": [],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:919583:919583_10",
+          "relevance": "relevant",
+          "semantics": "mentions_only",
+          "reasons": [
+            "中心概念を確認: 欧米",
+            "中心概念が本文にない: ら導入した紡績"
+          ]
+        },
+        {
+          "key": "ndl:1168331:1168331_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 欧米、ら導入した紡績",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_4",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 欧米、ら導入した紡績",
+            "時代名「明治」が本文に現れる"
+          ]
+        },
+        {
+          "key": "ndl:919583:919583_11",
+          "relevance": "irrelevant",
+          "semantics": "insufficient",
+          "reasons": [
+            "中心概念が本文にない: 欧米、ら導入した紡績",
+            "時代名「明治」が本文に現れる"
+          ]
+        }
+      ],
+      "unverified_reasons": [
+        "OCR text is very short"
+      ]
+    },
+    {
+      "dataset": "results-phase5-holdout.json",
+      "id": "h29",
+      "question": "When did telephone exchange service begin in Japan?",
+      "phase5_status": "insufficient_evidence",
+      "stage": "S4 gate_reject",
+      "candidates": 10,
+      "topical_ranks": [
+        1,
+        6
+      ],
+      "documents_tried": 6,
+      "evidence_pages": [],
+      "related": [
+        {
+          "key": "ndl:919722:919722_40",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: telephone、exchange",
+            "中心概念が本文にない: service、begin"
+          ]
+        },
+        {
+          "key": "ndl:924921:924921_7",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: telephone、exchange",
+            "中心概念が本文にない: service、begin"
+          ]
+        },
+        {
+          "key": "ndl:1680498:1680498_8",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: telephone、service",
+            "中心概念が本文にない: exchange、begin"
+          ]
+        },
+        {
+          "key": "ndl:1090587:1090587_4",
+          "relevance": "partially_relevant",
+          "semantics": "uncertain",
+          "reasons": [
+            "中心概念を確認: telephone、service",
+            "中心概念が本文にない: exchange、begin"
+          ]
+        }
+      ],
+      "unverified_reasons": []
+    }
+  ]
+}

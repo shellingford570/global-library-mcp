@@ -33,7 +33,7 @@ _CHAR_VARIANTS = str.maketrans({
     "區": "区", "會": "会", "國": "国", "學": "学", "濟": "済", "醫": "医",
     "藥": "薬", "鐵": "鉄", "驛": "駅", "廳": "庁", "縣": "県", "臺": "台",
     "灣": "湾", "滿": "満", "亞": "亜", "歐": "欧", "獨": "独", "佛": "仏",
-    "龍": "竜", "齒": "歯", "邊": "辺", "關": "関", "圖": "図", "號": "号",
+    "龍": "竜", "齒": "歯", "寫": "写", "眞": "真", "橫": "横", "濱": "浜", "邊": "辺", "關": "関", "圖": "図", "號": "号",
     "點": "点", "實": "実", "價": "価", "勞": "労", "壓": "圧", "變": "変",
     "黨": "党", "單": "単", "戰": "戦", "觀": "観", "覽": "覧", "顯": "顕",
     "驗": "験", "驅": "駆", "澁": "渋", "櫻": "桜", "舊": "旧", "莊": "荘",
@@ -97,7 +97,16 @@ def concept_variants(concept: str, *, include_weak: bool = False) -> set[str]:
 def find_concept(text_normalised: str, concept: str) -> str | None:
     """Return the matched variant of a concept in normalised text."""
     for variant in sorted(concept_variants(concept), key=len, reverse=True):
-        if variant and variant in text_normalised:
+        if not variant:
+            continue
+        if " " in variant:
+            # An English phrase family matches when every content
+            # word appears in the page, not necessarily adjacently
+            # ("dam turbines" vs "the dam and its turbines").
+            words = [w for w in variant.lower().split() if len(w) >= 3]
+            if words and all(word in text_normalised.lower() for word in words):
+                return variant
+        elif variant in text_normalised:
             return variant
     return None
 
@@ -109,7 +118,8 @@ GENERIC_TERMS = {
     "社会", "文化", "科学", "記録", "資料", "説明", "記述", "内容", "方法",
     "事業", "関係", "状況", "様子", "当時", "日本", "技術", "産業", "明治時代",
     "大正時代", "昭和時代", "変化", "様相", "概要", "始まり", "導入", "建設", "仕組み",
-    "開発", "違い", "原因",
+    "開発", "違い", "原因", "対策", "議論", "実態", "経緯", "動向", "伝来",
+    "国産化", "機械化", "開始", "運営", "記録する",
 }
 
 ERAS: dict[str, tuple[int, int]] = {
@@ -192,7 +202,79 @@ def _detect_era(question: str) -> dict[str, Any] | None:
     if century:
         c = int(century.group(1))
         return {"label": f"{c}世紀", "era": None, "year": None, "start": (c - 1) * 100 + 1, "end": c * 100}
+    # English era expressions.
+    for en_name, ja_name in (("Meiji", "明治"), ("Taisho", "大正"), ("Taishō", "大正"),
+                             ("Showa", "昭和"), ("Shōwa", "昭和"), ("Edo", "江戸")):
+        if re.search(rf"\b{en_name}\b", question):
+            start, end = ERAS[ja_name]
+            return {"label": ja_name, "era": ja_name, "year": None, "start": start, "end": end}
+    word_century = re.search(
+        r"(early|late)?\s*(seventeenth|eighteenth|nineteenth|twentieth)\s*century", question, re.IGNORECASE)
+    if word_century:
+        c = {"seventeenth": 17, "eighteenth": 18, "nineteenth": 19, "twentieth": 20}[word_century.group(2).lower()]
+        start, end = (c - 1) * 100 + 1, c * 100
+        if word_century.group(1) and word_century.group(1).lower() == "early":
+            end = start + 34
+        elif word_century.group(1) and word_century.group(1).lower() == "late":
+            start = end - 34
+        return {"label": f"{c}世紀", "era": None, "year": None, "start": start, "end": end}
+    en_century = re.search(r"(early|late)?\s*(\d{1,2})(?:st|nd|rd|th)\s*century", question, re.IGNORECASE)
+    if en_century:
+        c = int(en_century.group(2))
+        start, end = (c - 1) * 100 + 1, c * 100
+        if en_century.group(1) == "early":
+            end = start + 34
+        elif en_century.group(1) == "late":
+            start = end - 34
+        return {"label": f"{c}世紀", "era": None, "year": None, "start": start, "end": end}
+    decade = re.search(r"\b(1[5-9]\d{2}|20\d{2})s\b", question)
+    if decade:
+        year = int(decade.group(1))
+        return {"label": f"{year}年代", "era": None, "year": None, "start": year, "end": year + 9}
     return None
+
+
+_EN_STOPWORDS = {
+    "the", "a", "an", "of", "in", "on", "at", "to", "and", "or", "for",
+    "with", "by", "from", "as", "was", "were", "are", "is", "did", "do",
+    "does", "what", "when", "where", "which", "who", "how", "why", "that",
+    "this", "these", "those", "it", "its", "about", "into", "during",
+    "between", "among", "according", "say", "said", "contemporary",
+}
+_EN_GENERIC = {
+    "begin", "began", "start", "started", "develop", "developed",
+    "development", "history", "introduction", "introduced", "early",
+    "late", "century", "era", "period", "books", "book", "twentieth",
+    "nineteenth", "eighteenth", "seventeenth", "japan", "japanese",
+}
+
+
+def _english_concepts(question: str) -> list[str]:
+    """Core concepts from an English question: runs of content
+    words (phrases up to 3 words) plus strong single words."""
+    words = re.findall(r"[A-Za-z][A-Za-z'-]+", question)
+    concepts: list[str] = []
+    run: list[str] = []
+
+    def flush() -> None:
+        if not run:
+            return
+        phrase = " ".join(run[:3])
+        if phrase.lower() not in _EN_GENERIC and phrase not in concepts:
+            concepts.append(phrase)
+        for word in run:
+            if len(word) >= 6 and word.lower() not in _EN_GENERIC and word not in concepts:
+                concepts.append(word)
+        run.clear()
+
+    for word in words:
+        lowered = word.lower()
+        if lowered in _EN_STOPWORDS or lowered in _EN_GENERIC:
+            flush()
+            continue
+        run.append(word)
+    flush()
+    return concepts[:5]
 
 
 def analyze_question(question: str) -> QuestionAnalysis:
@@ -211,6 +293,18 @@ def analyze_question(question: str) -> QuestionAnalysis:
 
     era_words = set(ERAS) | {"明治時代", "大正時代", "昭和時代", "江戸時代"}
     region_words = set(REGIONS)
+    if raw and sum(ch.isascii() and ch.isalpha() for ch in raw) > sum("\u3040" <= ch <= "\u30ff" or "\u4e00" <= ch <= "\u9fff" for ch in raw):
+        core = _english_concepts(raw)
+        if "Japan" in raw and "日本" not in regions:
+            regions.append("日本")
+        requirements: list[dict[str, Any]] = [{"type": "core_concept", "concept": c} for c in core]
+        if era:
+            requirements.append({"type": "era", "label": era["label"], "era": era.get("era"), "start": era["start"], "end": era["end"]})
+        for region in regions:
+            requirements.append({"type": "region", "region": region})
+        return QuestionAnalysis(raw=raw, terms=terms, core_concepts=core, generic_terms=[],
+                                era=era, regions=regions, intent=intent, requirements=requirements)
+    cities = {"横浜", "神戸", "東京", "大阪", "京都", "長崎", "函館", "新潟", "名古屋", "仙台", "広島", "福岡"}
     core: list[str] = []
     generic: list[str] = []
     candidates: list[str] = []
@@ -220,7 +314,7 @@ def analyze_question(question: str) -> QuestionAnalysis:
     for candidate in candidates:
         if candidate in era_words or candidate in region_words:
             continue
-        if len(candidate) <= 5 and candidate[0] in "ぁ-ん":
+        if len(candidate) <= 5 and "ぁ" <= candidate[0] <= "ん":
             continue  # hiragana-led fragment from term splitting (めぐる議論, よう)
         if len(candidate) <= 5 and re.search(r"(われた|された|られた|れた|した.{0,3})$", candidate):
             continue  # verb-form fragment (行われた, 流行した原因)
@@ -240,6 +334,17 @@ def analyze_question(question: str) -> QuestionAnalysis:
                 if alias not in core:
                     core.append(alias)
                 break
+
+    # A bare city name next to a topical concept is a place
+    # modifier (神戸の外国人居留地): it stays a search term but
+    # leaves the core families, whose fraction it would otherwise
+    # dilute. A compound containing the city (横浜開港) is a topic
+    # and is unaffected.
+    non_city = [c for c in core if c not in cities]
+    if non_city and len(non_city) < len(core):
+        core = non_city
+    # Drop suffixed duplicates (横浜開港後 alongside 横浜開港).
+    core = [c for c in core if not (c.endswith("後") and c[:-1] in core)]
 
     requirements: list[dict[str, Any]] = [{"type": "core_concept", "concept": c} for c in core]
     if era:

@@ -95,3 +95,39 @@ def assess_ocr_quality(text: str | None) -> dict:
         "usable": usable,
         "notes": notes,
     }
+
+
+_FRONT_MATTER_RE = re.compile(r"(目次|標題紙|凡例|緒言|序文|奥付|刊行|発行者|印刷者)")
+_PLATE_RE = re.compile(r"(写真|図版|口絵|挿絵|附図)")
+
+
+def classify_page_kind(text: str | None) -> str:
+    """Classify an OCR page for selection and reporting.
+
+    Front matter (title page, table of contents, colophon) and
+    photo plates are labelled, never excluded outright: a title
+    page can be exactly what a bibliographic question needs. The
+    label only orders selection and keeps heading-only pages out
+    of document-level coverage unions.
+    """
+    body = (text or "").strip()
+    if not body:
+        return "empty"
+    compact = re.sub(r"\s+", "", body)
+    digits = sum(ch.isdigit() for ch in compact)
+    if len(compact) >= 200 and digits / len(compact) > 0.25:
+        return "table"
+    # A contents listing can run long: several chapter/section
+    # headings with almost no full sentences is enumerative
+    # front matter at any length.
+    headings = len(re.findall(r"第[一二三四五六七八九十百]+[章節編]", compact))
+    enumerations = len(re.findall(r"[一二三四五六七八九十]+、", compact))
+    if headings >= 2 and compact.count("。") <= 2:
+        return "front_matter"
+    if headings >= 1 and enumerations >= 4 and compact.count("。") <= 2:
+        return "front_matter"
+    if len(compact) < 300 and _FRONT_MATTER_RE.search(compact):
+        return "front_matter"
+    if len(compact) < 200 and _PLATE_RE.search(compact):
+        return "photo_plate"
+    return "body"

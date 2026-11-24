@@ -124,20 +124,28 @@ class RuleBasedSemanticChecker:
         # topic). Stance and anchors are therefore read over a
         # concept sentence plus the sentence that follows it.
         all_sentences = _sentences(text)
-        concept_sentences: list[str] = []
+        units: list[tuple[str, str]] = []
         for idx, sentence in enumerate(all_sentences):
             if any(find_concept(sentence, family) for family in families):
                 following = all_sentences[idx + 1] if idx + 1 < len(all_sentences) else ""
-                concept_sentences.append(sentence + following)
-        if not concept_sentences:
+                units.append((sentence, following))
+        if not units:
             return {
                 "relation": "insufficient", "checker": self.name, "demand": demand,
                 "reasons": ["中心概念に言及する文が本文にない"],
                 "stance_sentences": {},
             }
         buckets: dict[str, list[str]] = {"negation": [], "later": [], "planning": [], "occurrence": [], "diffusion": []}
-        for sentence in concept_sentences:
-            if _cue_hits(sentence, _NEGATION_CUES):
+        occurrence_units: list[tuple[str, str]] = []
+        diffusion_units: list[tuple[str, str]] = []
+        for unit in units:
+            sentence = unit[0] + unit[1]
+            # Scoped bare negation: a concept-bearing unit that also
+            # states something "は/がなかった" negates the premise
+            # (大正時代の家庭に冷蔵庫はなかった) even when the
+            # negated noun drops the concept's modifier prefix.
+            bare_negation = bool(re.search(r"(は|が)(なかつた|なかった)", sentence))
+            if _cue_hits(sentence, _NEGATION_CUES) or bare_negation:
                 buckets["negation"].append(sentence[:120])
             if _cue_hits(sentence, _LATER_CUES):
                 buckets["later"].append(sentence[:120])
@@ -145,17 +153,34 @@ class RuleBasedSemanticChecker:
                 buckets["planning"].append(sentence[:120])
             if _cue_hits(sentence, _OCCURRENCE_CUES):
                 buckets["occurrence"].append(sentence[:120])
+                occurrence_units.append(unit)
             if _cue_hits(sentence, _DIFFUSION_CUES):
                 buckets["diffusion"].append(sentence[:120])
+                diffusion_units.append(unit)
 
         # Temporal anchoring (temporal.py): an occurrence/diffusion
         # sentence dated AFTER the asked era does not support the
         # era premise, and an onset explicitly dated after the era
         # contradicts it (the topic began later than the question
         # assumes).
-        from global_library_mcp.temporal import anchor_class, onset_after_era
+        from global_library_mcp.temporal import anchor_class, onset_after_era, sentence_years
 
-        onset_after = onset_after_era(concept_sentences, analysis.era)
+        # Onset detection reads sentences individually: in a joined
+        # discourse unit, an era name in the *other* sentence (about
+        # a different aspect) would mask a later onset year in the
+        # onset sentence. The joined unit is added only when the
+        # following sentence carries a year and no era name (the
+        # zero-anaphora shape: "the service began. It was 1927.").
+        onset_inputs: list[str] = []
+        for first, following in units:
+            onset_inputs.append(first)
+            if following:
+                onset_inputs.append(following)
+                if sentence_years(following) and not any(
+                    name in following for name in ("明治", "大正", "昭和", "平成", "江戸", "慶応")
+                ):
+                    onset_inputs.append(first + following)
+        onset_after = onset_after_era(onset_inputs, analysis.era)
         # Retrospective sources (published after the asked era) need
         # stricter anchoring: in a 1934 history, an undated "the
         # subway was built" describes 1927, not the Meiji era it
@@ -166,16 +191,26 @@ class RuleBasedSemanticChecker:
             analysis.era and publication_year and publication_year > analysis.era["end"]
         )
 
-        def _counts(sentence: str) -> bool:
-            anchor = anchor_class(sentence, analysis.era)
+        def _counts(unit: tuple[str, str]) -> bool:
+            first, following = unit
+            anchor = anchor_class(first, analysis.era)
+            if anchor == "none" and following and sentence_years(following):
+                # Anchor inheritance across the discourse window
+                # requires a year-bearing following sentence (a
+                # western year or an era-year expression). A bare
+                # era name there is topical seasoning in
+                # retrospective prose and must not anchor a
+                # different event to the era (the holdout
+                # refrigerator failure).
+                anchor = anchor_class(following, analysis.era)
             if anchor == "after_era":
                 return False
             if retrospective and anchor == "none":
                 return False
             return True
 
-        occurrence_in = [s for s in buckets["occurrence"] if _counts(s)]
-        diffusion_in = [s for s in buckets["diffusion"] if _counts(s)]
+        occurrence_in = [u for u in occurrence_units if _counts(u)]
+        diffusion_in = [u for u in diffusion_units if _counts(u)]
 
         import re as _re
 
@@ -283,9 +318,30 @@ class EmbeddingSemanticChecker:
         }
 
 
+class CompositeSemanticChecker:
+    """Rule verdicts stay authoritative; a configured embedding
+    checker rides along as an attached signal (never a verdict)."""
+
+    name = "rules+embedding"
+
+    def __init__(self, primary: SemanticChecker, secondary: SemanticChecker) -> None:
+        self.primary = primary
+        self.secondary = secondary
+
+    def assess(self, analysis: QuestionAnalysis, ocr_text: str, *, publication_year: int | None = None) -> dict[str, Any]:
+        verdict = self.primary.assess(analysis, ocr_text, publication_year=publication_year)
+        verdict["embedding"] = self.secondary.assess(analysis, ocr_text, publication_year=publication_year)
+        return verdict
+
+
 def get_semantic_checker() -> SemanticChecker:
     """The pipeline's checker: rule-based by default. Set
     GLM_SEMANTIC_EMBED_MODEL to a sentence-transformers model name
     to attach the embedding checker as a second signal; the rule
     checker remains the primary verdict."""
+    import os
+
+    model = os.environ.get("GLM_SEMANTIC_EMBED_MODEL")
+    if model:
+        return CompositeSemanticChecker(RuleBasedSemanticChecker(), EmbeddingSemanticChecker(model))
     return RuleBasedSemanticChecker()

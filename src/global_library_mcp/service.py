@@ -18,6 +18,35 @@ from global_library_mcp.http import ResponseCache, sanitize_error
 from global_library_mcp.models import SearchResponse
 
 
+def rank_candidates(analysis: Any, items: list[Any], query_hits: dict[tuple[str, str], int]) -> list[Any]:
+    """Stage-1 (bibliographic) ranking of the merged candidate pool.
+
+    Signals: core-concept families in the title (anchor family
+    weighted double), a family match in author/description, and
+    query multiplicity - a record surfaced by several independent
+    query variants is likelier to be the specialist monograph than
+    one surfaced once by a broad query.
+    """
+    from global_library_mcp.question import concept_variants, normalize_text
+    from global_library_mcp.relevance import concept_families
+
+    families = concept_families(analysis.core_concepts)
+
+    def score(item: Any) -> int:
+        title_n = normalize_text(item.title or "")
+        total = 0
+        for idx, family in enumerate(families):
+            if any(variant in title_n for variant in concept_variants(family)):
+                total += 2 if idx == 0 else 1
+        meta_n = normalize_text(f"{item.author or ''} {item.description or ''}")
+        if families and any(any(variant in meta_n for variant in concept_variants(family)) for family in families):
+            total += 1
+        total += min(query_hits.get((item.library_id, item.record_id), 1) - 1, 2)
+        return total
+
+    return sorted(items, key=lambda item: -score(item))
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -354,42 +383,35 @@ class LibraryService:
         # in-document-capable candidates are found.
         merged: list[Any] = []
         seen_records: set[tuple[str, str]] = set()
+        query_hits: dict[tuple[str, str], int] = {}
         search_errors: list[dict[str, str]] = []
-        capable = 0
+        # Run every query variant: stopping as soon as a few
+        # candidates exist (the old behaviour) let broad survey
+        # volumes fill the pool before the specialist query ran.
         for candidate_query in dict.fromkeys([query, *search_terms]):
             resp = await self.search(candidate_query, libraries, limit)
             search_errors.extend(resp.errors)
             for item in resp.results:
                 key = (item.library_id, item.record_id)
+                query_hits[key] = query_hits.get(key, 0) + 1
                 if key not in seen_records:
                     seen_records.add(key)
                     merged.append(item)
-                    adapter = self.adapters.get(item.library_id)
-                    if adapter is not None and adapter.supports_in_document_search:
-                        capable += 1
-            if capable >= max_documents + 3:
-                break
-        search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
-        # Stage 1 (bibliographic): score candidates on metadata
-        # alone - how many core-concept families the title carries,
-        # with the anchor family weighted double. The full-question
-        # search surfaces broad survey volumes ahead of on-topic
-        # monographs; this ordering is what the document budget is
-        # spent against. Stage 2 (OCR + gates) re-ranks by content.
-        from global_library_mcp.question import concept_variants, normalize_text
-        from global_library_mcp.relevance import concept_families
+        # Series dedupe: identical normalised title + author is one
+        # candidate, however many queries surfaced it.
+        from global_library_mcp.question import normalize_text
 
-        families = concept_families(analysis.core_concepts)
-
-        def _candidate_score(item: Any) -> int:
-            title_n = normalize_text(item.title or "")
-            score = 0
-            for idx, family in enumerate(families):
-                if any(variant in title_n for variant in concept_variants(family)):
-                    score += 2 if idx == 0 else 1
-            return score
-
-        ranked = sorted(merged, key=lambda item: -_candidate_score(item))
+        deduped: list[Any] = []
+        seen_series: set[tuple[str, str, str]] = set()
+        for item in merged:
+            series_key = (item.library_id, normalize_text(item.title or ""), normalize_text(item.author or ""))
+            if series_key in seen_series:
+                continue
+            seen_series.add(series_key)
+            deduped.append(item)
+        merged = deduped[:30]
+        ranked = rank_candidates(analysis, merged, query_hits)
+        search_view = {"query": query, "results": [item.to_dict() for item in ranked], "errors": search_errors}
         verified: list[Evidence] = []
         premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []
@@ -397,137 +419,64 @@ class LibraryService:
         documents_tried = 0
         budget_extended = False
         evidence_document_ranks: list[int] = []
-        for doc_rank, result in enumerate(ranked, start=1):
-            # Document budget: the base allowance grows while nothing
-            # has passed the gates, extends ONCE more when every page
-            # so far was irrelevant (the right book may sit deeper in
-            # the candidate list), and stops early once enough
-            # evidence is in hand.
-            if verified:
-                doc_limit = max_documents
-            elif budget_extended:
-                doc_limit = max_documents + 6
-            else:
-                doc_limit = max_documents + 3
-            if documents_tried >= doc_limit:
-                if (not verified and not budget_extended and documents_tried < len(ranked)
-                        and all((item.get("relevance") or {}).get("status") == "irrelevant" for item in related)):
-                    budget_extended = True
-                    doc_limit = max_documents + 6
-                else:
-                    break
-            if len(verified) >= 3:
-                break
+        doc_states: dict[int, dict[str, Any]] = {}
+
+        async def screen(rank: int, result: Any, page_budget: int, include_adjacent: bool = False) -> None:
+            nonlocal documents_tried
             adapter = self.adapters.get(result.library_id)
             if adapter is None or not adapter.supports_in_document_search:
-                continue
-            documents_tried += 1
-            page_terms: dict[str, str] = {}
-            doc_failed = False
-            for term in search_terms:
-                try:
-                    found = await adapter.search_in_document(result.record_id, term, limit=pages_per_document * 2)
-                except Exception as exc:  # noqa: BLE001 - reported, not hidden
-                    unverified.append({
-                        "library_id": result.library_id, "record_id": result.record_id,
-                        "page_id": None, "reason": f"in-document search failed: {sanitize_error(exc)}",
-                    })
-                    doc_failed = True
-                    break  # a document-level failure repeats for every term; stop early
-                matches = found.get("matches") if isinstance(found, dict) else None
-                entries = matches.get("list") if isinstance(matches, dict) else matches
-                for entry in entries or []:
-                    page_id = entry.get("id") if isinstance(entry, dict) else None
-                    if page_id and page_id not in page_terms:
-                        page_terms[page_id] = term
-                if len(page_terms) >= pages_per_document:
+                return
+            state = doc_states.setdefault(rank, {"seen": set(), "hits": {}, "hit_terms": {}, "related_pages": []})
+            if state.get("failed"):
+                return
+            if not state.get("counted"):
+                documents_tried += 1
+                state["counted"] = True
+            outcome = await self._gate_document_pages(
+                adapter, result, analysis, search_terms, page_budget, state, semantic_checker,
+                include_adjacent=include_adjacent,
+            )
+            for ev in outcome["verified"]:
+                verified.append(ev)
+                if rank not in evidence_document_ranks:
+                    evidence_document_ranks.append(rank)
+            premise_contradictions.extend(outcome["contradictions"])
+            related.extend(outcome["related"])
+            unverified.extend(outcome["unverified"])
+            if outcome.get("doc_failed"):
+                state["failed"] = True
+
+        # Staged fetching (Phase 6-C). Wave 1 screens more
+        # documents with few pages each - the right book at rank 7
+        # with 2 pages beats the wrong book at rank 1 with 3.
+        wave1 = ranked[: max_documents + 6]
+        for rank, result in enumerate(wave1, start=1):
+            await screen(rank, result, 2)
+            if len(verified) >= 3:
+                break
+        # Wave 2 deepens documents that produced a
+        # partially_relevant page: their remaining hit pages.
+        if not verified:
+            for rank, result in enumerate(wave1, start=1):
+                state = doc_states.get(rank)
+                if state and any((p.get("relevance") or {}).get("status") == "partially_relevant" for p in state["related_pages"]):
+                    await screen(rank, result, 2, include_adjacent=True)
+        # Wave 3 extends to deeper candidates.
+        if not verified and len(ranked) > len(wave1):
+            budget_extended = True
+            for rank, result in enumerate(ranked[len(wave1): len(wave1) + 6], start=len(wave1) + 1):
+                await screen(rank, result, 2)
+                if len(verified) >= 3:
                     break
-            if not page_terms:
-                if not doc_failed:
-                    unverified.append({
-                        "library_id": result.library_id, "record_id": result.record_id,
-                        "page_id": None, "reason": "no in-document page matched the question terms",
-                    })
-                continue
-            for page_id, term in list(page_terms.items())[:pages_per_document]:
-                try:
-                    page = await self._get_page_text_cached(adapter, result.library_id, page_id)
-                except Exception as exc:  # noqa: BLE001 - reported, not hidden
-                    unverified.append({
-                        "library_id": result.library_id, "record_id": result.record_id,
-                        "page_id": page_id, "reason": f"page fetch failed: {sanitize_error(exc)}",
-                    })
-                    continue
-                quality = assess_ocr_quality(page.get("contents"))
-                notes: list[str] = list(quality.get("notes", []))
-                mapping_ok = bool(page.get("verified_mapping"))
-                if not mapping_ok:
-                    notes.append("page payload identity did not match the requested page")
-                is_verified = mapping_ok and bool(quality.get("usable"))
-                evidence = Evidence(
-                    library_id=result.library_id,
-                    library_name=result.library_name,
-                    record_id=result.record_id,
-                    title=result.title,
-                    page_id=str(page.get("page_id") or page_id),
-                    digital_frame=page.get("digital_frame"),
-                    printed_page=str(page.get("printed_page") or "unknown"),
-                    ocr_text=page.get("contents") or "",
-                    ocr_source=str(page.get("ocr_source") or "unknown"),
-                    ocr_quality=quality,
-                    image_url=page.get("image_url"),
-                    landing_url=result.landing_url,
-                    matched_term=term,
-                    verified=is_verified,
-                    verification_notes=notes,
-                    rights=result.rights,
-                )
-                if is_verified:
-                    year_match = re.search(r"(1[4-9]\d{2}|20\d{2})", str(result.date or ""))
-                    assessment = assess_relevance(
-                        analysis, evidence.ocr_text,
-                        publication_year=int(year_match.group(1)) if year_match else None,
-                    )
-                    evidence.relevance = assessment
-                    evidence.semantics = semantic_checker.assess(
-                        analysis, evidence.ocr_text,
-                        publication_year=int(year_match.group(1)) if year_match else None,
-                    )
-                    relation = evidence.semantics.get("relation")
-                    families = concept_families(analysis.core_concepts)
-                    anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
-                    if assessment["status"] == "relevant" and relation == "contradicts":
-                        # The page denies the question's premise: it is
-                        # correction material, never answer evidence.
-                        premise_contradictions.append(evidence.to_dict())
-                        related.append(evidence.to_dict())
-                    elif (assessment["status"] == "relevant" and relation == "mentions_only"
-                          and evidence.semantics.get("retrospective")
-                          and evidence.semantics.get("demand") in ("occurrence", "diffusion")):
-                        # A retrospective page that never asserts the
-                        # topic in the asked era cannot ground an
-                        # era-premise answer either.
-                        related.append(evidence.to_dict())
-                    elif assessment["status"] == "partially_relevant" and relation == "supports" and anchor_matched:
-                        # Semantic second opinion: the page asserts what
-                        # the question asks about the anchor concept,
-                        # which the lexical screen could not confirm.
-                        evidence.semantics["promoted"] = True
-                        verified.append(evidence)
-                        if doc_rank not in evidence_document_ranks:
-                            evidence_document_ranks.append(doc_rank)
-                    elif assessment["status"] == "relevant":
-                        verified.append(evidence)
-                        if doc_rank not in evidence_document_ranks:
-                            evidence_document_ranks.append(doc_rank)
-                    else:
-                        related.append(evidence.to_dict())
-                else:
-                    unverified.append({
-                        "library_id": result.library_id, "record_id": result.record_id,
-                        "page_id": page_id, "reason": "; ".join(notes) or "unverified",
-                        "citation_key": evidence.citation_key,
-                    })
+        if not verified:
+            promoted, promoted_keys = self._union_promote(doc_states, analysis)
+            for ev in promoted:
+                verified.append(ev)
+                for rank, state in doc_states.items():
+                    if any(obj is ev for obj in state.get("partial_objects", [])) and rank not in evidence_document_ranks:
+                        evidence_document_ranks.append(rank)
+            if promoted_keys:
+                related = [item for item in related if item.get("citation_key") not in promoted_keys]
         related.sort(key=lambda item: (item.get("relevance") or {}).get("score", 0), reverse=True)
         if verified:
             failure_reason = None
@@ -560,6 +509,225 @@ class LibraryService:
             "unverified": unverified,
             "search": search_view,
         }
+
+    def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
+        """Document-level union promotion (Phase 6-D).
+
+        Multi-concept questions often spread coverage across the
+        pages of one document: no single page reaches the relevance
+        fraction although the document plainly covers the question.
+        When one document's partially_relevant pages jointly cover
+        every concept family, the anchor page carries the anchor
+        family, the era condition is met somewhere in the document,
+        and no page of the document contradicts the premise, the
+        best pages are promoted to evidence. Per-page standards are
+        unchanged for everything else, and front-matter pages never
+        carry a union.
+        """
+        from global_library_mcp.relevance import concept_families
+
+        families = concept_families(analysis.core_concepts)
+        if not families:
+            return [], set()
+        promoted: list[Any] = []
+        keys: set[str] = set()
+        for state in doc_states.values():
+            objects = [o for o in state.get("partial_objects", []) if o.page_kind != "front_matter"]
+            if not objects:
+                continue
+            covered: set[str] = set()
+            for obj in objects:
+                covered |= set((obj.relevance or {}).get("matched_concepts", []))
+            if not all(family in covered for family in families):
+                continue
+            if not any(families[0] in (obj.relevance or {}).get("matched_concepts", []) for obj in objects):
+                continue
+            doc_dicts = state.get("related_pages", [])
+            if any((p.get("semantics") or {}).get("relation") == "contradicts" for p in doc_dicts):
+                continue
+            if analysis.era is not None and not any(
+                "時代条件を満たす" in " ".join((obj.relevance or {}).get("reasons", [])) for obj in objects
+            ):
+                continue
+            candidates = [
+                obj for obj in objects
+                if (obj.semantics or {}).get("relation") != "contradicts"
+                and not ((obj.semantics or {}).get("relation") == "mentions_only" and (obj.semantics or {}).get("retrospective"))
+                and not (analysis.era is not None and obj.page_kind in ("front_matter", "photo_plate")
+                         and (obj.semantics or {}).get("relation") in ("mentions_only", "insufficient"))
+            ]
+            candidates.sort(key=lambda o: -(o.relevance or {}).get("score", 0))
+            for obj in candidates[:2]:
+                obj.semantics["union_promoted"] = True
+                promoted.append(obj)
+                keys.add(obj.citation_key)
+        return promoted, keys
+
+    async def _gate_document_pages(
+        self, adapter: Any, result: Any, analysis: Any, search_terms: list[str],
+        page_budget: int, state: dict[str, Any], semantic_checker: Any,
+        include_adjacent: bool = False,
+    ) -> dict[str, Any]:
+        """Fetch and gate up to ``page_budget`` NEW pages of one document.
+
+        ``state`` persists across waves: ``hits`` (page_id -> first
+        hitting term), ``hit_terms`` (page_id -> all hitting terms),
+        ``seen`` (page ids already fetched). Gating is exactly the
+        Phase 4/5 pipeline: identity + OCR quality, relevance,
+        semantics.
+        """
+        from global_library_mcp.evidence import assess_ocr_quality, classify_page_kind
+        from global_library_mcp.models import Evidence
+        from global_library_mcp.relevance import assess_relevance, concept_families
+
+        out: dict[str, Any] = {"verified": [], "related": [], "unverified": [], "contradictions": [], "doc_failed": False}
+        if not state["hits"] and not state.get("hits_done"):
+            state["hits_done"] = True
+            for term in search_terms:
+                try:
+                    found = await adapter.search_in_document(result.record_id, term, limit=8)
+                except Exception as exc:  # noqa: BLE001 - reported, not hidden
+                    out["unverified"].append({
+                        "library_id": result.library_id, "record_id": result.record_id,
+                        "page_id": None, "reason": f"in-document search failed: {sanitize_error(exc)}",
+                    })
+                    out["doc_failed"] = True
+                    break
+                matches = found.get("matches") if isinstance(found, dict) else None
+                entries = matches.get("list") if isinstance(matches, dict) else matches
+                for entry in entries or []:
+                    page_id = entry.get("id") if isinstance(entry, dict) else None
+                    if page_id:
+                        state["hit_terms"].setdefault(page_id, set()).add(term)
+                        if page_id not in state["hits"]:
+                            state["hits"][page_id] = term
+                if len(state["hits"]) >= 6:
+                    break
+            if not state["hits"] and not out["doc_failed"]:
+                out["unverified"].append({
+                    "library_id": result.library_id, "record_id": result.record_id,
+                    "page_id": None, "reason": "no in-document page matched the question terms",
+                })
+                return out
+        def _frame(page_id: str) -> int:
+            digits = re.search(r"(\d+)$", str(page_id))
+            return int(digits.group(1)) if digits else 0
+
+        core_terms = set(analysis.terms)
+
+        def _selection_key(page_id: str) -> tuple:
+            hitting = state["hit_terms"].get(page_id, set())
+            return (
+                -len(hitting),  # pages hit by several terms first
+                0 if hitting & core_terms else 1,  # core-concept hits before generic-term hits
+                1 if _frame(page_id) <= 3 else 0,  # title/TOC frames last, never excluded
+                _frame(page_id),
+            )
+
+        fresh = sorted(
+            (pid for pid in state["hits"] if pid not in state["seen"]),
+            key=_selection_key,
+        )[:page_budget]
+        if include_adjacent and len(fresh) < page_budget:
+            neighbours: list[str] = []
+            for page in state["related_pages"]:
+                pid = str(page.get("page_id") or "")
+                digits = re.search(r"(\d+)$", pid)
+                if not digits:
+                    continue
+                width = len(digits.group(1))
+                base = pid[: -width]
+                for delta in (1, -1):
+                    nid = f"{base}{int(digits.group(1)) + delta:0{width}d}"
+                    if nid not in state["seen"] and nid not in state["hits"] and nid not in neighbours:
+                        neighbours.append(nid)
+                        state["hits"][nid] = state["hits"].get(pid, "")
+            fresh.extend(neighbours[: page_budget - len(fresh)])
+        year_match = re.search(r"(1[4-9]\d{2}|20\d{2})", str(result.date or ""))
+        pub_year = int(year_match.group(1)) if year_match else None
+        families = concept_families(analysis.core_concepts)
+        for page_id in fresh:
+            state["seen"].add(page_id)
+            term = state["hits"][page_id]
+            try:
+                page = await self._get_page_text_cached(adapter, result.library_id, page_id)
+            except Exception as exc:  # noqa: BLE001 - reported, not hidden
+                out["unverified"].append({
+                    "library_id": result.library_id, "record_id": result.record_id,
+                    "page_id": page_id, "reason": f"page fetch failed: {sanitize_error(exc)}",
+                })
+                continue
+            quality = assess_ocr_quality(page.get("contents"))
+            notes: list[str] = list(quality.get("notes", []))
+            mapping_ok = bool(page.get("verified_mapping"))
+            if not mapping_ok:
+                notes.append("page payload identity did not match the requested page")
+            is_verified = mapping_ok and bool(quality.get("usable"))
+            evidence = Evidence(
+                library_id=result.library_id,
+                library_name=result.library_name,
+                record_id=result.record_id,
+                title=result.title,
+                page_id=str(page.get("page_id") or page_id),
+                digital_frame=page.get("digital_frame"),
+                printed_page=str(page.get("printed_page") or "unknown"),
+                ocr_text=page.get("contents") or "",
+                ocr_source=str(page.get("ocr_source") or "unknown"),
+                ocr_quality=quality,
+                image_url=page.get("image_url"),
+                landing_url=result.landing_url,
+                matched_term=term,
+                verified=is_verified,
+                verification_notes=notes,
+                rights=result.rights,
+            )
+            evidence.page_kind = classify_page_kind(page.get("contents"))
+            if not is_verified:
+                out["unverified"].append({
+                    "library_id": result.library_id, "record_id": result.record_id,
+                    "page_id": page_id, "reason": "; ".join(notes) or "unverified",
+                    "citation_key": evidence.citation_key,
+                })
+                continue
+            assessment = assess_relevance(analysis, evidence.ocr_text, publication_year=pub_year)
+            evidence.relevance = assessment
+            evidence.semantics = semantic_checker.assess(analysis, evidence.ocr_text, publication_year=pub_year)
+            relation = evidence.semantics.get("relation")
+            anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
+            if assessment["status"] == "relevant" and relation == "contradicts":
+                out["contradictions"].append(evidence.to_dict())
+                out["related"].append(evidence.to_dict())
+                state["related_pages"].append(evidence.to_dict())
+            elif (assessment["status"] == "relevant" and relation in ("mentions_only", "insufficient")
+                  and analysis.era is not None and evidence.page_kind in ("front_matter", "photo_plate")):
+                # Era-premise questions (Phase 6 tightening, scoped
+                # by page kind): an enumerative page - a table of
+                # contents, an index, a plate list - that only
+                # mentions the topic cannot ground an era claim.
+                # Body pages keep the Phase 5 behaviour: the
+                # checker's mentions_only/insufficient verdicts are
+                # too conservative to demote narrative prose (the
+                # first, unscoped version of this rule cost more
+                # true answers than false ones - see
+                # docs/evaluation-phase6.md).
+                out["related"].append(evidence.to_dict())
+                state["related_pages"].append(evidence.to_dict())
+            elif (assessment["status"] == "relevant" and relation == "mentions_only"
+                  and evidence.semantics.get("retrospective")
+                  and evidence.semantics.get("demand") in ("occurrence", "diffusion")):
+                out["related"].append(evidence.to_dict())
+                state["related_pages"].append(evidence.to_dict())
+            elif assessment["status"] == "partially_relevant" and relation == "supports" and anchor_matched:
+                evidence.semantics["promoted"] = True
+                out["verified"].append(evidence)
+            elif assessment["status"] == "relevant":
+                out["verified"].append(evidence)
+            else:
+                out["related"].append(evidence.to_dict())
+                state["related_pages"].append(evidence.to_dict())
+                if assessment["status"] == "partially_relevant":
+                    state.setdefault("partial_objects", []).append(evidence)
+        return out
 
     async def compare_documents(
         self,
