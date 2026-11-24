@@ -84,6 +84,39 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
+        if parsed.path == "/api/evidence":
+            query = parse_qs(parsed.query).get("q", [""])[0].strip()
+            if not query:
+                self._send(json_bytes({"error": "q is required"}), status=400)
+                return
+            if len(query) > 500:
+                self._send(json_bytes({"error": "q is too long"}), status=400)
+                return
+            raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
+            libraries = [item for item in raw_libraries.split(",") if item][:10] or None
+            try:
+                async def execute_evidence():
+                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        return await LibraryService(client).collect_evidence(query, libraries, 10)
+                self._send(json_bytes(asyncio.run(execute_evidence())))
+            except Exception as exc:
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
+            return
+        if parsed.path == "/api/verify":
+            params = parse_qs(parsed.query)
+            library_id = params.get("library", [""])[0]
+            page_id = params.get("id", [""])[0]
+            if not library_id or not page_id:
+                self._send(json_bytes({"error": "library and id are required"}), status=400)
+                return
+            try:
+                async def execute_verify():
+                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        return await LibraryService(client).verify_page(library_id, page_id)
+                self._send(json_bytes(asyncio.run(execute_verify())))
+            except Exception as exc:
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
+            return
         if parsed.path in ("/api/document", "/api/page"):
             params = parse_qs(parsed.query)
             library_id = params.get("library", [""])[0]

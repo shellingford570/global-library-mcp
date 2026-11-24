@@ -6,6 +6,121 @@ const meta = document.querySelector('#result-meta');
 const notice = document.querySelector('#notice');
 const answerButton = document.querySelector('#answer-button');
 const searchButton = form.querySelector('button[type="submit"]');
+const langToggle = document.querySelector('#lang-toggle');
+
+const I18N = {
+  ja: {
+    status: 'OCR根拠つき回答 / 検証済み原本',
+    h1: '世界の原資料へ、<em>検証可能な経路</em>で。',
+    lede: '図書館とデジタルアーカイブを横断検索し、実際のOCR本文を根拠として回答します。引用は原本ページで検証でき、未確認の情報は隠さず表示します。',
+    queryLabel: '調べたいこと',
+    queryPlaceholder: '例：明治時代の日本の発電技術',
+    searchButton: '検索する',
+    answerButton: 'AI回答',
+    resultsTitle: '検索結果',
+    notice: '検索結果は資料の発見を支援するものです。引用前に原本ページと権利表示を確認してください。',
+    emptyHint: '質問を入力すると、対応機関の記録がここに表示されます。',
+    footerNote: '未確認事項は unknown',
+    recordsFor: q => `「${q}」の記録`,
+    countSuffix: '件',
+    retrievedUnknown: '取得時刻 unknown',
+    noDescription: '資料の詳細説明は提供されていません。',
+    rightsLabel: '権利',
+    publishedUnknown: '出版年 unknown',
+    backToSource: '原本へ戻る ↗',
+    searching: '各機関へ問い合わせています…',
+    searchingNotice: 'ライブAPIの応答を統合しています。機関ごとの失敗は部分結果とともに表示されます。',
+    noMatches: '一致する記録は見つかりませんでした。検索語を変えて試してください。',
+    answering: '根拠を集めています…',
+    requestFailed: 'リクエストに失敗しました',
+    answerTag: '根拠つき回答',
+    citationsLabel: '引用（クリックで根拠ページへ）',
+    limitationsLabel: '制限',
+    verifiedBadge: '検証済みOCR',
+    unverifiedTitle: '未確認（根拠として使えないもの）',
+    frameLabel: 'コマ',
+    qualityLabel: 'OCR品質',
+    matchedTermLabel: '一致語',
+    viewImage: '原本画像を見る ↗',
+    viewRecord: '資料ページ ↗',
+    verifyButton: 'IIIFで原本を検証',
+    verifying: '検証中…',
+    verifyVerified: '原本検証: verified',
+    verifyFailed: '原本検証: failed',
+    verifyUnsupported: '原本検証: unsupported',
+    statusInsufficient: '確認できる根拠（検証済みのOCRページ）が見つかりませんでした。',
+    statusUnavailable: 'AI回答は利用できません',
+    statusWithheld: '引用の検証に失敗したため、回答を表示しません。',
+    evidenceTitle: '根拠ページ',
+  },
+  en: {
+    status: 'OCR-grounded answers / verified originals',
+    h1: 'Primary sources worldwide, by a <em>verifiable path</em>.',
+    lede: 'Search libraries and digital archives together and answer from actual OCR page text. Every citation can be checked against the original page, and unverified information is shown, not hidden.',
+    queryLabel: 'What do you want to research?',
+    queryPlaceholder: 'e.g. hydroelectric power in Meiji-era Japan',
+    searchButton: 'Search',
+    answerButton: 'AI answer',
+    resultsTitle: 'Results',
+    notice: 'Search results help you discover sources. Check the original page and its rights statement before citing.',
+    emptyHint: 'Ask a question and records from the connected institutions will appear here.',
+    footerNote: 'Unverified items are shown as unknown',
+    recordsFor: q => `Records for "${q}"`,
+    countSuffix: ' records',
+    retrievedUnknown: 'retrieved at unknown',
+    noDescription: 'No description is provided for this record.',
+    rightsLabel: 'Rights',
+    publishedUnknown: 'year unknown',
+    backToSource: 'Back to the original ↗',
+    searching: 'Querying each institution…',
+    searchingNotice: 'Combining live API responses. Per-institution failures are shown with partial results.',
+    noMatches: 'No matching records were found. Try different terms.',
+    answering: 'Collecting evidence…',
+    requestFailed: 'The request failed',
+    answerTag: 'EVIDENCE-GROUNDED ANSWER',
+    citationsLabel: 'Citations (click to jump to the evidence page)',
+    limitationsLabel: 'Limitations',
+    verifiedBadge: 'Verified OCR',
+    unverifiedTitle: 'Unverified (not usable as evidence)',
+    frameLabel: 'frame',
+    qualityLabel: 'OCR quality',
+    matchedTermLabel: 'matched term',
+    viewImage: 'View original image ↗',
+    viewRecord: 'Record page ↗',
+    verifyButton: 'Verify original via IIIF',
+    verifying: 'Verifying…',
+    verifyVerified: 'Original verification: verified',
+    verifyFailed: 'Original verification: failed',
+    verifyUnsupported: 'Original verification: unsupported',
+    statusInsufficient: 'No verifiable evidence (verified OCR pages) could be found.',
+    statusUnavailable: 'The AI answer is unavailable',
+    statusWithheld: 'The answer is withheld because citation validation failed.',
+    evidenceTitle: 'Evidence pages',
+  },
+};
+
+let lang = 'ja';
+try { lang = localStorage.getItem('glm-lang') === 'en' ? 'en' : 'ja'; } catch (_) { lang = 'ja'; }
+const t = () => I18N[lang];
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[lang][key]) el.innerHTML = I18N[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (I18N[lang][key]) el.setAttribute('placeholder', I18N[lang][key]);
+  });
+  langToggle.textContent = lang === 'ja' ? 'EN' : '日本語';
+}
+
+langToggle.addEventListener('click', () => {
+  lang = lang === 'ja' ? 'en' : 'ja';
+  try { localStorage.setItem('glm-lang', lang); } catch (_) { /* storage unavailable */ }
+  applyLang();
+});
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -20,20 +135,101 @@ function safeHref(value) {
   }
 }
 
-function sourceLink(value) {
+function sourceLink(value, label) {
   const href = safeHref(value);
-  return href ? `<a class="source-link" href="${esc(href)}" target="_blank" rel="noreferrer noopener">原本へ戻る ↗</a>` : '';
+  return href ? `<a class="source-link" href="${esc(href)}" target="_blank" rel="noreferrer noopener">${esc(label || t().backToSource)}</a>` : '';
 }
 
-function render(data) {
+function renderSearch(data) {
   const items = data.results || [];
-  title.textContent = data.query ? `「${data.query}」の記録` : '検索結果';
+  title.textContent = data.query ? t().recordsFor(data.query) : t().resultsTitle;
   const retrieved = data.retrieved_at ? new Date(data.retrieved_at) : null;
-  const retrievedLabel = retrieved && !Number.isNaN(retrieved.valueOf()) ? retrieved.toLocaleString('ja-JP') : '取得時刻 unknown';
-  meta.textContent = `${items.length}件 · ${retrievedLabel}`;
-  let html = items.map(item => `<article class="card"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${item.author ? esc(item.author) + ' · ' : ''}${item.date ? esc(item.date) : '出版年 unknown'}</p><p>${esc(item.description || '資料の詳細説明は提供されていません。')}</p><p class="rights">権利: ${esc(item.rights?.statement || 'unknown')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`).join('');
+  const retrievedLabel = retrieved && !Number.isNaN(retrieved.valueOf()) ? retrieved.toLocaleString(lang === 'ja' ? 'ja-JP' : 'en-GB') : t().retrievedUnknown;
+  meta.textContent = `${items.length}${t().countSuffix} · ${retrievedLabel}`;
+  let html = items.map(item => `<article class="card"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${item.author ? esc(item.author) + ' · ' : ''}${item.date ? esc(item.date) : t().publishedUnknown}</p><p>${esc(item.description || t().noDescription)}</p><p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`).join('');
   if (data.errors?.length) html += data.errors.map(e => `<div class="error" role="alert">${esc(e.library_id)}: ${esc(e.error)}</div>`).join('');
-  results.innerHTML = html || '<div class="empty"><span class="empty-mark">∅</span><p>一致する記録は見つかりませんでした。検索語を変えて試してください。</p></div>';
+  results.innerHTML = html || `<div class="empty"><span class="empty-mark">∅</span><p>${t().noMatches}</p></div>`;
+}
+
+function evidenceCard(item) {
+  const excerpt = (item.ocr_text || '').slice(0, 300);
+  const quality = item.ocr_quality?.score;
+  const id = `ev-${CSS.escape(item.citation_key || '')}`;
+  return `<article class="card evidence-card" id="${id}">
+    <div>
+      <span class="tag">${esc(item.library_name)}</span> <span class="badge badge-verified">${t().verifiedBadge}</span>
+      <h3>${esc(item.title)}</h3>
+      <p>${t().frameLabel} ${esc(item.digital_frame ?? 'unknown')} · ${t().qualityLabel} ${quality ?? 'unknown'} · ${t().matchedTermLabel}: ${esc(item.matched_term || '')}</p>
+      <p class="ocr-excerpt">${esc(excerpt)}</p>
+      <p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p>
+      <div class="verify-box" data-page="${esc(item.page_id)}" data-library="${esc(item.library_id)}"></div>
+    </div>
+    <div class="card-actions">
+      ${sourceLink(item.image_url, t().viewImage)}
+      ${sourceLink(item.landing_url, t().viewRecord)}
+      <button type="button" class="verify-button">${t().verifyButton}</button>
+    </div>
+  </article>`;
+}
+
+function renderAnswer(data) {
+  title.textContent = t().recordsFor(data.query || query.value.trim());
+  const evidence = data.evidence || [];
+  const unverified = data.unverified || [];
+  meta.textContent = `${t().evidenceTitle}: ${evidence.length} · ${t().unverifiedTitle}: ${unverified.length}`;
+  let html = '';
+  if (data.status === 'answered' && data.answer) {
+    const chips = (data.citations || []).map(c => `<button type="button" class="chip" data-target="ev-${esc(c.citation_key)}">${esc(c.title)} · ${t().frameLabel} ${esc(c.digital_frame ?? '?')}</button>`).join('');
+    html += `<article class="card answer-card"><div><span class="tag">${t().answerTag}</span><h3>${esc(data.answer)}</h3>`
+      + (chips ? `<p class="citations-label">${t().citationsLabel}</p><div class="chips">${chips}</div>` : '')
+      + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')
+      + `</div></article>`;
+  } else if (data.status === 'insufficient_evidence') {
+    html += `<div class="error" role="alert">${esc(data.message || t().statusInsufficient)}</div>`;
+  } else if (data.status === 'citation_validation_failed') {
+    html += `<div class="error" role="alert">${t().statusWithheld} ${esc(data.reason || '')}</div>`;
+  } else {
+    html += `<div class="error" role="alert">${t().statusUnavailable}: ${esc(data.reason || '')}</div>`;
+  }
+  html += evidence.map(evidenceCard).join('');
+  if (unverified.length) {
+    html += `<div class="unverified-box"><h4>${t().unverifiedTitle}</h4><ul>`
+      + unverified.map(u => `<li>${esc(u.library_id)} / ${esc(u.record_id)}${u.page_id ? ' / ' + esc(u.page_id) : ''} — ${esc(u.reason)}</li>`).join('')
+      + `</ul></div>`;
+  }
+  if ((data.search?.errors || []).length) {
+    html += data.search.errors.map(e => `<div class="error" role="alert">${esc(e.library_id)}: ${esc(e.error)}</div>`).join('');
+  }
+  results.innerHTML = html;
+  results.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const target = document.getElementById(chip.getAttribute('data-target'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.remove('flash');
+        void target.offsetWidth;
+        target.classList.add('flash');
+      }
+    });
+  });
+  results.querySelectorAll('.verify-button').forEach(button => {
+    button.addEventListener('click', async () => {
+      const box = button.closest('.evidence-card').querySelector('.verify-box');
+      const { library, page } = box.dataset;
+      button.disabled = true;
+      box.innerHTML = `<p>${t().verifying}</p>`;
+      try {
+        const report = await fetchJson(`/api/verify?library=${encodeURIComponent(library)}&id=${encodeURIComponent(page)}`);
+        const statusText = report.status === 'verified' ? t().verifyVerified : report.status === 'unsupported' ? t().verifyUnsupported : t().verifyFailed;
+        const checks = report.checks ? `<ul class="checks">${Object.entries(report.checks).map(([name, check]) => `<li>${check.ok ? '✓' : '✗'} ${esc(name)} — ${esc(check.detail)}</li>`).join('')}</ul>` : `<p>${esc(report.reason || '')}</p>`;
+        box.innerHTML = `<p class="verify-status">${esc(statusText)}</p>${checks}`;
+      } catch (error) {
+        box.innerHTML = `<p class="error">${esc(error.message)}</p>`;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
 }
 
 function selectedLibraries() {
@@ -43,53 +239,46 @@ function selectedLibraries() {
 async function fetchJson(path) {
   const response = await fetch(path);
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'リクエストに失敗しました');
+  if (!response.ok) throw new Error(data.error || t().requestFailed);
   return data;
+}
+
+function setBusy(busy) {
+  searchButton.disabled = busy;
+  answerButton.disabled = busy;
+  results.setAttribute('aria-busy', String(busy));
 }
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const q = query.value.trim();
   if (!q) return;
-  searchButton.disabled = true;
-  answerButton.disabled = true;
-  results.setAttribute('aria-busy', 'true');
-  results.innerHTML = '<div class="empty"><p>各機関へ問い合わせています…</p></div>';
-  notice.textContent = 'ライブAPIの応答を統合しています。機関ごとの失敗は部分結果とともに表示されます。';
+  setBusy(true);
+  results.innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
+  notice.textContent = t().searchingNotice;
   try {
-    render(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
   } catch (error) {
     results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
   } finally {
-    searchButton.disabled = false;
-    answerButton.disabled = false;
-    results.setAttribute('aria-busy', 'false');
+    setBusy(false);
   }
 });
 
 answerButton.addEventListener('click', async () => {
   const q = query.value.trim();
   if (!q) return;
-  answerButton.disabled = true;
-  searchButton.disabled = true;
-  results.setAttribute('aria-busy', 'true');
-  answerButton.textContent = '回答を生成中…';
+  setBusy(true);
+  answerButton.textContent = t().answering;
+  results.innerHTML = `<div class="empty"><p>${t().answering}</p></div>`;
   try {
-    const data = await fetchJson(`/api/answer?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`);
-    if (data.answer) {
-      const citations = Array.isArray(data.citations) ? `引用: ${data.citations.join(', ')}` : '';
-      results.innerHTML = `<article class="card"><div><span class="tag">EVIDENCE ANSWER</span><h3>${esc(data.answer)}</h3><p>${esc((data.limitations || []).join(' '))}</p><p class="rights">${esc(citations)}</p></div><div><span class="source-link">${data.available ? 'LLM provider' : '検索結果のみ'}</span></div></article>`;
-      (data.search?.results || []).forEach(item => { results.insertAdjacentHTML('beforeend', `<article class="card"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${esc(item.description || '')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`); });
-    } else {
-      render(data.search || {query: q, results: [], errors: []});
-      results.insertAdjacentHTML('afterbegin', `<div class="error" role="alert">AI回答は利用できません: ${esc(data.reason || '根拠不足')}</div>`);
-    }
+    renderAnswer(await fetchJson(`/api/answer?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
   } catch (error) {
     results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
   } finally {
-    answerButton.disabled = false;
-    searchButton.disabled = false;
-    answerButton.textContent = 'AI回答';
-    results.setAttribute('aria-busy', 'false');
+    setBusy(false);
+    answerButton.textContent = t().answerButton;
   }
 });
+
+applyLang();

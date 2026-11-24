@@ -67,3 +67,17 @@ IIIF Image API 3.0は領域・サイズ・回転・品質・形式、Presentatio
 [14]: https://github.com/sho0318/ndl-mcp "sho0318/ndl-mcp"
 [15]: https://ndlsearch.ndl.go.jp/help/api/provider "NDL data provider conditions"
 [16]: https://jpsearch.go.jp/api "Japan Search API"
+
+## ライブ検証結果（2026-11-22追記）
+
+`feat/global-library-evidence-v2` 開発環境から公式APIへ実接続した結果。
+詳細は `docs/evidence-verification.md` と `libraries.yaml` の各 verification 欄。
+
+| 機関 | 結果 |
+|---|---|
+| NDL（次世代デジタルライブラリー Book/Page API + IIIF） | 書誌検索・書籍内検索・ページOCR・Manifest/Canvas/画像到達性すべて成功。基準ページ3件（994120_50、1018770_21、1886468_121）は全チェック verified |
+| Library of Congress | 検索成功（"railway" で結果取得） |
+| Internet Archive | 検索成功（"railway" で結果取得） |
+| DDB | 検索成功（"Berlin" で結果取得、使用エンドポイントではキー不要だった） |
+| Gallica / BnF | 上流が HTTP 403（challenge or policy restriction）を返し、このネットワークからは未検証 |
+| Europeana | `EUROPEANA_API_KEY` が必要なため未実施（資格情報待ち） |
