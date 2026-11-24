@@ -77,3 +77,20 @@ h05/h22 note: their frozen fixture pages are refused by the
 checker; the live holdout false answers arrive via *other*
 pages, so the fix must be a general admission property, not a
 fixture-shaped rule — none was added.
+
+## Addendum (2026-11-24): provider switched to xAI at the operator's request
+
+The operator approved the run and then asked to use the Grok
+API instead of OpenAI. Amended approval parameters, everything
+else unchanged (20 cases, at most 40 calls, hard cap $1.00,
+public-domain OCR excerpts only):
+
+| Item | Amended value |
+|---|---|
+| Provider | xAI |
+| Model | `grok-4-fast` (list price $0.20 in / $0.50 out per 1M tokens, verified 2026-11-24; added to the price table) |
+| Endpoint | `https://api.x.ai/v1` (OpenAI-compatible; the same provider class is used with `LLM_API_BASE` set) |
+| Estimated cost | ~$0.03 at expected sizes |
+
+The xAI API is billed separately from any Grok/X consumer
+subscription; the key is issued at console.x.ai.

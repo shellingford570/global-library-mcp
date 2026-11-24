@@ -22,6 +22,9 @@ PRICE_TABLE_USD_PER_MTOK: dict[str, tuple[float, float]] = {
     "gpt-4o": (2.50, 10.00),
     "gpt-4.1-mini": (0.40, 1.60),
     "gpt-4.1": (2.00, 8.00),
+    # xAI (api.x.ai, OpenAI-compatible endpoint), list price
+    # verified 2026-11-24.
+    "grok-4-fast": (0.20, 0.50),
 }
 
 # Conservative per-call token assumptions for the estimate:
