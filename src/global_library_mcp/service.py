@@ -280,6 +280,12 @@ class LibraryService:
         key = (library_id, str(page_id))
         if key not in self._page_cache:
             self._page_cache[key] = await adapter.get_page_text(page_id)
+            # Phase 10-H: the page cache was unbounded - a
+            # public beta cannot let OCR pages accumulate for
+            # the life of the process. FIFO-cap it like the
+            # search cache (256 entries).
+            while len(self._page_cache) > 256:
+                self._page_cache.pop(next(iter(self._page_cache)))
         return self._page_cache[key]
 
     async def verify_page(self, library_id: str, page_id: str) -> dict[str, Any]:
