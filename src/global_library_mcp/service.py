@@ -305,7 +305,7 @@ class LibraryService:
                 "reason": sanitize_error(exc),
             }
 
-    async def answer(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10, provider: Any = None) -> dict[str, Any]:
+    async def answer(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10, provider: Any = None, mode: str = "generative") -> dict[str, Any]:
         """Answer a question from verified OCR evidence only.
 
         Flow: collect page-level evidence, hand only the verified pages
@@ -432,6 +432,77 @@ class LibraryService:
                 "message": reason,
                 "related_documents": related_documents,
                 "limitations": limitations,
+            }
+        if mode == "extractive":
+            # Phase 10-D extractive mode: NO provider is called.
+            # The answer is composed of verbatim passages only,
+            # each presented as a quotation with its citation and
+            # character span. A passage qualifies only when the
+            # evidence states mark it supporting AND (for numeric
+            # questions) it binds the asked quantity. Passages
+            # that are merely related stay research materials,
+            # never an answer.
+            from global_library_mcp.numeric import quantity_binding, target_terms
+
+            numeric_intent = bool(
+                isinstance(analysis, dict)
+                and (analysis.get("intent") == "numeric"
+                     or any(r.get("type") == "numeric" for r in analysis.get("requirements") or []))
+            )
+            quotes: list[dict[str, Any]] = []
+            for item in evidence:
+                if not (item.get("states") or {}).get("supporting_passage"):
+                    continue
+                for passage in item.get("passages") or []:
+                    if numeric_intent:
+                        from global_library_mcp.numeric import numeric_values
+                        values = numeric_values(passage.get("text") or "")
+                        targets = target_terms(analysis)
+                        if not any(quantity_binding(passage["text"], v, targets)["bound"] > 0 for v in values):
+                            continue
+                    quotes.append({
+                        "text": passage["text"],
+                        "citations": [item["citation_key"]],
+                        "evidence_passage_ids": [passage["passage_id"]],
+                        "support": "supported",
+                        "support_detail": "verbatim quotation of the cited passage (quote_verified="
+                                          f"{passage.get('quote_verified')}); OCR errors may remain",
+                        "verified_against": [{
+                            "passage_id": passage["passage_id"],
+                            "citation_key": item["citation_key"],
+                            "excerpt": passage["text"][:200],
+                            "char_start": passage.get("char_start"),
+                            "char_end": passage.get("char_end"),
+                        }],
+                    })
+            base["provider"] = "extractive"
+            base["answer_mode"] = "extractive"
+            if not quotes:
+                return {
+                    **base,
+                    "status": "insufficient_evidence",
+                    "available": False,
+                    "answer": None,
+                    "citations": [],
+                    "claims": [],
+                    "reason": "抽出型モードでは、質問に直接答える原文箇所が見つかりませんでした。関連する研究資料は資料モードで確認できます。",
+                    "limitations": ["抽出型回答は原文の引用のみで構成されます。言い換えや要約は行いません。"],
+                }
+            kept = {key for q in quotes for key in q["citations"]}
+            return {
+                **base,
+                "status": "answered_extractive",
+                "available": True,
+                "answer": "\n".join(f"「{q['text']}」" for q in quotes),
+                "citations": [c for c in (
+                    {"citation_key": item["citation_key"], "library_id": item["library_id"],
+                     "library_name": item["library_name"], "record_id": item["record_id"],
+                     "page_id": item["page_id"], "digital_frame": item["digital_frame"],
+                     "title": item["title"], "image_url": item["image_url"],
+                     "landing_url": item["landing_url"]}
+                    for item in evidence) if c["citation_key"] in kept],
+                "claims": quotes,
+                "limitations": ["抽出型回答：原文の引用のみです。OCRの誤認識が含まれる可能性があります。現代語の説明が必要な場合は生成型（実験）モードを利用してください。"],
             }
         if provider is None:
             if os.getenv("LLM_PROVIDER", "").lower() == "mock":
