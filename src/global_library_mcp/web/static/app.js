@@ -13,7 +13,17 @@ const I18N = {
   ja: {
     status: 'OCR根拠つき回答 / 検証済み原本',
     h1: '世界の原資料へ、<em>検証可能な経路</em>で。',
-    lede: '図書館とデジタルアーカイブを横断検索し、実際のOCR本文を根拠として回答します。引用は原本ページで検証でき、未確認の情報は隠さず表示します。',
+    lede: '図書館とデジタルアーカイブを横断検索し、ページ単位のOCRと原本画像を確認できる研究資料検索サービスです。AI回答は実験機能として分離され、未確認の情報は隠さず表示します。',
+    scopeTitle: '対応範囲と利用条件',
+    scopeLibrariesTitle: '対応機関',
+    scopeLibraries: '国立国会図書館（NDL）、Internet Archive、Library of Congress は検索・OCR・原本画像に対応。Gallica は当ネットワークから取得できない場合があります。DDB・Europeana は書誌検索中心です。それ以外の機関は調査中であり、対応を保証しません。',
+    scopeTermsTitle: '利用条件',
+    scopeTerms: '権利表示は資料ごとに各機関の表示をそのまま示します。権利が不明な資料を再配布可能とは表示しません。抜粋は短い引用と原本へのリンクを基本とし、貸出限定などアクセス制限のある資料は取得しません。',
+    scopeAiTitle: 'AI機能について',
+    scopeAi: 'AI回答は実験機能です。Research Beta の初期設定では無効で、本サービスは研究資料の検索・OCR・原本確認のために提供されます。検索結果は「回答の証明」ではなく、利用者が調査するための研究資料です。',
+    scopeNoResultTitle: '見つからなかった場合',
+    scopeNoResult: '検索予算（初期設定 Standard 25 リクエスト）の範囲で根拠が見つからなかったことは、その事実が歴史上存在しないことを意味しません。対象機関・取得範囲・図書館側の制限により結果は変わります。',
+    budgetNote: '検索予算と対象範囲の中で根拠が見つかりませんでした。これは、その事実が存在しないことを意味しません。',
     queryLabel: '調べたいこと',
     queryPlaceholder: '例：明治時代の日本の発電技術',
     searchButton: '検索する',
@@ -97,7 +107,17 @@ const I18N = {
   en: {
     status: 'OCR-grounded answers / verified originals',
     h1: 'Primary sources worldwide, by a <em>verifiable path</em>.',
-    lede: 'Search libraries and digital archives together and answer from actual OCR page text. Every citation can be checked against the original page, and unverified information is shown, not hidden.',
+    lede: 'A research-materials search service across libraries and digital archives, with page-level OCR and original images you can verify. AI answers are a separate experimental feature, and unverified information is shown, not hidden.',
+    scopeTitle: 'Scope and terms',
+    scopeLibrariesTitle: 'Libraries',
+    scopeLibraries: 'The National Diet Library (NDL), Internet Archive and Library of Congress support search, OCR and original images. Gallica may be unreachable from some networks. DDB and Europeana are bibliographic-search centred. All other institutions are under research and are not promised.',
+    scopeTermsTitle: 'Terms of use',
+    scopeTerms: 'Rights statements are shown verbatim from each library, per item. Material with unknown rights is never presented as redistributable. Excerpts are short quotations with links to the original, and access-restricted (e.g. lending-only) items are not fetched.',
+    scopeAiTitle: 'About the AI features',
+    scopeAi: 'AI answers are experimental. They are disabled by default in the Research Beta; this service is provided for searching research materials, reading OCR and checking originals. Search results are materials for your own investigation, not proof of an answer.',
+    scopeNoResultTitle: 'When nothing is found',
+    scopeNoResult: 'Finding no evidence within the search budget (Standard 25 requests by default) does not mean the fact does not exist historically. Results depend on the libraries covered, the retrieval scope and each library\'s own limits.',
+    budgetNote: 'No evidence was found within the search budget and scope. That does not mean the fact does not exist.',
     queryLabel: 'What do you want to research?',
     queryPlaceholder: 'e.g. hydroelectric power in Meiji-era Japan',
     searchButton: 'Search',
@@ -330,7 +350,8 @@ function renderAnswer(data) {
       + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')
       + `</div></article>`;
   } else if (data.status === 'insufficient_evidence') {
-    html += `<div class="error" role="alert">${esc(data.reason || data.message || t().statusInsufficient)}</div>`;
+    html += `<div class="error" role="alert">${esc(data.reason || data.message || t().statusInsufficient)}</div>`
+      + `<p class="rights">${t().budgetNote}</p>`;
   } else if (data.status === 'answer_withheld') {
     html += `<div class="error" role="alert">${t().statusAnswerWithheld}: ${esc(data.reason || '')}</div>` + claimsSection(data);
   } else if (data.status === 'citation_validation_failed') {

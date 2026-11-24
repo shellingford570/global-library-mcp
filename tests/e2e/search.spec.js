@@ -269,3 +269,12 @@ test('research materials mode shows candidates with states and reasons', async (
   await page.locator('#materials-admitted-only').check();
   await expect(page.getByText('電信史')).toHaveCount(0);
 });
+
+test('scope and terms section explains the beta posture', async ({ page }) => {
+  await page.goto('/');
+  const scope = page.locator('.scope-panel');
+  await expect(scope).toBeVisible();
+  await expect(scope).toContainText('対応範囲と利用条件');
+  await expect(scope).toContainText('AI回答は実験機能です');
+  await expect(scope).toContainText('存在しないことを意味しません');
+});
