@@ -481,8 +481,40 @@ class LibraryService:
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
         claims = verify_claims(clean_claims, evidence, analysis=analysis)
+        # Phase 8-H: claims are structured - id, passage links,
+        # temporal scope, numeric values, support status,
+        # limitations - and unverifiable claims are REMOVED from
+        # the published answer instead of silently riding along
+        # or vetoing the verifiable remainder.
+        from global_library_mcp.numeric import extract_quantities
+
+        passages_by_key: dict[str, list[dict[str, Any]]] = {
+            item["citation_key"]: (item.get("passages") or []) for item in evidence
+        }
+        era_label = (analysis.get("era") or {}).get("label")
+        for index, claim in enumerate(claims):
+            claim["claim_id"] = f"c{index + 1}"
+            claim["support_status"] = claim.get("support")
+            claim["temporal_scope"] = era_label
+            claim["numeric_values"] = [
+                {"value": q["value"], "counter": q.get("unit"), "raw": q["raw"]}
+                for q in extract_quantities(claim.get("text", ""))
+            ]
+            passage_ids: list[str] = []
+            for key in claim.get("citations", []):
+                for passage in passages_by_key.get(key, [])[:2]:
+                    if passage["passage_id"] not in passage_ids:
+                        passage_ids.append(passage["passage_id"])
+            claim["evidence_passage_ids"] = passage_ids
+            claim_limitations = []
+            if claim.get("support") == "uncertain":
+                claim_limitations.append("自動スクリーニングで裏付けが不確実（uncertain）")
+            if not passage_ids:
+                claim_limitations.append("対応する抽出箇所（passage）が特定できなかった")
+            claim["limitations"] = claim_limitations
         blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
-        if blocking:
+        publishable = [c for c in claims if c.get("support") not in {"unsupported", "conflicting"}]
+        if blocking and not publishable:
             return {
                 **base,
                 "status": "answer_withheld",
@@ -498,6 +530,28 @@ class LibraryService:
         limitations = list(result.get("limitations", []))
         if any(c.get("support") == "uncertain" for c in claims):
             limitations.append("一部の主張は自動スクリーニングで裏付けが不確実です（uncertain）。原本ページで確認してください。")
+        if blocking:
+            # Partial answer: publish only the verified claims,
+            # labelled as partial, with the dropped claims named
+            # in the limitations. An unverifiable assertion never
+            # reaches the answer text.
+            kept_keys = {key for c in publishable for key in c.get("citations", [])}
+            limitations.append(
+                f"部分回答です。検証できなかった主張{len(blocking)}件を回答から除外しました: "
+                + "; ".join(c.get("text", "")[:60] for c in blocking)
+            )
+            return {
+                **base,
+                "status": "answered_partial",
+                "available": True,
+                "answer": "".join(
+                    c["text"] if c["text"].endswith("。") else c["text"] + "。"
+                    for c in publishable
+                ),
+                "citations": [c for c in citations if c["citation_key"] in kept_keys],
+                "claims": claims,
+                "limitations": limitations,
+            }
         return {
             **base,
             "status": "answered",
