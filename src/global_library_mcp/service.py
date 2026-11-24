@@ -403,6 +403,15 @@ class LibraryService:
             else:
                 reason = "質問に答えるための検証済みOCR本文が確認できませんでした。"
             limitations = ["No OCR page passed both the quality gate and the relevance gate for this question"]
+            if (collected.get("retrieval") or {}).get("budget_exhausted"):
+                # Phase 8-I: budget-limited insufficiency is NOT
+                # "no evidence exists" - say exactly what happened.
+                reason += "なお、設定された検索予算内で確認できた範囲では根拠が見つかりませんでした。予算外に根拠が存在しないとは断定できません。"
+                limitations.append(
+                    f"search stopped at the configured request budget "
+                    f"({(collected.get('retrieval') or {}).get('request_budget')} units); "
+                    "absence of evidence beyond the budget is not asserted"
+                )
             if related:
                 reason += "関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。"
                 limitations.append("Related documents exist but were not adopted as evidence; see related_documents")
@@ -610,16 +619,32 @@ class LibraryService:
             variant for variant in term_variants
             if not any(variant != other and variant in other for other in term_variants)
         ]
+        library_error_counts: dict[str, int] = {}
+        active_libraries: list[str] | None = list(libraries) if libraries else None
         for candidate_query in variants:
-            cache_key = (candidate_query, tuple(sorted(libraries)), limit)
+            cache_key = (candidate_query, tuple(sorted(active_libraries or ())), limit)
             resp = self._search_cache.get(cache_key)
             if resp is not None:
                 self.cache_stats["search_hits"] += 1
             else:
                 self.cache_stats["search_misses"] += 1
-                resp = await self.search(candidate_query, libraries, limit)
+                resp = await self.search(candidate_query, active_libraries, limit)
                 self._search_cache[cache_key] = resp
+                # Bounded cache (Phase 8-I): FIFO eviction.
+                while len(self._search_cache) > 256:
+                    self._search_cache.pop(next(iter(self._search_cache)))
             search_errors.extend(resp.errors)
+            # Circuit breaker (Phase 8-I): a library that keeps
+            # erroring is paused for the rest of this question
+            # instead of being retried for every variant.
+            for error in resp.errors:
+                lib = error.get("library_id") if isinstance(error, dict) else None
+                if lib:
+                    library_error_counts[lib] = library_error_counts.get(lib, 0) + 1
+            if active_libraries:
+                tripped = {lib for lib, count in library_error_counts.items() if count >= 3}
+                if tripped:
+                    active_libraries = [lib for lib in active_libraries if lib not in tripped] or active_libraries
             for item in resp.results:
                 key = (item.library_id, item.record_id)
                 query_hits[key] = query_hits.get(key, 0) + 1
@@ -647,8 +672,22 @@ class LibraryService:
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
         budget_extended = False
+        # Phase 8-I: per-question request budget in service units
+        # (one in-document search + each gated page). 0 = unlimited
+        # (the pre-Phase-8 behaviour); when the budget is spent the
+        # pipeline stops fetching and says so honestly - "not
+        # confirmed within the configured budget", never "no
+        # evidence exists".
+        import os as _os
+
+        request_budget = int(_os.getenv("GLM_REQUEST_BUDGET", "0") or 0)
+        request_units = 0
+        budget_exhausted = False
         evidence_document_ranks: list[int] = []
         doc_states: dict[int, dict[str, Any]] = {}
+
+        nonlocal_units = [request_units]
+        nonlocal_budget = [budget_exhausted]
 
         async def screen(rank: int, result: Any, page_budget: int, include_adjacent: bool = False) -> None:
             nonlocal documents_tried
@@ -665,6 +704,9 @@ class LibraryService:
                 adapter, result, analysis, search_terms, page_budget, state, semantic_checker,
                 include_adjacent=include_adjacent,
             )
+            nonlocal_units[0] += 1 + len(outcome["verified"]) + len(outcome["related"]) + len(outcome["unverified"])
+            if request_budget and nonlocal_units[0] >= request_budget:
+                nonlocal_budget[0] = True
             for ev in outcome["verified"]:
                 verified.append(ev)
                 if rank not in evidence_document_ranks:
@@ -680,18 +722,22 @@ class LibraryService:
         # with 2 pages beats the wrong book at rank 1 with 3.
         wave1 = ranked[: max_documents + 6]
         for rank, result in enumerate(wave1, start=1):
+            if nonlocal_budget[0]:
+                break
             await screen(rank, result, 2)
             if len(verified) >= 3:
                 break
         # Wave 2 deepens documents that produced a
         # partially_relevant page: their remaining hit pages.
-        if not verified:
+        if not verified and not nonlocal_budget[0]:
             for rank, result in enumerate(wave1, start=1):
                 state = doc_states.get(rank)
                 if state and any((p.get("relevance") or {}).get("status") == "partially_relevant" for p in state["related_pages"]):
                     await screen(rank, result, 2, include_adjacent=True)
+                    if nonlocal_budget[0]:
+                        break
         # Wave 3 extends to deeper candidates.
-        if not verified and len(ranked) > len(wave1):
+        if not verified and not nonlocal_budget[0] and len(ranked) > len(wave1):
             budget_extended = True
             for rank, result in enumerate(ranked[len(wave1): len(wave1) + 6], start=len(wave1) + 1):
                 await screen(rank, result, 2)
@@ -723,6 +769,9 @@ class LibraryService:
             "candidates": len(merged),
             "documents_tried": documents_tried,
             "budget_extended": budget_extended,
+            "request_units": nonlocal_units[0],
+            "request_budget": request_budget,
+            "budget_exhausted": nonlocal_budget[0],
             "first_evidence_rank": evidence_document_ranks[0] if evidence_document_ranks else None,
             "evidence_document_ranks": evidence_document_ranks,
             "failure_reason": failure_reason,
