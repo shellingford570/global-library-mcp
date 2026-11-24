@@ -438,6 +438,9 @@ class LibraryService:
                 provider = MockProvider()
             else:
                 provider = OpenAICompatibleProvider(self.client)
+        # Phase 8-J: the UI must never present a MockProvider
+        # result as a real AI answer - name the provider.
+        base["provider"] = provider.__class__.__name__
         payload = compact_evidence(evidence)
         result = await provider.answer(query, payload)
         if not result.get("available"):
