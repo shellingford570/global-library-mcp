@@ -1,3 +1,39 @@
+## Phase 8 — research-engine restructure (2026-11-24)
+
+- Architecture audit (8-A, docs/phase8-audit.md): the single
+  `verified` flag conflated discovery, identity and factual
+  certification; two weaker certification paths named honestly.
+- Evidence states + stage log (8-B): discovery, access,
+  identity, relevance, passage support and answer
+  certification are separate per-page facts with reasons.
+- Passage extraction (8-C): verbatim, char-located passages
+  are the unit of evidence; quotations re-verified against
+  the fetched OCR.
+- Research-materials mode (8-D): the answer pipeline's output
+  presented as materials for the reader's own judgment - MCP
+  tool, `/api/materials`, Web UI mode - with no duplicate API
+  calls and explicit not-admitted reasons.
+- NLI (8-E): hypothesis-based checker interface; verdicts are
+  auxiliary signals that never approve an answer; model load
+  attempted once, bounded - unavailable in this environment,
+  recorded `not_checked` (docs/phase8-models.md).
+- Gold passage dataset (8-F): `eval/gold-passages.json` -
+  pipeline-admitted supporting passages plus the frozen
+  Phase 7 must-reject fixtures, dev/eval split, agent-verified.
+- Real-LLM readiness (8-G): budget guard (key, opt-in, priced
+  model, estimate <= cap, explicit approval) - blocks with
+  reasons and makes no call otherwise; results stay separate.
+- Structured claims + partial answers (8-H): claims carry ids,
+  passage links, temporal scope, numeric values and support
+  status; unverifiable claims are removed and the verified
+  remainder published as `answered_partial`.
+- Load (8-I): per-question request budget with honest
+  budget-limited wording, per-library circuit breaker,
+  FIFO-bounded search cache, `libraries=None` cache-key fix.
+- Web UI (8-J): materials mode with state chips; MockProvider
+  output badged as demo/test mode; partial-answer badge.
+- Measured outcome: see docs/evaluation-phase8.md.
+
 ## Phase 7 — evidence-promotion safety (2026-11-23)
 
 - The eight Phase 6 false answers reproduced as fixed fixtures

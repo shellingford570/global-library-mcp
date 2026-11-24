@@ -1,0 +1,21 @@
+{
+ "version": "gold-passages-v1-2026-11-24",
+ "by_split": {
+  "dev": {
+   "type_A_supporting_cases": 18,
+   "type_A_recognised": 11,
+   "type_A_rate": 0.611,
+   "type_D_reject_cases": 4,
+   "type_D_refused_certification": 4,
+   "type_D_rate": 1.0
+  },
+  "eval": {
+   "type_A_supporting_cases": 18,
+   "type_A_recognised": 9,
+   "type_A_rate": 0.5,
+   "type_D_reject_cases": 4,
+   "type_D_refused_certification": 4,
+   "type_D_rate": 1.0
+  }
+ }
+}

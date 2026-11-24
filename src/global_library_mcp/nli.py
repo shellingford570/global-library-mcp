@@ -49,8 +49,12 @@ def build_hypothesis(analysis: Any) -> str | None:
     concept = max(topics, key=len)
     era = getattr(analysis, "era", None)
     era_label = era["label"] if era else None
-    era_part = f"{era_label}時代に" if era_label and not era_label.endswith("時代") else (
-        f"{era_label}に" if era_label else "")
+    if era_label and ("年" in era_label or era_label.endswith("時代")):
+        era_part = f"{era_label}に"
+    elif era_label:
+        era_part = f"{era_label}時代に"
+    else:
+        era_part = ""
     raw = getattr(analysis, "raw", "") or ""
     if "普及" in raw:
         verb = "普及していた"
