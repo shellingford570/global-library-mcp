@@ -170,6 +170,17 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
 
 
 @mcp.tool()
+async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+    """Research-materials mode: related sources with excerpts,
+    original images, evidence states and the reason each
+    candidate was or was not admitted as answer evidence.
+    Candidates are presented for the reader's own judgment,
+    never as proof of an answer."""
+    async with _with_service() as service:
+        return await service.research_materials(query, libraries, limit)
+
+
+@mcp.tool()
 async def compare_documents(documents: list[dict[str, str]], aspects: list[str] | None = None, question: str | None = None) -> dict[str, Any]:
     """Compare 2-4 documents aspect by aspect on verified OCR pages.
 

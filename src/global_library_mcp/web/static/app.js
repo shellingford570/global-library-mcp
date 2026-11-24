@@ -5,6 +5,7 @@ const title = document.querySelector('#result-title');
 const meta = document.querySelector('#result-meta');
 const notice = document.querySelector('#notice');
 const answerButton = document.querySelector('#answer-button');
+const materialsButton = document.querySelector('#materials-button');
 const searchButton = form.querySelector('button[type="submit"]');
 const langToggle = document.querySelector('#lang-toggle');
 
@@ -17,6 +18,15 @@ const I18N = {
     queryPlaceholder: '例：明治時代の日本の発電技術',
     searchButton: '検索する',
     answerButton: 'AI回答',
+    materialsButton: '研究資料',
+    materialsTitle: '研究資料（関連候補）',
+    materialsNote: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
+    stateDiscovered: '資料発見', stateAccessible: 'ページ取得', stateVerified: '原本対応確認',
+    stateCandidate: '関連候補', stateAssessed: '根拠として採用', stateRejected: '回答には不採用',
+    notAdmittedLabel: '回答に採用しない理由',
+    excerptsLabel: '関連するOCR抜粋',
+    demoBadge: 'デモ／テストモード（MockProvider）— 実際のAI回答ではありません',
+    partialTag: '部分回答（検証済みの主張のみ）',
     resultsTitle: '検索結果',
     notice: '検索結果は資料の発見を支援するものです。引用前に原本ページと権利表示を確認してください。',
     emptyHint: '質問を入力すると、対応機関の記録がここに表示されます。',
@@ -91,6 +101,15 @@ const I18N = {
     queryPlaceholder: 'e.g. hydroelectric power in Meiji-era Japan',
     searchButton: 'Search',
     answerButton: 'AI answer',
+    materialsButton: 'Research materials',
+    materialsTitle: 'Research materials (candidates)',
+    materialsNote: 'Candidates do not prove an answer. Read the excerpts and originals and judge for yourself.',
+    stateDiscovered: 'Discovered', stateAccessible: 'Page fetched', stateVerified: 'Source verified',
+    stateCandidate: 'Relevant candidate', stateAssessed: 'Admitted as evidence', stateRejected: 'Not admitted for answers',
+    notAdmittedLabel: 'Why not admitted',
+    excerptsLabel: 'Relevant OCR excerpts',
+    demoBadge: 'Demo / test mode (MockProvider) - not a real AI answer',
+    partialTag: 'Partial answer (verified claims only)',
     resultsTitle: 'Results',
     notice: 'Search results help you discover sources. Check the original page and its rights statement before citing.',
     emptyHint: 'Ask a question and records from the connected institutions will appear here.',
@@ -290,9 +309,11 @@ function renderAnswer(data) {
   const unverified = data.unverified || [];
   meta.textContent = `${t().evidenceTitle}: ${evidence.length} · ${t().unverifiedTitle}: ${unverified.length}`;
   let html = '';
-  if (data.status === 'answered' && data.answer) {
+  if ((data.status === 'answered' || data.status === 'answered_partial') && data.answer) {
     const chips = (data.citations || []).map(c => `<button type="button" class="chip" data-target="ev-${esc(c.citation_key)}">${esc(c.title)} · ${t().frameLabel} ${esc(c.digital_frame ?? '?')}</button>`).join('');
-    html += `<article class="card answer-card"><div><span class="tag">${t().answerTag}</span><h3>${esc(data.answer)}</h3>`
+    const badges = (data.provider === 'MockProvider' ? `<span class="tag demo-tag">${t().demoBadge}</span>` : '')
+      + (data.status === 'answered_partial' ? `<span class="tag partial-tag">${t().partialTag}</span>` : '');
+    html += `<article class="card answer-card"><div>${badges}<span class="tag">${t().answerTag}</span><h3>${esc(data.answer)}</h3>`
       + (chips ? `<p class="citations-label">${t().citationsLabel}</p><div class="chips">${chips}</div>` : '')
       + claimsSection(data)
       + ((data.limitations || []).length ? `<p class="rights">${t().limitationsLabel}: ${esc(data.limitations.join(' '))}</p>` : '')
@@ -406,6 +427,53 @@ answerButton.addEventListener('click', async () => {
   } finally {
     setBusy(false);
     answerButton.textContent = t().answerButton;
+  }
+});
+
+function stateChips(states) {
+  if (!states) return '';
+  const chips = [];
+  if (states.discovered) chips.push(t().stateDiscovered);
+  if (states.accessible) chips.push(t().stateAccessible);
+  if (states.source_verified) chips.push(t().stateVerified);
+  if (states.relevant_candidate) chips.push(t().stateCandidate);
+  if (states.assessed_evidence) chips.push(t().stateAssessed);
+  if (states.rejected_for_answer) chips.push(t().stateRejected);
+  return chips.map(c => `<span class="chip static">${esc(c)}</span>`).join('');
+}
+
+function renderMaterials(data) {
+  title.textContent = t().materialsTitle;
+  meta.textContent = `${(data.materials || []).length}${t().countSuffix}`;
+  let html = `<div class="notice">${esc(data.note || t().materialsNote)}</div>`;
+  for (const item of data.materials || []) {
+    const excerpts = (item.excerpts || []).map(p => `<blockquote class="correction-quote">${esc(p.text)}</blockquote>`).join('');
+    const reasons = (item.not_admitted_reasons || []).length
+      ? `<p class="rights">${t().notAdmittedLabel}: ${esc(item.not_admitted_reasons.join(' / '))}</p>` : '';
+    const image = item.image_url ? `<p>${sourceLink(item.image_url, t().backToSource)}</p>` : '';
+    const rights = item.rights && (item.rights.status || item.rights.label)
+      ? `<p class="rights">${t().rightsLabel}: ${esc(item.rights.status || item.rights.label)}</p>` : '';
+    html += `<article class="card"><div><h3>${esc(item.title || item.record_id)}</h3>`
+      + `<p class="meta-line">${esc(item.author || '')} ${esc(item.date || '')} · ${esc(item.library_id)}:${esc(item.record_id)}${item.page_id ? ' · ' + esc(item.page_id) : ''}</p>`
+      + `<div class="chips">${stateChips(item.states)}</div>`
+      + (excerpts ? `<p class="citations-label">${t().excerptsLabel}</p>${excerpts}` : '')
+      + reasons + rights + image
+      + `</div></article>`;
+  }
+  results.innerHTML = html || `<div class="empty"><p>${t().noMatches}</p></div>`;
+}
+
+materialsButton.addEventListener('click', async () => {
+  const q = query.value.trim();
+  if (!q) return;
+  setBusy(true);
+  results.innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
+  try {
+    renderMaterials(await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+  } catch (error) {
+    results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
+  } finally {
+    setBusy(false);
   }
 });
 

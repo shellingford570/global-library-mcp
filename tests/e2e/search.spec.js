@@ -198,7 +198,7 @@ test('corrected premise is shown with its quoted basis', async ({ page }) => {
 test('language toggle switches the UI to English', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Switch language' }).click();
-  await expect(page.getByRole('button', { name: 'Search' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Search', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'AI answer' })).toBeVisible();
 });
 
@@ -232,4 +232,35 @@ test('compare view renders aspect rows from the compare API', async ({ page }) =
   await expect(page.getByText('發電した電力を近傍へ送電した')).toBeVisible();
   await expect(page.getByText(/共通する語/)).toBeVisible();
   await expect(page.getByText(/機械的な対照/)).toBeVisible();
+});
+
+test('research materials mode shows candidates with states and reasons', async ({ page }) => {
+  await page.route('**/api/materials**', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        mode: 'research_materials',
+        note: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
+        query: '明治の電信',
+        materials: [{
+          citation_key: 'ndl:1:1_5', library_id: 'ndl', record_id: '1', page_id: '1_5',
+          title: '電信史', author: 'テスト著者', date: '1910', image_url: null,
+          rights: {}, admitted_as_evidence: false,
+          states: { discovered: true, accessible: true, source_verified: true,
+                    relevant_candidate: true, supporting_passage: false,
+                    assessed_evidence: false, rejected_for_answer: true },
+          excerpts: [{ text: '電信は明治二年に開局した。' }],
+          not_admitted_reasons: ['出来事と時代を直接結び付ける記述（時代アンカー）が確認できない'],
+        }],
+      }),
+    });
+  });
+  await page.goto('/');
+  await page.locator('#query').fill('明治の電信');
+  await page.locator('#materials-button').click();
+  await expect(page.getByText('電信史')).toBeVisible();
+  await expect(page.getByText('電信は明治二年に開局した。')).toBeVisible();
+  await expect(page.getByText(/回答に採用しない理由/)).toBeVisible();
+  await expect(page.getByText(/証明する資料ではありません/)).toBeVisible();
 });

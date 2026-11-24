@@ -95,6 +95,11 @@ class Evidence:
     semantics: dict[str, Any] = field(default_factory=dict)
     page_kind: str | None = None
     promotion: dict[str, Any] | None = None
+    # Phase 8-B evidence states: discovery, access, identity,
+    # relevance, passage support and answer certification are
+    # separate facts, never one flag. See docs/phase8-audit.md.
+    states: dict[str, Any] | None = None
+    passages: list[dict[str, Any]] | None = None
     rights: Rights = field(default_factory=Rights)
     retrieved_at: str = field(default_factory=now_iso)
 

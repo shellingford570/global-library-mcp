@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-11-23 (branch `feat/global-library-evidence-safety-v7`, Phase 7).
+Last updated: 2026-11-24 (branch `feat/global-library-research-engine-v8`, Phase 8).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
 
@@ -28,6 +28,14 @@ service or a full local test; **not implemented** = absent by design or pending.
 | Insufficient-evidence handling | implemented, verified | Status `insufficient_evidence`; no answer is produced from bibliographic data alone |
 | Web UI (search + answers + evidence) | implemented, verified | Citation chips jump to evidence cards; inline IIIF verification; JA/EN toggle; claim support badges; IIIF image previews; query-language hint; document comparison view |
 | Claim-level grounding screening | implemented, verified with mock provider | Per-claim support status (lexical screening + date-token checks + material numeric check); not a semantic proof |
+| Evidence states + stage log (Phase 8-B) | implemented, verified | Per-page states (discovered / accessible / source_verified / relevant_candidate / supporting_passage / assessed_evidence / rejected_for_answer) with plain-language rejection reasons; per-stage outcome log on every collect |
+| Passage extraction (Phase 8-C) | implemented, verified | Verbatim, char-located passages with context, era anchors, stance cues; `verify_quote` re-checks quotations against the fetched OCR (`passages.py`) |
+| Research-materials mode (Phase 8-D) | implemented, verified | Same pipeline as answer mode (no duplicate calls); candidates presented as candidates with not-admitted reasons; MCP tool + `/api/materials` + Web UI mode |
+| NLI checker interface (Phase 8-E) | implemented, model unverified here | Hypothesis-based (`nli.py`); verdict is an auxiliary signal, never an approval; load attempted once with a hard timeout - transformers/weights unavailable in this environment, recorded `not_checked` |
+| Gold passage dataset (Phase 8-F) | implemented | `eval/gold-passages.json`: pipeline-admitted supporting passages + frozen Phase 7 must-reject fixtures, dev/eval split, agent-verified (no human-expert claim) |
+| Real-LLM evaluation readiness (Phase 8-G) | implemented, not run | `llm_budget.BudgetPlan` guard (key, opt-in, priced model, estimate <= cap, --approve) + `eval/real_llm_run.py`; blocks with reasons and makes no call otherwise |
+| Structured claims + partial answers (Phase 8-H) | implemented, verified with mock provider | claim_id / passage links / temporal scope / numeric values / support status / limitations; unverifiable claims are removed and the verified remainder is published as `answered_partial` |
+| Request budget + circuit breaker (Phase 8-I) | implemented | `GLM_REQUEST_BUDGET` caps fetch waves; budget-limited insufficiency is worded as 'not confirmed within the budget'; per-library circuit breaker; FIFO-bounded search cache |
 | Question understanding | implemented (Phase 4) | Rule-based analysis: core concepts vs generic terms, era (incl. era-year conversion), region, intent, structured requirements; no LLM required |
 | Relevance gate | implemented (Phase 4), live-evaluated | Per-page relevance screening (relevant / partially_relevant / irrelevant / uncertain) with reasons, separate from the OCR quality gate; only `relevant` pages ground answers, the rest are shown as related reference material |
 | Answer withholding | implemented (Phase 4) | Answers are withheld when a screened claim is unsupported/conflicting (`answer_withheld`), and refusals name the missing core concepts with related documents attached |

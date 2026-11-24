@@ -26,7 +26,7 @@ import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from global_library_mcp.answer import MockProvider  # noqa: E402
+from global_library_mcp.answer import MockProvider, OpenAICompatibleProvider  # noqa: E402
 from global_library_mcp.service import LibraryService  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +55,8 @@ async def main() -> int:
     parser.add_argument("--image-checks", type=int, default=10, help="max questions whose first evidence page gets a full IIIF verify")
     parser.add_argument("--dataset", type=Path, default=ROOT / "eval" / "questions.json")
     parser.add_argument("--max-calls", type=int, default=0, help="stop starting new questions once this many HTTP requests were made (0 = no cap)")
+    parser.add_argument("--provider", choices=("mock", "openai"), default="mock",
+                        help="answer provider; 'openai' is the real-LLM path and must go through eval/real_llm_run.py's budget guard")
     args = parser.parse_args()
 
     dataset = json.loads(args.dataset.read_text(encoding="utf-8"))
@@ -73,7 +75,8 @@ async def main() -> int:
             before = counter.count
             record = {"id": item["id"], "category": item["category"], "question": item["question"], "expect": item["expect"]}
             try:
-                result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=MockProvider())
+                provider = MockProvider() if args.provider == "mock" else OpenAICompatibleProvider(client)
+                result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=provider)
                 record["status"] = result["status"]
                 record["evidence"] = len(result.get("evidence", []))
                 record["unverified"] = len(result.get("unverified", []))
@@ -124,20 +127,21 @@ async def main() -> int:
         "claim_status_counts": {s: sum(1 for c in all_claims if c["support"] == s) for s in ("supported", "uncertain", "unsupported", "conflicting", "not_checked")},
         "insufficient_correct_rate": round(sum(1 for r in expect_insufficient if r["status"] == "insufficient_evidence") / max(len(expect_insufficient), 1), 3),
         "refusal_correct_rate": round(sum(1 for r in expect_insufficient if r["status"] in ("insufficient_evidence", "answer_withheld")) / max(len(expect_insufficient), 1), 3),
-        "answerable_success_rate": round(sum(1 for r in expect_evidence if r["status"] == "answered") / max(len(expect_evidence), 1), 3),
-        "false_answer_rate": round(sum(1 for r in expect_insufficient if r["status"] == "answered") / max(len(expect_insufficient), 1), 3),
+        "answerable_success_rate": round(sum(1 for r in expect_evidence if r["status"] in ("answered", "answered_partial")) / max(len(expect_evidence), 1), 3),
+        "partial_answer_rate": round(sum(1 for r in records if r["status"] == "answered_partial") / max(len(records), 1), 3),
+        "false_answer_rate": round(sum(1 for r in expect_insufficient if r["status"] in ("answered", "answered_partial")) / max(len(expect_insufficient), 1), 3),
         "false_refusal_rate": round(sum(1 for r in expect_evidence if r["status"] in ("insufficient_evidence", "answer_withheld")) / max(len(expect_evidence), 1), 3),
         "related_status_counts": {s: sum(1 for r in records for st in r.get("related_statuses", []) if st == s) for s in ("relevant", "partially_relevant", "irrelevant", "uncertain", "not_checked")},
         "requests_per_question": round(counter.count / max(len(records), 1), 1),
         "avg_seconds": round(sum(r["seconds"] for r in records) / max(len(records), 1), 2),
         "total_requests": counter.count,
-        "provider": "mock",
+        "provider": "mock" if args.provider == "mock" else f"openai-compatible:{__import__('os').getenv('LLM_MODEL', 'gpt-4o-mini')}",
         "insufficient_handled_rate": round(sum(1 for r in expect_insufficient if r["status"] in ("insufficient_evidence", "answer_withheld", "corrected_premise")) / max(len(expect_insufficient), 1), 3),
         "corrections_on_insufficient": sum(1 for r in expect_insufficient if r["status"] == "corrected_premise"),
         "false_corrections": sum(1 for r in expect_evidence if r["status"] == "corrected_premise"),
         "correction_success_rate": round(sum(1 for r in expect_correction if r["status"] == "corrected_premise") / max(len(expect_correction), 1), 3) if expect_correction else None,
         "correction_safe_rate": round(sum(1 for r in expect_correction if r["status"] in ("corrected_premise", "insufficient_evidence")) / max(len(expect_correction), 1), 3) if expect_correction else None,
-        "correction_false_answer_rate": round(sum(1 for r in expect_correction if r["status"] == "answered") / max(len(expect_correction), 1), 3) if expect_correction else None,
+        "correction_false_answer_rate": round(sum(1 for r in expect_correction if r["status"] in ("answered", "answered_partial")) / max(len(expect_correction), 1), 3) if expect_correction else None,
         "recall_at_3": round(sum(1 for rank in ranks if rank is not None and rank <= 3) / max(len(ranks), 1), 3) if ranks else None,
         "recall_at_6": round(sum(1 for rank in ranks if rank is not None and rank <= 6) / max(len(ranks), 1), 3) if ranks else None,
         "mrr": round(sum(1.0 / rank for rank in ranks if rank) / max(len(ranks), 1), 3) if ranks else None,

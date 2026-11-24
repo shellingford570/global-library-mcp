@@ -53,6 +53,62 @@ def rank_candidates(analysis: Any, items: list[Any], query_hits: dict[tuple[str,
 NARRATIVE_KINDS = ("body", "table")
 
 
+def rejection_reasons(
+    status: str,
+    semantics: dict[str, Any] | None,
+    record: dict[str, Any] | None,
+    page_kind: str | None,
+) -> list[str]:
+    """Why a page may not ground an answer, in plain terms.
+
+    Shared by the evidence states (8-B) and the research
+    materials mode (8-D), so a candidate always explains itself
+    the same way.
+    """
+    semantics = semantics or {}
+    relation = semantics.get("relation")
+    reasons: list[str] = []
+    if status not in ("relevant", "partially_relevant"):
+        reasons.append("質問の中心概念との語彙的一致が不足している")
+    if relation == "mentions_only":
+        reasons.append("資料は話題に言及しているが、質問が求める出来事・普及を主張していない")
+    elif relation == "insufficient":
+        reasons.append("中心概念に言及する文が本文にない")
+    elif relation == "contradicts":
+        reasons.append("資料は質問の前提と矛盾する記述を含む")
+    checks = (record or {}).get("checks", {})
+    if checks.get("era_anchor") is False:
+        reasons.append("出来事と時代を直接結び付ける記述（時代アンカー）が確認できない")
+    if checks.get("page_kind_ok") is False or (
+        relation in ("uncertain", "not_checked") and page_kind not in NARRATIVE_KINDS
+    ):
+        reasons.append(f"ページ種別（{page_kind}）は列挙的であり、事実認定の根拠には使えない")
+    if not reasons:
+        reasons.append("根拠評価の条件を満たさなかった")
+    return reasons
+
+
+def evidence_states(
+    source_verified: bool,
+    status: str | None,
+    semantics: dict[str, Any] | None,
+    admitted: bool,
+    reasons: list[str] | None = None,
+) -> dict[str, Any]:
+    """The Phase 8-B state record for one fetched page."""
+    semantics = semantics or {}
+    return {
+        "discovered": True,
+        "accessible": True,
+        "source_verified": bool(source_verified),
+        "relevant_candidate": status in ("relevant", "partially_relevant"),
+        "supporting_passage": bool(semantics.get("stance_sentences")),
+        "assessed_evidence": bool(admitted),
+        "rejected_for_answer": not admitted,
+        "rejection_reasons": reasons or [],
+    }
+
+
 def admission_decision(
     analysis: Any,
     status: str,
@@ -347,6 +403,15 @@ class LibraryService:
             else:
                 reason = "質問に答えるための検証済みOCR本文が確認できませんでした。"
             limitations = ["No OCR page passed both the quality gate and the relevance gate for this question"]
+            if (collected.get("retrieval") or {}).get("budget_exhausted"):
+                # Phase 8-I: budget-limited insufficiency is NOT
+                # "no evidence exists" - say exactly what happened.
+                reason += "なお、設定された検索予算内で確認できた範囲では根拠が見つかりませんでした。予算外に根拠が存在しないとは断定できません。"
+                limitations.append(
+                    f"search stopped at the configured request budget "
+                    f"({(collected.get('retrieval') or {}).get('request_budget')} units); "
+                    "absence of evidence beyond the budget is not asserted"
+                )
             if related:
                 reason += "関連する資料は見つかりましたが、質問への関連性が不足するため、回答の根拠には採用していません（参考資料として表示します）。"
                 limitations.append("Related documents exist but were not adopted as evidence; see related_documents")
@@ -373,6 +438,9 @@ class LibraryService:
                 provider = MockProvider()
             else:
                 provider = OpenAICompatibleProvider(self.client)
+        # Phase 8-J: the UI must never present a MockProvider
+        # result as a real AI answer - name the provider.
+        base["provider"] = provider.__class__.__name__
         payload = compact_evidence(evidence)
         result = await provider.answer(query, payload)
         if not result.get("available"):
@@ -425,8 +493,40 @@ class LibraryService:
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
         claims = verify_claims(clean_claims, evidence, analysis=analysis)
+        # Phase 8-H: claims are structured - id, passage links,
+        # temporal scope, numeric values, support status,
+        # limitations - and unverifiable claims are REMOVED from
+        # the published answer instead of silently riding along
+        # or vetoing the verifiable remainder.
+        from global_library_mcp.numeric import extract_quantities
+
+        passages_by_key: dict[str, list[dict[str, Any]]] = {
+            item["citation_key"]: (item.get("passages") or []) for item in evidence
+        }
+        era_label = (analysis.get("era") or {}).get("label")
+        for index, claim in enumerate(claims):
+            claim["claim_id"] = f"c{index + 1}"
+            claim["support_status"] = claim.get("support")
+            claim["temporal_scope"] = era_label
+            claim["numeric_values"] = [
+                {"value": q["value"], "counter": q.get("unit"), "raw": q["raw"]}
+                for q in extract_quantities(claim.get("text", ""))
+            ]
+            passage_ids: list[str] = []
+            for key in claim.get("citations", []):
+                for passage in passages_by_key.get(key, [])[:2]:
+                    if passage["passage_id"] not in passage_ids:
+                        passage_ids.append(passage["passage_id"])
+            claim["evidence_passage_ids"] = passage_ids
+            claim_limitations = []
+            if claim.get("support") == "uncertain":
+                claim_limitations.append("自動スクリーニングで裏付けが不確実（uncertain）")
+            if not passage_ids:
+                claim_limitations.append("対応する抽出箇所（passage）が特定できなかった")
+            claim["limitations"] = claim_limitations
         blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
-        if blocking:
+        publishable = [c for c in claims if c.get("support") not in {"unsupported", "conflicting"}]
+        if blocking and not publishable:
             return {
                 **base,
                 "status": "answer_withheld",
@@ -442,6 +542,28 @@ class LibraryService:
         limitations = list(result.get("limitations", []))
         if any(c.get("support") == "uncertain" for c in claims):
             limitations.append("一部の主張は自動スクリーニングで裏付けが不確実です（uncertain）。原本ページで確認してください。")
+        if blocking:
+            # Partial answer: publish only the verified claims,
+            # labelled as partial, with the dropped claims named
+            # in the limitations. An unverifiable assertion never
+            # reaches the answer text.
+            kept_keys = {key for c in publishable for key in c.get("citations", [])}
+            limitations.append(
+                f"部分回答です。検証できなかった主張{len(blocking)}件を回答から除外しました: "
+                + "; ".join(c.get("text", "")[:60] for c in blocking)
+            )
+            return {
+                **base,
+                "status": "answered_partial",
+                "available": True,
+                "answer": "".join(
+                    c["text"] if c["text"].endswith("。") else c["text"] + "。"
+                    for c in publishable
+                ),
+                "citations": [c for c in citations if c["citation_key"] in kept_keys],
+                "claims": claims,
+                "limitations": limitations,
+            }
         return {
             **base,
             "status": "answered",
@@ -500,16 +622,32 @@ class LibraryService:
             variant for variant in term_variants
             if not any(variant != other and variant in other for other in term_variants)
         ]
+        library_error_counts: dict[str, int] = {}
+        active_libraries: list[str] | None = list(libraries) if libraries else None
         for candidate_query in variants:
-            cache_key = (candidate_query, tuple(sorted(libraries)), limit)
+            cache_key = (candidate_query, tuple(sorted(active_libraries or ())), limit)
             resp = self._search_cache.get(cache_key)
             if resp is not None:
                 self.cache_stats["search_hits"] += 1
             else:
                 self.cache_stats["search_misses"] += 1
-                resp = await self.search(candidate_query, libraries, limit)
+                resp = await self.search(candidate_query, active_libraries, limit)
                 self._search_cache[cache_key] = resp
+                # Bounded cache (Phase 8-I): FIFO eviction.
+                while len(self._search_cache) > 256:
+                    self._search_cache.pop(next(iter(self._search_cache)))
             search_errors.extend(resp.errors)
+            # Circuit breaker (Phase 8-I): a library that keeps
+            # erroring is paused for the rest of this question
+            # instead of being retried for every variant.
+            for error in resp.errors:
+                lib = error.get("library_id") if isinstance(error, dict) else None
+                if lib:
+                    library_error_counts[lib] = library_error_counts.get(lib, 0) + 1
+            if active_libraries:
+                tripped = {lib for lib, count in library_error_counts.items() if count >= 3}
+                if tripped:
+                    active_libraries = [lib for lib in active_libraries if lib not in tripped] or active_libraries
             for item in resp.results:
                 key = (item.library_id, item.record_id)
                 query_hits[key] = query_hits.get(key, 0) + 1
@@ -537,8 +675,22 @@ class LibraryService:
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
         budget_extended = False
+        # Phase 8-I: per-question request budget in service units
+        # (one in-document search + each gated page). 0 = unlimited
+        # (the pre-Phase-8 behaviour); when the budget is spent the
+        # pipeline stops fetching and says so honestly - "not
+        # confirmed within the configured budget", never "no
+        # evidence exists".
+        import os as _os
+
+        request_budget = int(_os.getenv("GLM_REQUEST_BUDGET", "0") or 0)
+        request_units = 0
+        budget_exhausted = False
         evidence_document_ranks: list[int] = []
         doc_states: dict[int, dict[str, Any]] = {}
+
+        nonlocal_units = [request_units]
+        nonlocal_budget = [budget_exhausted]
 
         async def screen(rank: int, result: Any, page_budget: int, include_adjacent: bool = False) -> None:
             nonlocal documents_tried
@@ -555,6 +707,9 @@ class LibraryService:
                 adapter, result, analysis, search_terms, page_budget, state, semantic_checker,
                 include_adjacent=include_adjacent,
             )
+            nonlocal_units[0] += 1 + len(outcome["verified"]) + len(outcome["related"]) + len(outcome["unverified"])
+            if request_budget and nonlocal_units[0] >= request_budget:
+                nonlocal_budget[0] = True
             for ev in outcome["verified"]:
                 verified.append(ev)
                 if rank not in evidence_document_ranks:
@@ -570,18 +725,22 @@ class LibraryService:
         # with 2 pages beats the wrong book at rank 1 with 3.
         wave1 = ranked[: max_documents + 6]
         for rank, result in enumerate(wave1, start=1):
+            if nonlocal_budget[0]:
+                break
             await screen(rank, result, 2)
             if len(verified) >= 3:
                 break
         # Wave 2 deepens documents that produced a
         # partially_relevant page: their remaining hit pages.
-        if not verified:
+        if not verified and not nonlocal_budget[0]:
             for rank, result in enumerate(wave1, start=1):
                 state = doc_states.get(rank)
                 if state and any((p.get("relevance") or {}).get("status") == "partially_relevant" for p in state["related_pages"]):
                     await screen(rank, result, 2, include_adjacent=True)
+                    if nonlocal_budget[0]:
+                        break
         # Wave 3 extends to deeper candidates.
-        if not verified and len(ranked) > len(wave1):
+        if not verified and not nonlocal_budget[0] and len(ranked) > len(wave1):
             budget_extended = True
             for rank, result in enumerate(ranked[len(wave1): len(wave1) + 6], start=len(wave1) + 1):
                 await screen(rank, result, 2)
@@ -613,10 +772,29 @@ class LibraryService:
             "candidates": len(merged),
             "documents_tried": documents_tried,
             "budget_extended": budget_extended,
+            "request_units": nonlocal_units[0],
+            "request_budget": request_budget,
+            "budget_exhausted": nonlocal_budget[0],
             "first_evidence_rank": evidence_document_ranks[0] if evidence_document_ranks else None,
             "evidence_document_ranks": evidence_document_ranks,
             "failure_reason": failure_reason,
         }
+        # Phase 8-B: each pipeline stage reports its own outcome,
+        # so a failure is attributable to a stage, not to "search".
+        stage_log = [
+            {"stage": "query_analysis", "status": "ok",
+             "detail": f"core_concepts={len(analysis.core_concepts)}, era={analysis.era['label'] if analysis.era else None}, intent={analysis.intent}"},
+            {"stage": "bibliographic_retrieval", "status": "ok" if ranked else "empty",
+             "detail": f"{len(ranked)} candidates after ranking"},
+            {"stage": "page_retrieval", "status": "ok" if (verified or related) else "empty",
+             "detail": f"{len(verified) + len(related)} gated pages"},
+            {"stage": "source_identity_verification", "status": "ok",
+             "detail": f"{len(unverified)} pages failed identity/quality verification"},
+            {"stage": "passage_extraction", "status": "ok",
+             "detail": f"{sum(len(item.passages or []) for item in verified)} passages on admitted pages"},
+            {"stage": "evidence_assessment", "status": "ok" if verified else "no_admission",
+             "detail": f"{len(verified)} assessed evidence, {len(related)} rejected candidates, {len(premise_contradictions)} contradictions"},
+        ]
         return {
             "query": query,
             "retrieval": retrieval,
@@ -627,6 +805,7 @@ class LibraryService:
             "related": related[:8],
             "unverified": unverified,
             "search": search_view,
+            "stage_log": stage_log,
         }
 
     def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
@@ -834,6 +1013,10 @@ class LibraryService:
             relation = evidence.semantics.get("relation")
             anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
             if assessment["status"] == "relevant" and relation == "contradicts" and evidence.page_kind in NARRATIVE_KINDS:
+                evidence.states = evidence_states(
+                    True, assessment["status"], evidence.semantics, False,
+                    rejection_reasons(assessment["status"], evidence.semantics, None, evidence.page_kind),
+                )
                 # A correction is an assertion too: it may only rest
                 # on narrative pages, never on a heading in a
                 # contents list or an index entry (Phase 7-E).
@@ -846,9 +1029,27 @@ class LibraryService:
                     evidence.page_kind, pub_year, anchor_matched,
                 )
                 evidence.promotion = record
+                evidence.states = evidence_states(
+                    True, assessment["status"], evidence.semantics, admitted,
+                    [] if admitted else rejection_reasons(
+                        assessment["status"], evidence.semantics, record, evidence.page_kind),
+                )
                 if record["path"] == "semantic" and admitted:
                     evidence.semantics["promoted"] = True
                 if admitted:
+                    # Phase 8-C: admitted evidence carries its
+                    # passages - the located, verbatim units the
+                    # answer may actually cite.
+                    from global_library_mcp.passages import extract_passages
+
+                    evidence.passages = extract_passages(
+                        analysis, evidence.ocr_text, evidence.citation_key,
+                        image_url=evidence.image_url,
+                    )
+                    if evidence.states is not None:
+                        evidence.states["supporting_passage"] = any(
+                            p["stance_cues"] for p in evidence.passages
+                        ) or bool(evidence.passages)
                     out["verified"].append(evidence)
                 else:
                     out["related"].append(evidence.to_dict())
@@ -856,6 +1057,101 @@ class LibraryService:
                     if assessment["status"] == "partially_relevant":
                         state.setdefault("partial_objects", []).append(evidence)
         return out
+
+    async def research_materials(
+        self, query: str, libraries: list[str] | None = None, limit: int = 10,
+    ) -> dict[str, Any]:
+        """Research-materials mode (Phase 8-D).
+
+        Runs the SAME pipeline as the answer mode (no duplicate
+        API calls) and presents what was found as materials for
+        the reader's own judgment: admitted evidence, rejected
+        candidates with the reason each was not admitted, and
+        discovered-but-unfetched records. A candidate is never
+        presented as proof of an answer.
+        """
+        collected = await self.collect_evidence(query, libraries, limit)
+        biblio: dict[tuple[str, str], dict[str, Any]] = {}
+        for item in collected["search"]["results"]:
+            biblio[(item["library_id"], item["record_id"])] = item
+        seen_pages: set[str] = set()
+        materials: list[dict[str, Any]] = []
+
+        def entry(page: dict[str, Any], admitted: bool) -> dict[str, Any]:
+            record = biblio.get((page["library_id"], page["record_id"]), {})
+            excerpts = page.get("passages") or []
+            if not excerpts and page.get("ocr_text"):
+                from global_library_mcp.passages import extract_passages
+                from global_library_mcp.question import analyze_question
+
+                excerpts = extract_passages(
+                    analyze_question(query), page["ocr_text"], page["citation_key"],
+                    image_url=page.get("image_url"), limit=2,
+                )
+            states = page.get("states") or {}
+            return {
+                "citation_key": page["citation_key"],
+                "library_id": page["library_id"],
+                "record_id": page["record_id"],
+                "title": record.get("title") or page.get("title"),
+                "author": record.get("author"),
+                "date": record.get("date"),
+                "landing_url": record.get("landing_url"),
+                "page_id": page["page_id"],
+                "image_url": page.get("image_url"),
+                "page_kind": page.get("page_kind"),
+                "rights": (record.get("rights") or {}),
+                "states": states,
+                "admitted_as_evidence": admitted,
+                "excerpts": excerpts,
+                "not_admitted_reasons": [] if admitted else states.get("rejection_reasons", []),
+                "relevance": page.get("relevance"),
+            }
+
+        for page in collected["evidence"]:
+            seen_pages.add(page["citation_key"])
+            materials.append(entry(page, True))
+        for page in collected["related"]:
+            if page["citation_key"] in seen_pages:
+                continue
+            seen_pages.add(page["citation_key"])
+            materials.append(entry(page, False))
+        fetched_records = {(m["library_id"], m["record_id"]) for m in materials}
+        for item in collected["search"]["results"][: max(limit, 10)]:
+            key = (item["library_id"], item["record_id"])
+            if key in fetched_records:
+                continue
+            materials.append({
+                "citation_key": None,
+                "library_id": item["library_id"],
+                "record_id": item["record_id"],
+                "title": item["title"],
+                "author": item.get("author"),
+                "date": item.get("date"),
+                "landing_url": item.get("landing_url"),
+                "page_id": None,
+                "image_url": item.get("image_url"),
+                "page_kind": None,
+                "rights": item.get("rights") or {},
+                "states": {"discovered": True, "accessible": False, "source_verified": False,
+                           "relevant_candidate": False, "supporting_passage": False,
+                           "assessed_evidence": False, "rejected_for_answer": True,
+                           "rejection_reasons": ["検索予算内でページを取得しなかった"]},
+                "admitted_as_evidence": False,
+                "excerpts": [],
+                "not_admitted_reasons": ["検索予算内でページを取得しなかった"],
+                "relevance": None,
+            })
+        return {
+            "mode": "research_materials",
+            "note": "関連候補は質問への答えを証明する資料ではありません。抜粋と原本画像を確認し、ご自身で判断してください。",
+            "query": query,
+            "analysis": collected["analysis"],
+            "answerable": bool(collected["evidence"]),
+            "materials": materials,
+            "stage_log": collected.get("stage_log", []),
+            "retrieval": collected["retrieval"],
+        }
 
     async def compare_documents(
         self,
