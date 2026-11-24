@@ -952,6 +952,101 @@ class LibraryService:
                         state.setdefault("partial_objects", []).append(evidence)
         return out
 
+    async def research_materials(
+        self, query: str, libraries: list[str] | None = None, limit: int = 10,
+    ) -> dict[str, Any]:
+        """Research-materials mode (Phase 8-D).
+
+        Runs the SAME pipeline as the answer mode (no duplicate
+        API calls) and presents what was found as materials for
+        the reader's own judgment: admitted evidence, rejected
+        candidates with the reason each was not admitted, and
+        discovered-but-unfetched records. A candidate is never
+        presented as proof of an answer.
+        """
+        collected = await self.collect_evidence(query, libraries, limit)
+        biblio: dict[tuple[str, str], dict[str, Any]] = {}
+        for item in collected["search"]["results"]:
+            biblio[(item["library_id"], item["record_id"])] = item
+        seen_pages: set[str] = set()
+        materials: list[dict[str, Any]] = []
+
+        def entry(page: dict[str, Any], admitted: bool) -> dict[str, Any]:
+            record = biblio.get((page["library_id"], page["record_id"]), {})
+            excerpts = page.get("passages") or []
+            if not excerpts and page.get("ocr_text"):
+                from global_library_mcp.passages import extract_passages
+                from global_library_mcp.question import analyze_question
+
+                excerpts = extract_passages(
+                    analyze_question(query), page["ocr_text"], page["citation_key"],
+                    image_url=page.get("image_url"), limit=2,
+                )
+            states = page.get("states") or {}
+            return {
+                "citation_key": page["citation_key"],
+                "library_id": page["library_id"],
+                "record_id": page["record_id"],
+                "title": record.get("title") or page.get("title"),
+                "author": record.get("author"),
+                "date": record.get("date"),
+                "landing_url": record.get("landing_url"),
+                "page_id": page["page_id"],
+                "image_url": page.get("image_url"),
+                "page_kind": page.get("page_kind"),
+                "rights": (record.get("rights") or {}),
+                "states": states,
+                "admitted_as_evidence": admitted,
+                "excerpts": excerpts,
+                "not_admitted_reasons": [] if admitted else states.get("rejection_reasons", []),
+                "relevance": page.get("relevance"),
+            }
+
+        for page in collected["evidence"]:
+            seen_pages.add(page["citation_key"])
+            materials.append(entry(page, True))
+        for page in collected["related"]:
+            if page["citation_key"] in seen_pages:
+                continue
+            seen_pages.add(page["citation_key"])
+            materials.append(entry(page, False))
+        fetched_records = {(m["library_id"], m["record_id"]) for m in materials}
+        for item in collected["search"]["results"][: max(limit, 10)]:
+            key = (item["library_id"], item["record_id"])
+            if key in fetched_records:
+                continue
+            materials.append({
+                "citation_key": None,
+                "library_id": item["library_id"],
+                "record_id": item["record_id"],
+                "title": item["title"],
+                "author": item.get("author"),
+                "date": item.get("date"),
+                "landing_url": item.get("landing_url"),
+                "page_id": None,
+                "image_url": item.get("image_url"),
+                "page_kind": None,
+                "rights": item.get("rights") or {},
+                "states": {"discovered": True, "accessible": False, "source_verified": False,
+                           "relevant_candidate": False, "supporting_passage": False,
+                           "assessed_evidence": False, "rejected_for_answer": True,
+                           "rejection_reasons": ["検索予算内でページを取得しなかった"]},
+                "admitted_as_evidence": False,
+                "excerpts": [],
+                "not_admitted_reasons": ["検索予算内でページを取得しなかった"],
+                "relevance": None,
+            })
+        return {
+            "mode": "research_materials",
+            "note": "関連候補は質問への答えを証明する資料ではありません。抜粋と原本画像を確認し、ご自身で判断してください。",
+            "query": query,
+            "analysis": collected["analysis"],
+            "answerable": bool(collected["evidence"]),
+            "materials": materials,
+            "stage_log": collected.get("stage_log", []),
+            "retrieval": collected["retrieval"],
+        }
+
     async def compare_documents(
         self,
         documents: list[dict[str, str]],

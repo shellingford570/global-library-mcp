@@ -145,6 +145,24 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
+        if parsed.path == "/api/materials":
+            query = parse_qs(parsed.query).get("q", [""])[0].strip()
+            if not query:
+                self._send(json_bytes({"error": "q is required"}), status=400)
+                return
+            if len(query) > 500:
+                self._send(json_bytes({"error": "q is too long"}), status=400)
+                return
+            raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
+            libraries = [item for item in raw_libraries.split(",") if item][:10] or None
+            try:
+                async def execute_materials():
+                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
+                        return await LibraryService(client).research_materials(query, libraries, 10)
+                self._send(json_bytes(asyncio.run(execute_materials())))
+            except Exception as exc:
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
+            return
         if parsed.path == "/api/verify":
             params = parse_qs(parsed.query)
             library_id = params.get("library", [""])[0]
