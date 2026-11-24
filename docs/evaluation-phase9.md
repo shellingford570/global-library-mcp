@@ -116,3 +116,14 @@ covers the new controls (8 Playwright tests pass).
 - GitHub Actions: verified on PR #9.
 - Security audit: `docs/phase9-security-audit.md` (secret
   scan over tracked files: no hits).
+
+## Addendum (2026-11-24): the approved real-LLM run
+
+Executed after the report above, as amended by the operator
+(xAI grok-4.3, 20 questions, $1.00 cap): answerable 0.200
+(4/20) vs MockProvider 0.600 on the same subset; ledger-booked
+cost $0.2133 (real charge ≈ $0.05; see
+`docs/phase9-llm-experiment-plan.md`). The LLM's abstractive
+claims mostly fail the verbatim-overlap screening — verdict B
+remains NOT YET, with the constraint now measured rather than
+assumed.

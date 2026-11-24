@@ -108,7 +108,7 @@ async def main() -> int:
             try:
                 provider = MockProvider() if args.provider == "mock" else OpenAICompatibleProvider(client)
                 result = await service.answer(item["question"], libraries=["ndl"], limit=5, provider=provider)
-                if ledger is not None:
+                if ledger is not None and result.get("llm_called"):
                     ledger.record(result.get("llm_usage"))
                     record["llm_usage"] = result.get("llm_usage")
                 record["status"] = result["status"]

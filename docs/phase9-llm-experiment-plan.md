@@ -94,3 +94,40 @@ public-domain OCR excerpts only):
 
 The xAI API is billed separately from any Grok/X consumer
 subscription; the key is issued at console.x.ai.
+
+## Result (2026-11-24, executed as amended)
+
+- Approved by the operator: first for gpt-4o-mini, then
+  switched to xAI at the operator's request; grok-4-fast was
+  not available on the key, and the operator chose
+  **grok-4.3** under the same $1.00 cap.
+- Run: first 20 questions of the main set (all
+  evidence-labelled), live NDL + live xAI, via
+  `eval/run_llm_via_connector.py` (connector-held key; only a
+  surrogate entered the process). Results:
+  `eval/results-phase9-llm-grok-4.3.json`, provider recorded
+  as `openai-compatible:grok-4.3`.
+- **Cost**: ledger-booked **$0.2133** of the $1.00 cap
+  (conservative: 9 of the 20 ledger entries were questions
+  that never reached the provider or returned no usage and
+  were booked at worst case; the usage-reported portion
+  implies a real charge of roughly $0.05). 11 provider calls
+  reported usage; 1 call ended `llm_unavailable` (sanitised).
+  A follow-up fix makes the ledger record only actual
+  provider calls.
+- **Quality on this subset**: answered 4/20
+  (answerable_success 0.200) vs MockProvider 12/20 (0.600) on
+  the same questions. 8 questions never reached the LLM (the
+  rule pipeline admitted no evidence). 7 answers were
+  withheld because the LLM's claims failed the verbatim
+  overlap screening (supported claims 5/19; the LLM
+  paraphrases where the screening expects quotation).
+  No insufficient-labelled questions are in this subset, so
+  the false-answer rate is unmeasured here (0 observed).
+- **Conclusion**: the binding constraint is no longer the
+  judge's semantics but the lexical claim verification (and,
+  upstream, evidence admission). Release verdict B stays
+  NOT YET, now with evidence. Next step candidates: claim
+  screening that accepts verified paraphrase (e.g. an
+  entailment check on claims), and a subset that includes
+  insufficient/correction questions.
