@@ -47,6 +47,103 @@ def rank_candidates(analysis: Any, items: list[Any], query_hits: dict[tuple[str,
     return sorted(items, key=lambda item: -score(item))
 
 
+# Page kinds that can carry an assertion (as opposed to naming,
+# listing or picturing the topic). Promotion paths and era-bound
+# admissions are restricted to these (Phase 7-B/7-D policy).
+NARRATIVE_KINDS = ("body", "table")
+
+
+def admission_decision(
+    analysis: Any,
+    status: str,
+    semantics: dict[str, Any] | None,
+    page_kind: str | None,
+    publication_year: int | None,
+    anchor_matched: bool = False,
+) -> tuple[bool, dict[str, Any]]:
+    """May this gated page ground an answer? (Phase 7-B)
+
+    One rule for every path - direct, semantic promotion, union.
+    Era-bound questions are the false-answer surface: a page
+    grounds an era answer only when the checker *asserts* the
+    asked stance and that assertion is anchored (in-era textual
+    anchor, or a source contemporary with the era), or when the
+    checker is out of scope (dated-event / general demands) and
+    the page is narrative prose. A mention is not an assertion:
+    mentions_only and insufficient never ground an era answer,
+    whatever the page kind - the Phase 6 fixtures q52/h03/h22
+    (mentions) and h05 (insufficient) all entered this way.
+    Promotion paths additionally require narrative page kinds:
+    contents pages, indexes and administrative lists name topics
+    and numbers without asserting them (q35/q40).
+
+    Returns (admitted, promotion record) - the record is stored
+    on the evidence so every answer can show *why* a page was
+    admitted (brief section 4.3 checks).
+    """
+    semantics = semantics or {}
+    relation = semantics.get("relation")
+    era = getattr(analysis, "era", None)
+    contemporary = bool(semantics.get("contemporary_source"))
+    anchored = bool(semantics.get("anchored_support")) or contemporary
+    checks: dict[str, Any] = {
+        "concepts": status in ("relevant", "partially_relevant"),
+        "stance": relation,
+        "era_anchor": None,
+        "page_kind": page_kind,
+        "ocr_quality": True,  # guaranteed by the verified gate upstream
+        "citation_exists": True,
+    }
+    path = "direct" if status == "relevant" else "semantic"
+    record: dict[str, Any] = {"path": path, "checks": checks}
+    if status not in ("relevant", "partially_relevant") or relation == "contradicts":
+        return False, record
+    if status == "partially_relevant":
+        # Semantic promotion: partial lexical relevance upgraded by
+        # a checker assertion. Never from an enumerative page.
+        if not anchor_matched:
+            return False, record
+        if page_kind not in NARRATIVE_KINDS:
+            checks["page_kind_ok"] = False
+            return False, record
+        if era is not None:
+            if relation != "supports":
+                return False, record
+            checks["era_anchor"] = anchored
+            return anchored, record
+        # No era premise: the checker is a stance instrument for
+        # era questions; for general demands its out-of-scope
+        # verdicts do not veto a promotion.
+        return relation in ("supports", "uncertain", "not_checked"), record
+    # Direct path (lexically relevant).
+    if era is None:
+        return True, record
+    if relation == "supports":
+        checks["era_anchor"] = anchored
+        return anchored, record
+    if relation in ("uncertain", "not_checked"):
+        # The checker has no stance opinion (dated events, general
+        # demands): narrative prose may ground the answer, an
+        # enumerative page may not - unless the question asks for
+        # exactly what that page kind is authoritative for
+        # (Phase 7-D usage policy): a title page or colophon for a
+        # bibliographic question, front matter for a structure
+        # question. Factual era questions get no such bypass.
+        if page_kind in NARRATIVE_KINDS:
+            return True, record
+        raw = getattr(analysis, "raw", "") or ""
+        bibliographic = any(w in raw for w in ("書名", "題名", "タイトル", "著者", "誰が書", "出版社", "いつの本"))
+        structure = any(w in raw for w in ("目次", "章構成", "何章", "構成を"))
+        if bibliographic and page_kind in ("title_page", "colophon"):
+            checks["kind_purpose"] = "bibliographic"
+            return True, record
+        if structure and page_kind == "front_matter":
+            checks["kind_purpose"] = "structure"
+            return True, record
+        return False, record
+    return False, record
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -62,6 +159,11 @@ class LibraryService:
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
+        # Bibliographic search cache (Phase 7-G): identical queries
+        # recur across questions in a session; caching them is a
+        # pure load reduction with no behavioural change.
+        self._search_cache: dict[tuple[str, tuple[str, ...], int], Any] = {}
+        self.cache_stats = {"search_hits": 0, "search_misses": 0}
 
     async def search(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> SearchResponse:
         selected = list(dict.fromkeys(libraries or self.default_libraries))
@@ -322,7 +424,7 @@ class LibraryService:
                     "citations": [c for c in claim.get("citations", []) if isinstance(c, str)],
                     **({"conflict": True} if claim.get("conflict") else {}),
                 })
-        claims = verify_claims(clean_claims, evidence)
+        claims = verify_claims(clean_claims, evidence, analysis=analysis)
         blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
         if blocking:
             return {
@@ -388,8 +490,25 @@ class LibraryService:
         # Run every query variant: stopping as soon as a few
         # candidates exist (the old behaviour) let broad survey
         # volumes fill the pool before the specialist query ran.
-        for candidate_query in dict.fromkeys([query, *search_terms]):
-            resp = await self.search(candidate_query, libraries, limit)
+        # One exception (Phase 7-G): a variant that is a substring
+        # of a longer variant adds almost no discovery - its hits
+        # are the longer query's neighbourhood - but costs a full
+        # search per library. The full question always runs.
+        variants = list(dict.fromkeys([query, *search_terms]))
+        term_variants = variants[1:]
+        variants = variants[:1] + [
+            variant for variant in term_variants
+            if not any(variant != other and variant in other for other in term_variants)
+        ]
+        for candidate_query in variants:
+            cache_key = (candidate_query, tuple(sorted(libraries)), limit)
+            resp = self._search_cache.get(cache_key)
+            if resp is not None:
+                self.cache_stats["search_hits"] += 1
+            else:
+                self.cache_stats["search_misses"] += 1
+                resp = await self.search(candidate_query, libraries, limit)
+                self._search_cache[cache_key] = resp
             search_errors.extend(resp.errors)
             for item in resp.results:
                 key = (item.library_id, item.record_id)
@@ -511,18 +630,18 @@ class LibraryService:
         }
 
     def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
-        """Document-level union promotion (Phase 6-D).
+        """Document-level union promotion (Phase 6-D, hardened 7-B).
 
-        Multi-concept questions often spread coverage across the
-        pages of one document: no single page reaches the relevance
-        fraction although the document plainly covers the question.
-        When one document's partially_relevant pages jointly cover
-        every concept family, the anchor page carries the anchor
-        family, the era condition is met somewhere in the document,
-        and no page of the document contradicts the premise, the
-        best pages are promoted to evidence. Per-page standards are
-        unchanged for everything else, and front-matter pages never
-        carry a union.
+        Coverage and assertion are different things (brief 4.2):
+        that one document's pages jointly *cover* every concept
+        family does not assert any fact. A union therefore promotes
+        only when at least one member page individually passes the
+        admission rule for a checker assertion (anchored, when the
+        question is era-bound), every promoted page satisfies the
+        era condition *itself* (an era word on another page does
+        not date this page's events - brief 4.1), all member pages
+        are narrative kinds, the anchor family is present, and no
+        page of the document contradicts the premise.
         """
         from global_library_mcp.relevance import concept_families
 
@@ -532,7 +651,7 @@ class LibraryService:
         promoted: list[Any] = []
         keys: set[str] = set()
         for state in doc_states.values():
-            objects = [o for o in state.get("partial_objects", []) if o.page_kind != "front_matter"]
+            objects = [o for o in state.get("partial_objects", []) if o.page_kind in NARRATIVE_KINDS]
             if not objects:
                 continue
             covered: set[str] = set()
@@ -545,19 +664,39 @@ class LibraryService:
             doc_dicts = state.get("related_pages", [])
             if any((p.get("semantics") or {}).get("relation") == "contradicts" for p in doc_dicts):
                 continue
+            candidates = []
+            for obj in objects:
+                # The document-level checks above already verified
+                # the anchor family is present in this document, so
+                # the per-page admission runs with anchor_matched
+                # satisfied; what it must still prove per page is
+                # the assertion standard (supports, anchored when
+                # era-bound, narrative kind).
+                admitted, record = admission_decision(
+                    analysis, "partially_relevant", obj.semantics, obj.page_kind,
+                    None, True,
+                )
+                if not admitted:
+                    continue
+                if analysis.era is not None and "時代条件を満たす" not in " ".join(
+                    (obj.relevance or {}).get("reasons", [])
+                ):
+                    # The era condition must hold on the promoted
+                    # page itself, not merely somewhere in the book.
+                    continue
+                record["path"] = "union"
+                candidates.append((obj, record))
+            # At least one member must carry the assertion itself;
+            # pure coverage never promotes. (Era-bound questions
+            # only: for general demands the checker is out of scope
+            # and coverage plus non-contradiction is the contract.)
             if analysis.era is not None and not any(
-                "時代条件を満たす" in " ".join((obj.relevance or {}).get("reasons", [])) for obj in objects
+                (obj.semantics or {}).get("relation") == "supports" for obj, _ in candidates
             ):
                 continue
-            candidates = [
-                obj for obj in objects
-                if (obj.semantics or {}).get("relation") != "contradicts"
-                and not ((obj.semantics or {}).get("relation") == "mentions_only" and (obj.semantics or {}).get("retrospective"))
-                and not (analysis.era is not None and obj.page_kind in ("front_matter", "photo_plate")
-                         and (obj.semantics or {}).get("relation") in ("mentions_only", "insufficient"))
-            ]
-            candidates.sort(key=lambda o: -(o.relevance or {}).get("score", 0))
-            for obj in candidates[:2]:
+            candidates.sort(key=lambda pair: -(pair[0].relevance or {}).get("score", 0))
+            for obj, record in candidates[:2]:
+                obj.promotion = record
                 obj.semantics["union_promoted"] = True
                 promoted.append(obj)
                 keys.add(obj.citation_key)
@@ -694,39 +833,28 @@ class LibraryService:
             evidence.semantics = semantic_checker.assess(analysis, evidence.ocr_text, publication_year=pub_year)
             relation = evidence.semantics.get("relation")
             anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
-            if assessment["status"] == "relevant" and relation == "contradicts":
+            if assessment["status"] == "relevant" and relation == "contradicts" and evidence.page_kind in NARRATIVE_KINDS:
+                # A correction is an assertion too: it may only rest
+                # on narrative pages, never on a heading in a
+                # contents list or an index entry (Phase 7-E).
                 out["contradictions"].append(evidence.to_dict())
                 out["related"].append(evidence.to_dict())
                 state["related_pages"].append(evidence.to_dict())
-            elif (assessment["status"] == "relevant" and relation in ("mentions_only", "insufficient")
-                  and analysis.era is not None and evidence.page_kind in ("front_matter", "photo_plate")):
-                # Era-premise questions (Phase 6 tightening, scoped
-                # by page kind): an enumerative page - a table of
-                # contents, an index, a plate list - that only
-                # mentions the topic cannot ground an era claim.
-                # Body pages keep the Phase 5 behaviour: the
-                # checker's mentions_only/insufficient verdicts are
-                # too conservative to demote narrative prose (the
-                # first, unscoped version of this rule cost more
-                # true answers than false ones - see
-                # docs/evaluation-phase6.md).
-                out["related"].append(evidence.to_dict())
-                state["related_pages"].append(evidence.to_dict())
-            elif (assessment["status"] == "relevant" and relation == "mentions_only"
-                  and evidence.semantics.get("retrospective")
-                  and evidence.semantics.get("demand") in ("occurrence", "diffusion")):
-                out["related"].append(evidence.to_dict())
-                state["related_pages"].append(evidence.to_dict())
-            elif assessment["status"] == "partially_relevant" and relation == "supports" and anchor_matched:
-                evidence.semantics["promoted"] = True
-                out["verified"].append(evidence)
-            elif assessment["status"] == "relevant":
-                out["verified"].append(evidence)
             else:
-                out["related"].append(evidence.to_dict())
-                state["related_pages"].append(evidence.to_dict())
-                if assessment["status"] == "partially_relevant":
-                    state.setdefault("partial_objects", []).append(evidence)
+                admitted, record = admission_decision(
+                    analysis, assessment["status"], evidence.semantics,
+                    evidence.page_kind, pub_year, anchor_matched,
+                )
+                evidence.promotion = record
+                if record["path"] == "semantic" and admitted:
+                    evidence.semantics["promoted"] = True
+                if admitted:
+                    out["verified"].append(evidence)
+                else:
+                    out["related"].append(evidence.to_dict())
+                    state["related_pages"].append(evidence.to_dict())
+                    if assessment["status"] == "partially_relevant":
+                        state.setdefault("partial_objects", []).append(evidence)
         return out
 
     async def compare_documents(

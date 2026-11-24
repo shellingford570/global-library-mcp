@@ -72,6 +72,9 @@ _OCCURRENCE_CUES = (
     # lighting 点灯, newspapers 創刊, laws 施行/発布, companies 創立.
     "開局", "開通", "架設", "創設", "創立", "開設", "操業", "点灯",
     "創刊", "発刊", "施行", "発布", "制定",
+    # Establishment verbs and origin constructions of period prose
+    # (an office was 設置された; development は明治四十三年に始まり).
+    "設置され", "新設され", "設けられ", "に始まり", "に始まる",
 )
 _DIFFUSION_CUES = (
     "普及", "広まつた", "広まった", "一般化", "浸透", "全国各地", "家庭にまで",
@@ -126,6 +129,13 @@ class RuleBasedSemanticChecker:
         all_sentences = _sentences(text)
         units: list[tuple[str, str]] = []
         for idx, sentence in enumerate(all_sentences):
+            if len(sentence) > 300:
+                # An unsegmented blob (a contents listing or index
+                # page whose OCR has almost no sentence breaks) is
+                # not a sentence: no stance can be read from it.
+                # The Phase 6 q31 false answer rested on occurrence
+                # cues floating in a 1,028-character name list.
+                continue
             if any(find_concept(sentence, family) for family in families):
                 following = all_sentences[idx + 1] if idx + 1 < len(all_sentences) else ""
                 units.append((sentence, following))
@@ -134,6 +144,7 @@ class RuleBasedSemanticChecker:
                 "relation": "insufficient", "checker": self.name, "demand": demand,
                 "reasons": ["中心概念に言及する文が本文にない"],
                 "stance_sentences": {},
+                "anchored_support": False, "contemporary_source": False,
             }
         buckets: dict[str, list[str]] = {"negation": [], "later": [], "planning": [], "occurrence": [], "diffusion": []}
         occurrence_units: list[tuple[str, str]] = []
@@ -257,12 +268,37 @@ class RuleBasedSemanticChecker:
             reasons.append("立場を示す手がかりが不足している")
         if retrospective and relation == "mentions_only":
             reasons.append("刊行が対象時代より後の回顧的資料であり、対象時代に結びつく実現・普及の記述が確認できない")
+        # Anchored support (Phase 7-B): a supports verdict grounds an
+        # era claim only when at least one counted stance unit is
+        # itself anchored to the era (era name or in-range year, own
+        # sentence or year-bearing continuation), or the source is
+        # contemporary with the era. Unanchored supports - an
+        # occurrence cue floating in prose about other events - was
+        # the q31/h31/q35 false-answer mechanism.
+        contemporary = bool(
+            analysis.era and publication_year is not None
+            and analysis.era["start"] - 5 <= publication_year <= analysis.era["end"] + 5
+        )
+
+        def _unit_anchored(unit: tuple[str, str]) -> bool:
+            first, following = unit
+            anchor = anchor_class(first, analysis.era)
+            if anchor == "none" and following and sentence_years(following):
+                anchor = anchor_class(following, analysis.era)
+            return anchor == "in_era"
+
+        anchored_support = bool(
+            relation == "supports"
+            and (contemporary or any(_unit_anchored(u) for u in occurrence_in + diffusion_in))
+        )
         return {
             "relation": relation, "checker": self.name, "demand": demand,
             "reasons": reasons,
             "stance_sentences": {k: v for k, v in buckets.items() if v},
             "onset_after_era": onset_after,
             "retrospective": retrospective,
+            "anchored_support": anchored_support,
+            "contemporary_source": contemporary,
         }
 
 

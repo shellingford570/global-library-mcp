@@ -94,6 +94,7 @@ class Evidence:
     relevance: dict[str, Any] = field(default_factory=dict)
     semantics: dict[str, Any] = field(default_factory=dict)
     page_kind: str | None = None
+    promotion: dict[str, Any] | None = None
     rights: Rights = field(default_factory=Rights)
     retrieved_at: str = field(default_factory=now_iso)
 

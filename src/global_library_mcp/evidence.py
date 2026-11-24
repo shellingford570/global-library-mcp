@@ -117,6 +117,38 @@ def classify_page_kind(text: str | None) -> str:
     digits = sum(ch.isdigit() for ch in compact)
     if len(compact) >= 200 and digits / len(compact) > 0.25:
         return "table"
+    # OCR-damaged pages (Phase 7-D): replacement glyphs throughout,
+    # or text shattered into single characters by column noise.
+    if len(compact) >= 200:
+        glyphs = sum(compact.count(g) for g in ("〓", "□", "�"))
+        if glyphs / len(compact) > 0.01:
+            return "damaged"
+    tokens = [t for t in re.split(r"\s+", body) if t]
+    if len(body) >= 300 and tokens and compact.count("。") <= 2:
+        single = sum(1 for t in tokens if len(t) == 1)
+        if single / len(tokens) > 0.5:
+            return "damaged"
+    # Colophon (奥付): a tight cluster of publication statements.
+    colophon_hits = sum(k in compact for k in ("発行", "印刷", "定価", "発行者", "印刷者", "発行所"))
+    if colophon_hits >= 3 and len(compact) < 900:
+        return "colophon"
+    # Index pages and unsegmented listings (Phase 7-D): almost no
+    # sentence breaks over a long page, or an explicit 索引 marker.
+    # The Phase 6 q31/h03 pages are this shape - names and headings
+    # without a single asserting sentence.
+    if "索引" in compact and len(compact) < 2000:
+        return "index"
+    if len(compact) >= 600 and compact.count("。") / len(compact) < 0.004:
+        return "index"
+    # Administrative lists (Phase 7-D): dense official-unit tokens
+    # (lines, bureaus, stations) or staffing/enumeration rules with
+    # almost no prose - they name and count, they do not narrate.
+    unit_tokens = sum(compact.count(k) for k in ("線", "局", "署", "課", "駅"))
+    enumerations_pre = len(re.findall(r"[一二三四五六七八九十]+、", compact))
+    if compact.count("。") <= 3 and (unit_tokens >= 12 or (
+        ("定員" in compact or "職員" in compact or "一覧" in compact) and enumerations_pre >= 3
+    )):
+        return "admin_list"
     # A contents listing can run long: several chapter/section
     # headings with almost no full sentences is enumerative
     # front matter at any length.
@@ -130,4 +162,8 @@ def classify_page_kind(text: str | None) -> str:
         return "front_matter"
     if len(compact) < 200 and _PLATE_RE.search(compact):
         return "photo_plate"
+    # Title page (標題紙): very short, no sentence at all - a title,
+    # an author, a publisher and nothing else.
+    if len(compact) < 160 and compact.count("。") == 0:
+        return "title_page"
     return "body"

@@ -345,6 +345,16 @@ def analyze_question(question: str) -> QuestionAnalysis:
         core = non_city
     # Drop suffixed duplicates (横浜開港後 alongside 横浜開港).
     core = [c for c in core if not (c.endswith("後") and c[:-1] in core)]
+    # The による glue must not fuse to the following topic
+    # (よる宇宙飛行 is debris, not a concept).
+    core = [c[2:] if c.startswith("よる") and len(c) > 3 else c for c in core]
+    # A demonym modifying a longer topic (日本人による宇宙飛行) is a
+    # modifier, not a topic family: stance units must bind to the
+    # topic, not to who did it. Without this, an emigration history
+    # full of 日本人 occurrence sentences "supports" a spaceflight
+    # question it never mentions (Phase 7 fixture h31).
+    if "日本人" in core and any(len(c) >= 3 for c in core if c != "日本人"):
+        core = [c for c in core if c != "日本人"]
 
     requirements: list[dict[str, Any]] = [{"type": "core_concept", "concept": c} for c in core]
     if era:
