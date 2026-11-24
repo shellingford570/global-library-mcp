@@ -53,6 +53,62 @@ def rank_candidates(analysis: Any, items: list[Any], query_hits: dict[tuple[str,
 NARRATIVE_KINDS = ("body", "table")
 
 
+def rejection_reasons(
+    status: str,
+    semantics: dict[str, Any] | None,
+    record: dict[str, Any] | None,
+    page_kind: str | None,
+) -> list[str]:
+    """Why a page may not ground an answer, in plain terms.
+
+    Shared by the evidence states (8-B) and the research
+    materials mode (8-D), so a candidate always explains itself
+    the same way.
+    """
+    semantics = semantics or {}
+    relation = semantics.get("relation")
+    reasons: list[str] = []
+    if status not in ("relevant", "partially_relevant"):
+        reasons.append("質問の中心概念との語彙的一致が不足している")
+    if relation == "mentions_only":
+        reasons.append("資料は話題に言及しているが、質問が求める出来事・普及を主張していない")
+    elif relation == "insufficient":
+        reasons.append("中心概念に言及する文が本文にない")
+    elif relation == "contradicts":
+        reasons.append("資料は質問の前提と矛盾する記述を含む")
+    checks = (record or {}).get("checks", {})
+    if checks.get("era_anchor") is False:
+        reasons.append("出来事と時代を直接結び付ける記述（時代アンカー）が確認できない")
+    if checks.get("page_kind_ok") is False or (
+        relation in ("uncertain", "not_checked") and page_kind not in NARRATIVE_KINDS
+    ):
+        reasons.append(f"ページ種別（{page_kind}）は列挙的であり、事実認定の根拠には使えない")
+    if not reasons:
+        reasons.append("根拠評価の条件を満たさなかった")
+    return reasons
+
+
+def evidence_states(
+    source_verified: bool,
+    status: str | None,
+    semantics: dict[str, Any] | None,
+    admitted: bool,
+    reasons: list[str] | None = None,
+) -> dict[str, Any]:
+    """The Phase 8-B state record for one fetched page."""
+    semantics = semantics or {}
+    return {
+        "discovered": True,
+        "accessible": True,
+        "source_verified": bool(source_verified),
+        "relevant_candidate": status in ("relevant", "partially_relevant"),
+        "supporting_passage": bool(semantics.get("stance_sentences")),
+        "assessed_evidence": bool(admitted),
+        "rejected_for_answer": not admitted,
+        "rejection_reasons": reasons or [],
+    }
+
+
 def admission_decision(
     analysis: Any,
     status: str,
@@ -617,6 +673,22 @@ class LibraryService:
             "evidence_document_ranks": evidence_document_ranks,
             "failure_reason": failure_reason,
         }
+        # Phase 8-B: each pipeline stage reports its own outcome,
+        # so a failure is attributable to a stage, not to "search".
+        stage_log = [
+            {"stage": "query_analysis", "status": "ok",
+             "detail": f"core_concepts={len(analysis.core_concepts)}, era={analysis.era['label'] if analysis.era else None}, intent={analysis.intent}"},
+            {"stage": "bibliographic_retrieval", "status": "ok" if ranked else "empty",
+             "detail": f"{len(ranked)} candidates after ranking"},
+            {"stage": "page_retrieval", "status": "ok" if (verified or related) else "empty",
+             "detail": f"{len(verified) + len(related)} gated pages"},
+            {"stage": "source_identity_verification", "status": "ok",
+             "detail": f"{len(unverified)} pages failed identity/quality verification"},
+            {"stage": "passage_extraction", "status": "ok",
+             "detail": f"{sum(len(item.passages or []) for item in verified)} passages on admitted pages"},
+            {"stage": "evidence_assessment", "status": "ok" if verified else "no_admission",
+             "detail": f"{len(verified)} assessed evidence, {len(related)} rejected candidates, {len(premise_contradictions)} contradictions"},
+        ]
         return {
             "query": query,
             "retrieval": retrieval,
@@ -627,6 +699,7 @@ class LibraryService:
             "related": related[:8],
             "unverified": unverified,
             "search": search_view,
+            "stage_log": stage_log,
         }
 
     def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
@@ -834,6 +907,10 @@ class LibraryService:
             relation = evidence.semantics.get("relation")
             anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
             if assessment["status"] == "relevant" and relation == "contradicts" and evidence.page_kind in NARRATIVE_KINDS:
+                evidence.states = evidence_states(
+                    True, assessment["status"], evidence.semantics, False,
+                    rejection_reasons(assessment["status"], evidence.semantics, None, evidence.page_kind),
+                )
                 # A correction is an assertion too: it may only rest
                 # on narrative pages, never on a heading in a
                 # contents list or an index entry (Phase 7-E).
@@ -846,6 +923,11 @@ class LibraryService:
                     evidence.page_kind, pub_year, anchor_matched,
                 )
                 evidence.promotion = record
+                evidence.states = evidence_states(
+                    True, assessment["status"], evidence.semantics, admitted,
+                    [] if admitted else rejection_reasons(
+                        assessment["status"], evidence.semantics, record, evidence.page_kind),
+                )
                 if record["path"] == "semantic" and admitted:
                     evidence.semantics["promoted"] = True
                 if admitted:
