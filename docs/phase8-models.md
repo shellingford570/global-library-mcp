@@ -38,3 +38,23 @@ such passages must be treated as weak evidence, and a neutral
 verdict on genuine period prose is expected to be common. The
 gold passage dataset (8-F) exists precisely so this can be
 measured instead of assumed.
+
+## Phase 9-D re-check (2026-11-24)
+
+Local caches and runtimes were inspected before any new
+download attempt, per the brief's no-repeat rule:
+
+- `~/.cache/huggingface` totals 68K - a directory stub for the
+  embedding model only; no weights for any model.
+- `transformers`, `torch`, `onnxruntime` and
+  `sentence_transformers` are all absent from the environment.
+- The NLI loader's single bounded attempt therefore fails at
+  import, exactly as in Phase 8, and `eval/compare_checkers.py`
+  records `not_checked` for every fixture.
+
+Conclusion unchanged: NLI remains an interface with an honest
+unavailability record. Running it needs an environment that can
+fetch ~558MB of weights (or a pre-provisioned cache) - a
+deployment decision, not a code gap. The verdict, when it
+exists, stays an auxiliary signal that never approves an
+answer by itself.
