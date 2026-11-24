@@ -1,0 +1,1134 @@
+{
+ "cases": 40,
+ "human_verified": false,
+ "verifiers": {
+  "lexical": {
+   "claims": 52,
+   "entailment_precision": 1.0,
+   "entailment_recall": 0.208,
+   "false_support_rate": 0.0,
+   "false_rejection_rate": 0.792,
+   "contradiction_detection": 0.0,
+   "citation_accuracy": 1.0,
+   "seconds": 0.02,
+   "rows": [
+    {
+     "case": "b01",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b02",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b03",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b04",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b05",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b06",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b07",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b08",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "entailment",
+     "citation_ok": true
+    },
+    {
+     "case": "b09",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "entailment",
+     "citation_ok": true
+    },
+    {
+     "case": "b10",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "entailment",
+     "citation_ok": true
+    },
+    {
+     "case": "b11",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "entailment",
+     "citation_ok": true
+    },
+    {
+     "case": "b12",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "entailment",
+     "citation_ok": true
+    },
+    {
+     "case": "b13",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b14",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b15",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b16",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b17",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b18",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b19",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b20",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b21",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b22",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b23",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b24",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b25",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b26",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b27",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b28",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b29",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b30",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b31",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b32",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b33",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b34",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "neutral",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "ambiguous",
+     "citation_ok": true
+    }
+   ]
+  },
+  "nli": {
+   "claims": 52,
+   "entailment_precision": null,
+   "entailment_recall": 0.0,
+   "false_support_rate": 0.0,
+   "false_rejection_rate": 1.0,
+   "contradiction_detection": 0.0,
+   "citation_accuracy": 1.0,
+   "seconds": 0.0,
+   "rows": [
+    {
+     "case": "b01",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b02",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b03",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b04",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b05",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b06",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b07",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b08",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b09",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b10",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b11",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b12",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b13",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b14",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b15",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b16",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b17",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b18",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b19",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b20",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b21",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b22",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b23",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b24",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b25",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b26",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b27",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b28",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b29",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b30",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b31",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b32",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b33",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b34",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    }
+   ]
+  },
+  "hybrid": {
+   "claims": 52,
+   "entailment_precision": null,
+   "entailment_recall": 0.0,
+   "false_support_rate": 0.0,
+   "false_rejection_rate": 1.0,
+   "contradiction_detection": 0.0,
+   "citation_accuracy": 1.0,
+   "seconds": 0.01,
+   "rows": [
+    {
+     "case": "b01",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b02",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b03",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b04",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b05",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b06",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b07",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b08",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b09",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b10",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b11",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b12",
+     "category": "support",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b13",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b14",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b15",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b16",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b17",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b18",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b19",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b20",
+     "category": "insufficient",
+     "expected": "no_answer",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b21",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b22",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b23",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b24",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b25",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b26",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b27",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b28",
+     "category": "related_not_supporting",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b29",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b30",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b31",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b32",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b33",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b34",
+     "category": "contradiction",
+     "expected": "contradiction",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b35",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b36",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b37",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b38",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b39",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "entailment",
+     "verdict": "not_checked",
+     "citation_ok": true
+    },
+    {
+     "case": "b40",
+     "category": "partial",
+     "expected": "neutral",
+     "verdict": "not_checked",
+     "citation_ok": true
+    }
+   ]
+  }
+ }
+}

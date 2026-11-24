@@ -60,3 +60,41 @@ Nothing was pushed and no PR state changed.
 
 No PR was merged, no branch deleted, no force push used.
 The merge itself remains the operator's decision.
+
+## Phase 10-K update (2026-11-24)
+
+Stack re-verified: master HEAD 8acc6bd; PRs #1-#9 all
+OPEN / MERGEABLE / CI SUCCESS with the linear bases
+unchanged; PR #10 (feat/global-library-research-beta-v10,
+base feat/global-library-ai-validation-v9) extends the
+stack to ten. New facts since the Phase 9 plan:
+
+- **master has NO branch protection** (API check returned
+  404). Nothing enforces CI-green or review before a merge;
+  the operator is the only gate. Consider enabling
+  protection before the release merge - operator's choice,
+  not done here.
+- **No auto-deploy exists**: the only workflow is
+  test.yml. Merging cannot publish anything by itself.
+- GitHub does NOT reliably retarget dependent PRs when a
+  base branch's PR merges and the branch is kept. Procedure
+  per merge, in order #1 -> #10: (1) merge with a merge
+  commit; (2) immediately verify the next PR's base - it
+  should become the previous base (or master at the end of
+  the chain); (3) if it still points at the merged branch,
+  retarget explicitly with `gh pr edit <n> --base <correct>`
+  BEFORE merging it; (4) wait for CI on the retargeted PR;
+  (5) only then merge. Never delete a branch in the chain
+  until every PR above it has been retargeted and merged.
+- Local integration check (Phase 10): a throwaway worktree
+  merged master + the v10 head with no conflicts and the
+  full pytest suite passed on the integrated tree. The
+  worktree was deleted afterwards; nothing was pushed.
+- Rollback: every stage is a merge commit, so any stage
+  can be reverted with `git revert -m 1 <merge>` on master
+  without rewriting history. Release tagging suggestion:
+  tag the final merge `v1.0.0-research-beta` (pyproject is
+  1.0.0rc1; bump to the beta version in the release PR).
+- Dependency lock: requirements are pinned in pyproject
+  with the [test] extras used by CI; the Docker build was
+  verified in Phase 9 and is unchanged in Phase 10.

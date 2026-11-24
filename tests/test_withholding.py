@@ -32,7 +32,7 @@ class GroundedProvider:
     async def answer(self, query, evidence):
         return {"available": True, "answer": HYDRO_PAGE,
                 "citations": [evidence[0]["citation_key"]],
-                "claims": [{"text": HYDRO_PAGE, "citations": [evidence[0]["citation_key"]]}],
+                "claims": [{"text": HYDRO_PAGE.split("。")[0], "citations": [evidence[0]["citation_key"]]}],
                 "limitations": []}
 
 
