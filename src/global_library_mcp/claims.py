@@ -44,23 +44,93 @@ def _date_tokens(text: str) -> set[str]:
     return tokens
 
 
+def _passage_index(evidence_by_key: dict[str, dict[str, Any]]) -> dict[str, tuple[dict[str, Any], dict[str, Any]]]:
+    index: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+    for item in evidence_by_key.values():
+        for passage in item.get("passages") or []:
+            if passage.get("passage_id"):
+                index[passage["passage_id"]] = (passage, item)
+    return index
+
+
 def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any]],
                  analysis: Any = None) -> dict[str, Any]:
-    """Screen one claim against the evidence it cites."""
+    """Screen one claim against the passages it actually cites.
+
+    Phase 10-B: verification runs against the cited passages,
+    not the whole page OCR. A claim that names passage IDs is
+    checked against those passages only, and the result records
+    exactly which passage, excerpt and character span grounded
+    the verdict. A claim with citations but no passage IDs is
+    checked against the cited pages' passages (binding marked
+    "inferred"); a page with no passages falls back to page OCR
+    and can reach at most "uncertain", because words scattered
+    across a whole page do not establish support.
+    """
     text = claim.get("text") or ""
     keys = claim.get("citations") or []
     result = dict(claim)
     if claim.get("conflict"):
         result.update({"support": "conflicting", "support_detail": "provider flagged conflicting sources"})
         return result
-    if not keys:
+    if not keys and not claim.get("evidence_passage_ids"):
         result.update({"support": "unsupported", "support_detail": "claim has no citation"})
         return result
     cited = [evidence_by_key[key] for key in keys if key in evidence_by_key]
-    if not cited:
+    passage_index = _passage_index(evidence_by_key)
+    claimed_ids = [p for p in claim.get("evidence_passage_ids") or [] if isinstance(p, str)]
+    resolved = [passage_index[p] for p in claimed_ids if p in passage_index]
+    verified_against: list[dict[str, Any]] = []
+    if claimed_ids and not resolved:
+        result.update({"support": "unsupported",
+                       "support_detail": "claim cites passage_id(s) not present in the supplied evidence"})
+        return result
+    if resolved:
+        scope = "passage"
+        binding = "explicit"
+        ocr_text = "\n".join(p.get("text") or "" for p, _ in resolved)
+        cited = list({id(item): item for _, item in resolved}.values())
+        for passage, item in resolved:
+            verified_against.append({
+                "passage_id": passage["passage_id"],
+                "citation_key": item.get("citation_key"),
+                "excerpt": (passage.get("text") or "")[:200],
+                "char_start": passage.get("char_start"),
+                "char_end": passage.get("char_end"),
+            })
+    elif cited:
+        scoped = [(p, item) for item in cited for p in (item.get("passages") or [])]
+        if scoped:
+            # Inferred binding: the claim is grounded in the ONE
+            # passage of the cited pages that covers it best -
+            # not in the union of every passage, and never in
+            # words scattered across the whole page.
+            scope = "passage"
+            binding = "inferred"
+            grams = _bigrams(text)
+            def _coverage(pair: tuple[dict[str, Any], dict[str, Any]]) -> float:
+                pg = _bigrams(pair[0].get("text") or "")
+                return len(grams & pg) / len(grams) if grams else 0.0
+            passage, item = max(scoped, key=_coverage)
+            ocr_text = passage.get("text") or ""
+            verified_against.append({
+                "passage_id": passage["passage_id"],
+                "citation_key": item.get("citation_key"),
+                "excerpt": (passage.get("text") or "")[:200],
+                "char_start": passage.get("char_start"),
+                "char_end": passage.get("char_end"),
+            })
+        else:
+            scope = "page"
+            binding = "none"
+            ocr_text = "\n".join(item.get("ocr_text") or item.get("text") or "" for item in cited)
+    else:
         result.update({"support": "unsupported", "support_detail": "citations do not resolve to supplied evidence"})
         return result
-    ocr_text = "\n".join(item.get("ocr_text") or item.get("text") or "" for item in cited)
+    result["verification_scope"] = scope
+    result["passage_binding"] = binding
+    if verified_against:
+        result["verified_against"] = verified_against
     if not ocr_text.strip():
         result.update({"support": "not_checked", "support_detail": "cited evidence text unavailable to the checker"})
         return result
@@ -70,7 +140,9 @@ def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any
         return result
     overlap = len(claim_grams & _bigrams(ocr_text)) / len(claim_grams)
     missing_dates = {tok for tok in _date_tokens(text) if tok not in ocr_text}
-    detail = f"lexical overlap {overlap:.2f} over {len(cited)} cited page(s)"
+    detail = f"lexical overlap {overlap:.2f} over {len(cited)} cited page(s), scope={scope}"
+    if scope == "page":
+        detail += "; no passage available - page-level screening cannot establish support"
     if missing_dates:
         detail += f"; date token(s) not found in cited OCR: {', '.join(sorted(missing_dates))}"
         status = "uncertain" if overlap >= UNCERTAIN_THRESHOLD else "unsupported"
@@ -153,6 +225,11 @@ def verify_claim(claim: dict[str, Any], evidence_by_key: dict[str, dict[str, Any
             if status == "supported":
                 status = "uncertain"
         result["numeric"] = bindings
+    if scope == "page" and status == "supported":
+        # Brief 10-B 4.2: words scattered across a whole page do
+        # not establish support. Without a passage the strongest
+        # honest verdict is uncertain (which never publishes).
+        status = "uncertain"
     result.update({"support": status, "support_detail": detail, "overlap": round(overlap, 3)})
     return result
 

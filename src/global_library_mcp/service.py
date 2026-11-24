@@ -552,8 +552,16 @@ class LibraryService:
             if not passage_ids:
                 claim_limitations.append("対応する抽出箇所（passage）が特定できなかった")
             claim["limitations"] = claim_limitations
-        blocking = [c for c in claims if c.get("support") in {"unsupported", "conflicting"}]
-        publishable = [c for c in claims if c.get("support") not in {"unsupported", "conflicting"}]
+        # Phase 10-B 4.1: ONLY claims screened as supported may
+        # publish. uncertain and not_checked used to ride along
+        # (the grok-4.3 run's q18 was published as "answered"
+        # with every claim uncertain); they now block like
+        # unsupported does. Conflicting claims are never part of
+        # the answer text - they are returned separately under
+        # "conflicts" for display as contradictory information.
+        conflicting_claims = [c for c in claims if c.get("support") == "conflicting"]
+        publishable = [c for c in claims if c.get("support") == "supported"]
+        blocking = [c for c in claims if c.get("support") != "supported"]
         if blocking and not publishable:
             return {
                 **base,
@@ -562,14 +570,13 @@ class LibraryService:
                 "answer": None,
                 "citations": citations,
                 "claims": claims,
-                "reason": "回答に含まれる主張の一部について、引用したOCR本文による裏付けが確認できなかったため、回答を保留しました。",
+                "conflicts": conflicting_claims,
+                "reason": "回答に含まれる主張について、引用した箇所による裏付けが確認できなかったため、回答を保留しました。",
                 "limitations": [
                     f"claim not supported by its cited OCR: {c.get('text', '')[:80]}" for c in blocking
                 ] + list(result.get("limitations", [])),
             }
         limitations = list(result.get("limitations", []))
-        if any(c.get("support") == "uncertain" for c in claims):
-            limitations.append("一部の主張は自動スクリーニングで裏付けが不確実です（uncertain）。原本ページで確認してください。")
         if blocking:
             # Partial answer: publish only the verified claims,
             # labelled as partial, with the dropped claims named
@@ -590,6 +597,7 @@ class LibraryService:
                 ),
                 "citations": [c for c in citations if c["citation_key"] in kept_keys],
                 "claims": claims,
+                "conflicts": conflicting_claims,
                 "limitations": limitations,
             }
         # Phase 9-A.2: the published answer text is composed from
@@ -607,6 +615,7 @@ class LibraryService:
             "answer": composed,
             "citations": citations,
             "claims": claims,
+            "conflicts": conflicting_claims,
             "limitations": limitations,
         }
 

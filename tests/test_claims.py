@@ -7,7 +7,14 @@ from global_library_mcp.claims import verify_claim, verify_claims
 from global_library_mcp.service import LibraryService
 
 OCR = "發電水力の開發は明治四十三年に始まり、臨時發電水力調査局が設置された事業である。"
-EVIDENCE = [{"citation_key": "ndl:994120:994120_50", "ocr_text": OCR}]
+def _passage(text: str, key: str = "ndl:994120:994120_50") -> dict:
+    start = OCR.find(text) if text in OCR else 0
+    return {"passage_id": f"{key}#p1", "citation_key": key, "text": text,
+            "char_start": start, "char_end": start + len(text)}
+
+
+EVIDENCE = [{"citation_key": "ndl:994120:994120_50", "ocr_text": OCR,
+             "passages": [_passage("發電水力の開發は明治四十三年に始まり、臨時發電水力調査局が設置された")]}]
 
 
 def test_verbatim_claim_is_supported():
@@ -73,7 +80,9 @@ async def test_answer_includes_verified_claims():
 
 
 def test_claim_with_invented_number_is_unsupported():
-    evidence = [{"citation_key": "ndl:1:p1", "ocr_text": "臨時發電水力調査局は全国の河川を調査し、發電水力の適地を選定した"}]
+    _t = "臨時發電水力調査局は全国の河川を調査し、發電水力の適地を選定した"
+    evidence = [{"citation_key": "ndl:1:p1", "ocr_text": _t,
+                 "passages": [{"passage_id": "ndl:1:p1#p1", "citation_key": "ndl:1:p1", "text": _t, "char_start": 0, "char_end": len(_t)}]}]
     claim = {"text": "臨時發電水力調査局は全国の河川を調査し、發電水力の適地を選定した。調査した河川は850本にのぼる", "citations": ["ndl:1:p1"]}
     result = verify_claims([claim], evidence)[0]
     assert result["support"] == "unsupported"
@@ -81,7 +90,9 @@ def test_claim_with_invented_number_is_unsupported():
 
 
 def test_claim_with_number_present_in_ocr_stays_supported():
-    evidence = [{"citation_key": "ndl:1:p1", "ocr_text": "調査した河川は850本にのぼり、臨時發電水力調査局が發電水力の適地を選定した"}]
+    _t = "調査した河川は850本にのぼり、臨時發電水力調査局が發電水力の適地を選定した"
+    evidence = [{"citation_key": "ndl:1:p1", "ocr_text": _t,
+                 "passages": [{"passage_id": "ndl:1:p1#p1", "citation_key": "ndl:1:p1", "text": _t, "char_start": 0, "char_end": len(_t)}]}]
     claim = {"text": "調査した河川は850本にのぼり、臨時發電水力調査局が發電水力の適地を選定した", "citations": ["ndl:1:p1"]}
     result = verify_claims([claim], evidence)[0]
     assert result["support"] == "supported"

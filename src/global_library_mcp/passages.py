@@ -73,7 +73,7 @@ def extract_passages(
     limit: int = 4,
 ) -> list[dict[str, Any]]:
     """Concept-bearing passages of one page, verbatim and located."""
-    from global_library_mcp.question import find_concept
+    from global_library_mcp.question import find_concept, normalize_text
     from global_library_mcp.relevance import concept_families
     from global_library_mcp.temporal import anchor_class, sentence_years
 
@@ -83,7 +83,14 @@ def extract_passages(
     spans = sentence_spans(ocr_text)
     passages: list[dict[str, Any]] = []
     for idx, (start, end, sentence) in enumerate(spans):
-        matched = [fam for fam in families if find_concept(sentence, fam)]
+        # find_concept's contract is normalised text (NFKC +
+        # old-form folding). Passing the raw sentence silently
+        # missed every old-script passage whose concept had no
+        # registered historical variant - a latent bug that the
+        # Phase 10 passage-bound claim verification exposed,
+        # because claims could no longer fall back to page-level
+        # screening. The passage text itself stays verbatim.
+        matched = [fam for fam in families if find_concept(normalize_text(sentence), fam)]
         if not matched:
             continue
         era = getattr(analysis, "era", None)
