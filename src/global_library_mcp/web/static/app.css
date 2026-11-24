@@ -30,3 +30,11 @@
 .compare-excerpt{margin:.4rem 0;padding:.5rem .7rem;border-left:3px solid var(--accent,#8a6d1d);background:var(--panel,#faf8f2);font-size:.9rem}
 .compare-excerpt footer{margin-top:.3rem;font-size:.78rem;color:var(--muted,#666)}
 @media (max-width:640px){.evidence-thumb{max-width:120px}.compare-sides{grid-template-columns:1fr}}
+.badge-sem-supports{background:#1d7a3a;color:#fff}
+.badge-sem-contradicts{background:#b03030;color:#fff}
+.badge-sem-mentions_only{background:#8a8a8a;color:#fff}
+.badge-sem-insufficient{background:#8a8a8a;color:#fff}
+.badge-sem-uncertain{background:#b8860b;color:#fff}
+.badge-sem-not_checked{background:#777;color:#fff}
+.correction-card{border-left:4px solid #b03030}
+.correction-quote{margin:.4em 0;padding:.4em .8em;border-left:3px solid #b03030;background:var(--hatch-widget-surface-muted);font-size:.92em}

@@ -53,9 +53,11 @@ async def main() -> int:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--out", type=Path, default=ROOT / "eval" / "results-phase4.json")
     parser.add_argument("--image-checks", type=int, default=10, help="max questions whose first evidence page gets a full IIIF verify")
+    parser.add_argument("--dataset", type=Path, default=ROOT / "eval" / "questions.json")
+    parser.add_argument("--max-calls", type=int, default=0, help="stop starting new questions once this many HTTP requests were made (0 = no cap)")
     args = parser.parse_args()
 
-    dataset = json.loads((ROOT / "eval" / "questions.json").read_text(encoding="utf-8"))
+    dataset = json.loads(args.dataset.read_text(encoding="utf-8"))
     questions = dataset["questions"][: args.limit or None]
     counter = RequestCounter()
     records = []
@@ -63,6 +65,10 @@ async def main() -> int:
     async with httpx.AsyncClient(timeout=40, event_hooks={"request": [counter]}, headers={"User-Agent": "global-library-mcp/0.1 (evaluation)"}) as client:
         service = LibraryService(client)
         for item in questions:
+            if args.max_calls and counter.count >= args.max_calls:
+                records.append({"id": item["id"], "category": item["category"], "question": item["question"],
+                                "expect": item["expect"], "status": "skipped_cap", "seconds": 0, "requests": 0})
+                continue
             started = time.perf_counter()
             before = counter.count
             record = {"id": item["id"], "category": item["category"], "question": item["question"], "expect": item["expect"]}
@@ -77,8 +83,14 @@ async def main() -> int:
                 record["reason"] = result.get("reason")
                 record["claims"] = [{"support": c.get("support"), "overlap": c.get("overlap")} for c in result.get("claims", [])]
                 evidence_keys = {e["citation_key"] for e in result.get("evidence", [])}
+                evidence_keys |= {p["citation_key"] for p in result.get("premise_contradictions", [])}
                 record["citations_resolve"] = all(k in evidence_keys for k in record["citations"])
                 record["search_errors"] = (result.get("search") or {}).get("errors", [])
+                retrieval = result.get("retrieval") or {}
+                record["first_evidence_rank"] = retrieval.get("first_evidence_rank")
+                record["retrieval_failure_reason"] = retrieval.get("failure_reason")
+                record["premise_contradictions"] = len(result.get("premise_contradictions", []))
+                record["correction_quotes"] = (result.get("correction") or {}).get("quotes", [])
                 if result.get("evidence") and image_checks_done < args.image_checks:
                     first = result["evidence"][0]
                     report = await service.verify_page(first["library_id"], first["page_id"])
@@ -97,6 +109,8 @@ async def main() -> int:
 
     expect_evidence = [r for r in records if r["expect"] == "evidence"]
     expect_insufficient = [r for r in records if r["expect"] == "insufficient"]
+    expect_correction = [r for r in records if r["expect"] == "correction"]
+    ranks = [r.get("first_evidence_rank") for r in expect_evidence]
     all_claims = [c for r in records for c in r.get("claims", [])]
     page_attempts = sum(r.get("evidence", 0) + r.get("unverified", 0) for r in records)
     image_records = [r["image_check"] for r in records if r.get("image_check")]
@@ -118,6 +132,16 @@ async def main() -> int:
         "avg_seconds": round(sum(r["seconds"] for r in records) / max(len(records), 1), 2),
         "total_requests": counter.count,
         "provider": "mock",
+        "insufficient_handled_rate": round(sum(1 for r in expect_insufficient if r["status"] in ("insufficient_evidence", "answer_withheld", "corrected_premise")) / max(len(expect_insufficient), 1), 3),
+        "corrections_on_insufficient": sum(1 for r in expect_insufficient if r["status"] == "corrected_premise"),
+        "false_corrections": sum(1 for r in expect_evidence if r["status"] == "corrected_premise"),
+        "correction_success_rate": round(sum(1 for r in expect_correction if r["status"] == "corrected_premise") / max(len(expect_correction), 1), 3) if expect_correction else None,
+        "correction_safe_rate": round(sum(1 for r in expect_correction if r["status"] in ("corrected_premise", "insufficient_evidence")) / max(len(expect_correction), 1), 3) if expect_correction else None,
+        "correction_false_answer_rate": round(sum(1 for r in expect_correction if r["status"] == "answered") / max(len(expect_correction), 1), 3) if expect_correction else None,
+        "recall_at_3": round(sum(1 for rank in ranks if rank is not None and rank <= 3) / max(len(ranks), 1), 3) if ranks else None,
+        "recall_at_6": round(sum(1 for rank in ranks if rank is not None and rank <= 6) / max(len(ranks), 1), 3) if ranks else None,
+        "mrr": round(sum(1.0 / rank for rank in ranks if rank) / max(len(ranks), 1), 3) if ranks else None,
+        "retrieval_failure_counts": {reason: sum(1 for r in records if r.get("retrieval_failure_reason") == reason) for reason in ("no_candidates", "budget_exhausted", "no_relevant_pages", "premise_contradicted", "all_pages_failed_verification")},
     }
     payload = {"dataset_version": dataset["version"], "run_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                "metrics": metrics, "records": records}

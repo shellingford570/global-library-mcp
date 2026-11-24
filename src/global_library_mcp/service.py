@@ -142,11 +142,67 @@ class LibraryService:
             "terms": collected["terms"],
             "analysis": analysis,
             "evidence": evidence,
+            "retrieval": collected.get("retrieval", {}),
+            "premise_contradictions": collected.get("premise_contradictions", []),
             "related": related,
             "unverified": collected["unverified"],
             "search": collected["search"],
         }
         if not evidence:
+            # Corrected premise: no page supports the question, but a
+            # gated page *contradicts* its premise with quotable text
+            # (negation, or an onset dated after the asked era). That
+            # is a grounded correction, not a plain refusal - and it
+            # is only offered with the contradicting sentences quoted
+            # verbatim from the cited page.
+            contradictions = collected.get("premise_contradictions", [])
+            if contradictions:
+                item = contradictions[0]
+                sem = item.get("semantics") or {}
+                quotes: list[str] = []
+                for sentence in (sem.get("onset_after_era") or []):
+                    if sentence not in quotes:
+                        quotes.append(sentence)
+                for sentence in ((sem.get("stance_sentences") or {}).get("negation") or []):
+                    if sentence not in quotes:
+                        quotes.append(sentence)
+                quotes = quotes[:2]
+                if quotes:
+                    from global_library_mcp.claims import verify_claims
+
+                    era_info = analysis.get("era") or {}
+                    era_label = era_info.get("label") or "その時代"
+                    concepts = analysis.get("core_concepts", [])
+                    topic = concepts[0] if concepts else "その主題"
+                    quoted = "。".join(q.strip().rstrip("。") for q in quotes)
+                    answer_text = (
+                        f"質問の前提（{topic}が{era_label}に存在・実現していた）は、確認できた資料では支持されません。"
+                        f"『{item['title']}』には「{quoted}」とあり、前提とは異なる時期・状況が示されています。"
+                    )
+                    citation = {
+                        "citation_key": item["citation_key"], "library_id": item["library_id"],
+                        "library_name": item["library_name"], "record_id": item["record_id"],
+                        "page_id": item["page_id"], "digital_frame": item.get("digital_frame"),
+                        "title": item["title"], "image_url": item.get("image_url"),
+                        "landing_url": item.get("landing_url"),
+                    }
+                    claims = verify_claims(
+                        [{"text": q, "citations": [item["citation_key"]]} for q in quotes], [item]
+                    )
+                    return {
+                        **base,
+                        "status": "corrected_premise",
+                        "available": True,
+                        "answer": answer_text,
+                        "citations": [citation],
+                        "claims": claims,
+                        "correction": {
+                            "basis_citation_key": item["citation_key"],
+                            "quotes": quotes,
+                            "reasons": sem.get("reasons", []),
+                        },
+                        "limitations": ["前提の訂正は引用した資料の記述に基づきます。その資料自体が誤っている可能性は残るため、原本ページでも確認してください。"],
+                    }
             # Name what the *closest* candidate lacked, not the union
             # over every related page (which blamed concepts that the
             # best pages actually contained).
@@ -286,8 +342,10 @@ class LibraryService:
         from global_library_mcp.evidence import assess_ocr_quality, extract_terms
         from global_library_mcp.models import Evidence
         from global_library_mcp.question import analyze_question
-        from global_library_mcp.relevance import assess_relevance
+        from global_library_mcp.relevance import assess_relevance, concept_families
+        from global_library_mcp.semantics import get_semantic_checker
 
+        semantic_checker = get_semantic_checker()
         analysis = analyze_question(query)
         search_terms = terms or extract_terms(query)
         # A natural-language question rarely matches bibliographic fields
@@ -312,25 +370,53 @@ class LibraryService:
             if capable >= max_documents + 3:
                 break
         search_view = {"query": query, "results": [item.to_dict() for item in merged], "errors": search_errors}
-        # Try documents whose titles carry a core concept first: the
-        # full-question search surfaces broad survey volumes ahead of
-        # the on-topic monographs the term searches found.
+        # Stage 1 (bibliographic): score candidates on metadata
+        # alone - how many core-concept families the title carries,
+        # with the anchor family weighted double. The full-question
+        # search surfaces broad survey volumes ahead of on-topic
+        # monographs; this ordering is what the document budget is
+        # spent against. Stage 2 (OCR + gates) re-ranks by content.
         from global_library_mcp.question import concept_variants, normalize_text
+        from global_library_mcp.relevance import concept_families
 
-        def _title_rank(item: Any) -> int:
+        families = concept_families(analysis.core_concepts)
+
+        def _candidate_score(item: Any) -> int:
             title_n = normalize_text(item.title or "")
-            return 0 if any(variant in title_n for c in analysis.core_concepts for variant in concept_variants(c)) else 1
+            score = 0
+            for idx, family in enumerate(families):
+                if any(variant in title_n for variant in concept_variants(family)):
+                    score += 2 if idx == 0 else 1
+            return score
 
-        ranked = sorted(merged, key=_title_rank)
+        ranked = sorted(merged, key=lambda item: -_candidate_score(item))
         verified: list[Evidence] = []
+        premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []
         unverified: list[dict[str, Any]] = []
         documents_tried = 0
-        for result in ranked:
-            # Keep trying further documents while no page has passed the
-            # relevance gate yet (bounded, to cap API use).
-            doc_limit = max_documents if verified else max_documents + 3
+        budget_extended = False
+        evidence_document_ranks: list[int] = []
+        for doc_rank, result in enumerate(ranked, start=1):
+            # Document budget: the base allowance grows while nothing
+            # has passed the gates, extends ONCE more when every page
+            # so far was irrelevant (the right book may sit deeper in
+            # the candidate list), and stops early once enough
+            # evidence is in hand.
+            if verified:
+                doc_limit = max_documents
+            elif budget_extended:
+                doc_limit = max_documents + 6
+            else:
+                doc_limit = max_documents + 3
             if documents_tried >= doc_limit:
+                if (not verified and not budget_extended and documents_tried < len(ranked)
+                        and all((item.get("relevance") or {}).get("status") == "irrelevant" for item in related)):
+                    budget_extended = True
+                    doc_limit = max_documents + 6
+                else:
+                    break
+            if len(verified) >= 3:
                 break
             adapter = self.adapters.get(result.library_id)
             if adapter is None or not adapter.supports_in_document_search:
@@ -403,8 +489,37 @@ class LibraryService:
                         publication_year=int(year_match.group(1)) if year_match else None,
                     )
                     evidence.relevance = assessment
-                    if assessment["status"] == "relevant":
+                    evidence.semantics = semantic_checker.assess(
+                        analysis, evidence.ocr_text,
+                        publication_year=int(year_match.group(1)) if year_match else None,
+                    )
+                    relation = evidence.semantics.get("relation")
+                    families = concept_families(analysis.core_concepts)
+                    anchor_matched = bool(families) and families[0] in assessment.get("matched_concepts", [])
+                    if assessment["status"] == "relevant" and relation == "contradicts":
+                        # The page denies the question's premise: it is
+                        # correction material, never answer evidence.
+                        premise_contradictions.append(evidence.to_dict())
+                        related.append(evidence.to_dict())
+                    elif (assessment["status"] == "relevant" and relation == "mentions_only"
+                          and evidence.semantics.get("retrospective")
+                          and evidence.semantics.get("demand") in ("occurrence", "diffusion")):
+                        # A retrospective page that never asserts the
+                        # topic in the asked era cannot ground an
+                        # era-premise answer either.
+                        related.append(evidence.to_dict())
+                    elif assessment["status"] == "partially_relevant" and relation == "supports" and anchor_matched:
+                        # Semantic second opinion: the page asserts what
+                        # the question asks about the anchor concept,
+                        # which the lexical screen could not confirm.
+                        evidence.semantics["promoted"] = True
                         verified.append(evidence)
+                        if doc_rank not in evidence_document_ranks:
+                            evidence_document_ranks.append(doc_rank)
+                    elif assessment["status"] == "relevant":
+                        verified.append(evidence)
+                        if doc_rank not in evidence_document_ranks:
+                            evidence_document_ranks.append(doc_rank)
                     else:
                         related.append(evidence.to_dict())
                 else:
@@ -414,11 +529,33 @@ class LibraryService:
                         "citation_key": evidence.citation_key,
                     })
         related.sort(key=lambda item: (item.get("relevance") or {}).get("score", 0), reverse=True)
+        if verified:
+            failure_reason = None
+        elif not merged:
+            failure_reason = "no_candidates"
+        elif premise_contradictions:
+            failure_reason = "premise_contradicted"
+        elif related:
+            failure_reason = "no_relevant_pages"
+        elif unverified:
+            failure_reason = "all_pages_failed_verification"
+        else:
+            failure_reason = "budget_exhausted"
+        retrieval = {
+            "candidates": len(merged),
+            "documents_tried": documents_tried,
+            "budget_extended": budget_extended,
+            "first_evidence_rank": evidence_document_ranks[0] if evidence_document_ranks else None,
+            "evidence_document_ranks": evidence_document_ranks,
+            "failure_reason": failure_reason,
+        }
         return {
             "query": query,
+            "retrieval": retrieval,
             "terms": search_terms,
             "analysis": analysis.to_dict(),
             "evidence": [item.to_dict() for item in verified],
+            "premise_contradictions": premise_contradictions[:4],
             "related": related[:8],
             "unverified": unverified,
             "search": search_view,
