@@ -105,3 +105,19 @@ async def test_ia_djvu_txt_fallback_when_no_xml():
         page = await InternetArchiveAdapter(client).get_page_text("txtonly@1")
     assert page["verified_mapping"] is True
     assert page["ocr_source"] == "djvu.txt"
+
+
+def test_file_name_resolution_from_metadata():
+    """Release-prep fix (integration, 2026-11-24): djvu file names must
+    come from the metadata file list, not a guessed
+    ``{identifier}_djvu.xml`` — multi-volume and renamed items 404'd."""
+    from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
+
+    resolve = InternetArchiveAdapter._file_name
+    multi = {"files": [{"name": "UBM_1932_03_04_djvu.xml"}, {"name": "UBM_1932_01_02_djvu.xml"}]}
+    assert resolve(multi, "_djvu.xml", "UBM_1932") == "UBM_1932_01_02_djvu.xml"
+    renamed = {"files": [{"name": "1872_Origin_F391_djvu.xml"}]}
+    assert resolve(renamed, "_djvu.xml", "darwin-online_1872_Origin_F391") == "1872_Origin_F391_djvu.xml"
+    exact = {"files": [{"name": "other_djvu.xml"}, {"name": "item1_djvu.xml"}]}
+    assert resolve(exact, "_djvu.xml", "item1") == "item1_djvu.xml"
+    assert resolve({"files": []}, "_djvu.xml", "x") is None

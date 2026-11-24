@@ -108,6 +108,28 @@ class InternetArchiveAdapter(LibraryAdapter):
     def _has_file(metadata_payload: dict[str, Any], suffix: str) -> bool:
         return any(str(f.get("name", "")).endswith(suffix) for f in metadata_payload.get("files", []) if isinstance(f, dict))
 
+
+    @staticmethod
+    def _file_name(metadata_payload: dict[str, Any], suffix: str, identifier: str) -> str | None:
+        """Resolve the real file name for ``suffix`` from the metadata
+        file list. IA items do not always name files
+        ``{identifier}_djvu.xml``: multi-volume items carry volume
+        suffixes (e.g. ``UBM_1932_01_02_djvu.xml``) and some items' file
+        stems differ from the identifier entirely (e.g.
+        ``1872_Origin_F391_djvu.xml``). Guessing the name returns 404
+        for those items (found live during the Research Beta
+        integration checks, 2026-11-24). Prefers the exact
+        ``{identifier}{suffix}`` name when present."""
+        names = sorted(
+            str(f.get("name", ""))
+            for f in metadata_payload.get("files", [])
+            if isinstance(f, dict) and str(f.get("name", "")).endswith(suffix)
+        )
+        if not names:
+            return None
+        exact = f"{identifier}{suffix}"
+        return exact if exact in names else names[0]
+
     async def _pages(self, identifier: str) -> list[str]:
         """Fetch the item's page-level OCR, split by scanned leaf.
 
@@ -125,13 +147,15 @@ class InternetArchiveAdapter(LibraryAdapter):
         if self._is_restricted(payload):
             raise AdapterError(self.library_id, f"Item {identifier} is access-restricted; full text is not public")
         pages: list[str] | None = None
-        if self._has_file(payload, "_djvu.xml"):
-            response = await self.client.get(f"{self.base_url}/download/{identifier}/{identifier}_djvu.xml", follow_redirects=True)
+        xml_name = self._file_name(payload, "_djvu.xml", identifier)
+        if xml_name:
+            response = await self.client.get(f"{self.base_url}/download/{identifier}/{xml_name}", follow_redirects=True)
             response.raise_for_status()
             pages = self._parse_djvu_xml(response.text)
             self._ocr_sources[identifier] = "djvu.xml"
-        if not pages and self._has_file(payload, "_djvu.txt"):
-            response = await self.client.get(f"{self.base_url}/download/{identifier}/{identifier}_djvu.txt", follow_redirects=True)
+        txt_name = self._file_name(payload, "_djvu.txt", identifier)
+        if not pages and txt_name:
+            response = await self.client.get(f"{self.base_url}/download/{identifier}/{txt_name}", follow_redirects=True)
             response.raise_for_status()
             split = response.text.split("\f")
             if len(split) > 1:
