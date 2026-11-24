@@ -608,8 +608,16 @@ class LibraryService:
             c["text"] if c["text"].endswith("。") else c["text"] + "。"
             for c in claims
         ) if claims else result.get("answer")
+        # Phase 10-C shadow mode: pluggable verifiers record
+        # their verdicts alongside the governing lexical
+        # screening. They are NEVER consulted for the publish
+        # decision - this block runs after it is final.
+        from global_library_mcp.verifiers import shadow_verify
+
+        shadow = shadow_verify(claims, evidence, analysis=analysis)
         return {
             **base,
+            **({"verifier_shadow": shadow} if shadow else {}),
             "status": "answered",
             "available": True,
             "answer": composed,
