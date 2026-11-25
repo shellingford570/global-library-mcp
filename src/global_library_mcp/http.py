@@ -169,6 +169,7 @@ class HttpBudget:
         self.max_total_bytes = max_total_bytes
         self.requests = 0
         self.bytes_received = 0
+        self.wire_bytes = 0
         self.per_host: dict[str, int] = {}
         self.exceeded = False
         self._lock = threading.Lock()
@@ -192,17 +193,72 @@ class HttpBudget:
         with self._lock:
             self.bytes_received += nbytes
 
+    def record_wire_bytes(self, nbytes: int) -> None:
+        """Bytes as they arrived on the network (still compressed).
+        Tracked separately from the decoded byte count that the
+        cumulative cap applies to (b4 review, Section 5)."""
+        with self._lock:
+            self.wire_bytes += nbytes
+
+    def add_streamed_bytes(self, nbytes: int) -> None:
+        """Account for response bytes AS THEY ARRIVE (b4, Section 2).
+
+        Bytes are added atomically during streaming, so (a) several
+        responses streaming concurrently share one running total and
+        cannot jointly slip past the cumulative cap, and (b) bytes
+        from responses that are later aborted, time out or are
+        cancelled stay counted - they were received. Raises
+        BudgetExceeded the moment the cumulative cap is crossed."""
+        with self._lock:
+            self.bytes_received += nbytes
+            if self.bytes_received > self.max_total_bytes:
+                self.exceeded = True
+                raise BudgetExceeded(
+                    f"cumulative response bytes exceeded the {self.max_total_bytes}-byte operation cap"
+                )
+
     def stats(self) -> dict[str, Any]:
         with self._lock:
             return {
                 "requests": self.requests,
                 "bytes_received": self.bytes_received,
+            "bytes_on_wire": self.wire_bytes,
                 "per_host": dict(self.per_host),
                 "max_requests": self.max_requests,
                 "per_host_max": self.per_host_max,
                 "max_total_bytes": self.max_total_bytes,
                 "exceeded": self.exceeded,
             }
+
+
+# Per-host Retry-After gate (b4, Section 2): a 429 from a host
+# raises a process-wide "not before" timestamp for that host, so a
+# later request - from another operation or another user of this
+# process - does not ignore the library's instruction either.
+_host_gates: dict[str, float] = {}
+_host_gates_lock = threading.Lock()
+
+
+def _note_retry_after(host: str, seconds: float) -> None:
+    import time as _time
+
+    with _host_gates_lock:
+        until = _time.monotonic() + max(seconds, 0.0)
+        if until > _host_gates.get(host, 0.0):
+            _host_gates[host] = until
+
+
+# A Retry-After longer than this is not waited out inside a
+# request; the send is refused and the caller reports a partial
+# failure instead (b4 review, Section 5).
+MAX_GATE_WAIT_S = 30.0
+
+
+def _host_retry_wait(host: str) -> float:
+    import time as _time
+
+    with _host_gates_lock:
+        return max(_host_gates.get(host, 0.0) - _time.monotonic(), 0.0)
 
 
 current_http_budget: contextvars.ContextVar[HttpBudget | None] = contextvars.ContextVar(
@@ -250,45 +306,115 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         budget = current_http_budget.get()
         host = request.url.host
+
+        async def honour_gate() -> None:
+            # Honour a Retry-After raised by ANY recent request to
+            # this host. Checked before reserving AND again
+            # immediately before sending: while this request waited
+            # (for the gate or the semaphore), another response may
+            # have extended the host's deadline (b4 review, S5).
+            wait = _host_retry_wait(host)
+            if wait > MAX_GATE_WAIT_S:
+                raise AdapterError(
+                    "http-budget",
+                    f"Retry-After for {host} asks for {wait:.0f}s, beyond the {MAX_GATE_WAIT_S:.0f}s send window; not sent",
+                    retryable=False,
+                )
+            if wait > 0:
+                await asyncio.sleep(wait)
+
+        await honour_gate()
         if budget is not None:
             budget.reserve(host)
         async with _shared_semaphore():
+            await honour_gate()
             response = await self._send(request)
+            if response.status_code == 429:
+                wait = _retry_after_seconds(response.headers.get("retry-after"))
+                if wait is not None:
+                    _note_retry_after(host, wait)
             if budget is None:
                 return response
             try:
-                content_length = response.headers.get("content-length")
-                if content_length is not None:
-                    try:
-                        declared = int(content_length)
-                    except ValueError:
-                        declared = -1
-                    if declared > budget.max_response_bytes:
-                        raise BudgetExceeded(
-                            f"response from {host} declares {declared} bytes, over the {budget.max_response_bytes}-byte cap"
-                        )
+                encoding = (response.headers.get("content-encoding") or "").strip().lower()
+                if encoding not in ("gzip", "deflate"):
+                    # Content-Length pre-check (identity only: with
+                    # compression the header counts wire bytes, not
+                    # the decoded size the cap applies to).
+                    content_length = response.headers.get("content-length")
+                    if content_length is not None:
+                        try:
+                            declared = int(content_length)
+                        except ValueError:
+                            declared = -1
+                        if declared > budget.max_response_bytes:
+                            raise BudgetExceeded(
+                                f"response from {host} declares {declared} bytes, over the {budget.max_response_bytes}-byte cap"
+                            )
                 body = bytearray()
-                async for chunk in response.aiter_bytes(65536):
-                    body.extend(chunk)
+
+                def take(piece: bytes) -> None:
+                    budget.add_streamed_bytes(len(piece))
+                    body.extend(piece)
                     if len(body) > budget.max_response_bytes:
                         raise BudgetExceeded(
                             f"response from {host} exceeded the {budget.max_response_bytes}-byte cap while streaming"
                         )
-                    if budget.bytes_received + len(body) > budget.max_total_bytes:
-                        raise BudgetExceeded(
-                            f"cumulative response bytes exceeded the {budget.max_total_bytes}-byte operation cap at {host}"
-                        )
+
+                if encoding in ("gzip", "deflate"):
+                    # Incremental decompression (b4 review, S5): the
+                    # decompressor is fed raw chunks and drained in
+                    # <=64KB pieces, so no large intermediate decode
+                    # buffer is ever built; decoded bytes are charged
+                    # piece by piece and wire bytes counted apart.
+                    import zlib
+
+                    wbits = 16 + zlib.MAX_WBITS if encoding == "gzip" else zlib.MAX_WBITS
+                    decomp = zlib.decompressobj(wbits)
+                    raw_fallback_tried = False
+                    try:
+                        async for raw in response.aiter_raw():
+                            budget.record_wire_bytes(len(raw))
+                            data = raw
+                            while True:
+                                try:
+                                    piece = decomp.decompress(data, 65536)
+                                except zlib.error:
+                                    if encoding == "deflate" and not raw_fallback_tried and not body:
+                                        raw_fallback_tried = True
+                                        decomp = zlib.decompressobj(-zlib.MAX_WBITS)
+                                        piece = decomp.decompress(data, 65536)
+                                    else:
+                                        raise
+                                if piece:
+                                    take(piece)
+                                # zlib protocol: input that did not
+                                # fit the output bound is handed back
+                                # via unconsumed_tail and MUST be fed
+                                # in again; an empty piece with an
+                                # empty tail means this raw chunk is
+                                # fully drained.
+                                data = decomp.unconsumed_tail
+                                if not piece and not data:
+                                    break
+                        tail = decomp.flush()
+                        if tail:
+                            take(tail)
+                    except zlib.error as exc:
+                        raise httpx.DecodingError(f"error decoding response from {host}: {exc}") from exc
+                else:
+                    async for chunk in response.aiter_bytes(65536):
+                        budget.record_wire_bytes(len(chunk))
+                        take(chunk)
             except BaseException:
                 await response.aclose()
                 raise
             await response.aclose()
-            budget.record_bytes(len(body))
-            # The buffered body is already DECODED (aiter_bytes
-            # applies content decoding), so the reconstructed
-            # response must not keep the original content-encoding
-            # or content-length headers - otherwise callers would
-            # try to decode plain bytes a second time (zlib
-            # "incorrect header check") and read a wrong length.
+            # The buffered body is already DECODED, so the
+            # reconstructed response must not keep the original
+            # content-encoding or content-length headers - otherwise
+            # callers would try to decode plain bytes a second time
+            # (zlib "incorrect header check") and read a wrong length.
             clean_headers = httpx.Headers(
                 {
                     key: value
@@ -304,7 +430,6 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                 request=request,
                 extensions=response.extensions,
             )
-
 
 
 def make_client(timeout: float = 30, **kwargs: Any) -> httpx.AsyncClient:

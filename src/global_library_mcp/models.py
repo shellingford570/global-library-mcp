@@ -59,6 +59,9 @@ class SearchResponse:
     # concurrent searches on a shared service never mix them up.
     timings: dict[str, Any] | None = None
     http_stats: dict[str, Any] | None = None
+    # b4 review: libraries actually queried (so callers can tell
+    # "searched, no hits" apart from "never searched").
+    queried_libraries: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         out: dict[str, Any] = {
@@ -71,6 +74,7 @@ class SearchResponse:
             out["timings"] = self.timings
         if self.http_stats is not None:
             out["http_stats"] = self.http_stats
+        out["queried_libraries"] = self.queried_libraries
         return out
 
 

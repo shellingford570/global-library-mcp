@@ -61,7 +61,11 @@ web UI and API on port 8000.
 ## MCP connection
 
 Run `global-library-mcp mcp` (stdio) and configure that
-command in your MCP client. Tools include
+command in your MCP client. A local Streamable HTTP transport
+is also available (`global-library-mcp mcp --transport
+streamable-http`, bound to 127.0.0.1), and
+`--profile research` exposes a read-only tool set for external
+AI clients. See `docs/mcp-clients.md`. Tools include
 `research_materials` (the beta's primary tool),
 `search_across_libraries`, `search_catalog`,
 `get_document`, `search_in_document`, `get_page_text`,

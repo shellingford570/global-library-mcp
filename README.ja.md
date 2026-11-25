@@ -59,7 +59,11 @@ docker compose up --build
 ## MCP 接続
 
 `global-library-mcp mcp`（stdio）を MCP クライアントに
-設定します。主要ツール：`research_materials`（Beta の
+設定します。ローカル向けの Streamable HTTP も利用できます
+（`global-library-mcp mcp --transport streamable-http`、
+127.0.0.1 にバインド）。外部AIクライアント向けには
+`--profile research` で読み取り専用ツール群を公開できます。
+詳細は `docs/mcp-clients.md` を参照してください。主要ツール：`research_materials`（Beta の
 主機能）、`search_across_libraries`、`search_catalog`、
 `get_document`、`search_in_document`、`get_page_text`、
 `get_page_image`、`get_citation`、`get_rights`、

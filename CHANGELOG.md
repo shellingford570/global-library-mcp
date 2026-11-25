@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.0.0b4 — MCP Connectivity & Research Integration (2026-11-25)
+
+- Streamable HTTP transport for local use (`mcp --transport
+  streamable-http`, binds 127.0.0.1, DNS-rebinding protection on),
+  sharing the same LibraryService as stdio; verified with the
+  official SDK client and the MCP Inspector CLI.
+- Read-only research profile (`--profile research`): the
+  experimental research_question tool is not exposed; every tool
+  carries read-only annotations.
+- HTTP byte accounting is now incremental: bytes are charged as
+  they stream, so concurrent responses share one cumulative total
+  and aborted/cancelled transfers keep the bytes they received.
+- A 429's Retry-After now raises a process-wide per-host gate, so
+  other operations (and other users of the process) do not ignore
+  a library's back-off instruction.
+- The shared HTTP client is closed from the MCP server lifespan,
+  inside the event loop that created it.
+- Japanese discovery widened with historical script variants
+  (old/new kanji); evidence admission rules unchanged.
+- Materials responses carry a data notice (OCR text is untrusted
+  external data, not instructions) and an explicit search scope
+  with partial failures.
+- Docs: ChatGPT connectivity preparation (Secure MCP Tunnel
+  research), MCP security audit, IA fetch-efficiency research.
+- Final review fixes: tool docstrings restored to the top of
+  every tool (descriptions verified via tools/list); the
+  research profile now fails startup if the tool allowlist does
+  not match exactly, and generative answering is disabled under
+  it even if an LLM is configured; the HTTP transport refuses
+  non-loopback binds; Retry-After is re-checked immediately
+  before sending and sends are refused beyond a 30s window;
+  gzip/deflate responses are decoded incrementally with wire
+  and decoded bytes recorded separately; data_notice now covers
+  page text, in-document search and comparison results;
+  search_scope reports per-library with-results / no-results /
+  failed / skipped outcomes.
+
 ## 1.0.0b3 — Research Beta (2026-11-25)
 
 Performance and review-hardening release. No new features.
