@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
-from global_library_mcp.http import sanitize_error
+from global_library_mcp.http import sanitize_error, get_within_domain
 from global_library_mcp.models import Rights, SearchResult
 
 _ARK_RE = re.compile(r"ark:/12148/([A-Za-z0-9]+)")
@@ -98,7 +98,7 @@ class GallicaAdapter(LibraryAdapter):
         return f"https://gallica.bnf.fr/iiif/ark:/12148/{ark}/manifest.json"
 
     async def _get(self, url: str):
-        response = await self.client.get(url, follow_redirects=True)
+        response = await get_within_domain(self.client, url)
         if response.status_code == 403:
             raise AdapterError(self.library_id, "Upstream access denied (403; challenge or policy restriction)")
         response.raise_for_status()
@@ -177,7 +177,7 @@ class GallicaAdapter(LibraryAdapter):
             checks["ocr_present"] = {"ok": False, "detail": f"{type(exc).__name__}: {sanitize_error(exc)}"}
         image_url = self.image_url(ark, page)
         try:
-            response = await self.client.get(image_url, headers={"Range": "bytes=0-1023"}, follow_redirects=True)
+            response = await get_within_domain(self.client, image_url, headers={"Range": "bytes=0-1023"})
             if response.status_code == 403:
                 raise AdapterError(self.library_id, "Upstream access denied (403; challenge or policy restriction)")
             content_type = response.headers.get("content-type", "")

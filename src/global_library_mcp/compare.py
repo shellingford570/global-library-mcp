@@ -44,16 +44,46 @@ def content_tokens(text: str) -> Counter:
 
 
 def compare_aspect(aspect: str, per_doc_texts: dict[str, str], top: int = 8) -> dict[str, Any]:
-    """Shared and unique content tokens across exactly two documents."""
+    """Shared and unique content tokens across 2-4 documents.
+
+    Shared terms occur in EVERY compared document; a document's
+    unique terms occur in that document and in no other. This is a
+    lexical signal only - it does not establish that the documents
+    agree or disagree in meaning (b5, section 15)."""
     labels = list(per_doc_texts)
-    if len(labels) != 2:
-        return {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
-    a, b = labels
-    tokens_a = content_tokens(per_doc_texts[a])
-    tokens_b = content_tokens(per_doc_texts[b])
-    shared = sorted(set(tokens_a) & set(tokens_b), key=lambda t: -(tokens_a[t] + tokens_b[t]))[:top]
-    unique = {
-        a: sorted(set(tokens_a) - set(tokens_b), key=lambda t: -tokens_a[t])[:top],
-        b: sorted(set(tokens_b) - set(tokens_a), key=lambda t: -tokens_b[t])[:top],
+    if len(labels) < 2:
+        return {"aspect": aspect, "shared_terms": [], "partial_terms": [], "unique_terms": {}}
+    token_sets = {label: content_tokens(per_doc_texts[label]) for label in labels}
+    shared_set = set.intersection(*(set(tokens) for tokens in token_sets.values())) if token_sets else set()
+    shared = sorted(shared_set, key=lambda t: -sum(token_sets[label][t] for label in labels))[:top]
+    unique: dict[str, list[str]] = {}
+    for label in labels:
+        others = set().union(*(set(token_sets[other]) for other in labels if other != label)) if len(labels) > 1 else set()
+        unique[label] = sorted(set(token_sets[label]) - others, key=lambda t: -token_sets[label][t])[:top]
+    # Terms shared by SOME but not all documents (3+ documents):
+    # kept distinct from the all-documents shared set so a partial
+    # overlap is never read as a consensus (final review S17).
+    partial: list[dict[str, Any]] = []
+    if len(labels) >= 3:
+        presence: dict[str, list[str]] = {}
+        for label in labels:
+            for token in set(token_sets[label]):
+                presence.setdefault(token, []).append(label)
+        partial_candidates = {
+            token: docs for token, docs in presence.items()
+            if 2 <= len(docs) < len(labels)
+        }
+        partial = [
+            {"term": token, "documents": docs}
+            for token, docs in sorted(
+                partial_candidates.items(),
+                key=lambda item: -sum(token_sets[d][item[0]] for d in item[1]),
+            )[:top]
+        ]
+    return {
+        "aspect": aspect,
+        "shared_terms": shared,
+        "partial_terms": partial,
+        "unique_terms": unique,
+        "documents_compared": len(labels),
     }
-    return {"aspect": aspect, "shared_terms": shared, "unique_terms": unique}

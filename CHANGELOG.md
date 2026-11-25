@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.0.0b5 — Global Coverage
+
+Final-review fixes (2026-11-26, docs/b5-final-review.md):
+strict structural page mapping for BSB and LoC Chronicling
+America (parsed identifiers, all signals required);
+verify_original unified with page results and based on real
+image responses; an upstream-URL safety layer (https-only,
+exact host allowlists, per-hop redirect validation, DNS
+pre-check with a stated scope); Retry-After extensions
+honoured under one absolute send window; a multi-member
+gzip loss bug at chunk boundaries found by the new tests and
+fixed; BSB in-document results wired into the shared service
+schema with partial-result reporting and page windows; IIIF
+parser robustness; e-rara identity checks; printed page no
+longer guessed from canvas labels; rights classification
+distinguishes CC0 / Public Domain Mark / NoC-NC.
+
+
+- New BSB/MDZ adapter: IIIF Presentation 2 manifests, per-page
+  hOCR via the documented MDZ OCR API, IIIF Image 2 originals,
+  per-item manifest rights, proven page mapping; ID-addressed
+  (no official MDZ search API); bounded in-document search with
+  explicit coverage. Live end-to-end verified 2026-11-25.
+- LoC: Chronicling America newspaper page OCR (issue-JSON
+  segments + text-services full text + IIIF image checks),
+  live verified; general LoC remains bibliographic.
+- New e-rara adapter: OAI-PMH metadata by ID, live verified;
+  search/page OCR unsupported by design (no official interface).
+- Shared IIIF module (Presentation v2/v3, ALTO, hOCR).
+- Transport: explicit Accept-Encoding (gzip, deflate);
+  unsupported encodings refused; truncated compressed streams
+  are errors; multi-member gzip supported; adapter redirects
+  restricted to the same registrable domain, each hop budgeted.
+- Registry: duplicated top-level notes removed; the YAML loader
+  refuses duplicate keys; per-capability status vocabulary;
+  BSB and e-rara entries added (25 entries, 8 adapters).
+- Multilingual discovery: German umlaut transliteration and
+  German/French diacritic folding as search-only variants.
+- Comparison: shared/unique terms now computed for 3-4
+  documents (was silently empty beyond two).
+- Web UI: registry-driven library directory with region /
+  language / OCR-capable filters and per-capability statuses;
+  opt-in checkboxes for the ID-addressed adapters.
+
 ## 1.0.0b4 — MCP Connectivity & Research Integration (2026-11-25)
 
 - Streamable HTTP transport for local use (`mcp --transport

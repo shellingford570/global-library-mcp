@@ -28,11 +28,13 @@ and [docs/implementation-status.md](docs/implementation-status.md).
 |---|---|---|---|---|
 | National Diet Library (NDL, Japan) | verified | yes | yes | yes (IIIF) |
 | Internet Archive | verified | yes | yes (open items) | yes |
-| Library of Congress | implemented | yes | partial | yes |
+| Library of Congress | implemented | yes | newspapers only (Chronicling America, verified) | yes |
+| BSB / MDZ (Bavarian State Library) | verified | by ID (no official search API) | yes (hOCR) | yes (IIIF) |
+| e-rara (ETH Library) | implemented | by ID (OAI-PMH) | no | no |
 | Gallica / BnF | unverified (upstream 403 from this network) | yes | yes | yes (IIIF) |
 | DDB | implemented | yes (aggregator) | no | links |
 | Europeana | implemented | yes (aggregator) | no | links |
-| 20+ further institutions | research | - | - | - |
+| 17 further institutions | research | - | - | - |
 
 This project does **not** cover every library in the
 world; the table above is the whole supported set.

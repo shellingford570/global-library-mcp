@@ -306,37 +306,63 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         budget = current_http_budget.get()
         host = request.url.host
+        # ONE absolute send deadline for the whole attempt (b5
+        # final review, S10): gate waits and semaphore waits all
+        # count against the same MAX_GATE_WAIT_S window, so a
+        # Retry-After that keeps being extended by other requests
+        # cannot stretch this send indefinitely.
+        send_deadline = time.monotonic() + MAX_GATE_WAIT_S
 
         async def honour_gate() -> None:
             # Honour a Retry-After raised by ANY recent request to
-            # this host. Checked before reserving AND again
-            # immediately before sending: while this request waited
-            # (for the gate or the semaphore), another response may
-            # have extended the host's deadline (b4 review, S5).
-            wait = _host_retry_wait(host)
-            if wait > MAX_GATE_WAIT_S:
-                raise AdapterError(
-                    "http-budget",
-                    f"Retry-After for {host} asks for {wait:.0f}s, beyond the {MAX_GATE_WAIT_S:.0f}s send window; not sent",
-                    retryable=False,
-                )
-            if wait > 0:
-                await asyncio.sleep(wait)
+            # this host, re-checking the LATEST deadline after
+            # every sleep: while this request waited, another
+            # response may have extended the host's deadline, and
+            # this request must not be sent before the new one.
+            while True:
+                wait = _host_retry_wait(host)
+                if wait <= 0:
+                    return
+                remaining = send_deadline - time.monotonic()
+                if remaining <= 0 or wait > remaining:
+                    raise AdapterError(
+                        "http-budget",
+                        f"Retry-After for {host} asks for {wait:.0f}s, beyond the {MAX_GATE_WAIT_S:.0f}s send window; not sent",
+                        retryable=False,
+                    )
+                await asyncio.sleep(min(wait, remaining))
 
         await honour_gate()
         if budget is not None:
             budget.reserve(host)
-        async with _shared_semaphore():
+        semaphore = _shared_semaphore()
+        remaining = send_deadline - time.monotonic()
+        try:
+            await asyncio.wait_for(semaphore.acquire(), timeout=max(remaining, 0.0))
+        except (asyncio.TimeoutError, TimeoutError):
+            raise AdapterError(
+                "http-budget",
+                f"send window ({MAX_GATE_WAIT_S:.0f}s) expired while waiting for a connection slot for {host}; not sent",
+                retryable=False,
+            )
+        try:
             await honour_gate()
             response = await self._send(request)
             if response.status_code == 429:
                 wait = _retry_after_seconds(response.headers.get("retry-after"))
                 if wait is not None:
                     _note_retry_after(host, wait)
+            encoding = (response.headers.get("content-encoding") or "").strip().lower()
+            if encoding not in ("", "identity", "gzip", "deflate"):
+                await response.aclose()
+                raise AdapterError(
+                    "http-budget",
+                    f"unsupported content-encoding {encoding!r} from {host}; refused",
+                    retryable=False,
+                )
             if budget is None:
                 return response
             try:
-                encoding = (response.headers.get("content-encoding") or "").strip().lower()
                 if encoding not in ("gzip", "deflate"):
                     # Content-Length pre-check (identity only: with
                     # compression the header counts wire bytes, not
@@ -376,27 +402,38 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                         async for raw in response.aiter_raw():
                             budget.record_wire_bytes(len(raw))
                             data = raw
+                            # One raw chunk can contain the end of
+                            # one gzip member, several whole members
+                            # and the start of the next, in any
+                            # alignment (final review S11): keep
+                            # swapping in a fresh decompressor for
+                            # as long as the current one reports
+                            # end-of-stream with bytes left over.
                             while True:
-                                try:
-                                    piece = decomp.decompress(data, 65536)
-                                except zlib.error:
-                                    if encoding == "deflate" and not raw_fallback_tried and not body:
-                                        raw_fallback_tried = True
-                                        decomp = zlib.decompressobj(-zlib.MAX_WBITS)
+                                while True:
+                                    try:
                                         piece = decomp.decompress(data, 65536)
-                                    else:
-                                        raise
-                                if piece:
-                                    take(piece)
-                                # zlib protocol: input that did not
-                                # fit the output bound is handed back
-                                # via unconsumed_tail and MUST be fed
-                                # in again; an empty piece with an
-                                # empty tail means this raw chunk is
-                                # fully drained.
-                                data = decomp.unconsumed_tail
-                                if not piece and not data:
-                                    break
+                                    except zlib.error:
+                                        if encoding == "deflate" and not raw_fallback_tried and not body:
+                                            raw_fallback_tried = True
+                                            decomp = zlib.decompressobj(-zlib.MAX_WBITS)
+                                            piece = decomp.decompress(data, 65536)
+                                        else:
+                                            raise
+                                    if piece:
+                                        take(piece)
+                                    data = decomp.unconsumed_tail
+                                    if not piece and not data:
+                                        break
+                                if decomp.eof and decomp.unused_data:
+                                    data = decomp.unused_data
+                                    decomp = zlib.decompressobj(wbits)
+                                    continue
+                                break
+                        if not decomp.eof:
+                            raise httpx.DecodingError(
+                                f"truncated {encoding} response from {host}: stream ended before the end-of-stream marker"
+                            )
                         tail = decomp.flush()
                         if tail:
                             take(tail)
@@ -430,6 +467,8 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                 request=request,
                 extensions=response.extensions,
             )
+        finally:
+            semaphore.release()
 
 
 def make_client(timeout: float = 30, **kwargs: Any) -> httpx.AsyncClient:
@@ -454,8 +493,254 @@ def make_client(timeout: float = 30, **kwargs: Any) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         timeout=timeout,
         follow_redirects=False,
-        headers={"User-Agent": "global-library-mcp/1.0 (+https://github.com/shellingford570/global-library-mcp)"},
+        headers={
+            "User-Agent": "global-library-mcp/1.0 (+https://github.com/shellingford570/global-library-mcp)",
+            # Only encodings the budgeted transport decodes
+            # incrementally; anything else is refused (b5, S12).
+            "Accept-Encoding": "gzip, deflate",
+        },
         transport=BudgetedTransport(),
         mounts=mounts or None,
         **kwargs,
     )
+
+
+# --- Upstream URL safety (b5 final review, S4) ---------------------
+# Every URL that arrives inside an upstream payload (a IIIF
+# manifest, a loc.gov JSON document, OAI metadata, IA file lists)
+# is UNTRUSTED input. Before this process fetches such a URL it
+# must pass validate_fetch_url():
+#
+# - scheme must be https (no http, no javascript:/data:/file:);
+# - no embedded username/password;
+# - port must be absent or 443;
+# - the host must be a normal DNS name or a PUBLIC IP literal -
+#   loopback, private, link-local, reserved, multicast and
+#   unspecified addresses are refused, as are ambiguous IP forms
+#   (bare integers, hex, leading-zero octets) and localhost names;
+# - when the caller knows the legitimate hosts (an adapter
+#   fetching URLs its provider returned), an exact host allowlist
+#   is enforced - suffix matching is NOT used, so a lookalike
+#   host such as "evil-loc.gov" or "loc.gov.evil.example" fails.
+#
+# DNS scope, stated honestly: resolving a name and checking the
+# answers cannot fully prevent DNS rebinding (the name can be
+# re-resolved between the check and the connection, and httpx
+# offers no address pinning). The DNS pre-check therefore runs
+# when GLM_DNS_CHECK=1 (intended for direct-connection
+# deployments); the always-on controls are the structural checks
+# above, exact host allowlists, and redirect confinement. When an
+# HTTP(S) proxy is configured, name resolution happens at the
+# proxy and local answers do not describe the connection.
+
+import ipaddress
+import os as _os
+import socket as _socket
+
+_AMBIGUOUS_IP = re.compile(r"^(0x[0-9a-f]+|[0-9]+)$", re.I)
+
+
+def _ip_literal(host: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    try:
+        return ipaddress.ip_address(host)
+    except ValueError:
+        return None
+
+
+def validate_fetch_url(url: str, *, allowed_hosts: set[str] | None = None) -> str:
+    """Validate an upstream-supplied URL for fetching. Returns the
+    URL unchanged on success; raises AdapterError otherwise."""
+    from urllib.parse import urlparse
+
+    def refuse(reason: str) -> AdapterError:
+        return AdapterError("http-url", f"refusing to fetch upstream URL ({reason}): {sanitize_error(url)[:160]}", retryable=False)
+
+    if not isinstance(url, str) or not url.strip():
+        raise refuse("empty URL")
+    if any(ord(ch) < 0x21 or ord(ch) == 0x7F for ch in url):
+        raise refuse("control or space characters in URL")
+    parts = urlparse(url.strip())
+    if parts.scheme != "https":
+        raise refuse(f"scheme {parts.scheme!r} is not https")
+    if parts.username or parts.password:
+        raise refuse("embedded credentials in URL")
+    host = parts.hostname
+    if not host:
+        raise refuse("missing host")
+    host = host.rstrip(".").lower()
+    try:
+        port = parts.port
+    except ValueError:
+        raise refuse("invalid port")
+    if port is not None and port != 443:
+        raise refuse(f"port {port} is not allowed")
+    if "%" in host:
+        raise refuse("zone ids / percent-encoded hosts are not allowed")
+    ip = _ip_literal(host)
+    if ip is not None:
+        mapped = getattr(ip, "ipv4_mapped", None)
+        if mapped is not None:
+            ip = mapped
+        if not ip.is_global:
+            raise refuse(f"IP literal {host} is not a public address")
+    else:
+        if _AMBIGUOUS_IP.match(host) or ("." not in host and ":" not in host and host != "localhost"):
+            raise refuse(f"ambiguous host form {host!r}")
+        if host == "localhost" or host.endswith(".localhost"):
+            raise refuse("localhost is not an upstream host")
+        try:
+            host.encode("idna")
+        except (UnicodeError, ValueError):
+            raise refuse("host is not a valid DNS name")
+    if allowed_hosts is not None and host not in allowed_hosts:
+        raise refuse(f"host {host} is not in this adapter's allowlist")
+    return url
+
+
+def check_dns_public(host: str) -> None:
+    """Resolve `host` and refuse when ANY answer is not a public
+    address. A pre-check only - see the scope note above."""
+    infos = _socket.getaddrinfo(host, 443, proto=_socket.IPPROTO_TCP)
+    addresses = {info[4][0] for info in infos}
+    if not addresses:
+        raise AdapterError("http-url", f"DNS returned no addresses for {host}", retryable=False)
+    for address in addresses:
+        ip = _ip_literal(address)
+        if ip is None:
+            continue
+        mapped = getattr(ip, "ipv4_mapped", None)
+        if mapped is not None:
+            ip = mapped
+        if not ip.is_global:
+            raise AdapterError(
+                "http-url",
+                f"DNS for {host} returned a non-public address ({address}); refused",
+                retryable=False,
+            )
+
+
+def dns_check_enabled() -> bool:
+    return _os.getenv("GLM_DNS_CHECK", "").strip().lower() in ("1", "true", "yes")
+
+
+async def fetch_validated(
+    client: httpx.AsyncClient,
+    url: str,
+    *,
+    allowed_hosts: set[str] | None = None,
+    **kwargs: Any,
+) -> httpx.Response:
+    """GET an upstream-supplied URL after validate_fetch_url()
+    (plus the DNS pre-check when enabled). Redirects are NOT
+    followed here; use get_within_domain for redirecting fetches."""
+    validate_fetch_url(url, allowed_hosts=allowed_hosts)
+    if dns_check_enabled():
+        from urllib.parse import urlparse
+
+        host = urlparse(url).hostname or ""
+        if _ip_literal(host) is None:
+            await asyncio.to_thread(check_dns_public, host)
+    return await client.get(url, follow_redirects=False, **kwargs)
+
+
+def response_looks_like_image(body: bytes, content_type: str) -> bool:
+    """True when a response body is actually an image (magic bytes
+    or a non-HTML image Content-Type). An HTTP 200 HTML error or
+    access page is NOT an image (b5 final review, S3/S6)."""
+    ctype = (content_type or "").lower()
+    if "text/html" in ctype or "application/json" in ctype:
+        return False
+    head = body[:16]
+    if head.startswith(b"\xff\xd8\xff"):  # JPEG
+        return True
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):  # PNG
+        return True
+    if head.startswith((b"GIF87a", b"GIF89a")):
+        return True
+    if head.startswith(b"RIFF") and body[8:12] == b"WEBP":
+        return True
+    if head.startswith(b"\x00\x00\x00\x0cjP  \r\n\x87\n"):  # JPEG 2000 signature box
+        return True
+    if ctype.startswith("image/") and not head.lstrip().startswith(b"<"):
+        return True
+    return False
+
+
+def is_safe_link_url(url: object) -> bool:
+    """True when a URL may be shown as a clickable link (http/https,
+    no embedded credentials). Used for upstream-supplied landing /
+    licence links so javascript:, data: or file: URLs from a
+    payload are never rendered as links."""
+    if not isinstance(url, str) or not url:
+        return False
+    from urllib.parse import urlparse
+
+    parts = urlparse(url)
+    return parts.scheme in ("http", "https") and bool(parts.hostname) and not parts.username and not parts.password
+
+
+_MULTI_LABEL_SUFFIXES = ("ndl.go.jp", "go.jp", "co.uk", "org.uk", "com.au")
+
+
+def registrable_domain(host: str) -> str:
+    """Registrable domain of a host, aware of the multi-label
+    public suffixes this project actually talks to."""
+    host = host.lower().strip(".")
+    for suffix in _MULTI_LABEL_SUFFIXES:
+        if host == suffix or host.endswith("." + suffix):
+            head = host[: -len(suffix)].rstrip(".")
+            label = head.rsplit(".", 1)[-1] if head else ""
+            return f"{label}.{suffix}" if label else suffix
+    parts = host.split(".")
+    return ".".join(parts[-2:]) if len(parts) >= 2 else host
+
+
+async def get_within_domain(
+    client: httpx.AsyncClient, url: str, *, max_hops: int = 3, **kwargs: Any
+) -> httpx.Response:
+    """GET that follows redirects manually (b5, S12): every hop is
+    a separate budgeted request, and a redirect to a DIFFERENT
+    registrable domain is refused instead of followed. The client
+    itself is built with follow_redirects=False."""
+    from urllib.parse import urljoin, urlparse
+
+    current = validate_fetch_url(url)
+    origin_domain = registrable_domain(urlparse(current).hostname or "")
+    origin_host = (urlparse(current).hostname or "").lower()
+    hop_headers = dict(kwargs.pop("headers", None) or {})
+    for _ in range(max_hops + 1):
+        if dns_check_enabled():
+            host = urlparse(current).hostname or ""
+            if _ip_literal(host) is None:
+                await asyncio.to_thread(check_dns_public, host)
+        response = await client.get(current, follow_redirects=False, headers=hop_headers or None, **kwargs)
+        if response.status_code not in (301, 302, 303, 307, 308):
+            return response
+        location = response.headers.get("location")
+        await response.aclose()
+        if not location:
+            return response
+        target = urljoin(current, location)
+        # Every hop is validated on its own: https only (an
+        # https->http downgrade fails the scheme check), no
+        # credentials, no private hosts, same registrable domain.
+        target = validate_fetch_url(target)
+        target_domain = registrable_domain(urlparse(target).hostname or "")
+        if target_domain != origin_domain:
+            raise AdapterError(
+                "http-redirect",
+                f"redirect from {origin_domain} to a different domain ({target_domain}) refused",
+                retryable=False,
+            )
+        target_host = (urlparse(target).hostname or "").lower()
+        if target_host != origin_host:
+            # Never forward credentials to a different host, even
+            # inside the same registrable domain.
+            hop_headers = {
+                key: value
+                for key, value in hop_headers.items()
+                if key.lower() not in ("authorization", "cookie")
+            }
+            origin_host = target_host
+        current = target
+    raise AdapterError("http-redirect", f"too many redirects (>{max_hops}) for {url}", retryable=False)

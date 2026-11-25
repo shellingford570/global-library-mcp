@@ -398,6 +398,35 @@ _NEW_TO_OLD = {new: old for old, new in _OLD_NEW_PAIRS}
 _OLD_TO_NEW = {old: new for old, new in _OLD_NEW_PAIRS}
 
 
+_GERMAN_TRANSLITERATION = {
+    "ä": "ae", "ö": "oe", "ü": "ue", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue", "ß": "ss",
+}
+
+
+def latin_variants(text: str) -> list[str]:
+    """Search-only spelling variants for German and French queries
+    (b5, section 10): German umlaut transliteration (ä->ae, ß->ss)
+    and a diacritic-folded form (ä->a, é->e, ç->c, œ->oe, æ->ae).
+    The original text is never altered for quotation or evidence;
+    these variants only widen bibliographic discovery, exactly
+    like the Japanese script variants."""
+    if not text:
+        return []
+    transliterated = "".join(_GERMAN_TRANSLITERATION.get(ch, ch) for ch in text)
+
+    def fold(value: str) -> str:
+        value = value.replace("ß", "ss").replace("œ", "oe").replace("æ", "ae").replace("Œ", "Oe").replace("Æ", "Ae")
+        return "".join(ch for ch in unicodedata.normalize("NFKD", value) if not unicodedata.combining(ch))
+
+    out: list[str] = []
+    # Fold from the ORIGINAL as well as from the transliteration:
+    # folding only "Mueller" can never yield "Muller" (b5 test).
+    for candidate in (transliterated, fold(text), fold(transliterated)):
+        if candidate != text and candidate not in out:
+            out.append(candidate)
+    return out
+
+
 def script_variants(text: str) -> list[str]:
     """Old-form and new-form renderings of a Japanese query string
     (excluding the input itself). Used only to widen search."""

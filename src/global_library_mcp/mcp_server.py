@@ -140,14 +140,36 @@ async def get_page_text(library_id: str, page_id: str) -> dict[str, Any]:
 
 
 @mcp.tool(annotations=_READ_ONLY)
-def get_page_image(library_id: str, book_pid: str, page: int) -> dict[str, Any]:
-    """Return an image URL without downloading or redistributing the original."""
-    if library_id != "ndl":
-        return {"library_id": library_id, "image_url": None, "status": "unknown", "message": "Page image URL generation is not implemented for this adapter"}
+async def get_page_image(library_id: str, book_pid: str, page: int) -> dict[str, Any]:
+    """Return an image URL without downloading or redistributing the original.
+
+    NDL builds the IIIF URL from the book pid; BSB and LoC
+    (Chronicling America) resolve the URL through the adapter's
+    own page record so the link belongs to the verified page;
+    other libraries return a reasoned unsupported result."""
     if page < 1:
         raise ValueError("page must be a positive integer")
-    from global_library_mcp.adapters.ndl import NdlAdapter
-    return {"library_id": library_id, "book_pid": book_pid, "digital_frame": page, "image_url": NdlAdapter.image_url(book_pid, page), "status": "link_only"}
+    if library_id == "ndl":
+        from global_library_mcp.adapters.ndl import NdlAdapter
+
+        return {"library_id": library_id, "book_pid": book_pid, "digital_frame": page, "image_url": NdlAdapter.image_url(book_pid, page), "status": "link_only"}
+    if library_id in ("bsb", "loc"):
+        page_id = f"{book_pid}@{page}" if library_id == "bsb" else f"{book_pid}/seq-{page}"
+        client, service = await _with_service()
+        try:
+            page_data = await service.get_page_text(library_id, page_id)
+        except Exception as exc:  # noqa: BLE001 - reasoned unsupported/unavailable
+            return {"library_id": library_id, "image_url": None, "status": "unavailable", "message": str(exc)[:300]}
+        return {
+            "library_id": library_id,
+            "book_pid": book_pid,
+            "digital_frame": page,
+            "page_id": page_id,
+            "image_url": page_data.get("image_url"),
+            "verified_mapping": page_data.get("verified_mapping"),
+            "status": "link_only",
+        }
+    return {"library_id": library_id, "image_url": None, "status": "unsupported", "message": "Page image URL generation is not implemented for this adapter"}
 
 
 @mcp.tool(annotations=_READ_ONLY)

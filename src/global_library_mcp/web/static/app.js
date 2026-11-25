@@ -15,6 +15,25 @@ const I18N = {
     h1: '世界の原資料へ、<em>検証可能な経路</em>で。',
     lede: '図書館とデジタルアーカイブを横断検索し、ページ単位のOCRと原本画像を確認できる研究資料検索サービスです。AI回答は実験機能として分離され、未確認の情報は隠さず表示します。',
     scopeTitle: '対応範囲と利用条件',
+    librariesTitle: '対応図書館一覧',
+    lookupTitle: 'ID指定で資料を開く',
+    lookupRecord: '資料ID',
+    lookupPage: 'ページID',
+    lookupQuery: '文書内検索の語',
+    lookupDocumentButton: '資料情報を開く',
+    lookupPageButton: 'ページOCRを開く',
+    lookupSearchButton: '文書内を検索',
+    lookupHint: 'ID指定型の機関（BSB・e-rara・LoC新聞）はキーワード検索ではなく、既知の資料IDから開きます。',
+    mappingVerified: '原本対応：検証済み',
+    mappingUnverified: '原本対応：未検証',
+    coverageLabel: '検索範囲',
+    rightsClassLabel: '権利区分',
+    regionAll: '地域：すべて',
+    langAll: '言語：すべて',
+    ocrOnly: 'ページOCR対応のみ',
+    implementedLabel: '実装済み',
+    officialSiteLabel: '公式サイト',
+    researchOnlyLabel: '調査段階',
     scopeLibrariesTitle: '対応機関',
     scopeLibraries: '国立国会図書館（NDL）、Internet Archive、Library of Congress は検索・OCR・原本画像に対応。Gallica は当ネットワークから取得できない場合があります。DDB・Europeana は書誌検索中心です。それ以外の機関は調査中であり、対応を保証しません。',
     scopeTermsTitle: '利用条件',
@@ -127,6 +146,25 @@ const I18N = {
     h1: 'Primary sources worldwide, by a <em>verifiable path</em>.',
     lede: 'A research-materials search service across libraries and digital archives, with page-level OCR and original images you can verify. AI answers are a separate experimental feature, and unverified information is shown, not hidden.',
     scopeTitle: 'Scope and terms',
+    librariesTitle: 'Library directory',
+    lookupTitle: 'Open a document by ID',
+    lookupRecord: 'Record ID',
+    lookupPage: 'Page ID',
+    lookupQuery: 'In-document search term',
+    lookupDocumentButton: 'Open document',
+    lookupPageButton: 'Open page OCR',
+    lookupSearchButton: 'Search in document',
+    lookupHint: 'ID-addressed libraries (BSB, e-rara, LoC newspapers) open from a known record ID, not by keyword search.',
+    mappingVerified: 'Page mapping: verified',
+    mappingUnverified: 'Page mapping: unverified',
+    coverageLabel: 'Coverage',
+    rightsClassLabel: 'Rights class',
+    regionAll: 'Region: all',
+    langAll: 'Language: all',
+    ocrOnly: 'Page-OCR capable only',
+    implementedLabel: 'Implemented',
+    officialSiteLabel: 'Official site',
+    researchOnlyLabel: 'Research only',
     scopeLibrariesTitle: 'Libraries',
     scopeLibraries: 'The National Diet Library (NDL), Internet Archive and Library of Congress support search, OCR and original images. Gallica may be unreachable from some networks. DDB and Europeana are bibliographic-search centred. All other institutions are under research and are not promised.',
     scopeTermsTitle: 'Terms of use',
@@ -694,5 +732,105 @@ compareForm.addEventListener('submit', async event => {
     compareButton.disabled = false;
   }
 });
+
+// ---- Library directory (b5, section 16): registry-driven, with
+// region/language filters and per-capability verification status.
+const librariesList = document.querySelector('#libraries-list');
+const libRegion = document.querySelector('#lib-region');
+const libLang = document.querySelector('#lib-lang');
+const libOcrOnly = document.querySelector('#lib-ocr-only');
+let allLibraries = [];
+
+function renderLibraries() {
+  if (!librariesList) return;
+  const region = libRegion?.value || '';
+  const lang = libLang?.value || '';
+  const ocrOnly = libOcrOnly?.checked || false;
+  const items = allLibraries.filter(item => {
+    if (region && item.region !== region) return false;
+    if (lang && !(item.languages || []).includes(lang)) return false;
+    if (ocrOnly && (item.capability_status?.page_ocr || '') !== 'live_page_verified') return false;
+    return true;
+  });
+  librariesList.innerHTML = items.map(item => {
+    const caps = Object.entries(item.capability_status || {}).map(([k, v]) => `<span class="tag">${esc(k)}: ${esc(v)}</span>`).join(' ');
+    const status = item.implementation_status === 'implemented' ? t().implementedLabel : t().researchOnlyLabel;
+    return `<article class="card"><div><span class="tag">${esc(status)}</span><h3>${esc(item.name || item.id)}</h3><p>${esc(item.region || '')} · ${esc(item.country || '')} · ${(item.languages || []).map(esc).join(', ')}</p><p>${caps}</p><p class="rights">${esc(item.verification || '')}</p></div><div>${safeHref(item.official_site) ? `<a class="source-link" href="${esc(safeHref(item.official_site))}" target="_blank" rel="noreferrer noopener">${esc(t().officialSiteLabel)} ↗</a>` : ''}</div></article>`;
+  }).join('') || '<div class="empty"><p>—</p></div>';
+}
+
+// --- ID-addressed lookup (b5 final review, S18) -----------------
+const lookupLibrary = document.querySelector('#lookup-library');
+const lookupRecord = document.querySelector('#lookup-record');
+const lookupPage = document.querySelector('#lookup-page');
+const lookupQuery = document.querySelector('#lookup-query');
+const lookupResults = document.querySelector('#lookup-results');
+
+function renderLookup(data, kind) {
+  if (!lookupResults) return;
+  if (data.error) {
+    lookupResults.innerHTML = `<article class="card"><p>${esc(data.detail || data.error)}</p></article>`;
+    return;
+  }
+  if (kind === 'document') {
+    const rights = data.rights || {};
+    lookupResults.innerHTML = `<article class="card"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.title || data.record_id || '')}</h3>`
+      + `<p>${esc(data.author || '')} ${esc(data.date || '')}</p>`
+      + `<p class="rights">${t().rightsLabel}: ${esc(rights.statement || 'unknown')}${rights.classification ? ` · ${t().rightsClassLabel}: ${esc(rights.classification)}` : ''}</p>`
+      + `<p>${data.page_count ? `${data.page_count} pages` : ''}</p></div><div>${sourceLink(data.landing_url)}</div></article>`;
+    return;
+  }
+  if (kind === 'page') {
+    const text = data.contents || '';
+    lookupResults.innerHTML = `<article class="card"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.page_id || '')}</h3>`
+      + `<p>${data.verified_mapping ? t().mappingVerified : t().mappingUnverified}</p>`
+      + `<p>${esc(text.slice(0, 600))}</p></div><div>${sourceLink(data.image_url, t().viewImage)}${sourceLink(data.landing_url, t().viewRecord)}</div></article>`;
+    return;
+  }
+  const list = (data.matches && data.matches.list) || [];
+  const items = list.map(m => `<article class="card"><div><h3>${esc(m.page_id)}</h3><p>${esc(m.snippet || '')}</p><p>${m.mapping_status === 'verified' ? t().mappingVerified : t().mappingUnverified}</p></div></article>`).join('');
+  lookupResults.innerHTML = `<p>${t().coverageLabel}: ${data.pages_searched ?? ''}/${data.total_pages ?? ''} pages${data.complete ? '' : ' (partial)'}</p>` + (items || `<p>${esc(data.note || '')}</p>`);
+}
+
+async function runLookup(kind) {
+  if (!lookupLibrary) return;
+  const library = lookupLibrary.value;
+  const record = (lookupRecord.value || '').trim();
+  const page = (lookupPage.value || '').trim();
+  const query = (lookupQuery.value || '').trim();
+  let url = '';
+  if (kind === 'document') url = `/api/document?library=${encodeURIComponent(library)}&id=${encodeURIComponent(record)}`;
+  if (kind === 'page') url = `/api/page?library=${encodeURIComponent(library)}&id=${encodeURIComponent(page || record)}`;
+  if (kind === 'search') url = `/api/in-document?library=${encodeURIComponent(library)}&id=${encodeURIComponent(record)}&q=${encodeURIComponent(query)}`;
+  lookupResults.innerHTML = '';
+  try {
+    const response = await fetch(url);
+    renderLookup(await response.json(), kind);
+  } catch (error) {
+    renderLookup({ error: 'fetch failed', detail: String(error) }, kind);
+  }
+}
+
+for (const [id, kind] of [['#lookup-document-button', 'document'], ['#lookup-page-button', 'page'], ['#lookup-search-button', 'search']]) {
+  const button = document.querySelector(id);
+  if (button) button.addEventListener('click', () => runLookup(kind));
+}
+
+async function loadLibraries() {
+  if (!librariesList) return;
+  try {
+    const data = await fetchJson('/api/libraries');
+    allLibraries = data.libraries || [];
+    const regions = [...new Set(allLibraries.map(i => i.region).filter(Boolean))].sort();
+    const langs = [...new Set(allLibraries.flatMap(i => i.languages || []))].sort();
+    for (const r of regions) { const o = document.createElement('option'); o.value = r; o.textContent = r; libRegion.appendChild(o); }
+    for (const l of langs) { const o = document.createElement('option'); o.value = l; o.textContent = l; libLang.appendChild(o); }
+    renderLibraries();
+  } catch (error) { /* directory is informational; search keeps working */ }
+}
+libRegion?.addEventListener('change', renderLibraries);
+libLang?.addEventListener('change', renderLibraries);
+libOcrOnly?.addEventListener('change', renderLibraries);
+loadLibraries();
 
 applyLang();

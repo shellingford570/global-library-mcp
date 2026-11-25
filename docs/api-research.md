@@ -100,3 +100,24 @@ IIIF Image API 3.0は領域・サイズ・回転・品質・形式、Presentatio
 ### ドイツ：BSB（バイエルン州立図書館）
 
 - DDBは検索のみ実装済み（OCR/ページは unknown）。BSBのMDZ（digitale-sammlungen.de）はIIIF Manifestと資料単位の全文/OCR提供があり、ドイツ語資料のページ根拠候補として最有力。レジストリに research-only で追加した（未実装・ライブ未検証）。
+
+## b5 research addendum (2026-11-25)
+
+- MDZ interfaces page (digitale-sammlungen.de/en/interfaces):
+  IIIF Presentation 2 + Image 2 + per-page hOCR at
+  /ocr/{object_id}/{page_num}; OCR downloads and Image API
+  requests are limited per 24h (no numeric cap published);
+  Presentation API unlimited. No search API is documented.
+  The doc page itself is bot-protected (Anubis) from this
+  network; the APIs are not.
+- LoC Chronicling America: the loc.gov resource JSON for an
+  issue page (.../ed-N/seq-K/?fo=json) carries exactly one
+  segment for the requested seq, a segment_id, an IIIF image
+  info URL and a text-services fulltext_file URL returning the
+  page's full text (ALTO-backed). The legacy
+  chroniclingamerica.loc.gov endpoints were not used.
+- e-rara: OAI-PMH at https://www.e-rara.ch/oai (Identify,
+  ListSets, ListIdentifiers, GetRecord all verified);
+  metadataPrefix oai_dc; sets are per holding institution.
+  No per-page OCR/IIIF endpoint is documented at
+  e-rara.ch/wiki/apiinfo as of this check.

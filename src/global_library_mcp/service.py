@@ -11,6 +11,8 @@ import httpx
 from global_library_mcp.adapters.aggregators import DdbAdapter, EuropeanaAdapter
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.adapters.gallica import GallicaAdapter
+from global_library_mcp.adapters.bsb import BsbAdapter
+from global_library_mcp.adapters.erara import EraraAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
 from global_library_mcp.adapters.ndl import NdlAdapter
@@ -238,6 +240,55 @@ DATA_NOTICE = (
 )
 
 
+def _canonical_in_document_result(result: dict[str, Any], library_id: str, record_id: str, query: str) -> dict[str, Any]:
+    """Normalise any adapter's in-document search result into the
+    common schema (final review S7): matches.list entries carry
+    id/page_id/record_id/match_id/snippet/score/digital_frame/
+    printed_page/mapping_status, and coverage fields
+    (pages_searched/total_pages/complete/partial_failures) are
+    always present. NDL/IA results keep their extra raw fields;
+    the first b5 BSB shape ("hits") is accepted as input so no
+    consumer has to know which adapter produced the result."""
+    raw_matches = result.get("matches")
+    entries: list[Any] = []
+    extra: dict[str, Any] = {}
+    if isinstance(raw_matches, dict):
+        entries = list(raw_matches.get("list") or [])
+        extra = {k: v for k, v in raw_matches.items() if k != "list"}
+    elif isinstance(raw_matches, list):
+        entries = list(raw_matches)
+    if not entries and isinstance(result.get("hits"), list):
+        entries = list(result["hits"])
+    canonical: list[dict[str, Any]] = []
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            continue
+        page_id = entry.get("page_id") or entry.get("id")
+        if not page_id:
+            continue
+        canonical.append(
+            {
+                "id": page_id,
+                "page_id": page_id,
+                "record_id": entry.get("record_id") or record_id,
+                "match_id": entry.get("match_id") or f"{record_id}:{page_id}#{index + 1}",
+                "snippet": entry.get("snippet") or "",
+                "score": entry.get("score"),
+                "digital_frame": entry.get("digital_frame"),
+                "printed_page": entry.get("printed_page", "unknown"),
+                "mapping_status": entry.get("mapping_status")
+                or ("verified" if entry.get("verified_mapping") else "unverified"),
+            }
+        )
+    out = dict(result)
+    out["matches"] = {**extra, "list": canonical}
+    out.setdefault("pages_searched", result.get("pages_searched"))
+    out.setdefault("total_pages", result.get("total_pages"))
+    out.setdefault("complete", result.get("complete"))
+    out.setdefault("partial_failures", result.get("partial_failures") or [])
+    return out
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -250,6 +301,8 @@ class LibraryService:
             "internet-archive": InternetArchiveAdapter(client),
             "ddb": DdbAdapter(client),
             "europeana": EuropeanaAdapter(client),
+            "bsb": BsbAdapter(client),
+            "e-rara": EraraAdapter(client),
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
@@ -371,13 +424,32 @@ class LibraryService:
             result = {**result, "http_stats": budget.stats()}
         return result
 
-    async def search_in_document(self, library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+    async def search_in_document(
+        self,
+        library_id: str,
+        record_id: str,
+        query: str,
+        limit: int = 20,
+        *,
+        start_page: int | None = None,
+        end_page: int | None = None,
+    ) -> dict[str, Any]:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
-        async with self._op_budget(15, 8) as budget:
-            result = await adapter.search_in_document(record_id, query, limit)
+        # The budget must fit a bounded multi-page scan (BSB reads
+        # up to 20 OCR pages + the manifest): the old per-host cap
+        # of 8 aborted such scans mid-window (final review S8).
+        async with self._op_budget(30, 25) as budget:
+            kwargs: dict[str, Any] = {}
+            if start_page is not None or end_page is not None:
+                import inspect
+
+                if "start_page" in inspect.signature(adapter.search_in_document).parameters:
+                    kwargs = {"start_page": start_page or 1, "end_page": end_page}
+            result = await adapter.search_in_document(record_id, query, limit, **kwargs)
         if isinstance(result, dict):
+            result = _canonical_in_document_result(result, library_id, record_id, query)
             result = {**result, "data_notice": DATA_NOTICE}
             if budget is not None:
                 result = {**result, "http_stats": budget.stats()}
@@ -949,6 +1021,16 @@ class LibraryService:
                 if _sv not in variants and _sv not in _script_extra:
                     _script_extra.append(_sv)
         variants = variants + _script_extra[:3]
+        # b5 (Section 10): German/French spelling variants widen
+        # bibliographic discovery in the same, search-only way.
+        from global_library_mcp.question import latin_variants
+
+        _latin_extra: list[str] = []
+        for _variant in list(variants):
+            for _lv in latin_variants(_variant):
+                if _lv not in variants and _lv not in _latin_extra:
+                    _latin_extra.append(_lv)
+        variants = variants + _latin_extra[:3]
         library_error_counts: dict[str, int] = {}
         active_libraries: list[str] | None = list(libraries) if libraries else None
         _early_stop_note: dict[str, Any] | None = None
@@ -1693,7 +1775,7 @@ class LibraryService:
         rows = []
         for aspect in aspect_list:
             texts = per_aspect_texts[aspect]
-            comparison = compare_aspect(aspect, texts) if len(texts) == 2 else {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
+            comparison = compare_aspect(aspect, texts) if len(texts) >= 2 else {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
             rows.append({
                 "aspect": aspect,
                 "documents": {
@@ -1703,6 +1785,7 @@ class LibraryService:
                     } for entry in doc_results
                 },
                 "shared_terms": comparison["shared_terms"],
+                "partial_terms": comparison.get("partial_terms", []),
                 "unique_terms": comparison["unique_terms"],
             })
 
@@ -1713,8 +1796,9 @@ class LibraryService:
             match = re.search(r"(1[5-9]\d{2}|20\d{2})", str(entry.get("date") or ""))
             if match:
                 years.append((entry["record_id"], int(match.group(1))))
-        if len(years) == 2 and abs(years[0][1] - years[1][1]) >= 10:
-            notes.append(f"刊行年に差があります（{years[0][0]}: {years[0][1]}年 / {years[1][0]}: {years[1][1]}年）。資料が扱う内容の年代と刊行年は同一とは限りません。")
+        if len(years) >= 2 and max(year for _, year in years) - min(year for _, year in years) >= 10:
+            span = " / ".join(f"{rid}: {year}年" for rid, year in years)
+            notes.append(f"刊行年に差があります（{span}）。資料が扱う内容の年代と刊行年は同一とは限りません。")
         with_pages = [entry for entry in doc_results if entry["pages"]]
         return {
             "status": "compared" if len(with_pages) >= 2 else "insufficient_evidence",

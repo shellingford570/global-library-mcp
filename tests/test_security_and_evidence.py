@@ -20,9 +20,17 @@ def test_citation_status_distinguishes_page_and_record():
     assert get_citation({"library_id": "ndl", "record_id": "974405"})["citation_status"] == "record-level"
 
 
-def test_page_image_rejects_non_positive_page():
+@pytest.mark.asyncio
+async def test_page_image_rejects_non_positive_page():
     with pytest.raises(ValueError):
-        get_page_image("ndl", "974405", 0)
+        await get_page_image("ndl", "974405", 0)
+
+
+@pytest.mark.asyncio
+async def test_page_image_unsupported_library_is_reasoned():
+    result = await get_page_image("gallica", "cb123", 1)
+    assert result["status"] == "unsupported"
+    assert result["image_url"] is None
 
 
 @pytest.mark.asyncio

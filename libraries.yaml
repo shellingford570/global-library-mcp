@@ -1,16 +1,12 @@
 schema_version: "0.1"
-phase: 1
-last_verified: "2026-11-22"
-status: "core_implemented"
+phase: 5
+last_verified: "2026-11-25"
+status: "b5_global_coverage_candidate"
 notes:
   - "未確認項目は unknown。true は公式仕様または調査メモで確認済みの範囲のみ。"
   - "権利・利用条件はコードライセンスと別に資料／提供機関単位で再確認する。"
-  - "実装済みアダプターは loc / ndl / gallica / internet-archive / ddb / europeana。ライブ検証結果は各 verification 欄と docs/api-research.md に記録。"
+  - "実装済みアダプターは loc / ndl / gallica / internet-archive / ddb / europeana / bsb / e-rara。ライブ検証結果は各 verification 欄と docs/b5-live-verification.md に記録。"
   - "NDLアダプターはNDLラボ「次世代デジタルライブラリー」Book/Page APIと dl.ndl.go.jp のIIIFを使用する（NDLサーチAPIとは別系統）。"
-notes:
-  - "未確認項目は unknown。true は公式仕様または調査メモで確認済みの範囲のみ。"
-  - "権利・利用条件はコードライセンスと別に資料／提供機関単位で再確認する。"
-  - "Global Library MCPの既存実装・正式スキーマ・SLAは unknown。"
 libraries:
   - id: loc
     region: Americas
@@ -26,7 +22,8 @@ libraries:
     rate_limits: unknown
     existing_mcp: unknown
     implementation_status: implemented
-    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'railway')"
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_end_to_end_verified, in_document_search: unsupported, page_ocr: live_page_verified, original_image: live_page_verified, iiif: live_page_verified, page_mapping: live_page_verified, rights: live_page_verified}
+    verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'railway'). b5 (2026-11-25): Chronicling America newspaper page OCR verified live on sn83030214/1907-01-01/ed-1/seq-2 (issue JSON segment + text-services full text + IIIF image info); this applies to Chronicling America newspapers only, not to all LoC materials."
     last_verified: "2026-11-22"
   - id: ndl
     region: Asia
@@ -42,6 +39,7 @@ libraries:
     rate_limits: "numeric limit unknown; throttling/blocking warnings"
     existing_mcp: [https://github.com/knagata/ndl-mcp, https://github.com/sho0318/ndl-mcp]
     implementation_status: implemented
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_end_to_end_verified, in_document_search: live_page_verified, page_ocr: live_page_verified, original_image: live_page_verified, iiif: live_page_verified, page_mapping: live_page_verified, rights: implemented}
     verification: "adapter implemented on the NDL Lab Book/Page APIs; live-verified 2026-11-22: catalog search, in-document search, page OCR, and IIIF manifest/canvas/image checks all pass for reference pages 994120_50, 1018770_21, 1886468_121"
     last_verified: "2026-11-22"
   - id: japan-search
@@ -152,21 +150,41 @@ libraries:
     verification: "adapter implemented; live search verified 2026-11-22 (3 results for 'Berlin' without an API key on the used endpoint)"
     last_verified: "2026-11-22"
   - id: bsb
+    name: "Bayerische Staatsbibliothek / Munich Digitization Center (MDZ)"
     region: Europe
     country: DE
     official_site: https://www.digitale-sammlungen.de/
-    api_specs: [https://www.digitale-sammlungen.de/en/]
+    api_specs: [https://www.digitale-sammlungen.de/en/interfaces, "https://api.digitale-sammlungen.de/iiif/presentation/v2/{object_id}/manifest", "https://api.digitale-sammlungen.de/ocr/{object_id}/{page_num}"]
     languages: [de, multi]
     material_types: [books, manuscripts, maps, images]
-    capabilities: {bibliographic: unknown, fulltext: unknown, ocr: unknown, image: true, page: unknown, iiif: true}
-    standards: [IIIF]
-    auth: unknown
-    terms_rights: "BSB/item-specific; many works public domain, verify per item"
+    capabilities: {bibliographic: false, document_by_id: true, fulltext: true, ocr: true, image: true, page: true, iiif: true, in_document_search: bounded}
+    standards: [IIIF Presentation 2, IIIF Image 2, hOCR]
+    auth: "public; no API key"
+    terms_rights: "per-item license in the IIIF manifest (rightsstatements.org / CC); fetchability is not a reuse licence"
+    rate_limits: "official interfaces page: OCR downloads and Image API requests are limited per 24h (numeric cap not published); Presentation API unlimited"
+    existing_mcp: unknown
+    implementation_status: implemented
+    capability_status: {catalog_search: unsupported, document_by_id: live_end_to_end_verified, in_document_search: bounded, page_ocr: live_page_verified, original_image: live_page_verified, iiif: live_page_verified, page_mapping: live_page_verified, rights: live_page_verified}
+    verification: "b5 live verified 2026-11-25, re-verified 2026-11-26 under the strict final-review rules: manifest @id, canvas @id, image-service id, manifest OCR link and parsed hOCR <title> must ALL agree structurally (7 pages over bsb10120542/bsb00046575/bsb00012345; verify_original additionally fetches a real image rendition). No official keyword search API exists in the MDZ interfaces documentation, so the adapter is ID-addressed; BSB holdings are discovered via DDB (no automated DDB->BSB hand-off)."
+    last_verified: "2026-11-25"
+  - id: e-rara
+    name: "e-rara (ETH Library platform)"
+    region: Europe
+    country: CH
+    official_site: https://www.e-rara.ch/
+    api_specs: [https://www.e-rara.ch/wiki/apiinfo, https://www.e-rara.ch/oai]
+    languages: [de, fr, it, en, multi]
+    material_types: [rare_books, maps, prints]
+    capabilities: {bibliographic: false, document_by_id: true, fulltext: false, ocr: false, image: unknown, page: false, iiif: unknown}
+    standards: [OAI-PMH, Dublin Core]
+    auth: "public; no API key"
+    terms_rights: "item/holding-institution specific; dc:rights when present in the OAI record"
     rate_limits: unknown
     existing_mcp: unknown
-    implementation_status: research-only
-    verification: "Phase 3 research note (2026-11-22, not live-verified): the Bavarian State Library's MDZ (digitale-sammlungen.de) exposes IIIF Presentation manifests and per-work full text/OCR downloads for many digitised works, which makes it the most promising German page-evidence candidate after DDB; no adapter implemented yet."
-    last_verified: "2026-11-22"
+    implementation_status: implemented
+    capability_status: {catalog_search: unsupported, document_by_id: live_catalog_verified, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: research_only, page_mapping: unsupported, rights: implemented}
+    verification: "b5 live verified 2026-11-25: OAI-PMH Identify and GetRecord (oai_dc) work; metadata-by-ID adapter implemented. OAI-PMH is a harvesting protocol, not a keyword search interface. No officially documented per-page OCR/IIIF endpoint was confirmed in this phase, so page access is unsupported rather than scraped. e-rara is the delivery platform; holding institutions are the Swiss member libraries (OAI sets)."
+    last_verified: "2026-11-25"
   - id: gallica
     region: Europe
     country: FR
@@ -317,6 +335,7 @@ libraries:
     rate_limits: "identified User-Agent; 429/Retry-After guidance"
     existing_mcp: unknown
     implementation_status: implemented
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_end_to_end_verified, in_document_search: live_page_verified, page_ocr: live_page_verified, original_image: live_page_verified, iiif: unsupported, page_mapping: live_page_verified, rights: implemented}
     verification: "Phase 3 live verified 2026-11-22: catalog search (mediatype:texts), in-document search over djvu.xml page OCR, page text by leaf (page_id = identifier@leaf), and original verification (metadata/access/djvu/page-range/OCR/image checks) all pass on hydroelectricdev00koesrich (1909, 506 leaves). Access-restricted items are refused. Note: some items' djvu.txt has no form-feed separators, so djvu.xml is the primary page source; in-document search downloads the item OCR once per session (large books are slow)."
     last_verified: "2026-11-22"
   - id: open-library

@@ -6,7 +6,7 @@ from typing import Any
 from urllib.parse import quote
 
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
-from global_library_mcp.http import get_json, sanitize_error
+from global_library_mcp.http import get_json, sanitize_error, get_within_domain
 from global_library_mcp.models import Rights, SearchResult
 
 _ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -215,14 +215,14 @@ class InternetArchiveAdapter(LibraryAdapter):
         pages: list[str] | None = None
         xml_name = self._file_name(payload, "_djvu.xml", identifier)
         if xml_name:
-            response = await self.client.get(self._download_url(identifier, xml_name), follow_redirects=True)
+            response = await get_within_domain(self.client, self._download_url(identifier, xml_name))
             response.raise_for_status()
             pages = self._parse_djvu_xml(response.text)
             self._ocr_sources[identifier] = "djvu.xml"
             self._record_ocr_file(identifier, payload, xml_name, "djvu.xml")
         txt_name = self._file_name(payload, "_djvu.txt", identifier)
         if not pages and txt_name:
-            response = await self.client.get(self._download_url(identifier, txt_name), follow_redirects=True)
+            response = await get_within_domain(self.client, self._download_url(identifier, txt_name))
             response.raise_for_status()
             split = response.text.split("\f")
             if len(split) > 1:
@@ -388,7 +388,7 @@ class InternetArchiveAdapter(LibraryAdapter):
         checks["ocr_present"] = {"ok": ocr_ok, "detail": f"{len(pages[leaf]) if in_range else 0} OCR characters on this leaf"}
         image_url = self.image_url(identifier, leaf)
         try:
-            response = await self.client.get(image_url, headers={"Range": "bytes=0-1023"}, follow_redirects=True)
+            response = await get_within_domain(self.client, image_url, headers={"Range": "bytes=0-1023"})
             content_type = response.headers.get("content-type", "")
             ok = response.status_code in (200, 206) and content_type.startswith("image/")
             checks["image_reachable"] = {"ok": ok, "detail": f"HTTP {response.status_code}, {content_type}, {len(response.content)} bytes (range)"}
