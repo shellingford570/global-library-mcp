@@ -122,6 +122,9 @@ async def test_mcp_streamable_http_with_stub_service():
     from global_library_mcp.service import LibraryService
 
     class _StubAdapter(LibraryAdapter):
+        def __init__(self):
+            pass
+
         library_id = "stub"
         library_name = "Stub"
         supports_in_document_search = True
