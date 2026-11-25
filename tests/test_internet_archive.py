@@ -121,3 +121,79 @@ def test_file_name_resolution_from_metadata():
     exact = {"files": [{"name": "other_djvu.xml"}, {"name": "item1_djvu.xml"}]}
     assert resolve(exact, "_djvu.xml", "item1") == "item1_djvu.xml"
     assert resolve({"files": []}, "_djvu.xml", "x") is None
+
+
+# --- Section-1 fixes (source accuracy, multi-volume mapping, URL safety) ---
+
+RENAMED_META = {"metadata": {"title": "Origin"}, "files": [{"name": "1872_Origin_F391_djvu.xml"}]}
+MULTI_META = {"metadata": {"title": "Multi"},
+              "files": [{"name": "multi_01_djvu.xml"}, {"name": "multi_02_djvu.xml"}]}
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ia_source_reflects_renamed_xml_file():
+    """The reported source must be the file actually fetched, with its
+    real name and format — not a guessed {identifier}_djvu.txt."""
+    respx.get("https://archive.org/metadata/darwinx").mock(return_value=httpx.Response(200, json=RENAMED_META))
+    respx.get("https://archive.org/download/darwinx/1872_Origin_F391_djvu.xml").mock(
+        return_value=httpx.Response(200, text=DJVU_XML))
+    async with httpx.AsyncClient() as client:
+        adapter = InternetArchiveAdapter(client)
+        page = await adapter.get_page_text("darwinx@1")
+        found = await adapter.search_in_document("darwinx", "dam")
+    assert page["ocr_file"] == "1872_Origin_F391_djvu.xml"
+    assert page["ocr_source"] == "djvu.xml"
+    assert page["source"] == "https://archive.org/download/darwinx/1872_Origin_F391_djvu.xml"
+    assert page["verified_mapping"] is True
+    assert "djvu.xml" in found["source"] and "1872_Origin_F391_djvu.xml" in found["source"]
+    assert "djvu.txt" not in found["source"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ia_source_reflects_txt_when_txt_is_used():
+    txt_only = {"metadata": {"title": "Txt Only"}, "files": [{"name": "txtonly_djvu.txt"}]}
+    _mock_item(metadata=txt_only, item="txtonly", xml=None)
+    async with httpx.AsyncClient() as client:
+        adapter = InternetArchiveAdapter(client)
+        page = await adapter.get_page_text("txtonly@1")
+        found = await adapter.search_in_document("txtonly", "dam")
+    assert page["ocr_source"] == "djvu.txt"
+    assert page["source"] == "https://archive.org/download/txtonly/txtonly_djvu.txt"
+    assert "djvu.txt" in found["source"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ia_multivolume_mapping_is_unverified():
+    """Multi-volume items: OCR comes from the first file, but its leaf
+    numbering cannot be confirmed against the item-wide page images,
+    so neither get_page_text nor verify_original may claim verified."""
+    respx.get("https://archive.org/metadata/multi").mock(return_value=httpx.Response(200, json=MULTI_META))
+    respx.get("https://archive.org/download/multi/multi_01_djvu.xml").mock(
+        return_value=httpx.Response(200, text=DJVU_XML))
+    respx.get("https://archive.org/download/multi/page/n1.jpg").mock(
+        return_value=httpx.Response(206, content=b"\xff\xd8", headers={"content-type": "image/jpeg"}))
+    async with httpx.AsyncClient() as client:
+        adapter = InternetArchiveAdapter(client)
+        page = await adapter.get_page_text("multi@1")
+        report = await adapter.verify_original("multi@1")
+    assert "dam and its turbines" in page["contents"]
+    assert page["verified_mapping"] is False
+    assert page["mapping_status"] == "unverified"
+    assert "unverified" in page["mapping_note"]
+    assert report["status"] != "verified"
+    assert report["checks"]["page_mapping"]["ok"] is False
+
+
+def test_ia_unsafe_file_names_are_not_selected_or_quoted_raw():
+    """OCR file names are external data: names with path separators or
+    traversal are never selected, and names with spaces or URL-reserved
+    characters are percent-encoded in the download URL."""
+    resolve = InternetArchiveAdapter._file_name
+    hostile = {"files": [{"name": "../evil_djvu.xml"}, {"name": "sub/dir_djvu.xml"}, {"name": "safe_djvu.xml"}]}
+    assert resolve(hostile, "_djvu.xml", "item") == "safe_djvu.xml"
+    adapter = InternetArchiveAdapter.__new__(InternetArchiveAdapter)
+    url = adapter._download_url("item", "my file?x=1_djvu.xml")
+    assert url == "https://archive.org/download/item/my%20file%3Fx%3D1_djvu.xml"
