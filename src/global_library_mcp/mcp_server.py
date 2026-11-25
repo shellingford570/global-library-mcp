@@ -160,14 +160,14 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
 
 
 @mcp.tool()
-async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard") -> dict[str, Any]:
     """Research-materials mode: related sources with excerpts,
     original images, evidence states and the reason each
     candidate was or was not admitted as answer evidence.
     Candidates are presented for the reader's own judgment,
     never as proof of an answer."""
-    async with _with_service() as service:
-        return await service.research_materials(query, libraries, limit)
+    client, service = await _with_service()
+    return await service.research_materials(query, libraries, limit, mode=mode)
 
 
 @mcp.tool()
@@ -186,4 +186,17 @@ async def compare_documents(documents: list[dict[str, str]], aspects: list[str] 
 
 
 def run() -> None:
-    mcp.run(transport="stdio")
+    try:
+        mcp.run(transport="stdio")
+    finally:
+        # Close the shared HTTP client on server shutdown.
+        global _shared
+        if _shared is not None:
+            client, _service = _shared
+            _shared = None
+            try:
+                import asyncio as _asyncio
+
+                _asyncio.run(client.aclose())
+            except Exception:
+                pass

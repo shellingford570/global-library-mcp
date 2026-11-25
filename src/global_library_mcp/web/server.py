@@ -84,6 +84,7 @@ class ServiceRuntime:
             return LibraryService(make_client(timeout=30))
 
         self.service = asyncio.run_coroutine_threadsafe(_make_service(), self._loop).result(timeout=30)
+        self._ops: dict[str, dict] = {}
 
     def run(self, coro, timeout: float = 600):
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
@@ -92,6 +93,54 @@ class ServiceRuntime:
         except Exception:
             future.cancel()
             raise
+
+    # b3.1 (Section 5): server-side cancellation. Each investigation
+    # runs under a client-chosen operation id (a random UUID only
+    # the initiating browser knows, so another user cannot cancel
+    # it). States are distinguished: running / completed / failed /
+    # cancelled / timeout. A state is reported as cancelled only
+    # after the task has actually ended cancelled.
+    _OP_TIMEOUT_S = 300
+
+    async def _op_main(self, op_id: str, coro, timeout_s: float):
+        op = self._ops[op_id]
+        op["task"] = asyncio.current_task()
+        try:
+            result = await asyncio.wait_for(coro, timeout_s)
+            op["state"] = "completed"
+            return result
+        except asyncio.TimeoutError:
+            op["state"] = "timeout"
+            raise
+        except asyncio.CancelledError:
+            op["state"] = "cancelled"
+            raise
+        except Exception:
+            op["state"] = "failed"
+            raise
+
+    def run_op(self, op_id: str, coro, timeout_s: float = _OP_TIMEOUT_S):
+        self._ops[op_id] = {"state": "running", "task": None}
+        future = asyncio.run_coroutine_threadsafe(self._op_main(op_id, coro, timeout_s), self._loop)
+        return future.result(timeout=timeout_s + 30)
+
+    def op_state(self, op_id: str) -> str:
+        op = self._ops.get(op_id)
+        return op["state"] if op else "unknown"
+
+    def cancel_op(self, op_id: str, wait_s: float = 15) -> str:
+        import time as _time
+
+        op = self._ops.get(op_id)
+        if op is None:
+            return "unknown"
+        task = op.get("task")
+        if op["state"] == "running" and task is not None:
+            self._loop.call_soon_threadsafe(task.cancel)
+            deadline = _time.monotonic() + wait_s
+            while op["state"] == "running" and _time.monotonic() < deadline:
+                _time.sleep(0.05)
+        return op["state"]
 
 
 RUNTIME = ServiceRuntime()
@@ -126,6 +175,14 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/libraries":
             registry = Registry(ROOT / "libraries.yaml")
             self._send(json_bytes({"libraries": registry.list()}))
+            return
+        if parsed.path == "/api/cancel":
+            op_id = parse_qs(parsed.query).get("op", [""])[0]
+            if not op_id:
+                self._send(json_bytes({"error": "op is required"}), status=400)
+                return
+            state = RUNTIME.cancel_op(op_id)
+            self._send(json_bytes({"op_id": op_id, "state": state}))
             return
         if parsed.path == "/api/search":
             query = parse_qs(parsed.query).get("q", [""])[0].strip()
@@ -170,7 +227,19 @@ class Handler(BaseHTTPRequestHandler):
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
                 mode = parse_qs(parsed.query).get("mode", ["standard"])[0]
-                self._send(json_bytes(RUNTIME.run(RUNTIME.service.collect_evidence(query, libraries, 10, mode=mode))))
+                op_id = parse_qs(parsed.query).get("op", [""])[0]
+                if op_id:
+                    import concurrent.futures as _cf
+
+                    try:
+                        result = RUNTIME.run_op(op_id, RUNTIME.service.collect_evidence(query, libraries, 10, mode=mode))
+                        self._send(json_bytes({**result, "op_state": RUNTIME.op_state(op_id)}))
+                    except (_cf.CancelledError, asyncio.CancelledError):
+                        self._send(json_bytes({"op_state": "cancelled", "op_id": op_id, "evidence": []}))
+                    except (TimeoutError, asyncio.TimeoutError):
+                        self._send(json_bytes({"op_state": "timeout", "op_id": op_id, "evidence": []}))
+                else:
+                    self._send(json_bytes(RUNTIME.run(RUNTIME.service.collect_evidence(query, libraries, 10, mode=mode))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -186,7 +255,19 @@ class Handler(BaseHTTPRequestHandler):
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
                 mode = parse_qs(parsed.query).get("mode", ["standard"])[0]
-                self._send(json_bytes(RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode))))
+                op_id = parse_qs(parsed.query).get("op", [""])[0]
+                if op_id:
+                    import concurrent.futures as _cf
+
+                    try:
+                        result = RUNTIME.run_op(op_id, RUNTIME.service.research_materials(query, libraries, 10, mode=mode))
+                        self._send(json_bytes({**result, "op_state": RUNTIME.op_state(op_id)}))
+                    except (_cf.CancelledError, asyncio.CancelledError):
+                        self._send(json_bytes({"op_state": "cancelled", "op_id": op_id, "materials": []}))
+                    except (TimeoutError, asyncio.TimeoutError):
+                        self._send(json_bytes({"op_state": "timeout", "op_id": op_id, "materials": []}))
+                else:
+                    self._send(json_bytes(RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return

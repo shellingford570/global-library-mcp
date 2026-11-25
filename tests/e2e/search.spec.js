@@ -278,3 +278,76 @@ test('scope and terms section explains the beta posture', async ({ page }) => {
   await expect(scope).toContainText('AI回答は実験機能です');
   await expect(scope).toContainText('存在しないことを意味しません');
 });
+
+test('b3.1 staged flow: bibliographic results stay visible during and after materials', async ({ page }) => {
+  await page.route('**/api/search**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      query: '発電', results: [{ library_id: 'ndl', library_name: 'NDL', record_id: '1', title: '書誌タイトル', author: '著者', date: '1900', landing_url: 'https://example.org/1', rights: {} }], errors: [],
+    }) });
+  });
+  let releaseMaterials;
+  const gate = new Promise((resolve) => { releaseMaterials = resolve; });
+  await page.route('**/api/materials**', async route => {
+    await gate;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      mode: 'standard', note: 'note', query: '発電',
+      timings: { total_s: 3.2 }, http_stats: { requests: 12 },
+      materials: [{ citation_key: 'ndl:1:1_1', library_id: 'ndl', record_id: '1', page_id: '1_1', title: '資料タイトル', author: '著者', date: '1900', image_url: null, landing_url: 'https://example.org/1',
+        rights: { status: 'Public Domain' }, admitted_as_evidence: true,
+        access_state: { bibliographic: true, ocr_fetched: true, mapping_confirmed: true, passage_found: true, assessed_as_evidence: true },
+        states: { discovered: true, accessible: true, source_verified: true, relevant_candidate: true, supporting_passage: true, assessed_evidence: true, rejected_for_answer: false },
+        excerpts: [{ text: '発電の抜粋。' }], not_admitted_reasons: [] }],
+    }) });
+  });
+  await page.goto('/');
+  await page.locator('#query').fill('発電');
+  await page.locator('#search-form button[type="submit"]').click();
+  await expect(page.getByText('書誌タイトル')).toBeVisible();
+  await page.locator('#materials-button').click();
+  // While the investigation runs, the bibliographic result stays on screen.
+  await expect(page.getByText('書誌タイトル')).toBeVisible();
+  releaseMaterials();
+  await expect(page.locator('#materials-results').getByText('資料タイトル')).toBeVisible();
+  // After it completes, both remain visible, with access states, rights and perf.
+  await expect(page.getByText('書誌タイトル')).toBeVisible();
+  await expect(page.locator('#materials-results').getByText(/OCR取得/)).toBeVisible();
+  await expect(page.locator('#materials-results').getByText(/Public Domain/)).toBeVisible();
+  await expect(page.locator('#stage-status')).toContainText('実HTTPリクエスト 12 件');
+});
+
+test('b3.1 cancel: server-confirmed cancellation is shown', async ({ page }) => {
+  await page.route('**/api/cancel**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ op_id: 'x', state: 'cancelled' }) });
+  });
+  await page.route('**/api/materials**', async route => {
+    await new Promise((resolve) => setTimeout(resolve, 30000));
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+  await page.goto('/');
+  await page.locator('#query').fill('発電');
+  await page.locator('#materials-button').click();
+  await expect(page.locator('#cancel-button')).toBeVisible();
+  await page.locator('#cancel-button').click();
+  await expect(page.locator('#stage-status')).toContainText('キャンセルしました');
+});
+
+test('b3.1 partial failure: status and reasons are visible', async ({ page }) => {
+  await page.route('**/api/materials**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      mode: 'standard', note: 'note', query: '発電',
+      errors: [{ library_id: 'loc', error: 'search deadline exceeded (10s); partial result' }],
+      timings: { total_s: 9.9 }, http_stats: { requests: 20 },
+      materials: [{ citation_key: null, library_id: 'ndl', record_id: '2', page_id: null, title: '部分資料', author: '', date: '', image_url: null, landing_url: 'https://example.org/2',
+        rights: {}, admitted_as_evidence: false,
+        access_state: { bibliographic: true, ocr_fetched: false, mapping_confirmed: false, passage_found: false, assessed_as_evidence: false },
+        states: { discovered: true, accessible: false, source_verified: false, relevant_candidate: false, supporting_passage: false, assessed_evidence: false, rejected_for_answer: true },
+        excerpts: [], not_admitted_reasons: ['ページを取得しなかった'] }],
+    }) });
+  });
+  await page.goto('/');
+  await page.locator('#query').fill('発電');
+  await page.locator('#materials-button').click();
+  await expect(page.locator('#stage-status')).toContainText('部分的に完了しました');
+  await expect(page.locator('#materials-results').getByText('部分資料')).toBeVisible();
+  await expect(page.locator('#materials-results').getByText(/OCR取得/)).toBeVisible();
+});

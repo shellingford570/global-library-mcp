@@ -55,14 +55,23 @@ class SearchResponse:
     results: list[SearchResult]
     errors: list[dict[str, str]] = field(default_factory=list)
     retrieved_at: str = field(default_factory=now_iso)
+    # b3.1: per-call measurements travel with the response so
+    # concurrent searches on a shared service never mix them up.
+    timings: dict[str, Any] | None = None
+    http_stats: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "query": self.query,
             "results": [item.to_dict() for item in self.results],
             "errors": self.errors,
             "retrieved_at": self.retrieved_at,
         }
+        if self.timings is not None:
+            out["timings"] = self.timings
+        if self.http_stats is not None:
+            out["http_stats"] = self.http_stats
+        return out
 
 
 @dataclass(slots=True)

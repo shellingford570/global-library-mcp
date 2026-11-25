@@ -13,8 +13,9 @@ from global_library_mcp.adapters.base import AdapterError
 
 
 class ResponseCache:
-    def __init__(self, ttl_seconds: int = 60):
+    def __init__(self, ttl_seconds: int = 60, max_size: int = 256):
         self.ttl_seconds = ttl_seconds
+        self.max_size = max_size
         self._values: dict[str, tuple[float, Any]] = {}
 
     def get(self, key: str) -> Any | None:
@@ -25,6 +26,8 @@ class ResponseCache:
 
     def put(self, key: str, value: Any) -> None:
         self._values[key] = (time.monotonic(), value)
+        while len(self._values) > self.max_size:
+            self._values.pop(next(iter(self._values)))
 
 
 def sanitize_error(value: object) -> str:
@@ -43,6 +46,31 @@ def sanitize_error(value: object) -> str:
     return url_pattern.sub(redact, text)
 
 
+def _retry_after_seconds(value: str | None) -> float | None:
+    """Parse a Retry-After header (delta-seconds or HTTP-date)."""
+    if not value:
+        return None
+    value = value.strip()
+    try:
+        return max(float(value), 0.0)
+    except ValueError:
+        pass
+    try:
+        from email.utils import parsedate_to_datetime
+
+        moment = parsedate_to_datetime(value)
+        if moment is None:
+            return None
+        import datetime as _dt
+
+        now = _dt.datetime.now(_dt.timezone.utc)
+        if moment.tzinfo is None:
+            moment = moment.replace(tzinfo=_dt.timezone.utc)
+        return max((moment - now).total_seconds(), 0.0)
+    except Exception:
+        return None
+
+
 async def get_json(
     client: httpx.AsyncClient,
     url: str,
@@ -51,6 +79,7 @@ async def get_json(
     headers: Mapping[str, str] | None = None,
     cache: ResponseCache | None = None,
     attempts: int = 2,
+    max_retry_wait: float = 10.0,
 ) -> Any:
     key = str(httpx.URL(url, params=params))
     if cache:
@@ -64,16 +93,22 @@ async def get_json(
             response = await client.get(url, params=params, headers=headers)
             if response.status_code == 429:
                 retry_after = response.headers.get("retry-after", "")
-                # b3: honour Retry-After before retrying (capped at
-                # 5s so interactive use stays responsive); a second
-                # 429 surfaces as an error. Never bypass rate limits.
-                if attempt + 1 < attempts:
-                    try:
-                        wait = min(float(retry_after), 5.0)
-                    except (TypeError, ValueError):
-                        wait = 1.0
-                    await asyncio.sleep(max(wait, 0.2))
+                # b3.1 (review fix): honour the library's Retry-After
+                # in full - never retry earlier than specified. Both
+                # delta-seconds and HTTP-date forms are parsed. If the
+                # required wait exceeds max_retry_wait (the caller's
+                # deadline budget), do not retry at all: surface a
+                # partial failure instead. 403 is never retried.
+                wait = _retry_after_seconds(retry_after)
+                if attempt + 1 < attempts and wait is not None and wait <= max_retry_wait:
+                    await asyncio.sleep(max(wait, 0.0))
                     continue
+                if wait is not None and wait > max_retry_wait:
+                    # Retrying would mean returning earlier than the
+                    # library allowed OR waiting past the caller's
+                    # deadline; neither is acceptable, and the outer
+                    # handler must not retry either (retryable=False).
+                    raise AdapterError("http", f"Upstream rate limit (429); Retry-After={retry_after} exceeds the {max_retry_wait:.0f}s retry deadline; not retried", retryable=False)
                 raise AdapterError("http", f"Upstream rate limit (429); Retry-After={retry_after or 'unknown'}", retryable=True)
             if response.status_code == 403:
                 raise AdapterError("http", "Upstream access denied (403; challenge or policy restriction)", retryable=False)
@@ -91,20 +126,29 @@ async def get_json(
     raise AdapterError("http", f"Upstream request failed: {sanitize_error(last_error)}", retryable=True)
 
 
-# --- Real HTTP request budget (b3, Section 9) -------------------------------
+# --- Real HTTP request budget (b3, Section 9; hardened in b3.1) -------------
 # The service-layer budget counts processing units, not wire requests.
-# HttpBudget counts every actual HTTP request that leaves the process
-# (each retry and each redirect hop is a separate transport request),
-# per operation and per host, with a response-size cap. It is carried
-# in a context variable so one operation (one question) gets one
-# budget no matter how many adapters share the client.
+# HttpBudget counts every actual HTTP request attempt that leaves the
+# process. Reservation is ATOMIC (b3.1 review fix): the attempt is
+# counted under a lock BEFORE anything is sent, checking the total
+# and per-host caps together, so concurrent requests cannot race
+# past the limit. Attempts that time out, fail to connect or are
+# cancelled stay counted - they did consume upstream attention.
+# Received bytes are recorded separately from the request count.
+# Response size is enforced WHILE STREAMING: a response is aborted
+# and closed as soon as it exceeds the per-response cap or the
+# operation's cumulative byte cap; Content-Length is checked before
+# reading when present. Byte counts are of the DECODED body, so a
+# small compressed response that expands hugely is still caught.
 
+import contextlib
 import contextvars
 import threading
 
 
 class BudgetExceeded(AdapterError):
-    """Raised before a request is sent when the HTTP budget is spent."""
+    """Raised before a request is sent (or while streaming an
+    oversized response) when the HTTP budget is spent."""
 
     def __init__(self, detail: str):
         super().__init__("http-budget", f"HTTP request budget exceeded: {detail}", retryable=False)
@@ -112,17 +156,28 @@ class BudgetExceeded(AdapterError):
 
 
 class HttpBudget:
-    def __init__(self, max_requests: int = 80, per_host_max: int = 40, max_response_bytes: int = 25_000_000):
+    def __init__(
+        self,
+        max_requests: int = 80,
+        per_host_max: int = 40,
+        max_response_bytes: int = 25_000_000,
+        max_total_bytes: int = 120_000_000,
+    ):
         self.max_requests = max_requests
         self.per_host_max = per_host_max
         self.max_response_bytes = max_response_bytes
+        self.max_total_bytes = max_total_bytes
         self.requests = 0
         self.bytes_received = 0
         self.per_host: dict[str, int] = {}
         self.exceeded = False
         self._lock = threading.Lock()
 
-    def check(self, host: str) -> None:
+    def reserve(self, host: str) -> None:
+        """Atomically claim one request attempt for `host`.
+
+        Raises BudgetExceeded before any network activity when the
+        total or per-host cap is already reached."""
         with self._lock:
             if self.requests >= self.max_requests:
                 self.exceeded = True
@@ -130,22 +185,24 @@ class HttpBudget:
             if self.per_host.get(host, 0) >= self.per_host_max:
                 self.exceeded = True
                 raise BudgetExceeded(f"per-host limit {self.per_host_max} requests for {host} reached")
-
-    def record(self, host: str, nbytes: int) -> None:
-        with self._lock:
             self.requests += 1
             self.per_host[host] = self.per_host.get(host, 0) + 1
+
+    def record_bytes(self, nbytes: int) -> None:
+        with self._lock:
             self.bytes_received += nbytes
 
     def stats(self) -> dict[str, Any]:
-        return {
-            "requests": self.requests,
-            "bytes_received": self.bytes_received,
-            "per_host": dict(self.per_host),
-            "max_requests": self.max_requests,
-            "per_host_max": self.per_host_max,
-            "exceeded": self.exceeded,
-        }
+        with self._lock:
+            return {
+                "requests": self.requests,
+                "bytes_received": self.bytes_received,
+                "per_host": dict(self.per_host),
+                "max_requests": self.max_requests,
+                "per_host_max": self.per_host_max,
+                "max_total_bytes": self.max_total_bytes,
+                "exceeded": self.exceeded,
+            }
 
 
 current_http_budget: contextvars.ContextVar[HttpBudget | None] = contextvars.ContextVar(
@@ -153,14 +210,39 @@ current_http_budget: contextvars.ContextVar[HttpBudget | None] = contextvars.Con
 )
 
 
-class BudgetedTransport(httpx.AsyncHTTPTransport):
-    """AsyncHTTPTransport that enforces the context's HttpBudget and
-    a process-wide concurrency cap. With no budget in context it
-    behaves like the plain transport (plus the concurrency cap)."""
+@contextlib.contextmanager
+def use_budget(budget: HttpBudget):
+    """Set the active HTTP budget, restoring the previous one on
+    exit no matter how the block ends (b3.1: try/finally)."""
+    token = current_http_budget.set(budget)
+    try:
+        yield budget
+    finally:
+        current_http_budget.reset(token)
 
-    def __init__(self, *args: Any, max_concurrency: int = 8, **kwargs: Any):
-        super().__init__(*args, **kwargs)
-        self._semaphore = asyncio.Semaphore(max_concurrency)
+
+# One concurrency cap shared by every BudgetedTransport on the same
+# event loop (b3.1: proxy and direct transports previously had
+# separate caps, doubling the effective limit).
+_loop_semaphores: dict[int, asyncio.Semaphore] = {}
+
+
+def _shared_semaphore(limit: int = 8) -> asyncio.Semaphore:
+    loop = asyncio.get_running_loop()
+    key = id(loop)
+    semaphore = _loop_semaphores.get(key)
+    if semaphore is None:
+        semaphore = asyncio.Semaphore(limit)
+        _loop_semaphores[key] = semaphore
+    return semaphore
+
+
+class BudgetedTransport(httpx.AsyncHTTPTransport):
+    """AsyncHTTPTransport enforcing the context's HttpBudget:
+    atomic pre-send reservation, a process-wide (per-loop)
+    concurrency cap shared across proxy/direct transports, and
+    streaming response-size enforcement. With no budget in context
+    it behaves like the plain transport (plus the shared cap)."""
 
     async def _send(self, request: httpx.Request) -> httpx.Response:
         return await super().handle_async_request(request)
@@ -169,18 +251,46 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
         budget = current_http_budget.get()
         host = request.url.host
         if budget is not None:
-            budget.check(host)
-        async with self._semaphore:
+            budget.reserve(host)
+        async with _shared_semaphore():
             response = await self._send(request)
-            if budget is not None:
-                body = await response.aread()
-                if len(body) > budget.max_response_bytes:
-                    budget.record(host, len(body))
-                    raise BudgetExceeded(
-                        f"response from {host} exceeded {budget.max_response_bytes} bytes"
-                    )
-                budget.record(host, len(body))
-            return response
+            if budget is None:
+                return response
+            try:
+                content_length = response.headers.get("content-length")
+                if content_length is not None:
+                    try:
+                        declared = int(content_length)
+                    except ValueError:
+                        declared = -1
+                    if declared > budget.max_response_bytes:
+                        raise BudgetExceeded(
+                            f"response from {host} declares {declared} bytes, over the {budget.max_response_bytes}-byte cap"
+                        )
+                body = bytearray()
+                async for chunk in response.aiter_bytes(65536):
+                    body.extend(chunk)
+                    if len(body) > budget.max_response_bytes:
+                        raise BudgetExceeded(
+                            f"response from {host} exceeded the {budget.max_response_bytes}-byte cap while streaming"
+                        )
+                    if budget.bytes_received + len(body) > budget.max_total_bytes:
+                        raise BudgetExceeded(
+                            f"cumulative response bytes exceeded the {budget.max_total_bytes}-byte operation cap at {host}"
+                        )
+            except BaseException:
+                await response.aclose()
+                raise
+            await response.aclose()
+            budget.record_bytes(len(body))
+            return httpx.Response(
+                status_code=response.status_code,
+                headers=response.headers,
+                content=bytes(body),
+                request=request,
+                extensions=response.extensions,
+            )
+
 
 
 def make_client(timeout: float = 30, **kwargs: Any) -> httpx.AsyncClient:
