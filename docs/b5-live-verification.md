@@ -51,3 +51,24 @@ NDL and Internet Archive behaviour is covered by the standard
 regression topics (see docs/b5-global-coverage.md for the run
 recorded with this candidate) and by the unchanged fixture
 suite (248 pytest). No admission/relevance rule was changed.
+
+## Regression topics (b5 candidate, Standard, live, 2026-11-25)
+
+The five standing topics through `research_materials` (defaults:
+NDL/LoC/Gallica/IA; the new adapters are opt-in and were not in
+this run). Partial failures for loc/gallica are the known ones
+(slow LoC responses, Gallica upstream 403).
+
+| topic | total | materials | admitted | HTTP |
+|---|---|---|---|---|
+| 進化論 (Darwin) | 50.3s | 15 | 2 | 34 |
+| 明治の水力発電 | 32.0s | 10 | 0 | 23 |
+| 日本の鉄道史 | 59.6s | 14 | 0 | 39 |
+| 哲学史 | 18.2s | 13 | 3 | 18 |
+| 科学史 | 30.1s | 11 | 4 | 14 |
+
+NDL/IA behaviour is intact (materials, excerpts, admissions all
+present). Totals vary run to run with upstream latency (the b3
+post-fix run measured 32.1/27.7/15.3/7.3/25.1s on the same
+topics); no performance improvement is claimed from this single
+run, and no admission rule was loosened.
