@@ -15,6 +15,13 @@ const I18N = {
     h1: '世界の原資料へ、<em>検証可能な経路</em>で。',
     lede: '図書館とデジタルアーカイブを横断検索し、ページ単位のOCRと原本画像を確認できる研究資料検索サービスです。AI回答は実験機能として分離され、未確認の情報は隠さず表示します。',
     scopeTitle: '対応範囲と利用条件',
+    librariesTitle: '対応図書館一覧',
+    regionAll: '地域：すべて',
+    langAll: '言語：すべて',
+    ocrOnly: 'ページOCR対応のみ',
+    implementedLabel: '実装済み',
+    officialSiteLabel: '公式サイト',
+    researchOnlyLabel: '調査段階',
     scopeLibrariesTitle: '対応機関',
     scopeLibraries: '国立国会図書館（NDL）、Internet Archive、Library of Congress は検索・OCR・原本画像に対応。Gallica は当ネットワークから取得できない場合があります。DDB・Europeana は書誌検索中心です。それ以外の機関は調査中であり、対応を保証しません。',
     scopeTermsTitle: '利用条件',
@@ -127,6 +134,13 @@ const I18N = {
     h1: 'Primary sources worldwide, by a <em>verifiable path</em>.',
     lede: 'A research-materials search service across libraries and digital archives, with page-level OCR and original images you can verify. AI answers are a separate experimental feature, and unverified information is shown, not hidden.',
     scopeTitle: 'Scope and terms',
+    librariesTitle: 'Library directory',
+    regionAll: 'Region: all',
+    langAll: 'Language: all',
+    ocrOnly: 'Page-OCR capable only',
+    implementedLabel: 'Implemented',
+    officialSiteLabel: 'Official site',
+    researchOnlyLabel: 'Research only',
     scopeLibrariesTitle: 'Libraries',
     scopeLibraries: 'The National Diet Library (NDL), Internet Archive and Library of Congress support search, OCR and original images. Gallica may be unreachable from some networks. DDB and Europeana are bibliographic-search centred. All other institutions are under research and are not promised.',
     scopeTermsTitle: 'Terms of use',
@@ -694,5 +708,48 @@ compareForm.addEventListener('submit', async event => {
     compareButton.disabled = false;
   }
 });
+
+// ---- Library directory (b5, section 16): registry-driven, with
+// region/language filters and per-capability verification status.
+const librariesList = document.querySelector('#libraries-list');
+const libRegion = document.querySelector('#lib-region');
+const libLang = document.querySelector('#lib-lang');
+const libOcrOnly = document.querySelector('#lib-ocr-only');
+let allLibraries = [];
+
+function renderLibraries() {
+  if (!librariesList) return;
+  const region = libRegion?.value || '';
+  const lang = libLang?.value || '';
+  const ocrOnly = libOcrOnly?.checked || false;
+  const items = allLibraries.filter(item => {
+    if (region && item.region !== region) return false;
+    if (lang && !(item.languages || []).includes(lang)) return false;
+    if (ocrOnly && (item.capability_status?.page_ocr || '') !== 'live_page_verified') return false;
+    return true;
+  });
+  librariesList.innerHTML = items.map(item => {
+    const caps = Object.entries(item.capability_status || {}).map(([k, v]) => `<span class="tag">${esc(k)}: ${esc(v)}</span>`).join(' ');
+    const status = item.implementation_status === 'implemented' ? t().implementedLabel : t().researchOnlyLabel;
+    return `<article class="card"><div><span class="tag">${esc(status)}</span><h3>${esc(item.name || item.id)}</h3><p>${esc(item.region || '')} · ${esc(item.country || '')} · ${(item.languages || []).map(esc).join(', ')}</p><p>${caps}</p><p class="rights">${esc(item.verification || '')}</p></div><div>${item.official_site ? `<a class="source-link" href="${esc(item.official_site)}" target="_blank" rel="noreferrer noopener">${esc(t().officialSiteLabel)} ↗</a>` : ''}</div></article>`;
+  }).join('') || '<div class="empty"><p>—</p></div>';
+}
+
+async function loadLibraries() {
+  if (!librariesList) return;
+  try {
+    const data = await fetchJson('/api/libraries');
+    allLibraries = data.libraries || [];
+    const regions = [...new Set(allLibraries.map(i => i.region).filter(Boolean))].sort();
+    const langs = [...new Set(allLibraries.flatMap(i => i.languages || []))].sort();
+    for (const r of regions) { const o = document.createElement('option'); o.value = r; o.textContent = r; libRegion.appendChild(o); }
+    for (const l of langs) { const o = document.createElement('option'); o.value = l; o.textContent = l; libLang.appendChild(o); }
+    renderLibraries();
+  } catch (error) { /* directory is informational; search keeps working */ }
+}
+libRegion?.addEventListener('change', renderLibraries);
+libLang?.addEventListener('change', renderLibraries);
+libOcrOnly?.addEventListener('change', renderLibraries);
+loadLibraries();
 
 applyLang();

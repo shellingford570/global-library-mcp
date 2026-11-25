@@ -41,3 +41,11 @@ Notes:
 
 This table is a guide only. Always follow the item's own rights
 statement and the holding library's terms.
+
+## b5 additions (2026-11-25)
+
+| Source | Metadata | OCR text | Images | Notes |
+|---|---|---|---|---|
+| BSB/MDZ | API responses carry per-item data | Per-item license in the IIIF manifest (rightsstatements.org or CC) governs reuse | Same per-item license | Fetchability is not a licence; NoC-NC items are not freely reusable. OCR/Image downloads are rate-limited per 24h by MDZ. |
+| LoC Chronicling America | LoC | LoC's advisory: newspapers are believed public domain (US, >95 years certainly; younger items may contain third-party material) | Same advisory | The advisory text is shown per item; it is not a guarantee for every page element. |
+| e-rara | OAI record (institution-specific) | Not offered in this phase | Not offered in this phase | dc:rights is shown when present (e.g. "PDM 1.0"); e-rara is the platform, holding institutions own the items. |

@@ -65,3 +65,28 @@ service or a full local test; **not implemented** = absent by design or pending.
 - Cross-document comparison beyond two documents' token contrast (LLM-assisted synthesis with per-claim citations) — the deterministic `compare_documents` exists; interpretive synthesis does not.
 - Vector search / embeddings (deliberately out of scope for this design).
 - Any production deployment.
+
+## b5 addendum (2026-11-25) — Global Coverage candidate
+
+- BSB/MDZ: adapter implemented and live end-to-end verified
+  (IIIF manifest, per-page hOCR, original image, proven page
+  mapping, per-item manifest rights). ID-addressed: MDZ
+  publishes no keyword search API. In-document search is
+  bounded (20 pages) with explicit coverage.
+- LoC: Chronicling America newspaper page OCR implemented and
+  live verified (issue JSON segments + text-services full
+  text + IIIF image info). General LoC remains bibliographic.
+- e-rara: OAI-PMH metadata-by-ID adapter implemented and live
+  verified; search and page OCR unsupported (no official
+  interfaces confirmed). The OAI endpoint intermittently
+  returns 503 (observed 2026-11-25, recovered minutes later).
+- Shared IIIF module (Presentation v2/v3, ALTO, hOCR) in
+  `iiif.py`; transport refuses unsupported content-encodings,
+  treats truncated compressed streams as errors, and follows
+  adapter redirects only within the same registrable domain.
+- Registry: 25 entries; duplicate YAML keys are now refused by
+  the loader; implemented libraries carry per-capability
+  statuses. Adapters: 8. Page-OCR live-verified institutions:
+  NDL, Internet Archive, BSB/MDZ, LoC (newspapers only).
+- Details: docs/b5-global-coverage.md,
+  docs/b5-live-verification.md, docs/library-coverage-roadmap.md.

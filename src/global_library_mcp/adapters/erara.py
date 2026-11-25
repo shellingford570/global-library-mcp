@@ -53,12 +53,28 @@ class EraraAdapter(LibraryAdapter):
         if not numeric.isdigit():
             raise AdapterError(self.library_id, f"invalid e-rara id: {record_id!r} (numeric id expected)", retryable=False)
         params = {"verb": "GetRecord", "metadataPrefix": "oai_dc", "identifier": f"oai:www.e-rara.ch:{numeric}"}
-        try:
-            response = await self.client.get(OAI_BASE, params=params)
-            response.raise_for_status()
-            body = response.text
-        except Exception as exc:  # noqa: BLE001
-            raise AdapterError(self.library_id, sanitize_error(exc), retryable=True) from exc
+        body = None
+        last_exc: Exception | None = None
+        for attempt in range(2):
+            try:
+                response = await self.client.get(OAI_BASE, params=params)
+                response.raise_for_status()
+                body = response.text
+                break
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                # The OAI endpoint intermittently answers 503
+                # (observed twice on 2026-11-25, then recovered);
+                # one bounded retry is appropriate for a GET.
+                status = getattr(getattr(exc, "response", None), "status_code", None)
+                if attempt == 0 and status in (502, 503):
+                    import asyncio
+
+                    await asyncio.sleep(2.0)
+                    continue
+                raise AdapterError(self.library_id, sanitize_error(exc), retryable=True) from exc
+        if body is None:
+            raise AdapterError(self.library_id, sanitize_error(last_exc), retryable=True)
         if len(body) > _MAX_XML:
             raise AdapterError(self.library_id, "OAI response exceeds the size bound", retryable=False)
         try:
