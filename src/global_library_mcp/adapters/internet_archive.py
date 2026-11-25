@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import quote
 
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.http import get_json, sanitize_error
@@ -22,6 +23,9 @@ class InternetArchiveAdapter(LibraryAdapter):
         self._metadata_cache: dict[str, dict[str, Any]] = {}
         self._pages_cache: dict[str, list[str]] = {}
         self._ocr_sources: dict[str, str] = {}
+        # Provenance of the OCR file actually fetched per item:
+        # {"name", "format", "url", "file_count", "mapping_confirmed"}.
+        self._ocr_files: dict[str, dict[str, Any]] = {}
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
         scoped = query if "mediatype:" in query else f"({query}) AND mediatype:texts AND NOT collection:inlibrary"
@@ -123,12 +127,46 @@ class InternetArchiveAdapter(LibraryAdapter):
         names = sorted(
             str(f.get("name", ""))
             for f in metadata_payload.get("files", [])
-            if isinstance(f, dict) and str(f.get("name", "")).endswith(suffix)
+            if isinstance(f, dict)
+            and str(f.get("name", "")).endswith(suffix)
+            and "/" not in str(f.get("name", ""))
+            and "\\" not in str(f.get("name", ""))
+            and ".." not in str(f.get("name", ""))
         )
         if not names:
             return None
         exact = f"{identifier}{suffix}"
         return exact if exact in names else names[0]
+
+    @staticmethod
+    def _file_count(metadata_payload: dict[str, Any], suffix: str) -> int:
+        return sum(
+            1
+            for f in metadata_payload.get("files", [])
+            if isinstance(f, dict) and str(f.get("name", "")).endswith(suffix)
+        )
+
+    def _download_url(self, identifier: str, file_name: str) -> str:
+        """Build the download URL for a metadata-supplied file name.
+        File names are external data: percent-encode everything
+        outside the unreserved set so a crafted name cannot inject
+        path segments, a query string or a fragment."""
+        return f"{self.base_url}/download/{identifier}/{quote(file_name, safe='')}"
+
+    def _record_ocr_file(self, identifier: str, payload: dict[str, Any], name: str, fmt: str) -> None:
+        count = self._file_count(payload, "_djvu.xml" if fmt == "djvu.xml" else "_djvu.txt")
+        self._ocr_files[identifier] = {
+            "name": name,
+            "format": fmt,
+            "url": self._download_url(identifier, name),
+            "file_count": count,
+            # The page<->image correspondence is only confirmable when
+            # a single OCR file covers the whole item. With several
+            # volume files, the first file's leaves cannot be matched
+            # to the item-wide BookReader numbering from metadata
+            # alone, so the mapping must stay unverified.
+            "mapping_confirmed": count == 1,
+        }
 
     async def _pages(self, identifier: str) -> list[str]:
         """Fetch the item's page-level OCR, split by scanned leaf.
@@ -149,18 +187,20 @@ class InternetArchiveAdapter(LibraryAdapter):
         pages: list[str] | None = None
         xml_name = self._file_name(payload, "_djvu.xml", identifier)
         if xml_name:
-            response = await self.client.get(f"{self.base_url}/download/{identifier}/{xml_name}", follow_redirects=True)
+            response = await self.client.get(self._download_url(identifier, xml_name), follow_redirects=True)
             response.raise_for_status()
             pages = self._parse_djvu_xml(response.text)
             self._ocr_sources[identifier] = "djvu.xml"
+            self._record_ocr_file(identifier, payload, xml_name, "djvu.xml")
         txt_name = self._file_name(payload, "_djvu.txt", identifier)
         if not pages and txt_name:
-            response = await self.client.get(f"{self.base_url}/download/{identifier}/{txt_name}", follow_redirects=True)
+            response = await self.client.get(self._download_url(identifier, txt_name), follow_redirects=True)
             response.raise_for_status()
             split = response.text.split("\f")
             if len(split) > 1:
                 pages = split
                 self._ocr_sources[identifier] = "djvu.txt"
+                self._record_ocr_file(identifier, payload, txt_name, "djvu.txt")
         if not pages:
             raise AdapterError(self.library_id, f"Item {identifier} has no usable page-level OCR (djvu.xml/djvu.txt)")
         self._pages_cache[identifier] = pages
@@ -226,21 +266,35 @@ class InternetArchiveAdapter(LibraryAdapter):
                     matches.append({"id": self.page_id_for(identifier, leaf), "leaf": leaf, "snippet": snippet})
                 if len(matches) >= min(max(limit, 1), 100):
                     break
-        return {
+        provenance = self._ocr_files.get(identifier, {})
+        fmt = provenance.get("format", self._ocr_sources.get(identifier, "djvu.txt"))
+        result: dict[str, Any] = {
             "library_id": self.library_id,
             "record_id": identifier,
             "query": query,
             "matches": {"list": matches, "hit": len(matches)},
-            "source": "local search over the item's public djvu.txt OCR (Internet Archive)",
+            "source": f"local search over the item's public {fmt} OCR (file: {provenance.get('name', 'unknown')}) (Internet Archive)",
+            "ocr_file": provenance.get("name"),
+            "ocr_format": fmt,
+            "mapping_status": "verified" if provenance.get("mapping_confirmed") else "unverified",
         }
+        if not provenance.get("mapping_confirmed"):
+            result["mapping_note"] = (
+                "multi-file item: OCR pages come from the first OCR file and their "
+                "correspondence to the item's page images is unverified; see the "
+                f"original at {self.base_url}/details/{identifier}"
+            )
+        return result
 
     async def get_page_text(self, page_id: str) -> dict[str, Any]:
         identifier, leaf = self._parse_page_id(page_id)
         pages = await self._pages(identifier)
         in_range = 0 <= leaf < len(pages)
         contents = pages[leaf] if in_range else ""
-        verified = in_range and bool(contents.strip())
-        return {
+        provenance = self._ocr_files.get(identifier, {})
+        mapping_confirmed = bool(provenance.get("mapping_confirmed"))
+        verified = in_range and bool(contents.strip()) and mapping_confirmed
+        result: dict[str, Any] = {
             "library_id": self.library_id,
             "page_id": self.page_id_for(identifier, leaf),
             "record_id": identifier,
@@ -248,14 +302,23 @@ class InternetArchiveAdapter(LibraryAdapter):
             "digital_frame": leaf,
             "printed_page": "unknown",
             "contents": contents,
-            "ocr_source": self._ocr_sources.get(identifier, "djvu.xml"),
+            "ocr_source": provenance.get("format", self._ocr_sources.get(identifier, "djvu.xml")),
+            "ocr_file": provenance.get("name"),
             "image_url": self.image_url(identifier, leaf),
             "page_count": len(pages),
-            "source": f"{self.base_url}/download/{identifier}/{identifier}_djvu.txt",
+            "source": provenance.get("url", f"{self.base_url}/details/{identifier}"),
             "retrieved_at": datetime.now(timezone.utc).isoformat(),
             "rights": {"statement": "item-specific; verify at the item page", "source": f"{self.base_url}/details/{identifier}"},
             "verified_mapping": verified,
+            "mapping_status": "verified" if verified else "unverified",
         }
+        if not mapping_confirmed:
+            result["mapping_note"] = (
+                f"multi-file item ({provenance.get('file_count', 0)} OCR files): OCR pages come from "
+                f"{provenance.get('name', 'the first OCR file')} and their correspondence to the item's "
+                f"page images is unverified; see the original at {self.base_url}/details/{identifier}"
+            )
+        return result
 
     async def verify_original(self, page_id: str) -> dict[str, Any]:
         identifier, leaf = self._parse_page_id(page_id)
@@ -276,6 +339,16 @@ class InternetArchiveAdapter(LibraryAdapter):
             checks["djvu_present"] = {"ok": False, "detail": "metadata unavailable"}
         in_range = bool(pages) and 0 <= leaf < len(pages)
         checks["page_in_range"] = {"ok": in_range, "detail": f"leaf {leaf} of {len(pages)} pages" if pages else "page list unavailable"}
+        provenance = self._ocr_files.get(identifier, {})
+        mapping_confirmed = bool(pages) and bool(provenance.get("mapping_confirmed"))
+        checks["page_mapping"] = {
+            "ok": mapping_confirmed,
+            "detail": (
+                f"single OCR file ({provenance.get('name')}); leaf order matches the item's page images"
+                if mapping_confirmed
+                else f"multi-file item ({provenance.get('file_count', 0)} OCR files) or pages unavailable; page-to-image correspondence unverified"
+            ),
+        }
         ocr_ok = in_range and bool(pages[leaf].strip())
         checks["ocr_present"] = {"ok": ocr_ok, "detail": f"{len(pages[leaf]) if in_range else 0} OCR characters on this leaf"}
         image_url = self.image_url(identifier, leaf)
@@ -299,6 +372,8 @@ class InternetArchiveAdapter(LibraryAdapter):
             "canvas_id": None,
             "image_url": image_url,
             "landing_url": f"{self.base_url}/details/{identifier}",
+            "ocr_file": provenance.get("name"),
+            "mapping_status": "verified" if verified else "unverified",
             "ocr_excerpt": (pages[leaf][:200] if in_range else ""),
             "retrieved_at": datetime.now(timezone.utc).isoformat(),
         }

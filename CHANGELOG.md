@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.0.0b2 — Research Beta (2026-11-25)
+
+- Internet Archive: `get_page_text` now reports the OCR file
+  actually fetched (name, format, URL) as its source instead of
+  a guessed `{identifier}_djvu.txt`; `search_in_document`
+  names the real format and file.
+- Multi-volume items: page-to-image correspondence is marked
+  unverified (`verified_mapping=false`, `mapping_status`,
+  `mapping_note`) and `verify_original` no longer returns
+  `status=verified` for them; single-file items keep the
+  verified mapping.
+- OCR file names from metadata are treated as untrusted:
+  names with path separators or traversal are never selected,
+  and download URLs percent-encode the file name.
+- Note on page mapping: even for single-file items, a verified
+  mapping means the OCR leaf order is consistent with the
+  item's page-image sequence as far as the metadata shows; it
+  is not a pixel-level collation against the original image,
+  so quotations should still be checked against the original
+  page image before scholarly use.
+
 ## 1.0.0b1 — Research Beta release candidate (2026-11-24)
 
 Integration of Phases 1–10 (PRs #1–#10, merge commits into
