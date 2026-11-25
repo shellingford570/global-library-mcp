@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased — b3 performance candidate
+
+- Search: per-library deadline (default 10s, `GLM_SEARCH_DEADLINE_S`)
+  and a cross-request circuit breaker (3 failures → 60s pause); a
+  slow library is reported as a partial failure instead of gating
+  the whole search. Measured cause: LoC consumed 168s of a 209s
+  question (see docs/b3-performance.md).
+- Real HTTP request budget: every wire request is counted per
+  operation (Standard 80 / Deep 200, per-host caps, 25MB response
+  cap, concurrency 8) and reported as `http_stats`; the older
+  service-unit budget remains as the processing budget. This
+  addresses the limitation recorded in 1.0.0b2 below: the budget
+  now caps actual HTTP requests, retries and redirect hops
+  included, for traffic through the standard client.
+- Modes: `research_materials` accepts `mode` = quick (bibliographic
+  only) / standard (variant early-stop once enough candidates are
+  pooled) / deep (full sweep). Web UI offers the same modes with
+  staged display, run states (processing/complete/partial/failed/
+  cancelled), a cancel button, and elapsed/HTTP-request display.
+- Web and MCP servers now share one long-lived service per
+  process, so the bibliographic cache (TTL 300s), page cache and
+  circuit breaker persist across requests.
+- Materials carry `access_state` (bibliographic / OCR fetched /
+  mapping confirmed / passage found / assessed as evidence).
+- Docs: rights guide (docs/rights-guide.md); Europeana limits
+  re-verified (API key required; no official numeric daily cap
+  currently published); Claude Code recorded as a verified MCP
+  client (health check).
+
 ## 1.0.0b2 — Research Beta (2026-11-25)
 
 - Internet Archive: `get_page_text` now reports the OCR file
