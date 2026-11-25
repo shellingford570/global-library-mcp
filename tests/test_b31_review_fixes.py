@@ -217,7 +217,9 @@ async def test_cumulative_byte_cap():
             await client.get("https://example.org/2")
             with pytest.raises(BudgetExceeded):
                 await client.get("https://example.org/3")
-    assert budget.stats()["bytes_received"] == 8
+    # b4: bytes are charged as they arrive, so the aborted third
+    # response's 4 bytes are counted too (8 + 4 = 12 > cap 10).
+    assert budget.stats()["bytes_received"] == 12
 
 
 @pytest.mark.asyncio

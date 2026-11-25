@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 
 from global_library_mcp.registry import Registry
 from global_library_mcp.service import LibraryService
@@ -12,7 +14,37 @@ from global_library_mcp.service import LibraryService
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY_PATH = ROOT / "libraries.yaml"
-mcp = FastMCP("Global Library MCP")
+
+# Every tool in this server only reads upstream library data.
+_READ_ONLY = ToolAnnotations(
+    readOnlyHint=True,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=True,
+)
+
+
+async def _close_shared() -> None:
+    global _shared
+    if _shared is not None:
+        client, _service = _shared
+        _shared = None
+        await client.aclose()
+
+
+@contextlib.asynccontextmanager
+async def _lifespan(_server: FastMCP):
+    """Close the shared HTTP client inside the server's own event
+    loop when the server shuts down (b4, Section 2: closing from a
+    different loop than the one that created the client is not
+    reliable)."""
+    try:
+        yield {}
+    finally:
+        await _close_shared()
+
+
+mcp = FastMCP("Global Library MCP", lifespan=_lifespan)
 
 
 def _registry() -> Registry:
@@ -35,19 +67,19 @@ async def _with_service():
     return _shared
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 def list_libraries() -> list[dict[str, Any]]:
     """Return the configured library and archive registry."""
     return _registry().list()
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 def get_library_capabilities(library_id: str) -> dict[str, Any]:
     """Return verified capabilities and unknown fields for one institution."""
     return _registry().capabilities(library_id)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def search_across_libraries(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
     """Search configured live adapters and preserve partial errors."""
     client, service = await _with_service()
@@ -55,34 +87,34 @@ async def search_across_libraries(query: str, libraries: list[str] | None = None
     return response.to_dict()
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def search_catalog(query: str, library_id: str, limit: int = 10) -> dict[str, Any]:
     """Search one supported live library."""
     return await search_across_libraries(query, [library_id], limit)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def get_document(library_id: str, record_id: str) -> dict[str, Any]:
     """Retrieve a document record where the adapter supports it."""
     client, service = await _with_service()
     return await service.get_document(library_id, record_id)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def search_in_document(library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
     """Search within a document, returning page-level matches when supported."""
     client, service = await _with_service()
     return await service.search_in_document(library_id, record_id, query, min(max(limit, 1), 100))
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def get_page_text(library_id: str, page_id: str) -> dict[str, Any]:
     """Return OCR text, coordinates, and an original-image link for a page/frame."""
     client, service = await _with_service()
     return await service.get_page_text(library_id, page_id)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 def get_page_image(library_id: str, book_pid: str, page: int) -> dict[str, Any]:
     """Return an image URL without downloading or redistributing the original."""
     if library_id != "ndl":
@@ -93,7 +125,7 @@ def get_page_image(library_id: str, book_pid: str, page: int) -> dict[str, Any]:
     return {"library_id": library_id, "book_pid": book_pid, "digital_frame": page, "image_url": NdlAdapter.image_url(book_pid, page), "status": "link_only"}
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 def get_citation(result: dict[str, Any]) -> dict[str, Any]:
     """Build a conservative citation without inventing missing page or rights data."""
     return {
@@ -111,13 +143,13 @@ def get_citation(result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 def get_rights(result: dict[str, Any]) -> dict[str, Any]:
     """Return item-level rights and never infer redistribution permission."""
     return result.get("rights") or {"statement": "unknown"}
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def get_verified_evidence(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
     """Collect page-level OCR evidence for a question.
 
@@ -131,7 +163,7 @@ async def get_verified_evidence(query: str, libraries: list[str] | None = None, 
     return await service.collect_evidence(query, libraries, min(max(limit, 1), 20))
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def verify_original_page(library_id: str, page_id: str) -> dict[str, Any]:
     """Verify a page against its original image via IIIF.
 
@@ -145,7 +177,7 @@ async def verify_original_page(library_id: str, page_id: str) -> dict[str, Any]:
     return await service.verify_page(library_id, page_id)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def research_question(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
     """Answer a question from verified OCR page evidence.
 
@@ -159,7 +191,7 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
     return await service.answer(query, libraries, min(max(limit, 1), 20))
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard") -> dict[str, Any]:
     """Research-materials mode: related sources with excerpts,
     original images, evidence states and the reason each
@@ -170,7 +202,7 @@ async def research_materials(query: str, libraries: list[str] | None = None, lim
     return await service.research_materials(query, libraries, limit, mode=mode)
 
 
-@mcp.tool()
+@mcp.tool(annotations=_READ_ONLY)
 async def compare_documents(documents: list[dict[str, str]], aspects: list[str] | None = None, question: str | None = None) -> dict[str, Any]:
     """Compare 2-4 documents aspect by aspect on verified OCR pages.
 
@@ -185,18 +217,28 @@ async def compare_documents(documents: list[dict[str, str]], aspects: list[str] 
     return await service.compare_documents(documents, aspects=aspects, question=question)
 
 
-def run() -> None:
-    try:
-        mcp.run(transport="stdio")
-    finally:
-        # Close the shared HTTP client on server shutdown.
-        global _shared
-        if _shared is not None:
-            client, _service = _shared
-            _shared = None
-            try:
-                import asyncio as _asyncio
+def run(transport: str = "stdio", host: str = "127.0.0.1", port: int = 8001, profile: str = "full") -> None:
+    """Run the MCP server.
 
-                _asyncio.run(client.aclose())
-            except Exception:
-                pass
+    transport: "stdio" (default) or "streamable-http" (local use;
+    binds 127.0.0.1 unless told otherwise, with DNS-rebinding
+    protection enabled for local hosts).
+    profile: "full" (all tools) or "research" (read-only research
+    profile for external AI clients: the experimental
+    research_question tool is not exposed)."""
+    if profile == "research":
+        with contextlib.suppress(Exception):
+            mcp.remove_tool("research_question")
+    if transport == "streamable-http":
+        from mcp.server.transport_security import TransportSecuritySettings
+
+        mcp.settings.host = host
+        mcp.settings.port = port
+        mcp.settings.transport_security = TransportSecuritySettings(
+            enable_dns_rebinding_protection=True,
+            allowed_hosts=["127.0.0.1:*", "localhost:*", "[::1]:*"],
+            allowed_origins=["http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*"],
+        )
+        mcp.run(transport="streamable-http")
+    else:
+        mcp.run(transport="stdio")

@@ -192,6 +192,23 @@ class HttpBudget:
         with self._lock:
             self.bytes_received += nbytes
 
+    def add_streamed_bytes(self, nbytes: int) -> None:
+        """Account for response bytes AS THEY ARRIVE (b4, Section 2).
+
+        Bytes are added atomically during streaming, so (a) several
+        responses streaming concurrently share one running total and
+        cannot jointly slip past the cumulative cap, and (b) bytes
+        from responses that are later aborted, time out or are
+        cancelled stay counted - they were received. Raises
+        BudgetExceeded the moment the cumulative cap is crossed."""
+        with self._lock:
+            self.bytes_received += nbytes
+            if self.bytes_received > self.max_total_bytes:
+                self.exceeded = True
+                raise BudgetExceeded(
+                    f"cumulative response bytes exceeded the {self.max_total_bytes}-byte operation cap"
+                )
+
     def stats(self) -> dict[str, Any]:
         with self._lock:
             return {
@@ -203,6 +220,30 @@ class HttpBudget:
                 "max_total_bytes": self.max_total_bytes,
                 "exceeded": self.exceeded,
             }
+
+
+# Per-host Retry-After gate (b4, Section 2): a 429 from a host
+# raises a process-wide "not before" timestamp for that host, so a
+# later request - from another operation or another user of this
+# process - does not ignore the library's instruction either.
+_host_gates: dict[str, float] = {}
+_host_gates_lock = threading.Lock()
+
+
+def _note_retry_after(host: str, seconds: float) -> None:
+    import time as _time
+
+    with _host_gates_lock:
+        until = _time.monotonic() + max(seconds, 0.0)
+        if until > _host_gates.get(host, 0.0):
+            _host_gates[host] = until
+
+
+def _host_retry_wait(host: str) -> float:
+    import time as _time
+
+    with _host_gates_lock:
+        return max(_host_gates.get(host, 0.0) - _time.monotonic(), 0.0)
 
 
 current_http_budget: contextvars.ContextVar[HttpBudget | None] = contextvars.ContextVar(
@@ -250,10 +291,20 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         budget = current_http_budget.get()
         host = request.url.host
+        # Honour a Retry-After raised by ANY recent request to this
+        # host before sending (not counted as an attempt: nothing
+        # is sent yet, and a cancel here consumes no budget).
+        gate_wait = _host_retry_wait(host)
+        if gate_wait > 0:
+            await asyncio.sleep(gate_wait)
         if budget is not None:
             budget.reserve(host)
         async with _shared_semaphore():
             response = await self._send(request)
+            if response.status_code == 429:
+                wait = _retry_after_seconds(response.headers.get("retry-after"))
+                if wait is not None:
+                    _note_retry_after(host, wait)
             if budget is None:
                 return response
             try:
@@ -269,20 +320,19 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                         )
                 body = bytearray()
                 async for chunk in response.aiter_bytes(65536):
+                    # Bytes are charged to the budget as they arrive
+                    # (shared running total across concurrent
+                    # responses; aborted transfers keep their bytes).
+                    budget.add_streamed_bytes(len(chunk))
                     body.extend(chunk)
                     if len(body) > budget.max_response_bytes:
                         raise BudgetExceeded(
                             f"response from {host} exceeded the {budget.max_response_bytes}-byte cap while streaming"
                         )
-                    if budget.bytes_received + len(body) > budget.max_total_bytes:
-                        raise BudgetExceeded(
-                            f"cumulative response bytes exceeded the {budget.max_total_bytes}-byte operation cap at {host}"
-                        )
             except BaseException:
                 await response.aclose()
                 raise
             await response.aclose()
-            budget.record_bytes(len(body))
             # The buffered body is already DECODED (aiter_bytes
             # applies content decoding), so the reconstructed
             # response must not keep the original content-encoding
