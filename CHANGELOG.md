@@ -1,3 +1,36 @@
+# Changelog
+
+## 1.0.0b1 — Research Beta release candidate (2026-11-24)
+
+Integration of Phases 1–10 (PRs #1–#10, merge commits into
+`master`). Research Beta is the product: library materials
+search, page-level OCR, original-page viewing (IIIF), document
+comparison and verifiable citations — usable with no LLM and
+no API key. AI answering remains a separate experimental
+track, disabled by default.
+
+Release-prep changes on this branch:
+
+- Internet Archive: djvu OCR file names are resolved from the
+  item's metadata file list instead of a guessed
+  `{identifier}_djvu.xml`, which returned 404 for multi-volume
+  and renamed items (found in live integration checks).
+  Multi-volume items currently expose the first volume's OCR.
+- Package version aligned to 1.0.0b1 (PEP 440).
+
+Known limitations (verified at integration time):
+
+- The per-question request budget counts service-level units;
+  most units are one outbound HTTP request, but retries and
+  multi-request adapter operations can exceed the unit count.
+  The evaluation harness counts actual HTTP requests.
+- Gallica/BnF: adapter implemented, upstream returns 403 from
+  the development network; not live-verified.
+- Europeana's current numeric daily API limit is unverified;
+  see docs/phase10-library-terms.md for the per-library terms
+  posture before any public deployment.
+- Page and search caches are size-capped (FIFO) with no TTL.
+
 ## Phase 9 — AI validation readiness (2026-11-24)
 
 - Critical fix (9-A): the real-LLM path compacted evidence
