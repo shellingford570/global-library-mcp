@@ -1,6 +1,22 @@
 # Changelog
 
-## 1.0.0b5 — Global Coverage (development candidate, unreleased)
+## 1.0.0b5 — Global Coverage
+
+Final-review fixes (2026-11-26, docs/b5-final-review.md):
+strict structural page mapping for BSB and LoC Chronicling
+America (parsed identifiers, all signals required);
+verify_original unified with page results and based on real
+image responses; an upstream-URL safety layer (https-only,
+exact host allowlists, per-hop redirect validation, DNS
+pre-check with a stated scope); Retry-After extensions
+honoured under one absolute send window; a multi-member
+gzip loss bug at chunk boundaries found by the new tests and
+fixed; BSB in-document results wired into the shared service
+schema with partial-result reporting and page windows; IIIF
+parser robustness; e-rara identity checks; printed page no
+longer guessed from canvas labels; rights classification
+distinguishes CC0 / Public Domain Mark / NoC-NC.
+
 
 - New BSB/MDZ adapter: IIIF Presentation 2 manifests, per-page
   hOCR via the documented MDZ OCR API, IIIF Image 2 originals,

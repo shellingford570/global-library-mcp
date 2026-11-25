@@ -219,7 +219,10 @@ class LocAdapter(LibraryAdapter):
                 await self._wait_for_rate_limit()
                 image_url = f"{service_base}/full/!128,128/0/default.jpg"
                 try:
-                    image_response = await fetch_validated(self.client, image_url, allowed_hosts=_CA_TEXT_HOSTS)
+                    from global_library_mcp.http import get_within_domain, validate_fetch_url
+
+                    validate_fetch_url(image_url, allowed_hosts=_CA_TEXT_HOSTS)
+                    image_response = await get_within_domain(self.client, image_url)
                     body = image_response.content or b""
                     image_reachable = image_response.status_code in (200, 206) and response_looks_like_image(
                         body, image_response.headers.get("content-type") or ""

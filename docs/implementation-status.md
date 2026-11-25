@@ -90,3 +90,19 @@ service or a full local test; **not implemented** = absent by design or pending.
   NDL, Internet Archive, BSB/MDZ, LoC (newspapers only).
 - Details: docs/b5-global-coverage.md,
   docs/b5-live-verification.md, docs/library-coverage-roadmap.md.
+
+## b5 final-review addendum (2026-11-26)
+
+The external review of the first b5 candidate found real
+defects (weak BSB/LoC mapping checks, an SSRF surface on
+upstream URLs, BSB results invisible to the service pipeline,
+a Retry-After extension gap, and a multi-member gzip loss
+bug). All were reproduced, fixed and pinned by 63 new
+regression tests (pytest 309 total, Playwright 15). Live
+re-verification under the strict rules: BSB 7 pages / 3 items
+with every check true and real-image verification on 2 items;
+LoC Chronicling America 2 issues with full verification;
+e-rara identity-checked. Full record:
+docs/b5-final-review.md. Capability counts: registry 25,
+adapters 8, keyword-searchable 6, ID-addressed 2, page-OCR
+live-verified institutions 4 (NDL, IA, BSB, LoC newspapers).

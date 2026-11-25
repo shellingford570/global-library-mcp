@@ -164,8 +164,8 @@ libraries:
     rate_limits: "official interfaces page: OCR downloads and Image API requests are limited per 24h (numeric cap not published); Presentation API unlimited"
     existing_mcp: unknown
     implementation_status: implemented
-    capability_status: {catalog_search: unsupported, document_by_id: live_end_to_end_verified, in_document_search: implemented, page_ocr: live_page_verified, original_image: live_page_verified, iiif: live_page_verified, page_mapping: live_page_verified, rights: live_page_verified}
-    verification: "b5 live verified 2026-11-25: IIIF manifest, per-page hOCR and original-image checks pass for bsb10120542, bsb00046575 and bsb00012345 (mapping proven by canvas id + image-service suffix + hOCR title). No official keyword search API exists in the MDZ interfaces documentation, so the adapter is ID-addressed; BSB holdings are discovered via DDB."
+    capability_status: {catalog_search: unsupported, document_by_id: live_end_to_end_verified, in_document_search: bounded, page_ocr: live_page_verified, original_image: live_page_verified, iiif: live_page_verified, page_mapping: live_page_verified, rights: live_page_verified}
+    verification: "b5 live verified 2026-11-25, re-verified 2026-11-26 under the strict final-review rules: manifest @id, canvas @id, image-service id, manifest OCR link and parsed hOCR <title> must ALL agree structurally (7 pages over bsb10120542/bsb00046575/bsb00012345; verify_original additionally fetches a real image rendition). No official keyword search API exists in the MDZ interfaces documentation, so the adapter is ID-addressed; BSB holdings are discovered via DDB (no automated DDB->BSB hand-off)."
     last_verified: "2026-11-25"
   - id: e-rara
     name: "e-rara (ETH Library platform)"

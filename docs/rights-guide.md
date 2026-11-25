@@ -49,3 +49,14 @@ statement and the holding library's terms.
 | BSB/MDZ | API responses carry per-item data | Per-item license in the IIIF manifest (rightsstatements.org or CC) governs reuse | Same per-item license | Fetchability is not a licence; NoC-NC items are not freely reusable. OCR/Image downloads are rate-limited per 24h by MDZ. |
 | LoC Chronicling America | LoC | LoC's advisory: newspapers are believed public domain (US, >95 years certainly; younger items may contain third-party material) | Same advisory | The advisory text is shown per item; it is not a guarantee for every page element. |
 | e-rara | OAI record (institution-specific) | Not offered in this phase | Not offered in this phase | dc:rights is shown when present (e.g. "PDM 1.0"); e-rara is the platform, holding institutions own the items. |
+
+## b5 final-review note (2026-11-26)
+
+Rights values now carry a machine-readable classification:
+"cc0", "public-domain-mark" and
+"rightsstatements-noc-nc-noncommercial" are distinct. A
+Public Domain Mark is a label applied by an institution, not
+a licence and not a finding that copyright has expired in
+every jurisdiction; NoC-NC is a non-commercial restriction
+statement. None of these classes, by itself, authorises
+sending a work to an external AI service.

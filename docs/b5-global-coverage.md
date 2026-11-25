@@ -10,7 +10,9 @@ chain - not just more searchable catalogues.
   Presentation 2 manifests, per-page hOCR from the documented
   MDZ OCR API, original images via IIIF Image 2, per-item
   rights from the manifest license. Page mapping is proven by
-  five agreeing signals (see docs/b5-live-verification.md).
+  the strict structural check set in docs/b5-final-review.md
+  (the first candidate's weaker suffix checks were replaced
+  after external review).
   MDZ publishes no keyword search API, so the adapter is
   ID-addressed; BSB holdings are discovered through DDB.
   In-document search is bounded (20 pages) with explicit

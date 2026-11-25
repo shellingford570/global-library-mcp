@@ -432,7 +432,10 @@ class BsbAdapter(LibraryAdapter):
             image_url = f"{service_id}/full/!256,256/0/default.jpg"
             await self._pace()
             try:
-                response = await fetch_validated(self.client, image_url, allowed_hosts=_ALLOWED_HOSTS)
+                from global_library_mcp.http import get_within_domain, validate_fetch_url
+
+                validate_fetch_url(image_url, allowed_hosts=_ALLOWED_HOSTS)
+                response = await get_within_domain(self.client, image_url)
                 body = response.content or b""
                 content_type = (response.headers.get("content-type") or "").lower()
                 image_ok = response.status_code in (200, 206) and response_looks_like_image(body, content_type)

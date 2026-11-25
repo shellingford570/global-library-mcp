@@ -72,3 +72,24 @@ present). Totals vary run to run with upstream latency (the b3
 post-fix run measured 32.1/27.7/15.3/7.3/25.1s on the same
 topics); no performance improvement is claimed from this single
 run, and no admission rule was loosened.
+
+## Final-review re-verification (2026-11-26, strict code)
+
+After the final-review fixes the same institutions were
+re-checked live with the strict mapping rules (see
+docs/b5-final-review.md for the A-D grading):
+
+- BSB: 7 pages over the 3 items (5,6,7 / 5,100 / 5,10), all
+  strict checks true on every page; verify_original verified
+  on bsb10120542 and bsb00046575 with real JPEG renditions;
+  service-level in-document search over pages 1-20 of
+  bsb10120542 completed with coverage reported (17 HTTP
+  requests; pages already read were served from the adapter
+  cache). The term used does not occur in that window - a
+  range result, not a whole-book claim.
+- LoC: seq-2 of 1907-01-01 and of 1907-01-02 (New-York
+  tribune), all seven strict checks true; verify_original
+  verified for both (the second issue's image-service stage
+  needed one retry after a transient upstream failure).
+- e-rara: record 30815284 re-fetched; the OAI header
+  identifier matched the request; DOI extracted strictly.
