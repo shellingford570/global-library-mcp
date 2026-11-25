@@ -136,7 +136,7 @@ def _manifest_v2():
                                 }
                             }
                         ],
-                        "seeAlso": [{"@id": "https://api.example.org/ocr/bsb00000001/1"}],
+                        "seeAlso": [{"@id": "https://api.example.org/ocr/bsb00000001/1", "format": "text/vnd.hocr+html", "profile": "http://kba.github.io/hocr-spec/1.2/"}],
                     }
                 ]
             }
@@ -226,7 +226,7 @@ def _bsb_handler(pages=3, *, bad_title=False, term_page=None):
                         }
                     }
                 ],
-                "seeAlso": [{"@id": f"https://api.digitale-sammlungen.de/ocr/bsb00000001/{n}"}],
+                "seeAlso": [{"@id": f"https://api.digitale-sammlungen.de/ocr/bsb00000001/{n}", "format": "text/vnd.hocr+html"}],
             }
         )
     manifest = {
@@ -278,7 +278,8 @@ async def test_bsb_document_page_and_verify():
         assert doc["rights"]["statement"].startswith("NoC-NC")
         page = await adapter.get_page_text("bsb00000001@2")
         assert page["verified_mapping"] is True
-        assert page["printed_page"] == "2"
+        assert page["printed_page"] == "unknown"  # S14: the canvas label is not asserted to be the printed page
+        assert page["canvas_label"] == "2 (0002)"
         assert "Seite Text" in page["contents"]
         verified = await adapter.verify_original("bsb00000001@2")
         assert verified["status"] == "verified"
@@ -307,23 +308,29 @@ async def test_bsb_in_document_search_is_bounded_and_reports_coverage():
 # ---------------------------------------------------------------- S5 LoC
 
 
+_LOC_SEGMENT_ID = "/service/ndnp/dlc/batch_x/data/sn83030214/00175041539/1907010101/0003.xml"
+_LOC_SERVICE_ID = "service:ndnp:dlc:batch_x:data:sn83030214:00175041539:1907010101:0003"
+
+
 def _loc_handler(request):
     url = str(request.url)
     if "tile.loc.gov/text-services" in url:
-        return httpx.Response(200, json={"/service/ndnp/x/0003.xml": {"full_text": "Tribune page text"}})
-    if "tile.loc.gov" in url and url.endswith("/info.json"):
-        return httpx.Response(200, json={"@id": "https://tile.loc.gov/image-services/iiif/x"})
+        return httpx.Response(200, json={_LOC_SEGMENT_ID: {"full_text": "Tribune page text"}})
+    if url.endswith("/info.json"):
+        return httpx.Response(200, json={"@id": f"https://tile.loc.gov/image-services/iiif/{_LOC_SERVICE_ID}"})
+    if "tile.loc.gov/image-services" in url:
+        return httpx.Response(200, content=b"\xff\xd8\xff\xe0jpeg", headers={"content-type": "image/jpeg"})
     if "www.loc.gov/resource/" in url:
         payload = {
-            "segments": [{"url": "https://www.loc.gov/resource/sn83030214/1907-01-01/ed-1/?sp=2"}],
-            "segment_id": "/service/ndnp/x/0003.xml",
+            "segments": [{"url": "https://www.loc.gov/resource/sn83030214/1907-01-01/ed-1/?sp=2", "aka": ["http://www.loc.gov/resource/sn83030214/1907-01-01/ed-1/?sp=2"]}],
+            "segment_id": _LOC_SEGMENT_ID,
             "resource": {
-                "fulltext_file": "https://tile.loc.gov/text-services/word-coordinates-service?segment=/service/ndnp/x/0003.xml&format=alto_xml&full_text=1",
+                "fulltext_file": f"https://tile.loc.gov/text-services/word-coordinates-service?segment={_LOC_SEGMENT_ID}&format=alto_xml&full_text=1",
                 "iiif_manifest_url": "https://www.loc.gov/resource/sn83030214/1907-01-01/ed-1/manifest.json",
-                "image": "https://tile.loc.gov/image-services/iiif/x/full/pct:3.125/0/default.jpg",
+                "image": f"https://tile.loc.gov/image-services/iiif/{_LOC_SERVICE_ID}/full/pct:3.125/0/default.jpg",
             },
-            "page": [{"info": "https://tile.loc.gov/image-services/iiif/x/info.json"}],
-            "item": {"title": "New-York tribune, January 1, 1907", "date": "1907-01-01", "rights_advisory": ["<p>Public domain.</p>"]},
+            "page": [{"info": f"https://tile.loc.gov/image-services/iiif/{_LOC_SERVICE_ID}/info.json"}],
+            "item": {"id": "http://www.loc.gov/item/sn83030214/1907-01-01/ed-1/", "title": "New-York tribune, January 1, 1907", "date": "1907-01-01", "rights_advisory": ["<p>Public domain.</p>"]},
             "viewer_pagination": {"total": 14},
         }
         return httpx.Response(200, json=payload)

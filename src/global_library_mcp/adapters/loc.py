@@ -83,7 +83,8 @@ class LocAdapter(LibraryAdapter):
                 f"invalid Chronicling America page id: {page_id!r} (expected <lccn>/<date>/ed-<n>/seq-<k>)",
                 retryable=False,
             )
-        seq = int(match.group(4).split("-")[1])
+        lccn, date, edition, seq_part = match.groups()
+        seq = int(seq_part.split("-")[1])
         cached = self._ca_page_cache.get(page_id)
         if cached and time.monotonic() - cached[0] < 300:
             return dict(cached[1])
@@ -98,17 +99,68 @@ class LocAdapter(LibraryAdapter):
         fulltext_url = resource.get("fulltext_file")
         pages = payload.get("page") or []
         image_info = pages[0].get("info") if pages and isinstance(pages[0], dict) else None
-        segment_url_ok = bool(segments) and f"sp={seq}" in str(segments[0].get("url") or "")
-        text = None
-        if fulltext_url and segment_id:
-            from urllib.parse import urlparse
-
-            if (urlparse(fulltext_url).hostname or "").endswith("loc.gov"):
-                await self._wait_for_rate_limit()
-                ft = await get_json(self.client, fulltext_url)
-                entry = ft.get(segment_id) or {}
-                text = entry.get("full_text")
         item = payload.get("item") or {}
+
+        # --- strict structural mapping checks (final review S5).
+        # Substring matching is not identity: sp is compared as a
+        # parsed query value (sp=2 must not match sp=20), the
+        # segment count must be exactly one, and every identifier
+        # must agree with the requested lccn/date/edition/seq.
+        from urllib.parse import parse_qs, urlparse
+
+        issue_path = f"/{lccn}/{date}/{edition}/"
+        item_id_path = urlparse(str(item.get("id") or "")).path
+        issue_ok = item_id_path.endswith(issue_path)
+        segment_url_ok = False
+        if len(segments) == 1 and isinstance(segments[0], dict):
+            candidates = [segments[0].get("url")] + list(segments[0].get("aka") or [])
+            for candidate in candidates:
+                if not candidate:
+                    continue
+                parsed = urlparse(str(candidate))
+                if parsed.path.endswith(issue_path.rstrip("/")) or parsed.path == f"/resource{issue_path}":
+                    if parse_qs(parsed.query).get("sp") == [str(seq)]:
+                        segment_url_ok = True
+                        break
+        compact_date = date.replace("-", "")
+        segment_segments = [seg for seg in segment_id.split("/") if seg]
+        segment_id_ok = bool(segment_id) and lccn in segment_segments and any(
+            seg.startswith(compact_date) for seg in segment_segments
+        )
+        fulltext_ok = False
+        if fulltext_url:
+            parsed_ft = urlparse(str(fulltext_url))
+            fulltext_ok = (
+                (parsed_ft.hostname or "") in _CA_TEXT_HOSTS
+                and parsed_ft.path == "/text-services/word-coordinates-service"
+                and parse_qs(parsed_ft.query).get("segment") == [segment_id]
+            )
+        image_info_ok = False
+        if image_info:
+            parsed_info = urlparse(str(image_info))
+            expected_service = segment_id.strip("/").removesuffix(".xml").replace("/", ":")
+            info_id = parsed_info.path.rstrip("/").removesuffix("/info.json").rsplit("/", 1)[-1]
+            image_info_ok = (parsed_info.hostname or "") in _CA_TEXT_HOSTS and info_id == expected_service
+        text = None
+        entry_ok = False
+        if fulltext_ok and segment_id:
+            await self._wait_for_rate_limit()
+            ft = await get_json(self.client, fulltext_url)
+            entry = ft.get(segment_id) or {}
+            candidate_text = entry.get("full_text")
+            if isinstance(candidate_text, str) and candidate_text.strip():
+                text = candidate_text
+                entry_ok = True
+        checks = {
+            "single_segment_for_seq": len(segments) == 1,
+            "segment_url_matches_seq": segment_url_ok,
+            "issue_identity_matches": issue_ok,
+            "segment_id_matches_issue": segment_id_ok,
+            "fulltext_url_matches_segment": fulltext_ok,
+            "text_entry_matches_segment": entry_ok,
+            "image_info_belongs_to_segment": image_info_ok,
+        }
+        verified = all(checks.values())
         rights_text = _strip_html(" ".join(item.get("rights_advisory") or []))
         result = {
             "library_id": self.library_id,
@@ -117,17 +169,14 @@ class LocAdapter(LibraryAdapter):
             "digital_frame": seq,
             "printed_page": "unknown",
             "contents": text,
+            "ocr_available": text is not None,
             "ocr_source": fulltext_url,
             "ocr_format": "ALTO via loc.gov text-services (word-coordinates-service)",
             "segment_id": segment_id,
             "image_url": (image_info.replace("/info.json", "/full/max/0/default.jpg") if image_info else resource.get("image")),
-            "verified_mapping": bool(segment_url_ok and segment_id and text is not None),
-            "mapping_checks": {
-                "single_segment_for_seq": len(segments) == 1,
-                "segment_url_matches_seq": segment_url_ok,
-                "segment_id_present": bool(segment_id),
-                "image_info_present": bool(image_info),
-            },
+            "image_info_url": image_info,
+            "verified_mapping": verified,
+            "mapping_checks": checks,
             "landing_url": f"https://www.loc.gov/resource/{page_id}/",
             "rights": {
                 "statement": rights_text[:400] if rights_text else "unknown",
@@ -141,27 +190,54 @@ class LocAdapter(LibraryAdapter):
         return result
 
     async def verify_original(self, page_id: str) -> dict[str, Any]:
-        page = await self.get_page_text(page_id)
-        image_ok = False
-        detail = "no image info"
-        if page.get("image_url"):
-            try:
-                info_url = page["image_url"].replace("/full/max/0/default.jpg", "/info.json")
-                response = await self.client.get(info_url)
-                image_ok = response.status_code == 200
-                detail = f"IIIF image info GET status {response.status_code}"
-            except Exception as exc:  # noqa: BLE001
-                from global_library_mcp.http import sanitize_error
+        """Original verification with the image-service stages
+        kept separate (final review S6): a reachable info.json is
+        NOT a reachable image. `verified` requires the strict
+        page mapping, a service identity match, and a real image
+        response (small IIIF rendition, signature-checked)."""
+        from global_library_mcp.http import fetch_validated, response_looks_like_image, sanitize_error
 
+        page = await self.get_page_text(page_id)
+        info_url = page.get("image_info_url")
+        service_base = info_url.removesuffix("/info.json") if info_url else None
+        service_reachable = False
+        service_identity = False
+        image_reachable = False
+        detail = "no image info url"
+        if service_base:
+            await self._wait_for_rate_limit()
+            try:
+                info_response = await fetch_validated(self.client, info_url, allowed_hosts=_CA_TEXT_HOSTS)
+                info = info_response.json() if info_response.status_code == 200 else {}
+                service_reachable = info_response.status_code == 200 and isinstance(info, dict)
+                declared = str(info.get("@id") or info.get("id") or "").rstrip("/")
+                service_identity = bool(declared) and declared == service_base.rstrip("/")
+                detail = f"info.json status {info_response.status_code}, @id {'matches' if service_identity else 'mismatch/missing'}"
+            except Exception as exc:  # noqa: BLE001
                 detail = sanitize_error(exc)
-        verified = bool(page.get("verified_mapping") and image_ok)
+            if service_reachable:
+                await self._wait_for_rate_limit()
+                image_url = f"{service_base}/full/!128,128/0/default.jpg"
+                try:
+                    image_response = await fetch_validated(self.client, image_url, allowed_hosts=_CA_TEXT_HOSTS)
+                    body = image_response.content or b""
+                    image_reachable = image_response.status_code in (200, 206) and response_looks_like_image(
+                        body, image_response.headers.get("content-type") or ""
+                    )
+                    detail += f"; image GET status {image_response.status_code}, signature {'ok' if image_reachable else 'not an image'}"
+                except Exception as exc:  # noqa: BLE001
+                    detail += f"; image GET failed: {sanitize_error(exc)}"
+        verified = bool(page.get("verified_mapping") and service_identity and image_reachable)
         return {
             "library_id": self.library_id,
             "page_id": page_id,
             "status": "verified" if verified else "unverified",
             "checks": {
-                "page_identity": {"ok": bool(page.get("verified_mapping")), "detail": str(page.get("mapping_checks"))},
-                "image_reachable": {"ok": image_ok, "detail": detail},
+                "page_mapping_verified": {"ok": bool(page.get("verified_mapping")), "detail": str(page.get("mapping_checks"))},
+                "ocr_available": {"ok": bool(page.get("ocr_available")), "detail": "full text present" if page.get("ocr_available") else "no OCR text for this page"},
+                "image_service_reachable": {"ok": service_reachable, "detail": detail},
+                "image_service_identity_verified": {"ok": service_identity, "detail": service_base or ""},
+                "image_reachable": {"ok": image_reachable, "detail": detail},
             },
             "image_url": page.get("image_url"),
             "landing_url": page.get("landing_url"),
@@ -188,6 +264,12 @@ class LocAdapter(LibraryAdapter):
             source_protocol="LoC JSON API",
             raw=item,
         )
+
+
+# Exact hosts for Chronicling America payload URLs (final review
+# S4): suffix matching such as endswith("loc.gov") would also pass
+# lookalike hosts, so membership in this set is required.
+_CA_TEXT_HOSTS = {"tile.loc.gov", "www.loc.gov"}
 
 
 # --- Chronicling America newspaper pages (b5, section 5) -----

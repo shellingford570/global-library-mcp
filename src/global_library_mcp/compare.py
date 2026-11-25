@@ -52,7 +52,7 @@ def compare_aspect(aspect: str, per_doc_texts: dict[str, str], top: int = 8) -> 
     agree or disagree in meaning (b5, section 15)."""
     labels = list(per_doc_texts)
     if len(labels) < 2:
-        return {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
+        return {"aspect": aspect, "shared_terms": [], "partial_terms": [], "unique_terms": {}}
     token_sets = {label: content_tokens(per_doc_texts[label]) for label in labels}
     shared_set = set.intersection(*(set(tokens) for tokens in token_sets.values())) if token_sets else set()
     shared = sorted(shared_set, key=lambda t: -sum(token_sets[label][t] for label in labels))[:top]
@@ -60,4 +60,30 @@ def compare_aspect(aspect: str, per_doc_texts: dict[str, str], top: int = 8) -> 
     for label in labels:
         others = set().union(*(set(token_sets[other]) for other in labels if other != label)) if len(labels) > 1 else set()
         unique[label] = sorted(set(token_sets[label]) - others, key=lambda t: -token_sets[label][t])[:top]
-    return {"aspect": aspect, "shared_terms": shared, "unique_terms": unique, "documents_compared": len(labels)}
+    # Terms shared by SOME but not all documents (3+ documents):
+    # kept distinct from the all-documents shared set so a partial
+    # overlap is never read as a consensus (final review S17).
+    partial: list[dict[str, Any]] = []
+    if len(labels) >= 3:
+        presence: dict[str, list[str]] = {}
+        for label in labels:
+            for token in set(token_sets[label]):
+                presence.setdefault(token, []).append(label)
+        partial_candidates = {
+            token: docs for token, docs in presence.items()
+            if 2 <= len(docs) < len(labels)
+        }
+        partial = [
+            {"term": token, "documents": docs}
+            for token, docs in sorted(
+                partial_candidates.items(),
+                key=lambda item: -sum(token_sets[d][item[0]] for d in item[1]),
+            )[:top]
+        ]
+    return {
+        "aspect": aspect,
+        "shared_terms": shared,
+        "partial_terms": partial,
+        "unique_terms": unique,
+        "documents_compared": len(labels),
+    }

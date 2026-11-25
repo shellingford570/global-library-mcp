@@ -10,9 +10,13 @@ addressed by their numeric e-rara id (the OAI identifier is
 ``oai:www.e-rara.ch:<id>``).
 
 Page-level OCR/IIIF: e-rara items are delivered through the
-platform viewer; no officially documented per-page OCR or IIIF
-endpoint was confirmed in this phase, so page text is reported
-as unsupported rather than scraped. The holding institution
+platform viewer; a usable officially documented per-page OCR or
+IIIF endpoint could not be confirmed in this phase (the API
+information page was reviewed; that a capability is mentioned
+somewhere on the site does not by itself make it a usable
+per-page API), so page text is reported as unsupported rather
+than scraped. This does not assert that no such interface
+exists anywhere. The holding institution
 comes from the record's OAI set membership / publisher fields
 where present; e-rara itself is the delivery platform, not the
 holding library.
@@ -20,6 +24,7 @@ holding library.
 
 from __future__ import annotations
 
+import re
 import xml.etree.ElementTree as ET
 from typing import Any
 
@@ -33,6 +38,7 @@ OAI_BASE = "https://www.e-rara.ch/oai"
 _DC = "{http://purl.org/dc/elements/1.1/}"
 _OAI = "{http://www.openarchives.org/OAI/2.0/}"
 _MAX_XML = 5_000_000
+_DOI = re.compile(r"^(?:doi:|https?://(?:dx\.)?doi\.org/)?(10\.\d{4,9}/\S+)$", re.I)
 
 
 class EraraAdapter(LibraryAdapter):
@@ -65,12 +71,20 @@ class EraraAdapter(LibraryAdapter):
                 last_exc = exc
                 # The OAI endpoint intermittently answers 503
                 # (observed twice on 2026-11-25, then recovered);
-                # one bounded retry is appropriate for a GET.
+                # one bounded retry is appropriate for a GET, and
+                # it honours the server's Retry-After when given
+                # (final review S13).
                 status = getattr(getattr(exc, "response", None), "status_code", None)
                 if attempt == 0 and status in (502, 503):
                     import asyncio
 
-                    await asyncio.sleep(2.0)
+                    from global_library_mcp.http import _retry_after_seconds
+
+                    retry_after = None
+                    resp = getattr(exc, "response", None)
+                    if resp is not None:
+                        retry_after = _retry_after_seconds(resp.headers.get("retry-after"))
+                    await asyncio.sleep(min(retry_after, 10.0) if retry_after is not None else 2.0)
                     continue
                 raise AdapterError(self.library_id, sanitize_error(exc), retryable=True) from exc
         if body is None:
@@ -84,7 +98,16 @@ class EraraAdapter(LibraryAdapter):
         error = root.find(f".//{_OAI}error")
         if error is not None:
             raise AdapterError(self.library_id, f"OAI error: {error.get('code')} {error.text or ''}".strip(), retryable=False)
-        dc = root.find(f".//{_DC}title")
+        header = root.find(f".//{_OAI}header")
+        header_identifier = (header.findtext(f"{_OAI}identifier") or "").strip() if header is not None else ""
+        if header_identifier != f"oai:www.e-rara.ch:{numeric}":
+            raise AdapterError(
+                self.library_id,
+                f"OAI header identifier {header_identifier!r} does not match the requested id {numeric}; record identity not established",
+                retryable=False,
+            )
+        if header is not None and header.get("status") == "deleted":
+            raise AdapterError(self.library_id, f"OAI record {numeric} is marked deleted", retryable=False)
         record = root.find(f".//{_OAI}metadata")
         if record is None:
             raise AdapterError(self.library_id, f"no metadata in OAI record for {numeric}", retryable=False)
@@ -94,13 +117,23 @@ class EraraAdapter(LibraryAdapter):
 
         identifiers = values("identifier")
         landing = next((i for i in identifiers if i.startswith("http")), None)
-        doi = next((i for i in identifiers if "10." in i and "/" in i), None)
+        doi = None
+        for identifier in identifiers:
+            doi_match = _DOI.match(identifier.strip())
+            if doi_match:
+                doi = doi_match.group(1)
+                break
         rights = values("rights")
         sets = [el.text for el in root.iter(f"{_OAI}setSpec") if el.text]
         return {
             "library_id": self.library_id,
             "record_id": numeric,
-            "holding_institution": None,
+            "oai_identifier": header_identifier,
+            # The OAI setSpec is a collection code, not an
+            # institution name, and dc:publisher is the publisher -
+            # neither is asserted to be the holding institution
+            # (final review S13).
+            "holding_institution": "unknown",
             "oai_sets": sets,
             "title": (values("title") or [None])[0],
             "author": "; ".join(values("creator")) or None,
@@ -112,6 +145,7 @@ class EraraAdapter(LibraryAdapter):
             "doi": doi,
             "rights": {
                 "statement": "; ".join(rights) if rights else "unknown",
+                "values": rights,
                 "url": None,
                 "source": "OAI-PMH dc:rights" if rights else "no dc:rights in OAI record",
             },

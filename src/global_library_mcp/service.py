@@ -240,6 +240,55 @@ DATA_NOTICE = (
 )
 
 
+def _canonical_in_document_result(result: dict[str, Any], library_id: str, record_id: str, query: str) -> dict[str, Any]:
+    """Normalise any adapter's in-document search result into the
+    common schema (final review S7): matches.list entries carry
+    id/page_id/record_id/match_id/snippet/score/digital_frame/
+    printed_page/mapping_status, and coverage fields
+    (pages_searched/total_pages/complete/partial_failures) are
+    always present. NDL/IA results keep their extra raw fields;
+    the first b5 BSB shape ("hits") is accepted as input so no
+    consumer has to know which adapter produced the result."""
+    raw_matches = result.get("matches")
+    entries: list[Any] = []
+    extra: dict[str, Any] = {}
+    if isinstance(raw_matches, dict):
+        entries = list(raw_matches.get("list") or [])
+        extra = {k: v for k, v in raw_matches.items() if k != "list"}
+    elif isinstance(raw_matches, list):
+        entries = list(raw_matches)
+    if not entries and isinstance(result.get("hits"), list):
+        entries = list(result["hits"])
+    canonical: list[dict[str, Any]] = []
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            continue
+        page_id = entry.get("page_id") or entry.get("id")
+        if not page_id:
+            continue
+        canonical.append(
+            {
+                "id": page_id,
+                "page_id": page_id,
+                "record_id": entry.get("record_id") or record_id,
+                "match_id": entry.get("match_id") or f"{record_id}:{page_id}#{index + 1}",
+                "snippet": entry.get("snippet") or "",
+                "score": entry.get("score"),
+                "digital_frame": entry.get("digital_frame"),
+                "printed_page": entry.get("printed_page", "unknown"),
+                "mapping_status": entry.get("mapping_status")
+                or ("verified" if entry.get("verified_mapping") else "unverified"),
+            }
+        )
+    out = dict(result)
+    out["matches"] = {**extra, "list": canonical}
+    out.setdefault("pages_searched", result.get("pages_searched"))
+    out.setdefault("total_pages", result.get("total_pages"))
+    out.setdefault("complete", result.get("complete"))
+    out.setdefault("partial_failures", result.get("partial_failures") or [])
+    return out
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -375,13 +424,32 @@ class LibraryService:
             result = {**result, "http_stats": budget.stats()}
         return result
 
-    async def search_in_document(self, library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+    async def search_in_document(
+        self,
+        library_id: str,
+        record_id: str,
+        query: str,
+        limit: int = 20,
+        *,
+        start_page: int | None = None,
+        end_page: int | None = None,
+    ) -> dict[str, Any]:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
-        async with self._op_budget(15, 8) as budget:
-            result = await adapter.search_in_document(record_id, query, limit)
+        # The budget must fit a bounded multi-page scan (BSB reads
+        # up to 20 OCR pages + the manifest): the old per-host cap
+        # of 8 aborted such scans mid-window (final review S8).
+        async with self._op_budget(30, 25) as budget:
+            kwargs: dict[str, Any] = {}
+            if start_page is not None or end_page is not None:
+                import inspect
+
+                if "start_page" in inspect.signature(adapter.search_in_document).parameters:
+                    kwargs = {"start_page": start_page or 1, "end_page": end_page}
+            result = await adapter.search_in_document(record_id, query, limit, **kwargs)
         if isinstance(result, dict):
+            result = _canonical_in_document_result(result, library_id, record_id, query)
             result = {**result, "data_notice": DATA_NOTICE}
             if budget is not None:
                 result = {**result, "http_stats": budget.stats()}

@@ -34,6 +34,7 @@ class IiifCanvas:
     image_service_id: str | None = None
     image_url: str | None = None
     ocr_urls: list[str] = field(default_factory=list)
+    other_content_urls: list[str] = field(default_factory=list)
     width: int | None = None
     height: int | None = None
 
@@ -74,6 +75,32 @@ def _lang_value(value: object) -> str | None:
     return None
 
 
+def _license_url(value: object) -> str | None:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        found = value.get("@id") or value.get("id")
+        return found if isinstance(found, str) else None
+    if isinstance(value, list):
+        for item in value:
+            found = _license_url(item)
+            if found:
+                return found
+    return None
+
+
+def _is_ocr_link(item: dict) -> bool:
+    """A seeAlso entry counts as an OCR link only when its format
+    or profile says so (hOCR / ALTO / plain text). An unlabelled
+    seeAlso is not silently treated as OCR."""
+    fmt = str(item.get("format") or "").lower()
+    profile = str(item.get("profile") or "").lower()
+    return (
+        "hocr" in fmt or "alto" in fmt or fmt.startswith("text/")
+        or "hocr" in profile or "alto" in profile
+    )
+
+
 def _metadata_dict(entries: object) -> dict[str, str]:
     out: dict[str, str] = {}
     if not isinstance(entries, list):
@@ -90,6 +117,8 @@ def _metadata_dict(entries: object) -> dict[str, str]:
 
 def parse_manifest(payload: dict) -> IiifManifest:
     """Parse a Presentation API v2 or v3 manifest payload."""
+    if not isinstance(payload, dict):
+        raise ValueError("IIIF manifest payload is not a JSON object")
     context = str(payload.get("@context") or "")
     if "/presentation/3" in context or payload.get("type") == "Manifest":
         return _parse_v3(payload)
@@ -98,71 +127,137 @@ def parse_manifest(payload: dict) -> IiifManifest:
 
 def _parse_v2(payload: dict) -> IiifManifest:
     canvases: list[IiifCanvas] = []
-    sequences = payload.get("sequences") or []
     raw_canvases: list = []
-    if sequences and isinstance(sequences[0], dict):
-        raw_canvases = sequences[0].get("canvases") or []
-    for index, canvas in enumerate(raw_canvases):
+    for sequence in payload.get("sequences") or []:
+        if isinstance(sequence, dict):
+            raw_canvases.extend(sequence.get("canvases") or [])
+    seen_ids: set[str] = set()
+    for canvas in raw_canvases:
         if not isinstance(canvas, dict):
             continue
-        record = IiifCanvas(index=index, canvas_id=str(canvas.get("@id") or ""))
+        canvas_id = str(canvas.get("@id") or "")
+        if canvas_id and canvas_id in seen_ids:
+            continue
+        seen_ids.add(canvas_id)
+        record = IiifCanvas(index=len(canvases), canvas_id=canvas_id)
         record.label = _lang_value(canvas.get("label"))
         record.width = canvas.get("width")
         record.height = canvas.get("height")
-        images = canvas.get("images") or []
-        if images and isinstance(images[0], dict):
+        images = [img for img in (canvas.get("images") or []) if isinstance(img, dict)]
+        # Prefer the first image that carries an image service;
+        # fall back to the first image at all.
+        chosen = None
+        for image in images:
+            resource = image.get("resource") or {}
+            if isinstance(resource, dict) and resource.get("service"):
+                chosen = resource
+                break
+        if chosen is None and images:
             resource = images[0].get("resource") or {}
-            record.image_url = resource.get("@id")
-            service = resource.get("service") or {}
-            record.image_service_id = service.get("@id")
-        for key in ("seeAlso", "otherContent"):
-            linked = canvas.get(key)
-            if isinstance(linked, dict):
-                linked = [linked]
-            for item in linked or []:
-                if isinstance(item, dict) and item.get("@id"):
-                    record.ocr_urls.append(str(item["@id"]))
+            chosen = resource if isinstance(resource, dict) else None
+        if chosen:
+            record.image_url = chosen.get("@id")
+            service = chosen.get("service")
+            if isinstance(service, list):
+                service = next((s for s in service if isinstance(s, dict)), None)
+            if isinstance(service, dict):
+                record.image_service_id = service.get("@id")
+        see_also = canvas.get("seeAlso")
+        if isinstance(see_also, dict):
+            see_also = [see_also]
+        for item in see_also or []:
+            if isinstance(item, dict) and item.get("@id") and _is_ocr_link(item):
+                record.ocr_urls.append(str(item["@id"]))
+        other = canvas.get("otherContent")
+        if isinstance(other, dict):
+            other = [other]
+        for item in other or []:
+            # otherContent points at annotation LISTS, not at OCR
+            # itself; keep it visible but never treat it as an
+            # OCR link (b5 final review, S12).
+            if isinstance(item, dict) and item.get("@id"):
+                record.other_content_urls.append(str(item["@id"]))
         canvases.append(record)
     return IiifManifest(
         manifest_id=payload.get("@id"),
         label=_lang_value(payload.get("label")),
         version=2,
-        license_url=payload.get("license"),
+        license_url=_license_url(payload.get("license")),
         metadata=_metadata_dict(payload.get("metadata")),
         canvases=canvases,
         raw=payload,
     )
 
 
+_TEXT_FORMATS = ("text/plain", "text/html", "application/alto+xml", "text/vnd.hocr+html")
+
+
+def _v3_bodies(annotation: dict):
+    """Yield body dicts of a v3 annotation, descending into lists
+    and Choice bodies."""
+    body = annotation.get("body")
+    if isinstance(body, dict):
+        body = [body]
+    for item in body or []:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") == "Choice":
+            for choice in item.get("items") or []:
+                if isinstance(choice, dict):
+                    yield choice
+        else:
+            yield item
+
+
 def _parse_v3(payload: dict) -> IiifManifest:
     canvases: list[IiifCanvas] = []
-    for index, canvas in enumerate(payload.get("items") or []):
+    for canvas in payload.get("items") or []:
         if not isinstance(canvas, dict) or canvas.get("type") != "Canvas":
             continue
-        record = IiifCanvas(index=index, canvas_id=str(canvas.get("id") or ""))
+        record = IiifCanvas(index=len(canvases), canvas_id=str(canvas.get("id") or ""))
         record.label = _lang_value(canvas.get("label"))
         record.width = canvas.get("width")
         record.height = canvas.get("height")
         for page in canvas.get("items") or []:
-            for annotation in (page or {}).get("items") or []:
-                body = (annotation or {}).get("body") or {}
-                if body.get("type") == "Image":
-                    record.image_url = body.get("id")
-                    service = body.get("service") or []
-                    if service and isinstance(service[0], dict):
-                        record.image_service_id = service[0].get("id")
+            if not isinstance(page, dict):
+                continue
+            for annotation in page.get("items") or []:
+                if not isinstance(annotation, dict):
+                    continue
+                for body in _v3_bodies(annotation):
+                    if body.get("type") != "Image":
+                        continue
+                    if record.image_url is None:
+                        record.image_url = body.get("id")
+                    services = body.get("service")
+                    if isinstance(services, dict):
+                        services = [services]
+                    for service in services or []:
+                        if isinstance(service, dict) and "ImageService" in str(service.get("type") or ""):
+                            if record.image_service_id is None:
+                                record.image_service_id = service.get("id")
         for page in canvas.get("annotations") or []:
-            for annotation in (page or {}).get("items") or []:
-                body = (annotation or {}).get("body") or {}
-                if body.get("id"):
-                    record.ocr_urls.append(str(body["id"]))
+            if not isinstance(page, dict):
+                continue
+            # An AnnotationPage given only as an external reference
+            # ({"id": ..., "type": "AnnotationPage"}) has no items;
+            # it is skipped, never guessed at.
+            for annotation in page.get("items") or []:
+                if not isinstance(annotation, dict):
+                    continue
+                motivation = annotation.get("motivation")
+                if motivation is not None and motivation != "supplementing":
+                    continue  # commenting/tagging/... are not OCR
+                for body in _v3_bodies(annotation):
+                    fmt = str(body.get("format") or "").lower()
+                    if body.get("id") and (body.get("type") == "TextualBody" or fmt in _TEXT_FORMATS):
+                        record.ocr_urls.append(str(body["id"]))
         canvases.append(record)
-    rights = payload.get("rights")
     return IiifManifest(
         manifest_id=payload.get("id"),
         label=_lang_value(payload.get("label")),
         version=3,
-        license_url=rights if isinstance(rights, str) else None,
+        license_url=_license_url(payload.get("rights")),
         metadata=_metadata_dict(payload.get("metadata")),
         canvases=canvases,
         raw=payload,
@@ -175,9 +270,18 @@ def alto_to_text(xml_text: str, *, max_chars: int = 2_000_000) -> str:
     treat it as a failed fetch, not as empty text."""
     if len(xml_text) > max_chars:
         raise ValueError("ALTO document exceeds the size bound")
+    if "<!ENTITY" in xml_text:
+        # ElementTree does not resolve external entities, but a
+        # document that declares them is refused outright rather
+        # than parsed on a best-effort basis.
+        raise ValueError("ALTO document declares XML entities; refused")
     root = ET.fromstring(xml_text)
     lines: list[str] = []
+    element_count = 0
     for element in root.iter():
+        element_count += 1
+        if element_count > 300_000:
+            raise ValueError("ALTO document exceeds the element bound")
         if element.tag.rsplit("}", 1)[-1] != "TextLine":
             continue
         words = [
@@ -244,8 +348,41 @@ class _HocrTextParser(HTMLParser):
         return "\n".join(" ".join(line) for line in self.lines)
 
 
-def hocr_to_text(html_text: str) -> str:
+class _HocrTitleParser(HTMLParser):
+    """Extracts the document <title> of an hOCR page - the element
+    MDZ puts the page identifier in - as a parsed value, instead
+    of substring-searching the raw markup."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.title: str | None = None
+        self._in_title = False
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag == "title" and self.title is None:
+            self._in_title = True
+
+    def handle_data(self, data: str) -> None:
+        if self._in_title:
+            self._parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "title" and self._in_title:
+            self._in_title = False
+            self.title = "".join(self._parts).strip()
+
+
+def hocr_title(html_text: str) -> str | None:
+    parser = _HocrTitleParser()
+    parser.feed(html_text or "")
+    return parser.title
+
+
+def hocr_to_text(html_text: str, *, max_chars: int = 4_000_000) -> str:
     """Plain text from an hOCR document, words grouped by line."""
+    if html_text and len(html_text) > max_chars:
+        raise ValueError("hOCR document exceeds the size bound")
     parser = _HocrTextParser()
     parser.feed(html_text or "")
     return parser.text()

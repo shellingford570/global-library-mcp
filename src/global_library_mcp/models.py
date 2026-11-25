@@ -24,6 +24,12 @@ class Rights:
     statement: str = "unknown"
     url: str | None = None
     source: str | None = None
+    # Optional machine-readable class (b5 final review, S15):
+    # e.g. "cc0", "public-domain-mark",
+    # "rightsstatements-noc-nc-noncommercial". A Public Domain
+    # Mark is a label, not a licence, and is never reported as
+    # CC0 or as a copyright-expiry finding.
+    classification: str | None = None
 
 
 @dataclass(slots=True)
