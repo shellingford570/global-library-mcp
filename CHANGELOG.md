@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.0b4 — MCP Connectivity & Research Integration (release candidate, unreleased)
+
+- Streamable HTTP transport for local use (`mcp --transport
+  streamable-http`, binds 127.0.0.1, DNS-rebinding protection on),
+  sharing the same LibraryService as stdio; verified with the
+  official SDK client and the MCP Inspector CLI.
+- Read-only research profile (`--profile research`): the
+  experimental research_question tool is not exposed; every tool
+  carries read-only annotations.
+- HTTP byte accounting is now incremental: bytes are charged as
+  they stream, so concurrent responses share one cumulative total
+  and aborted/cancelled transfers keep the bytes they received.
+- A 429's Retry-After now raises a process-wide per-host gate, so
+  other operations (and other users of the process) do not ignore
+  a library's back-off instruction.
+- The shared HTTP client is closed from the MCP server lifespan,
+  inside the event loop that created it.
+- Japanese discovery widened with historical script variants
+  (old/new kanji); evidence admission rules unchanged.
+- Materials responses carry a data notice (OCR text is untrusted
+  external data, not instructions) and an explicit search scope
+  with partial failures.
+- Docs: ChatGPT connectivity preparation (Secure MCP Tunnel
+  research), MCP security audit, IA fetch-efficiency research.
+
 ## 1.0.0b3 — Research Beta (2026-11-25)
 
 Performance and review-hardening release. No new features.

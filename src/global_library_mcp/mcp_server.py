@@ -81,6 +81,8 @@ def get_library_capabilities(library_id: str) -> dict[str, Any]:
 
 @mcp.tool(annotations=_READ_ONLY)
 async def search_across_libraries(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+    limit = max(1, min(int(limit), 50))
+    query = query[:500]
     """Search configured live adapters and preserve partial errors."""
     client, service = await _with_service()
     response = await service.search(query, libraries, min(max(limit, 1), 20))
@@ -89,6 +91,8 @@ async def search_across_libraries(query: str, libraries: list[str] | None = None
 
 @mcp.tool(annotations=_READ_ONLY)
 async def search_catalog(query: str, library_id: str, limit: int = 10) -> dict[str, Any]:
+    limit = max(1, min(int(limit), 50))
+    query = query[:500]
     """Search one supported live library."""
     return await search_across_libraries(query, [library_id], limit)
 
@@ -102,6 +106,8 @@ async def get_document(library_id: str, record_id: str) -> dict[str, Any]:
 
 @mcp.tool(annotations=_READ_ONLY)
 async def search_in_document(library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+    limit = max(1, min(int(limit), 50))
+    query = query[:500]
     """Search within a document, returning page-level matches when supported."""
     client, service = await _with_service()
     return await service.search_in_document(library_id, record_id, query, min(max(limit, 1), 100))
@@ -151,6 +157,8 @@ def get_rights(result: dict[str, Any]) -> dict[str, Any]:
 
 @mcp.tool(annotations=_READ_ONLY)
 async def get_verified_evidence(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+    limit = max(1, min(int(limit), 50))
+    query = query[:500]
     """Collect page-level OCR evidence for a question.
 
     Runs a cross-library search, then in-document search and page OCR
@@ -179,6 +187,8 @@ async def verify_original_page(library_id: str, page_id: str) -> dict[str, Any]:
 
 @mcp.tool(annotations=_READ_ONLY)
 async def research_question(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
+    limit = max(1, min(int(limit), 50))
+    query = query[:500]
     """Answer a question from verified OCR page evidence.
 
     Collects verified evidence (see get_verified_evidence), lets the
@@ -193,6 +203,8 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
 
 @mcp.tool(annotations=_READ_ONLY)
 async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard") -> dict[str, Any]:
+    limit = max(1, min(int(limit), 50))
+    query = query[:500]
     """Research-materials mode: related sources with excerpts,
     original images, evidence states and the reason each
     candidate was or was not admitted as answer evidence.

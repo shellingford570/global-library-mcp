@@ -115,3 +115,24 @@ SSE と streaming HTTP のみです。stdio は対象外です。
 `search_catalog`、`research_materials`、`get_page_text`、
 `verify_original_page`、`compare_documents` ほか。
 AI回答系ツールは Research Beta の初期設定では無効です。
+
+## b4追補：Streamable HTTPと検証状況（2026-11-25）
+
+- **Streamable HTTP（ローカル）実装済み・実接続検証済み**:
+  `global-library-mcp mcp --transport streamable-http --host 127.0.0.1 --port 8001`
+  で起動し、公式Python SDKクライアントとMCP Inspector CLIの両方から
+  initialize／tools/list／tools/callを確認した。stdioと同じ
+  LibraryServiceを共有する。初期バインドは127.0.0.1で、DNS
+  リバインディング対策（Host/Origin許可リスト）が有効。
+  認証機能は内蔵されていないため、外部公開には使わないこと。
+- **読み取り専用プロファイル**: `--profile research` で実験的
+  ツール `research_question` を公開対象から外す（14ツール）。
+  全ツールに読み取り専用アノテーション（readOnlyHint）が付いた。
+- **MCP Inspector**: CLIモードで検証済み（stdioのtools/list・
+  tools/call、HTTPのtools/list）。
+- **ChatGPT**: 接続準備は `docs/chatgpt-connectivity.md` に分離
+  した。Secure MCP Tunnel方式なら既存のstdioサーバーをそのまま
+  使える（tunnel-clientがstdioコマンドを中継できる）ことが公式
+  文書で確認できたが、トンネルの作成自体は未実施であり、
+  **ChatGPT接続は引き続き未対応（準備のみ）**。
+- **Google Antigravity**: stdioの設定例のみ（未検証）。
