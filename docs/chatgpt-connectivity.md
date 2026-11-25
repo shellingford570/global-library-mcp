@@ -66,13 +66,23 @@ Fit with this project:
   `research` profile and Quick/Standard modes.
 - Data scope: tool-call arguments and tool results traverse
   OpenAI's hosted tunnel endpoint and are processed by ChatGPT.
-  Only public-domain / openly licensed library material and the
-  user's own queries are involved; the Research Beta itself calls
-  no external LLM. App-level compliance logging still applies on
-  the ChatGPT side; tunnel transport events are not emitted as
-  ChatGPT app events (per the official guide).
-- Cost: the tunnel itself is an OpenAI Platform feature; any
-  Platform billing implications must be confirmed in the Platform
+  That means **the user's search terms and the fetched material
+  (bibliographic records and OCR excerpts) are sent to OpenAI**.
+  The Research Beta itself calls no external LLM. App-level
+  compliance logging still applies on the ChatGPT side; tunnel
+  transport events are not emitted as ChatGPT app events (per
+  the official guide).
+- **Rights warning:** library materials are NOT all public
+  domain or openly licensed. Rights are per item (public domain,
+  CC variants, in-copyright, unknown). An external-facing
+  profile must apply rights-based transmission limits - for
+  example, full text only for public-domain/CC0 items, short
+  excerpts for other openly licensed items, and bibliographic
+  data only when rights are unknown. It must never be assumed
+  that rights-unknown material may be transmitted freely.
+- Cost: the tunnel is an OpenAI Platform feature and runtime API
+  keys are involved. **No claim is made that it is free**; any
+  Platform or API charges must be confirmed in the Platform
   console before creation. Nothing here has been purchased.
 
 Prepared connection procedure (NOT executed):
@@ -113,6 +123,32 @@ to the public URL directly.
   it must not be exposed directly.
 - This option is a deployment project of its own and is out of
   scope until separately approved.
+
+## Before any real connection (separate approval required)
+
+Connecting for real is a separate task. Before it starts, each
+of the following must be verified, not assumed:
+
+1. **Permissions**: the target ChatGPT account/workspace plan
+   and the creator's role satisfy the matrix above; Platform
+   tunnel permissions (Read + Manage to create, Read + Use to
+   run) are granted by the organization owner/RBAC admin.
+2. **Rights policy**: per-rights transmission limits for OCR
+   excerpts and full text are implemented in the external
+   profile (see the rights warning above) and tested.
+3. **Response size**: tool responses stay within the tunnel's
+   10 MiB serialized envelope, including for large OCR fetches.
+4. **Deadline**: the tunnel's 120-second absolute request
+   deadline also requires a matching **server-side per-tool
+   execution limit** for the external profile, so a tool call
+   fails cleanly on our side instead of being cut off mid-flight
+   (Quick/Standard modes, capped investigation budgets).
+5. **Authentication**: the tunnel's runtime key handling and
+   the ChatGPT-side app authentication are configured and
+   reviewed; the local HTTP transport remains loopback-only and
+   is never exposed directly.
+6. **Cost**: Platform/tunnel billing is confirmed in the
+   console; nothing is assumed free.
 
 ## Recommendation
 

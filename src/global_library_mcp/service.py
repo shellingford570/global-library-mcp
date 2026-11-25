@@ -201,6 +201,32 @@ def admission_decision(
     return False, record
 
 
+def _scope_breakdown(search: dict[str, Any]) -> dict[str, Any]:
+    """Per-library search outcome for AI clients (b4 review):
+    distinguishes queried / with results / no results / failed /
+    skipped (circuit open or not implemented)."""
+    queried = list(search.get("queried_libraries", []))
+    with_results = sorted({item["library_id"] for item in search.get("results", [])})
+    failed: list[str] = []
+    skipped: list[str] = []
+    for entry in search.get("errors", []):
+        if "circuit open" in entry.get("error", ""):
+            skipped.append(entry["library_id"])
+        elif entry.get("error") == "Unknown library":
+            skipped.append(entry["library_id"])
+        else:
+            failed.append(entry["library_id"])
+    accounted = set(with_results) | set(failed) | set(skipped)
+    no_results = sorted(set(queried) - accounted)
+    return {
+        "queried": queried,
+        "with_results": with_results,
+        "no_results": no_results,
+        "failed": sorted(set(failed)),
+        "skipped": sorted(set(skipped)),
+    }
+
+
 # b4 (Section 6): upstream OCR text is untrusted external data.
 # Responses carry this notice so AI clients never treat text found
 # inside a scanned book as instructions to follow.
@@ -326,6 +352,7 @@ class LibraryService:
                 break
         errors = [{"library_id": library_id, "error": "Unknown library"} for library_id in unknown] + skipped + errors
         response = SearchResponse(query=query, results=results, errors=errors)
+        response.queried_libraries = list(active)
         response.timings = timings
         from global_library_mcp.http import current_http_budget as _chb
 
@@ -350,8 +377,10 @@ class LibraryService:
             raise ValueError(f"Unknown library: {library_id}")
         async with self._op_budget(15, 8) as budget:
             result = await adapter.search_in_document(record_id, query, limit)
-        if budget is not None and isinstance(result, dict):
-            result = {**result, "http_stats": budget.stats()}
+        if isinstance(result, dict):
+            result = {**result, "data_notice": DATA_NOTICE}
+            if budget is not None:
+                result = {**result, "http_stats": budget.stats()}
         return result
 
     async def get_page_text(self, library_id: str, page_id: str) -> dict[str, Any]:
@@ -360,8 +389,10 @@ class LibraryService:
             raise ValueError(f"Unknown library: {library_id}")
         async with self._op_budget(15, 8) as budget:
             result = await adapter.get_page_text(page_id)
-        if budget is not None and isinstance(result, dict):
-            result = {**result, "http_stats": budget.stats()}
+        if isinstance(result, dict):
+            result = {**result, "data_notice": DATA_NOTICE}
+            if budget is not None:
+                result = {**result, "http_stats": budget.stats()}
         return result
 
     async def _get_page_text_cached(self, adapter: LibraryAdapter, library_id: str, page_id: str) -> dict[str, Any]:
@@ -427,6 +458,20 @@ class LibraryService:
         ground an answer.
         """
         import os
+
+        # Defence in depth (b4 review): under the MCP research
+        # profile, generative answering is disabled outright, even
+        # if an LLM provider is configured in the environment.
+        if os.environ.get("GLM_MCP_PROFILE") == "research" and mode == "generative":
+            return {
+                "status": "disabled_in_research_profile",
+                "query": query,
+                "answer": None,
+                "note": "The read-only research profile does not generate answers or call LLMs. Use research_materials / get_verified_evidence instead.",
+                "citations": [],
+                "evidence": [],
+                "unverified": [],
+            }
 
         from global_library_mcp.answer import MockProvider, compact_evidence, validate_citation_keys
 
@@ -1510,7 +1555,7 @@ class LibraryService:
             "errors": collected["search"]["errors"],
             "data_notice": DATA_NOTICE,
             "search_scope": {
-                "libraries_queried": sorted({item["library_id"] for item in collected["search"]["results"]} | {e["library_id"] for e in collected["search"]["errors"]}),
+                **_scope_breakdown(collected["search"]),
                 "mode": mode,
                 "partial_failures": collected["search"]["errors"],
             },
@@ -1551,7 +1596,7 @@ class LibraryService:
                 "http_stats": _quick_budget.stats(),
                 "data_notice": DATA_NOTICE,
                 "search_scope": {
-                    "libraries_queried": sorted({item.library_id for item in resp.results} | {e["library_id"] for e in resp.errors}),
+                    **_scope_breakdown(resp.to_dict()),
                     "mode": "quick",
                     "partial_failures": resp.errors,
                 },
@@ -1673,6 +1718,7 @@ class LibraryService:
         with_pages = [entry for entry in doc_results if entry["pages"]]
         return {
             "status": "compared" if len(with_pages) >= 2 else "insufficient_evidence",
+            "data_notice": DATA_NOTICE,
             "question": question,
             "aspects": aspect_list,
             "documents": [{key: entry[key] for key in ("library_id", "record_id", "title", "date", "landing_url", "error")} | {"verified_pages": len(entry["pages"])} for entry in doc_results],

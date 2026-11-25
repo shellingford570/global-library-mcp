@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0b4 — MCP Connectivity & Research Integration (release candidate, unreleased)
+## 1.0.0b4 — MCP Connectivity & Research Integration (2026-11-25)
 
 - Streamable HTTP transport for local use (`mcp --transport
   streamable-http`, binds 127.0.0.1, DNS-rebinding protection on),
@@ -24,6 +24,18 @@
   with partial failures.
 - Docs: ChatGPT connectivity preparation (Secure MCP Tunnel
   research), MCP security audit, IA fetch-efficiency research.
+- Final review fixes: tool docstrings restored to the top of
+  every tool (descriptions verified via tools/list); the
+  research profile now fails startup if the tool allowlist does
+  not match exactly, and generative answering is disabled under
+  it even if an LLM is configured; the HTTP transport refuses
+  non-loopback binds; Retry-After is re-checked immediately
+  before sending and sends are refused beyond a 30s window;
+  gzip/deflate responses are decoded incrementally with wire
+  and decoded bytes recorded separately; data_notice now covers
+  page text, in-document search and comparison results;
+  search_scope reports per-library with-results / no-results /
+  failed / skipped outcomes.
 
 ## 1.0.0b3 — Research Beta (2026-11-25)
 
