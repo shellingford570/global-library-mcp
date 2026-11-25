@@ -3,10 +3,12 @@
 Global Library MCP は stdio 型の MCP サーバーです
 （起動コマンド：`global-library-mcp mcp`）。
 
-**検証状況の区別**：本リポジトリの開発環境では、MCPプロトコル
-レベルでの接続（initialize／ツール一覧15件／実ツール呼び出し）を
-公式Python SDKクライアントで検証済みです。下記の各GUIクライアントは
-**設定例のみ**で、各クライアント上での接続確認は行っていません。
+**検証状況の区別**：
+- **実接続検証済み**：公式Python SDKクライアント（MCPプロトコル
+  レベル：initialize／ツール一覧15件／実ツール呼び出し）
+- **設定例のみ（未検証）**：Claude Desktop、Claude Code、Cursor、
+  Google Antigravity — 各アプリ上での接続確認は行っていません。
+  動作を保証するものではありません。
 
 The server speaks MCP over stdio (`global-library-mcp mcp`).
 Protocol-level connection (initialize, 15 tools listed, a real tool
@@ -85,14 +87,18 @@ claude mcp add global-library /path/to/.venv/bin/global-library-mcp mcp
 ## ChatGPT について
 
 ChatGPT はローカル stdio サーバーを直接登録できません。
-ChatGPT が接続できるのは、公開 HTTPS で到達できるリモート MCP
-サーバー（Plugins／開発者モードのカスタムコネクタ）のみです。
+OpenAI公式ドキュメント（https://platform.openai.com/docs/guides/developer-mode）
+によれば、ChatGPT が接続できるのは Server URL で指定するリモート
+MCP サーバー（Plugins のカスタムMCPサーバー）で、対応プロトコルは
+SSE と streaming HTTP のみです。stdio は対象外です。
 
 そのため本サーバーを ChatGPT から使うには、次のいずれかが必要です。
 
 1. サーバーを Streamable HTTP トランスポートで公開ホスティングする
    （本リリースにはリモート公開機能は含まれていません）
 2. OpenAI の Secure MCP Tunnel でローカルサーバーを中継する
+   （公式に用意された方式ですが、本プロジェクトでは未検証であり、
+   動作を保証しません）
 
 現時点では ChatGPT からの直接接続は **未対応** です。
 

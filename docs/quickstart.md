@@ -32,7 +32,7 @@ Dockerの場合：
 
 ```sh
 docker build -t global-library-mcp .
-docker run --rm -p 8000:8000 global-library-mcp
+docker run --rm -p 127.0.0.1:8000:8000 global-library-mcp
 ```
 
 ## 2. Web UIの起動
@@ -49,8 +49,9 @@ docker run --rm -p 8000:8000 global-library-mcp
 画面上部の検索窓に、知りたいことを文章で入力します（例：
 「明治時代の水力発電について書かれた資料」）。結果は3種類に分かれます。
 
-- **証拠（verified）**：ページの同一性が確認でき、引用をそのまま
-  使えるページ
+- **証拠（verified）**：ページの同一性が確認できたページ。
+  ただし「検証済み」はOCRの正確さの保証ではありません。引用の前に、
+  OCRと原本画像を必ず目視で見比べてください
 - **関連資料**：関連するが未検証のページ
 - **未検証（unverified）**：原本との対応が確認できなかったページ。
   資料そのものは有用でも、引用には原本画像での確認が必要です
@@ -120,3 +121,7 @@ https://github.com/shellingford570/global-library-mcp/issues
 MCP接続／UI／セキュリティ／新規図書館の追加要望）に沿って
 記入してください。**個人情報・APIキー・機密資料は投稿しないで
 ください。**
+
+**セキュリティ脆弱性は公開Issueに詳細を投稿しないでください。**
+[SECURITY.md](../SECURITY.md) の手順に従い、非公開で報告して
+ください。

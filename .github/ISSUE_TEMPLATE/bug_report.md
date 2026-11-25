@@ -9,6 +9,10 @@ labels: bug
 ⚠️ 個人情報・APIキー・パスワード・機密資料は絶対に投稿しないでください。
 ⚠️ Never post personal information, API keys, passwords, or
 confidential materials.
+⚠️ セキュリティ脆弱性の詳細は公開Issueに書かないでください。
+   SECURITY.md の手順で非公開に報告してください。
+⚠️ Do not post security-vulnerability details in a public issue;
+   report them privately as described in SECURITY.md.
 -->
 
 ## 分類 / Category

@@ -144,6 +144,13 @@ citation, no rights inference, no silent fallbacks - and
 run `pytest` plus the Playwright suite
 (`npm run test:e2e`) before submitting.
 
+## Documentation
+
+- Quickstart: [docs/quickstart.md](docs/quickstart.md) /
+  [docs/quickstart.en.md](docs/quickstart.en.md)
+- MCP client guide: [docs/mcp-clients.md](docs/mcp-clients.md)
+- Release notes (1.0.0b2): [docs/release-notes-1.0.0b2.md](docs/release-notes-1.0.0b2.md)
+
 ## License and provenance
 
 See [LICENSE](LICENSE) and [SECURITY.md](SECURITY.md).

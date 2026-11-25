@@ -33,7 +33,7 @@ Docker:
 
 ```sh
 docker build -t global-library-mcp .
-docker run --rm -p 8000:8000 global-library-mcp
+docker run --rm -p 127.0.0.1:8000:8000 global-library-mcp
 ```
 
 ## 2. Start the Web UI
@@ -50,8 +50,9 @@ Open http://127.0.0.1:8000 in your browser (on Windows:
 Type a question in the search box (e.g. "materials about
 hydroelectric power in the Meiji era"). Results are grouped:
 
-- **Verified evidence**: pages whose identity is confirmed; the
-  quotations can be used as-is
+- **Verified evidence**: pages whose identity is confirmed.
+  "Verified" does not guarantee OCR accuracy: always visually
+  compare the OCR with the original page image before quoting
 - **Related materials**: relevant but unverified pages
 - **Unverified**: pages whose correspondence to the original
   could not be confirmed. The material may still be useful, but
@@ -124,3 +125,6 @@ Templates are grouped by category (search results / OCR quality
 / original-page mapping / library connection / MCP connection /
 UI / security / new-library requests). **Do not post personal
 information, API keys, or confidential materials.**
+
+**Do not post security-vulnerability details in a public issue.**
+Report them privately, following [SECURITY.md](../SECURITY.md).
