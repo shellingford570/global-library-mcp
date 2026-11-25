@@ -133,6 +133,13 @@ Issue と Pull Request を歓迎します。根拠第一の規則
 黙ってフォールバックしない）を守り、提出前に `pytest`
 と Playwright（`npm run test:e2e`）を実行してください。
 
+## ドキュメント
+
+- クイックスタート: [docs/quickstart.md](docs/quickstart.md) /
+  [docs/quickstart.en.md](docs/quickstart.en.md)
+- MCPクライアントガイド: [docs/mcp-clients.md](docs/mcp-clients.md)
+- リリースノート（1.0.0b2）: [docs/release-notes-1.0.0b2.md](docs/release-notes-1.0.0b2.md)
+
 ## ライセンス等
 
 [LICENSE](LICENSE) と [SECURITY.md](SECURITY.md) を参照。
