@@ -20,8 +20,18 @@ class InternetArchiveAdapter(LibraryAdapter):
 
     def __init__(self, client):
         super().__init__(client)
-        self._metadata_cache: dict[str, dict[str, Any]] = {}
-        self._pages_cache: dict[str, list[str]] = {}
+        # b3.1 (Section 8): with a shared long-lived service these
+        # caches persist, so they are bounded and TTL'd. Metadata
+        # (which carries the access-restriction flag) is re-fetched
+        # after 300s, and the restriction check runs against that
+        # metadata BEFORE cached pages are served, so an item that
+        # becomes lending-restricted stops being served from cache.
+        import time as _time
+
+        self._now = _time.monotonic
+        self._metadata_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+        self._metadata_locks: dict[str, Any] = {}
+        self._pages_cache: dict[str, tuple[float, list[str]]] = {}
         self._ocr_sources: dict[str, str] = {}
         # Provenance of the OCR file actually fetched per item:
         # {"name", "format", "url", "file_count", "mapping_confirmed"}.
@@ -96,12 +106,26 @@ class InternetArchiveAdapter(LibraryAdapter):
 
     async def _metadata(self, identifier: str) -> dict[str, Any]:
         identifier = self._safe_id(identifier)
-        if identifier not in self._metadata_cache:
+        cached = self._metadata_cache.get(identifier)
+        if cached is not None and self._now() - cached[0] < 300:
+            return cached[1]
+        # Dedupe concurrent fetches of the same item's metadata.
+        import asyncio as _asyncio
+
+        lock = self._metadata_locks.setdefault(identifier, _asyncio.Lock())
+        async with lock:
+            cached = self._metadata_cache.get(identifier)
+            if cached is not None and self._now() - cached[0] < 300:
+                return cached[1]
             payload = await get_json(self.client, f"{self.base_url}/metadata/{identifier}", attempts=1)
             if not isinstance(payload, dict) or not payload.get("metadata"):
                 raise AdapterError(self.library_id, f"Internet Archive item not found: {identifier}")
-            self._metadata_cache[identifier] = payload
-        return self._metadata_cache[identifier]
+            self._metadata_cache[identifier] = (self._now(), payload)
+            while len(self._metadata_cache) > 128:
+                self._metadata_cache.pop(next(iter(self._metadata_cache)))
+            while len(self._metadata_locks) > 256:
+                self._metadata_locks.pop(next(iter(self._metadata_locks)))
+            return payload
 
     @staticmethod
     def _is_restricted(metadata_payload: dict[str, Any]) -> bool:
@@ -179,11 +203,15 @@ class InternetArchiveAdapter(LibraryAdapter):
         items are refused here, per item-level access conditions.
         """
         identifier = self._safe_id(identifier)
-        if identifier in self._pages_cache:
-            return self._pages_cache[identifier]
+        # Restriction is checked against current (TTL'd) metadata
+        # BEFORE any cached pages are served.
         payload = await self._metadata(identifier)
         if self._is_restricted(payload):
+            self._pages_cache.pop(identifier, None)
             raise AdapterError(self.library_id, f"Item {identifier} is access-restricted; full text is not public")
+        cached_pages = self._pages_cache.get(identifier)
+        if cached_pages is not None and self._now() - cached_pages[0] < 3600:
+            return cached_pages[1]
         pages: list[str] | None = None
         xml_name = self._file_name(payload, "_djvu.xml", identifier)
         if xml_name:
@@ -203,7 +231,14 @@ class InternetArchiveAdapter(LibraryAdapter):
                 self._record_ocr_file(identifier, payload, txt_name, "djvu.txt")
         if not pages:
             raise AdapterError(self.library_id, f"Item {identifier} has no usable page-level OCR (djvu.xml/djvu.txt)")
-        self._pages_cache[identifier] = pages
+        self._pages_cache[identifier] = (self._now(), pages)
+        # Bounds: at most 16 items and ~32M characters of OCR.
+        while len(self._pages_cache) > 16 or sum(len(pg) for _ts, pgs in self._pages_cache.values() for pg in pgs) > 32_000_000:
+            self._pages_cache.pop(next(iter(self._pages_cache)))
+        while len(self._ocr_sources) > 128:
+            self._ocr_sources.pop(next(iter(self._ocr_sources)))
+        while len(self._ocr_files) > 128:
+            self._ocr_files.pop(next(iter(self._ocr_files)))
         return pages
 
     @staticmethod

@@ -29,6 +29,24 @@ const I18N = {
     searchButton: '検索する',
     answerButton: 'AI回答',
     materialsButton: '研究資料',
+    modeQuick: '簡易（書誌のみ）',
+    modeStandard: '標準',
+    modeDeep: '詳細',
+    cancelButton: 'キャンセル',
+    stageSearchDone: '書誌検索が完了しました。「研究資料」ボタンで選択中のモードの詳細調査（OCR・原本確認）を行えます。',
+    statusRunning: '詳細調査中…',
+    statusComplete: '詳細調査が完了しました。',
+    statusPartial: '部分的に完了しました（一部の機関で失敗または制限に達しました）。',
+    statusFailed: '詳細調査に失敗しました。',
+    statusCancelled: 'キャンセルしました。',
+    perfSummary: (s, n) => `処理時間 ${s} 秒 / 実HTTPリクエスト ${n} 件`,
+    statusTimeout: '調査が時間上限に達したため停止しました（部分結果）。',
+    statusCancelRequested: 'キャンセルを要求しました（サーバー側の停止確認待ち）。',
+    accessBiblio: '書誌',
+    accessOcr: 'OCR取得',
+    accessMapping: 'ページ対応',
+    accessPassage: '原文箇所',
+    accessAssessed: '根拠評価',
     materialsTitle: '研究資料（関連候補）',
     copyCitation: '引用をコピー', copied: 'コピーしました', admittedOnly: '根拠として採用された資料のみ', sourcePage: '資料ページ',
     materialsNote: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
@@ -123,6 +141,24 @@ const I18N = {
     searchButton: 'Search',
     answerButton: 'AI answer',
     materialsButton: 'Research materials',
+    modeQuick: 'Quick (bibliographic only)',
+    modeStandard: 'Standard',
+    modeDeep: 'Deep',
+    cancelButton: 'Cancel',
+    stageSearchDone: 'Bibliographic search complete. Use "Research materials" to run the detailed investigation (OCR and original checks) in the selected mode.',
+    statusRunning: 'Investigating…',
+    statusComplete: 'Investigation complete.',
+    statusPartial: 'Partially complete (some libraries failed or hit a limit).',
+    statusFailed: 'Investigation failed.',
+    statusCancelled: 'Cancelled.',
+    perfSummary: (s, n) => `Elapsed ${s}s / ${n} actual HTTP requests`,
+    statusTimeout: 'Investigation stopped at the time limit (partial results).',
+    statusCancelRequested: 'Cancellation requested (waiting for server confirmation).',
+    accessBiblio: 'Bibliographic',
+    accessOcr: 'OCR fetched',
+    accessMapping: 'Page mapping',
+    accessPassage: 'Passage found',
+    accessAssessed: 'Assessed as evidence',
     materialsTitle: 'Research materials (candidates)',
     copyCitation: 'Copy citation', copied: 'Copied', admittedOnly: 'Admitted as evidence only', sourcePage: 'Record page',
     materialsNote: 'Candidates do not prove an answer. Read the excerpts and originals and judge for yourself.',
@@ -408,11 +444,31 @@ function selectedLibraries() {
   return [...form.querySelectorAll('input[name="library"]:checked')].map(i => i.value).join(',');
 }
 
-async function fetchJson(path) {
-  const response = await fetch(path);
+async function fetchJson(path, signal) {
+  const response = await fetch(path, { signal });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || t().requestFailed);
   return data;
+}
+
+let activeController = null;
+let currentOpId = null;
+let serverCancelled = false;
+const materialsResults = document.querySelector('#materials-results');
+const cancelButton = document.querySelector('#cancel-button');
+const stageStatus = document.querySelector('#stage-status');
+const modeSelect = document.querySelector('#mode-select');
+if (cancelButton) {
+  cancelButton.addEventListener('click', async () => {
+    serverCancelled = false;
+    if (currentOpId) {
+      try {
+        const res = await fetchJson(`/api/cancel?op=${encodeURIComponent(currentOpId)}`);
+        if (res.state === 'cancelled') serverCancelled = true;
+      } catch (error) { /* fall through to local abort */ }
+    }
+    if (activeController) activeController.abort();
+  });
 }
 
 function setBusy(busy) {
@@ -430,6 +486,7 @@ form.addEventListener('submit', async event => {
   notice.textContent = t().searchingNotice;
   try {
     renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    if (stageStatus) stageStatus.textContent = t().stageSearchDone;
   } catch (error) {
     results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
   } finally {
@@ -475,6 +532,20 @@ function citationText(item) {
   return parts.join('. ');
 }
 
+function accessChips(item) {
+  const a = item.access_state;
+  if (!a) return '';
+  const mark = (on) => (on ? '✓' : '–');
+  const parts = [
+    `${mark(a.bibliographic)} ${t().accessBiblio}`,
+    `${mark(a.ocr_fetched)} ${t().accessOcr}`,
+    `${mark(a.mapping_confirmed)} ${t().accessMapping}`,
+    `${mark(a.passage_found)} ${t().accessPassage}`,
+    `${mark(a.assessed_as_evidence)} ${t().accessAssessed}`,
+  ];
+  return `<p class="meta-line">${parts.join(' · ')}</p>`;
+}
+
 function renderMaterials(data) {
   lastMaterials = data;
   title.textContent = t().materialsTitle;
@@ -495,20 +566,21 @@ function renderMaterials(data) {
     html += `<article class="card"><div><h3>${esc(item.title || item.record_id)}</h3>`
       + `<p class="meta-line">${esc(item.author || '')} ${esc(item.date || '')} · ${esc(item.library_id)}:${esc(item.record_id)}${item.page_id ? ' · ' + esc(item.page_id) : ''}</p>`
       + `<div class="chips">${stateChips(item.states)}</div>`
+      + accessChips(item)
       + (excerpts ? `<p class="citations-label">${t().excerptsLabel}</p>${excerpts}` : '')
       + reasons + rights + image + landing + copyBtn
       + `</div></article>`;
   }
-  results.innerHTML = html || `<div class="empty"><p>${t().noMatches}</p></div>`;
+  (materialsResults || results).innerHTML = html || `<div class="empty"><p>${t().noMatches}</p></div>`;
 }
 
-results.addEventListener('change', (event) => {
+[results, materialsResults].forEach((el) => { if (el) el.addEventListener('change', (event) => {
   if (event.target && event.target.id === 'materials-admitted-only') {
     materialsAdmittedOnly = event.target.checked;
     if (lastMaterials) renderMaterials(lastMaterials);
   }
-});
-results.addEventListener('click', async (event) => {
+}); });
+[results, materialsResults].forEach((el) => { if (el) el.addEventListener('click', async (event) => {
   const btn = event.target.closest ? event.target.closest('.copy-citation') : null;
   if (!btn) return;
   try {
@@ -517,18 +589,50 @@ results.addEventListener('click', async (event) => {
   } catch (error) {
     btn.textContent = btn.dataset.citation || '';
   }
-});
+}); });
 
 materialsButton.addEventListener('click', async () => {
   const q = query.value.trim();
   if (!q) return;
   setBusy(true);
-  results.innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
+  serverCancelled = false;
+  currentOpId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `op-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  if (cancelButton) cancelButton.hidden = false;
+  if (stageStatus) stageStatus.textContent = t().statusRunning;
+  (materialsResults || results).innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
+  activeController = new AbortController();
   try {
-    renderMaterials(await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    const mode = modeSelect ? modeSelect.value : 'standard';
+    const data = await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}&mode=${encodeURIComponent(mode)}&op=${encodeURIComponent(currentOpId)}`, activeController.signal);
+    if (data.op_state === 'cancelled') {
+      if (stageStatus) stageStatus.textContent = t().statusCancelled;
+      (materialsResults || results).innerHTML = `<div class="empty"><p>${t().statusCancelled}</p></div>`;
+      return;
+    }
+    if (data.op_state === 'timeout') {
+      if (stageStatus) stageStatus.textContent = t().statusTimeout;
+      (materialsResults || results).innerHTML = `<div class="empty"><p>${t().statusTimeout}</p></div>`;
+      return;
+    }
+    renderMaterials(data);
+    const partial = (data.errors && data.errors.length) || (data.stage_log || []).some(s => s.status === 'early_stop' || s.status === 'deadline' || s.status === 'failed');
+    if (stageStatus) {
+      const perf = data.timings && data.http_stats ? ` ${t().perfSummary(data.timings.total_s ?? '?', data.http_stats.requests ?? '?')}` : '';
+      stageStatus.textContent = (partial ? t().statusPartial : t().statusComplete) + perf;
+    }
   } catch (error) {
-    results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
+    if (error.name === 'AbortError') {
+      // Show "cancelled" only when the server confirmed the stop.
+      if (stageStatus) stageStatus.textContent = serverCancelled ? t().statusCancelled : t().statusCancelRequested;
+      (materialsResults || results).innerHTML = `<div class="empty"><p>${esc(stageStatus ? stageStatus.textContent : '')}</p></div>`;
+    } else {
+      if (stageStatus) stageStatus.textContent = t().statusFailed;
+      (materialsResults || results).innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
+    }
   } finally {
+    activeController = null;
+    currentOpId = null;
+    if (cancelButton) cancelButton.hidden = true;
     setBusy(false);
   }
 });

@@ -1,5 +1,70 @@
 # Changelog
 
+## 1.0.0b3 — Research Beta (2026-11-25)
+
+Performance and review-hardening release. No new features.
+
+- Review fixes (b3.1): the HTTP budget now reserves attempts
+  atomically before sending (concurrent requests cannot race past
+  the cap; timeouts, failures and cancellations are counted;
+  request counts and received bytes are recorded separately;
+  budget contexts are restored with try/finally). Response size
+  is enforced while streaming (Content-Length pre-check, decoded-
+  size counting so compressed bombs are caught, abort + close on
+  overflow, cumulative per-operation byte cap).
+- MCP: `research_materials` could not execute at all (an
+  `async with` on a non-context-manager left from the b3 refactor)
+  - fixed to the shared-service call pattern, verified end-to-end
+  with the official Python SDK client (quick and standard modes);
+  the shared HTTP client is closed on server shutdown.
+- Cancellation is now effective server-side: investigations run
+  under client-chosen operation ids, `/api/cancel` cancels the
+  server task, states distinguish completed / failed / cancelled
+  / timeout, and the UI shows "cancelled" only after the server
+  confirms the stop. Bibliographic results stay on screen during
+  and after an investigation (separate materials container).
+- Budgets now apply to every path (quick search, catalog search,
+  document/page fetch, verification, comparison), each reporting
+  `http_stats`; the concurrency cap is shared across proxy and
+  direct transports. Retry-After is honoured in full (seconds and
+  HTTP-date); a wait beyond the retry deadline is not retried and
+  surfaces as a partial failure; 429s feed the circuit breaker.
+- Cache safety with the shared service: IA metadata cache TTL
+  300s / OCR cache TTL 3600s with count and byte bounds; the
+  access-restriction check runs against current metadata before
+  cached pages are served, so newly restricted items stop being
+  served; concurrent fetches of the same page/metadata are
+  deduplicated; partial-failure searches are cached only 30s;
+  per-search timings travel with each response so concurrent
+  searches never mix measurements.
+
+- Search: per-library deadline (default 10s, `GLM_SEARCH_DEADLINE_S`)
+  and a cross-request circuit breaker (3 failures → 60s pause); a
+  slow library is reported as a partial failure instead of gating
+  the whole search. Measured cause: LoC consumed 168s of a 209s
+  question (see docs/b3-performance.md).
+- Real HTTP request budget: every wire request is counted per
+  operation (Standard 80 / Deep 200, per-host caps, 25MB response
+  cap, concurrency 8) and reported as `http_stats`; the older
+  service-unit budget remains as the processing budget. This
+  addresses the limitation recorded in 1.0.0b2 below: the budget
+  now caps actual HTTP requests, retries and redirect hops
+  included, for traffic through the standard client.
+- Modes: `research_materials` accepts `mode` = quick (bibliographic
+  only) / standard (variant early-stop once enough candidates are
+  pooled) / deep (full sweep). Web UI offers the same modes with
+  staged display, run states (processing/complete/partial/failed/
+  cancelled), a cancel button, and elapsed/HTTP-request display.
+- Web and MCP servers now share one long-lived service per
+  process, so the bibliographic cache (TTL 300s), page cache and
+  circuit breaker persist across requests.
+- Materials carry `access_state` (bibliographic / OCR fetched /
+  mapping confirmed / passage found / assessed as evidence).
+- Docs: rights guide (docs/rights-guide.md); Europeana limits
+  re-verified (API key required; no official numeric daily cap
+  currently published); Claude Code recorded as a verified MCP
+  client (health check).
+
 ## 1.0.0b2 — Research Beta (2026-11-25)
 
 - Internet Archive: `get_page_text` now reports the OCR file

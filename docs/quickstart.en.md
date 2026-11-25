@@ -114,7 +114,9 @@ The server command is `global-library-mcp mcp` (stdio).
 
 Rights differ per holding library and per item. Check the
 rights statement shown on each page and credit the source.
-Lending-restricted items are never fetched.
+Lending-restricted items are never fetched. For a per-licence
+use guide see [rights-guide.md](rights-guide.md) (note:
+CC BY-NC-ND is not public domain).
 
 ## 12. Reporting bugs
 
@@ -128,3 +130,22 @@ information, API keys, or confidential materials.**
 
 **Do not post security-vulnerability details in a public issue.**
 Report them privately, following [SECURITY.md](../SECURITY.md).
+
+## 13. Known limitations (1.0.0b3)
+
+- Search speed depends on each library's API. A library that
+  does not answer within 10 seconds is cut off and reported as a
+  partial failure with the reason (e.g. Library of Congress).
+  Gallica returns 403 from some networks; that is likewise
+  reported, never evaded.
+- Actual HTTP requests are capped per operation (Quick 30 /
+  Standard 80 / Deep 200, with per-host caps). In the web UI's
+  staged flow, the bibliographic search and the detailed
+  investigation count as separate operations.
+- Internet Archive full-text files are large; a response over
+  the per-response cap (25 MB) is aborted and reported as a
+  partial failure with a link to the original and the reason.
+- A detailed investigation can be cancelled; "cancelled" is
+  shown only after the server confirms the stop. The overall
+  investigation limit is 300 seconds.
+- AI answering remains experimental (disabled by default).

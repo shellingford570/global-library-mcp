@@ -4,9 +4,17 @@ Global Library MCP は stdio 型の MCP サーバーです
 （起動コマンド：`global-library-mcp mcp`）。
 
 **検証状況の区別**：
-- **実接続検証済み**：公式Python SDKクライアント（MCPプロトコル
-  レベル：initialize／ツール一覧15件／実ツール呼び出し）
-- **設定例のみ（未検証）**：Claude Desktop、Claude Code、Cursor、
+- **実接続検証済み**：
+  - 公式Python SDKクライアント（MCPプロトコルレベル：
+    initialize／ツール一覧15件／実ツール呼び出し）
+  - **Claude Code**（2026-11-25）：`claude mcp add` で登録し、
+    アプリのヘルスチェックで `✔ Connected` を確認。アプリ内
+    セッションからのツール実行は Anthropic ログインが必要なため
+    本環境では未実施。
+  - 公式Python SDKクライアントから `research_materials`
+    （quick／standard）、`search_catalog` を実際に呼び出し、
+    正常な応答を確認（2026-11-25、b3.1修正後）。
+- **設定例のみ（未検証）**：Claude Desktop、Cursor、
   Google Antigravity — 各アプリ上での接続確認は行っていません。
   動作を保証するものではありません。
 

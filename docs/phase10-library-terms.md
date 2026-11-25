@@ -376,10 +376,17 @@ https://europeana.atlassian.net/wiki/spaces/EF/pages/2360508417
   only Public Domain Mark / CC0 / CC BY / CC BY-SA items.
 - **API terms**: API use is governed by points 8–18 of Europeana's
   Terms of Use (per the FAQ). A free API key (`wskey`) is required.
-- **Rate limits**: a daily call limit has historically applied
-  (10,000 calls/day was documented for the API); the current numeric
-  limit was **not verified** in this session. **[not found — re-check
-  in the API console before launch]**.
+- **Rate limits** (re-checked 2026-11-25 against Europeana's
+  Knowledge Base): an API key is required — since 2025-05-28 either a
+  **Personal key** or a **Project key** (Europeana account needed).
+  The API FAQ states read APIs are free with no throttling, but the
+  "Accessing the APIs" page states Personal-key rate limits were
+  progressively reduced until April 2026 and Project keys carry
+  higher limits with a defined service level. **No single official
+  numeric daily cap is currently published**; the often-quoted
+  10,000 calls/day figure dates from 2012 and must not be cited as
+  current. Treat limits as key-tier-dependent and respect 429 /
+  Retry-After responses. **[verified-official, 2026-11-25]**
 - **Caching**: not expressly addressed in the sources read.
   **[not found]**. CC0 metadata may be cached/redistributed; object
   caching follows each item's `edm:rights`.

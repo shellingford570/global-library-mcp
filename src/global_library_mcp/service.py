@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import re
 from collections.abc import Iterable
 from typing import Any
@@ -8,7 +9,7 @@ from typing import Any
 import httpx
 
 from global_library_mcp.adapters.aggregators import DdbAdapter, EuropeanaAdapter
-from global_library_mcp.adapters.base import LibraryAdapter
+from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.adapters.gallica import GallicaAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
@@ -215,23 +216,83 @@ class LibraryService:
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
+        self._page_locks: dict[tuple[str, str], asyncio.Lock] = {}
         # Bibliographic search cache (Phase 7-G): identical queries
         # recur across questions in a session; caching them is a
         # pure load reduction with no behavioural change.
         self._search_cache: dict[tuple[str, tuple[str, ...], int], Any] = {}
         self.cache_stats = {"search_hits": 0, "search_misses": 0}
+        self._breaker: dict[str, dict[str, Any]] = {}
+        self.last_search_timings: dict[str, float] = {}
+
+    @contextlib.asynccontextmanager
+    async def _op_budget(self, max_requests: int, per_host_max: int):
+        """Give this operation a real HTTP budget when none is
+        active (b3.1, Section 6: every entry point is budgeted).
+        Nested calls share the outer operation's budget, so a
+        staged flow's totals stay attributable. The budget context
+        is restored with try/finally via use_budget."""
+        from global_library_mcp.http import HttpBudget, current_http_budget, use_budget
+
+        if current_http_budget.get() is not None:
+            yield None
+        else:
+            budget = HttpBudget(max_requests=max_requests, per_host_max=per_host_max)
+            with use_budget(budget):
+                yield budget
 
     async def search(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> SearchResponse:
+        async with self._op_budget(30, 15):
+            return await self._search_impl(query, libraries, limit)
+
+    async def _search_impl(self, query: str, libraries: Iterable[str] | None = None, limit: int = 10) -> SearchResponse:
         selected = list(dict.fromkeys(libraries or self.default_libraries))
         unknown = [library_id for library_id in selected if library_id not in self.adapters]
         selected = [library_id for library_id in selected if library_id in self.adapters]
         limit = min(max(limit, 1), 100)
+        # b3 (Sections 5/10): one slow library must not gate the whole
+        # search. Each library gets a deadline (GLM_SEARCH_DEADLINE_S,
+        # default 10s); a library that exceeds it is reported as a
+        # partial failure. A cross-request circuit breaker pauses a
+        # library after 3 consecutive failures for 60s. Measurement
+        # (2026-11-25): LoC took ~28s per request and consumed 168s
+        # of a 209s question while contributing nothing to it.
+        import os as _os
+        import time as _time
+        try:
+            deadline = float(_os.getenv("GLM_SEARCH_DEADLINE_S", "10"))
+        except ValueError:
+            deadline = 10.0
+        now = _time.monotonic()
+        skipped: list[dict[str, str]] = []
+        active: list[str] = []
+        for library_id in selected:
+            state = self._breaker.get(library_id)
+            if state and state["open_until"] > now:
+                skipped.append({"library_id": library_id, "error": "circuit open (paused after repeated failures); partial result"})
+            else:
+                active.append(library_id)
+        timings: dict[str, float] = {}
+
         async def one(library_id: str):
+            started = _time.monotonic()
             try:
-                return library_id, await self.adapters[library_id].search(query, limit)
+                value = await asyncio.wait_for(self.adapters[library_id].search(query, limit), timeout=deadline)
+                timings[library_id] = round(_time.monotonic() - started, 2)
+                state = self._breaker.setdefault(library_id, {"failures": 0, "open_until": 0.0})
+                state["failures"] = 0
+                return library_id, value
             except Exception as exc:
+                timings[library_id] = round(_time.monotonic() - started, 2)
+                state = self._breaker.setdefault(library_id, {"failures": 0, "open_until": 0.0})
+                state["failures"] += 1
+                if state["failures"] >= 3:
+                    state["open_until"] = _time.monotonic() + 60
+                    state["failures"] = 0
+                if isinstance(exc, asyncio.TimeoutError):
+                    exc = AdapterError(library_id, f"search deadline exceeded ({deadline:.0f}s); partial result", retryable=True)
                 return library_id, exc
-        pairs = await asyncio.gather(*(one(library_id) for library_id in selected))
+        pairs = await asyncio.gather(*(one(library_id) for library_id in active))
         grouped_results: list[list[Any]] = []
         errors = []
         seen: set[tuple[str, str]] = set()
@@ -252,40 +313,68 @@ class LibraryService:
                     results.append(result)
             if len(results) >= limit:
                 break
-        errors = [{"library_id": library_id, "error": "Unknown library"} for library_id in unknown] + errors
-        return SearchResponse(query=query, results=results, errors=errors)
+        errors = [{"library_id": library_id, "error": "Unknown library"} for library_id in unknown] + skipped + errors
+        response = SearchResponse(query=query, results=results, errors=errors)
+        response.timings = timings
+        from global_library_mcp.http import current_http_budget as _chb
+
+        _ambient = _chb.get()
+        if _ambient is not None:
+            response.http_stats = _ambient.stats()
+        return response
 
     async def get_document(self, library_id: str, record_id: str) -> dict[str, Any]:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
-        return await adapter.get_document(record_id)
+        async with self._op_budget(15, 8) as budget:
+            result = await adapter.get_document(record_id)
+        if budget is not None and isinstance(result, dict):
+            result = {**result, "http_stats": budget.stats()}
+        return result
 
     async def search_in_document(self, library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
-        return await adapter.search_in_document(record_id, query, limit)
+        async with self._op_budget(15, 8) as budget:
+            result = await adapter.search_in_document(record_id, query, limit)
+        if budget is not None and isinstance(result, dict):
+            result = {**result, "http_stats": budget.stats()}
+        return result
 
     async def get_page_text(self, library_id: str, page_id: str) -> dict[str, Any]:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
-        return await adapter.get_page_text(page_id)
+        async with self._op_budget(15, 8) as budget:
+            result = await adapter.get_page_text(page_id)
+        if budget is not None and isinstance(result, dict):
+            result = {**result, "http_stats": budget.stats()}
+        return result
 
     async def _get_page_text_cached(self, adapter: LibraryAdapter, library_id: str, page_id: str) -> dict[str, Any]:
         """Page payloads are immutable; reuse them within this service
         instance (an answer flow plus a comparison in one process
         should not refetch the same page). Failures are not cached."""
         key = (library_id, str(page_id))
-        if key not in self._page_cache:
-            self._page_cache[key] = await adapter.get_page_text(page_id)
-            # Phase 10-H: the page cache was unbounded - a
-            # public beta cannot let OCR pages accumulate for
-            # the life of the process. FIFO-cap it like the
-            # search cache (256 entries).
-            while len(self._page_cache) > 256:
-                self._page_cache.pop(next(iter(self._page_cache)))
+        if key in self._page_cache:
+            return self._page_cache[key]
+        # b3.1: dedupe concurrent fetches of the same page with a
+        # per-key lock - two investigations asking for the same page
+        # at once now share one upstream fetch.
+        lock = self._page_locks.setdefault(key, asyncio.Lock())
+        async with lock:
+            if key not in self._page_cache:
+                self._page_cache[key] = await adapter.get_page_text(page_id)
+                # Phase 10-H: the page cache was unbounded - a
+                # public beta cannot let OCR pages accumulate for
+                # the life of the process. FIFO-cap it like the
+                # search cache (256 entries).
+                while len(self._page_cache) > 256:
+                    self._page_cache.pop(next(iter(self._page_cache)))
+                while len(self._page_locks) > 1024:
+                    self._page_locks.pop(next(iter(self._page_locks)))
         return self._page_cache[key]
 
     async def verify_page(self, library_id: str, page_id: str) -> dict[str, Any]:
@@ -302,7 +391,11 @@ class LibraryService:
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
         try:
-            return await adapter.verify_original(page_id)
+            async with self._op_budget(15, 8) as _vbudget:
+                result = await adapter.verify_original(page_id)
+            if _vbudget is not None and isinstance(result, dict):
+                result = {**result, "http_stats": _vbudget.stats()}
+            return result
         except AdapterError as exc:
             return {
                 "library_id": library_id,
@@ -712,6 +805,34 @@ class LibraryService:
         max_documents: int = 3,
         pages_per_document: int = 3,
         terms: list[str] | None = None,
+        mode: str = "standard",
+    ) -> dict[str, Any]:
+        # b3.1: the HTTP budget context is held by use_budget's
+        # try/finally, so it is restored even when the pipeline
+        # raises or is cancelled mid-flight.
+        from global_library_mcp.http import HttpBudget, use_budget
+
+        _mode = mode if mode in ("standard", "deep") else "standard"
+        _budget = (
+            HttpBudget(max_requests=200, per_host_max=80, max_total_bytes=300_000_000)
+            if _mode == "deep"
+            else HttpBudget(max_requests=80, per_host_max=40)
+        )
+        with use_budget(_budget):
+            return await self._collect_evidence_impl(
+                query, libraries, limit, max_documents, pages_per_document, terms, _mode, _budget
+            )
+
+    async def _collect_evidence_impl(
+        self,
+        query: str,
+        libraries: Iterable[str] | None = None,
+        limit: int = 10,
+        max_documents: int = 3,
+        pages_per_document: int = 3,
+        terms: list[str] | None = None,
+        mode: str = "standard",
+        _budget: Any = None,
     ) -> dict[str, Any]:
         """Collect page-level OCR evidence for a question.
 
@@ -729,6 +850,15 @@ class LibraryService:
         from global_library_mcp.semantics import get_semantic_checker
 
         semantic_checker = get_semantic_checker()
+        # b3 (Sections 7/9): search modes and the real HTTP budget.
+        # standard: variant search stops once enough in-document
+        # candidates are pooled; deep: full variant sweep. The HTTP
+        # budget counts actual wire requests through
+        # BudgetedTransport; it is reported back as http_stats.
+        import time as _time
+        _t_start = _time.monotonic()
+        _mode = mode
+        _timings: dict[str, Any] = {"mode": _mode}
         analysis = analyze_question(query)
         search_terms = terms or extract_terms(query)
         # A natural-language question rarely matches bibliographic fields
@@ -754,15 +884,30 @@ class LibraryService:
         ]
         library_error_counts: dict[str, int] = {}
         active_libraries: list[str] | None = list(libraries) if libraries else None
+        _early_stop_note: dict[str, Any] | None = None
+        _search_timings: dict[str, Any] = {}
         for candidate_query in variants:
             cache_key = (candidate_query, tuple(sorted(active_libraries or ())), limit)
-            resp = self._search_cache.get(cache_key)
+            # b3 (Section 10): the bibliographic cache now has a TTL
+            # (300s) — bibliographic records and their rights/access
+            # status can change; the page/OCR cache stays separate.
+            import time as _t2
+            _cached = self._search_cache.get(cache_key)
+            resp = None
+            if _cached is not None and _t2.monotonic() - _cached[0] < _cached[2]:
+                resp = _cached[1]
             if resp is not None:
                 self.cache_stats["search_hits"] += 1
             else:
                 self.cache_stats["search_misses"] += 1
                 resp = await self.search(candidate_query, active_libraries, limit)
-                self._search_cache[cache_key] = resp
+                if resp.timings:
+                    _search_timings.update(resp.timings)
+                # b3.1: partial failures are cached only briefly
+                # (30s) so a transient outage is not served as a
+                # settled result for the full TTL.
+                _ttl = 30 if resp.errors else 300
+                self._search_cache[cache_key] = (_t2.monotonic(), resp, _ttl)
                 # Bounded cache (Phase 8-I): FIFO eviction.
                 while len(self._search_cache) > 256:
                     self._search_cache.pop(next(iter(self._search_cache)))
@@ -784,6 +929,18 @@ class LibraryService:
                 if key not in seen_records:
                     seen_records.add(key)
                     merged.append(item)
+            # b3: in standard mode, stop expanding query variants once
+            # the pool already holds enough in-document-capable
+            # candidates; the full question always runs first. Deep
+            # mode keeps the full sweep.
+            if _mode == "standard":
+                _capable = sum(
+                    1 for item in merged
+                    if (self.adapters.get(item.library_id) and self.adapters[item.library_id].supports_in_document_search)
+                )
+                if _capable >= 8:
+                    _early_stop_note = {"stage": "variant_search", "status": "early_stop", "detail": f"{_capable} in-document candidates pooled; remaining variants skipped (standard mode)"}
+                    break
         # Series dedupe: identical normalised title + author is one
         # candidate, however many queries surfaced it.
         from global_library_mcp.question import normalize_text
@@ -931,6 +1088,8 @@ class LibraryService:
             {"stage": "evidence_assessment", "status": "ok" if verified else "no_admission",
              "detail": f"{len(verified)} assessed evidence, {len(related)} rejected candidates, {len(premise_contradictions)} contradictions"},
         ]
+        if _early_stop_note:
+            stage_log.append(_early_stop_note)
         # Phase 9-F shadow mode: with GLM_SHADOW_NLI=1, NLI
         # verdicts on admitted passages are recorded beside the
         # governing decision for later comparison. They are
@@ -941,6 +1100,8 @@ class LibraryService:
             for _item in verified:
                 _rows.extend(_shadow(analysis, _item.get("passages") or []))
             stage_log.append({"stage": "shadow_nli", "status": "recorded", "detail": f"{len(_rows)} shadow verdicts", "verdicts": _rows})
+        _timings["total_s"] = round(_time.monotonic() - _t_start, 2)
+        _timings["search_library_s"] = _search_timings
         return {
             "query": query,
             "retrieval": retrieval,
@@ -952,6 +1113,8 @@ class LibraryService:
             "unverified": unverified,
             "search": search_view,
             "stage_log": stage_log,
+            "timings": _timings,
+            "http_stats": _budget.stats() if _budget is not None else {},
         }
 
     def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
@@ -1206,6 +1369,7 @@ class LibraryService:
 
     async def research_materials(
         self, query: str, libraries: list[str] | None = None, limit: int = 10,
+        mode: str = "standard",
     ) -> dict[str, Any]:
         """Research-materials mode (Phase 8-D).
 
@@ -1216,7 +1380,20 @@ class LibraryService:
         discovered-but-unfetched records. A candidate is never
         presented as proof of an answer.
         """
-        collected = await self.collect_evidence(query, libraries, limit)
+        if mode == "quick":
+            from global_library_mcp.question import analyze_question
+            # b3 Quick Search (Section 7): bibliographic search only —
+            # no variant expansion, no OCR fetching. Materials are
+            # discovered records the reader can then investigate.
+            # b3.1: quick search gets its own HTTP budget and reports
+            # http_stats like the other modes.
+            from global_library_mcp.http import HttpBudget, use_budget
+
+            _quick_budget = HttpBudget(max_requests=30, per_host_max=15)
+            with use_budget(_quick_budget):
+                return await self._research_materials_quick(query, libraries, limit, analyze_question, _quick_budget)
+
+        collected = await self.collect_evidence(query, libraries, limit, mode=mode)
         biblio: dict[tuple[str, str], dict[str, Any]] = {}
         for item in collected["search"]["results"]:
             biblio[(item["library_id"], item["record_id"])] = item
@@ -1236,6 +1413,13 @@ class LibraryService:
                 )
             states = page.get("states") or {}
             return {
+                "access_state": {
+                    "bibliographic": True,
+                    "ocr_fetched": bool(page.get("ocr_text")),
+                    "mapping_confirmed": bool(states.get("source_verified")),
+                    "passage_found": bool(states.get("supporting_passage")),
+                    "assessed_as_evidence": admitted,
+                },
                 "citation_key": page["citation_key"],
                 "library_id": page["library_id"],
                 "record_id": page["record_id"],
@@ -1283,13 +1467,14 @@ class LibraryService:
                            "relevant_candidate": False, "supporting_passage": False,
                            "assessed_evidence": False, "rejected_for_answer": True,
                            "rejection_reasons": ["検索予算内でページを取得しなかった"]},
+                "access_state": {"bibliographic": True, "ocr_fetched": False, "mapping_confirmed": False, "passage_found": False, "assessed_as_evidence": False},
                 "admitted_as_evidence": False,
                 "excerpts": [],
                 "not_admitted_reasons": ["検索予算内でページを取得しなかった"],
                 "relevance": None,
             })
         return {
-            "mode": "research_materials",
+            "mode": mode,
             "note": "関連候補は質問への答えを証明する資料ではありません。抜粋と原本画像を確認し、ご自身で判断してください。",
             "query": query,
             "analysis": collected["analysis"],
@@ -1297,9 +1482,55 @@ class LibraryService:
             "materials": materials,
             "stage_log": collected.get("stage_log", []),
             "retrieval": collected["retrieval"],
+            "timings": collected.get("timings", {}),
+            "http_stats": collected.get("http_stats", {}),
         }
 
+
+    async def _research_materials_quick(self, query, libraries, limit, analyze_question, _quick_budget):
+        if True:
+            resp = await self.search(query, libraries, limit)
+            quick_materials = []
+            for item in resp.results:
+                entry = item.to_dict()
+                entry.update({
+                    "citation_key": None,
+                    "page_id": None,
+                    "page_kind": None,
+                    "states": {"discovered": True, "accessible": False, "source_verified": False,
+                               "relevant_candidate": False, "supporting_passage": False,
+                               "assessed_evidence": False, "rejected_for_answer": False,
+                               "rejection_reasons": []},
+                    "access_state": {"bibliographic": True, "ocr_fetched": False, "mapping_confirmed": False, "passage_found": False, "assessed_as_evidence": False},
+                    "admitted_as_evidence": False,
+                    "excerpts": [],
+                    "not_admitted_reasons": [],
+                    "relevance": None,
+                })
+                quick_materials.append(entry)
+            return {
+                "mode": "quick",
+                "note": "書誌検索のみの高速モードです。OCRや原本確認は行っていません。資料を選んで Standard / Deep で調査してください。",
+                "query": query,
+                "analysis": analyze_question(query).to_dict(),
+                "answerable": False,
+                "materials": quick_materials,
+                "errors": resp.errors,
+                "stage_log": [{"stage": "quick_search", "status": "ok", "detail": f"{len(quick_materials)} records"}],
+                "retrieval": {},
+                "http_stats": _quick_budget.stats(),
+            }
     async def compare_documents(
+        self,
+        documents: list[dict[str, str]],
+        aspects: list[str] | None = None,
+        question: str | None = None,
+        pages_per_aspect: int = 2,
+    ) -> dict[str, Any]:
+        async with self._op_budget(80, 40):
+            return await self._compare_documents_impl(documents, aspects, question, pages_per_aspect)
+
+    async def _compare_documents_impl(
         self,
         documents: list[dict[str, str]],
         aspects: list[str] | None = None,
