@@ -197,3 +197,23 @@ def test_ia_unsafe_file_names_are_not_selected_or_quoted_raw():
     adapter = InternetArchiveAdapter.__new__(InternetArchiveAdapter)
     url = adapter._download_url("item", "my file?x=1_djvu.xml")
     assert url == "https://archive.org/download/item/my%20file%3Fx%3D1_djvu.xml"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ia_multivolume_pages_are_not_verified_evidence_in_service():
+    """End-to-end gate: multi-volume IA pages must land in the
+    service's `unverified` bucket, never in verified evidence — so
+    the Web UI, MCP tools, answers and comparisons built on
+    collect_evidence cannot present them as verified."""
+    respx.get("https://archive.org/advancedsearch.php").mock(return_value=httpx.Response(200, json={
+        "response": {"docs": [{"identifier": "multi", "title": "Multi", "creator": "A. Uthor", "date": "1909"}]}}))
+    respx.get("https://archive.org/metadata/multi").mock(return_value=httpx.Response(200, json=MULTI_META))
+    respx.get("https://archive.org/download/multi/multi_01_djvu.xml").mock(
+        return_value=httpx.Response(200, text=DJVU_XML))
+    async with httpx.AsyncClient() as client:
+        result = await LibraryService(client).collect_evidence("dam turbines", libraries=["internet-archive"])
+    ia_verified = [e for e in result["evidence"] if e["library_id"] == "internet-archive"]
+    ia_unverified = [u for u in result["unverified"] if u.get("library_id") == "internet-archive"]
+    assert ia_verified == []
+    assert len(ia_unverified) >= 1
