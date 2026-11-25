@@ -117,8 +117,26 @@ async def test_mcp_streamable_http_with_stub_service():
     from mcp.client.streamable_http import streamablehttp_client
 
     from global_library_mcp import mcp_server
+    from global_library_mcp.adapters.base import LibraryAdapter
+    from global_library_mcp.models import SearchResult
     from global_library_mcp.service import LibraryService
-    from tests.test_b31_review_fixes import _StubAdapter
+
+    class _StubAdapter(LibraryAdapter):
+        library_id = "stub"
+        library_name = "Stub"
+        supports_in_document_search = True
+
+        async def search(self, query, limit=10):
+            return [SearchResult(library_id="stub", library_name="Stub", record_id="r1", title="Stub Book", landing_url="https://example.org/r1")]
+
+        async def get_document(self, record_id):
+            return {"id": record_id, "title": "Stub Book", "published": 1900}
+
+        async def search_in_document(self, record_id, query, limit=20):
+            return {"matches": {"list": [{"id": "r1@1"}]}}
+
+        async def get_page_text(self, page_id):
+            return {"page_id": page_id, "contents": "stub text", "verified_mapping": True, "image_url": "https://example.org/img.jpg", "source": "stub"}
 
     client = httpx.AsyncClient()
     service = LibraryService(client)
