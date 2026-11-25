@@ -1785,6 +1785,7 @@ class LibraryService:
                     } for entry in doc_results
                 },
                 "shared_terms": comparison["shared_terms"],
+                "partial_terms": comparison.get("partial_terms", []),
                 "unique_terms": comparison["unique_terms"],
             })
 

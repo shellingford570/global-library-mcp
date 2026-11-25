@@ -351,3 +351,82 @@ test('b3.1 partial failure: status and reasons are visible', async ({ page }) =>
   await expect(page.locator('#materials-results').getByText('部分資料')).toBeVisible();
   await expect(page.locator('#materials-results').getByText(/OCR取得/)).toBeVisible();
 });
+
+// ---- b5 final review (S18): library directory + ID lookup ----
+
+const LIBS_FIXTURE = [
+  { id: 'bsb', name: 'BSB Fixture', region: 'Europe', country: 'DE', languages: ['de'], implementation_status: 'implemented', official_site: 'https://example.org/bsb', verification: 'fixture', capability_status: { catalog_search: 'unsupported', page_ocr: 'live_page_verified' } },
+  { id: 'ndl', name: 'NDL Fixture', region: 'Asia', country: 'JP', languages: ['ja'], implementation_status: 'implemented', official_site: 'https://example.org/ndl', verification: 'fixture', capability_status: { catalog_search: 'live_catalog_verified', page_ocr: 'live_page_verified' } },
+  { id: 'fr-research', name: 'FR Research Fixture', region: 'Europe', country: 'FR', languages: ['fr'], implementation_status: 'research_only', official_site: 'https://example.org/fr', verification: 'fixture', capability_status: { catalog_search: 'research_only', page_ocr: 'implemented' } },
+];
+
+async function mockLibraries(page) {
+  await page.route('**/api/libraries**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ libraries: LIBS_FIXTURE }) });
+  });
+}
+
+test('library directory filters by region, language and OCR capability', async ({ page }) => {
+  await mockLibraries(page);
+  await page.goto('/');
+  await expect(page.getByText('BSB Fixture')).toBeVisible();
+  await expect(page.getByText('NDL Fixture')).toBeVisible();
+  await expect(page.getByText('FR Research Fixture')).toBeVisible();
+  // BSB must not be presented as keyword-searchable.
+  await expect(page.getByText('catalog_search: unsupported')).toBeVisible();
+  await page.locator('#lib-region').selectOption('Europe');
+  await expect(page.getByText('NDL Fixture')).toHaveCount(0);
+  await expect(page.getByText('BSB Fixture')).toBeVisible();
+  await page.locator('#lib-region').selectOption('');
+  await page.locator('#lib-ocr-only').check();
+  await expect(page.getByText('FR Research Fixture')).toHaveCount(0);
+  await expect(page.getByText('NDL Fixture')).toBeVisible();
+  await page.locator('#lib-ocr-only').uncheck();
+  await page.locator('#lib-lang').selectOption('de');
+  await expect(page.getByText('BSB Fixture')).toBeVisible();
+  await expect(page.getByText('NDL Fixture')).toHaveCount(0);
+});
+
+test('ID lookup opens a BSB document with its rights classification', async ({ page }) => {
+  await mockLibraries(page);
+  await page.route('**/api/document**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      library_id: 'bsb', record_id: 'bsb00000001', title: 'Fixture Book', author: 'Author, A.', date: '1854',
+      page_count: 3, landing_url: 'https://example.org/bsb00000001',
+      rights: { statement: 'NoC-NC/1.0', classification: 'rightsstatements-noc-nc-noncommercial' },
+    }) });
+  });
+  await page.goto('/');
+  await page.locator('#lookup-library').selectOption('bsb');
+  await page.locator('#lookup-record').fill('bsb00000001');
+  await page.locator('#lookup-document-button').click();
+  await expect(page.locator('#lookup-results').getByText('Fixture Book')).toBeVisible();
+  await expect(page.locator('#lookup-results').getByText(/rightsstatements-noc-nc-noncommercial/)).toBeVisible();
+});
+
+test('ID lookup shows page mapping state and in-document coverage', async ({ page }) => {
+  await mockLibraries(page);
+  await page.route('**/api/page**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      library_id: 'bsb', page_id: 'bsb00000001@2', verified_mapping: true,
+      contents: 'Wasserwerk page text', image_url: 'https://example.org/img.jpg', landing_url: 'https://example.org/bsb00000001',
+    }) });
+  });
+  await page.route('**/api/in-document**', async route => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      matches: { list: [{ page_id: 'bsb00000001@2', snippet: '...Wasserwerk...', mapping_status: 'verified' }] },
+      pages_searched: 20, total_pages: 172, complete: false, partial_failures: [],
+    }) });
+  });
+  await page.goto('/');
+  await page.locator('#lookup-library').selectOption('bsb');
+  await page.locator('#lookup-record').fill('bsb00000001');
+  await page.locator('#lookup-page').fill('bsb00000001@2');
+  await page.locator('#lookup-page-button').click();
+  await expect(page.locator('#lookup-results').getByText('原本対応：検証済み')).toBeVisible();
+  await expect(page.locator('#lookup-results').getByText(/Wasserwerk page text/)).toBeVisible();
+  await page.locator('#lookup-query').fill('Wasserwerk');
+  await page.locator('#lookup-search-button').click();
+  await expect(page.locator('#lookup-results').getByText(/20\/172 pages \(partial\)/)).toBeVisible();
+  await expect(page.locator('#lookup-results').getByText('...Wasserwerk...')).toBeVisible();
+});

@@ -304,6 +304,30 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
+        if parsed.path == "/api/in-document":
+            params = parse_qs(parsed.query)
+            library_id = params.get("library", [""])[0]
+            identifier = params.get("id", [""])[0]
+            query = params.get("q", [""])[0][:500]
+            try:
+                start_page = int(params.get("start", ["1"])[0] or 1)
+            except ValueError:
+                start_page = 1
+            try:
+                end_raw = params.get("end", [""])[0]
+                end_page = int(end_raw) if end_raw else None
+            except ValueError:
+                end_page = None
+            try:
+                detail = RUNTIME.run(
+                    RUNTIME.service.search_in_document(
+                        library_id, identifier, query, start_page=start_page, end_page=end_page
+                    )
+                )
+                self._send(json_bytes(detail))
+            except Exception as exc:
+                self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
+            return
         if parsed.path in ("/api/document", "/api/page"):
             params = parse_qs(parsed.query)
             library_id = params.get("library", [""])[0]

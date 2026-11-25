@@ -402,39 +402,34 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                         async for raw in response.aiter_raw():
                             budget.record_wire_bytes(len(raw))
                             data = raw
+                            # One raw chunk can contain the end of
+                            # one gzip member, several whole members
+                            # and the start of the next, in any
+                            # alignment (final review S11): keep
+                            # swapping in a fresh decompressor for
+                            # as long as the current one reports
+                            # end-of-stream with bytes left over.
                             while True:
-                                try:
-                                    piece = decomp.decompress(data, 65536)
-                                except zlib.error:
-                                    if encoding == "deflate" and not raw_fallback_tried and not body:
-                                        raw_fallback_tried = True
-                                        decomp = zlib.decompressobj(-zlib.MAX_WBITS)
+                                while True:
+                                    try:
                                         piece = decomp.decompress(data, 65536)
-                                    else:
-                                        raise
-                                if piece:
-                                    take(piece)
-                                # zlib protocol: input that did not
-                                # fit the output bound is handed back
-                                # via unconsumed_tail and MUST be fed
-                                # in again; an empty piece with an
-                                # empty tail means this raw chunk is
-                                # fully drained.
-                                data = decomp.unconsumed_tail
-                                if not piece and not data:
-                                    break
-                            if decomp.eof and decomp.unused_data:
-                                # concatenated gzip member (b5, S12)
-                                pending = decomp.unused_data
-                                decomp = zlib.decompressobj(wbits)
-                                data = pending
-                                while data:
-                                    piece = decomp.decompress(data, 65536)
+                                    except zlib.error:
+                                        if encoding == "deflate" and not raw_fallback_tried and not body:
+                                            raw_fallback_tried = True
+                                            decomp = zlib.decompressobj(-zlib.MAX_WBITS)
+                                            piece = decomp.decompress(data, 65536)
+                                        else:
+                                            raise
                                     if piece:
                                         take(piece)
                                     data = decomp.unconsumed_tail
                                     if not piece and not data:
                                         break
+                                if decomp.eof and decomp.unused_data:
+                                    data = decomp.unused_data
+                                    decomp = zlib.decompressobj(wbits)
+                                    continue
+                                break
                         if not decomp.eof:
                             raise httpx.DecodingError(
                                 f"truncated {encoding} response from {host}: stream ended before the end-of-stream marker"
