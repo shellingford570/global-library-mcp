@@ -220,6 +220,27 @@ async def test_cumulative_byte_cap():
     assert budget.stats()["bytes_received"] == 8
 
 
+@pytest.mark.asyncio
+async def test_gzip_response_roundtrips_decoded():
+    """Regression (found in the b3.1 live re-measurement): the
+    reconstructed response kept content-encoding: gzip over an
+    already-decoded body, so callers failed with zlib errors and
+    NDL/IA content silently vanished."""
+    import json as _json
+
+    payload = gzip.compress(_json.dumps({"list": [1, 2, 3]}).encode())
+    stream = ChunkStream([payload])
+    transport = ScriptedTransport([
+        lambda r: httpx.Response(200, headers={"content-encoding": "gzip", "content-type": "application/json"}, stream=stream, request=r)
+    ])
+    budget = HttpBudget(max_requests=10, per_host_max=10)
+    with use_budget(budget):
+        async with httpx.AsyncClient(transport=transport) as client:
+            resp = await client.get("https://example.org/data.json")
+            assert resp.json() == {"list": [1, 2, 3]}
+    assert budget.stats()["bytes_received"] == len(_json.dumps({"list": [1, 2, 3]}).encode())
+
+
 class _StubHttpClient:
     def __init__(self, responses):
         self.responses = list(responses)

@@ -11,6 +11,9 @@ Global Library MCP は stdio 型の MCP サーバーです
     アプリのヘルスチェックで `✔ Connected` を確認。アプリ内
     セッションからのツール実行は Anthropic ログインが必要なため
     本環境では未実施。
+  - 公式Python SDKクライアントから `research_materials`
+    （quick／standard）、`search_catalog` を実際に呼び出し、
+    正常な応答を確認（2026-11-25、b3.1修正後）。
 - **設定例のみ（未検証）**：Claude Desktop、Cursor、
   Google Antigravity — 各アプリ上での接続確認は行っていません。
   動作を保証するものではありません。

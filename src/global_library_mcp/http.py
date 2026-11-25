@@ -283,9 +283,23 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                 raise
             await response.aclose()
             budget.record_bytes(len(body))
+            # The buffered body is already DECODED (aiter_bytes
+            # applies content decoding), so the reconstructed
+            # response must not keep the original content-encoding
+            # or content-length headers - otherwise callers would
+            # try to decode plain bytes a second time (zlib
+            # "incorrect header check") and read a wrong length.
+            clean_headers = httpx.Headers(
+                {
+                    key: value
+                    for key, value in response.headers.items()
+                    if key.lower() not in ("content-encoding", "content-length", "transfer-encoding")
+                }
+            )
+            clean_headers["content-length"] = str(len(body))
             return httpx.Response(
                 status_code=response.status_code,
-                headers=response.headers,
+                headers=clean_headers,
                 content=bytes(body),
                 request=request,
                 extensions=response.extensions,

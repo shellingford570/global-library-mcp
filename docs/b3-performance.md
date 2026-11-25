@@ -109,3 +109,49 @@ Notes:
   server cancels the coroutine when the handler wait ends, but a
   disconnected client may leave work running until the current
   upstream call returns (bounded by the 30s client timeout).
+
+## 5. b3.1 addendum — external review fixes (v1.0.0b3)
+
+An external review of the first b3 build found serious defects,
+fixed before release (regression tests in
+`tests/test_b31_review_fixes.py` and new Playwright cases):
+
+- The MCP `research_materials` tool could not execute at all
+  (`async with` on a non-context-manager). Fixed; verified by
+  calling it from the official Python SDK client (quick and
+  standard) and in-process consecutive tool calls.
+- The HTTP budget checked and recorded separately, so concurrent
+  requests could race past the cap. Reservation is now atomic
+  and pre-send; attempts are counted on timeout, failure and
+  cancellation; bytes are recorded separately; contexts are
+  restored via try/finally.
+- Response sizes were checked only after a full `aread()`. They
+  are now enforced while streaming (Content-Length pre-check,
+  decoded-byte counting, abort + close, cumulative cap).
+- Cancellation was browser-only. Investigations now run under
+  operation ids with a server-side cancel endpoint and distinct
+  completed/failed/cancelled/timeout states; the UI claims
+  "cancelled" only after server confirmation, and bibliographic
+  results stay on screen (separate materials container).
+- Budgets now cover every path (quick search included, with
+  `http_stats`), and the concurrency cap is shared across proxy
+  and direct transports.
+- Retry-After is honoured in full (seconds and HTTP-date); a
+  wait beyond the retry deadline is not retried.
+- Cache safety: IA metadata TTL 300s / OCR TTL 3600s with bounds;
+  restriction re-checked before cached pages are served;
+  concurrent-fetch deduplication; partial failures cached 30s
+  only; per-response timings (no cross-search mixing).
+- The earlier limitation about disconnected clients (Section 4)
+  is superseded by the operation-id cancellation above; the
+  300s operation deadline bounds any orphaned work.
+
+Re-measurement after the b3.1 fixes (same five topics, live,
+2026-11-25): Standard totals 32.1s / 27.7s / 15.3s / 7.3s /
+25.1s versus the first b3 run's 64.1s / 23.9s / 45.4s / 7.1s /
+17.7s — same order, differences within upstream variance; no
+systematic slowdown from the atomic budget or streaming caps.
+The re-measurement also caught a real bug the fixture tests had
+missed (reconstructed responses kept `content-encoding: gzip`
+over decoded bodies, silently breaking NDL/IA content); it is
+fixed and covered by a round-trip fixture test.
