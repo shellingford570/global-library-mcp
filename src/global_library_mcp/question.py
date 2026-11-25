@@ -365,3 +365,46 @@ def analyze_question(question: str) -> QuestionAnalysis:
         requirements.append({"type": "numeric"})
     return QuestionAnalysis(raw=raw, terms=terms, core_concepts=core, generic_terms=generic,
                             era=era, regions=regions, intent=intent, requirements=requirements)
+
+
+# b4 (Section 10): historical script variants for Japanese
+# discovery. Meiji-era materials are catalogued and OCR'd in
+# old-form characters (發電, 鐵道, 遞信) while modern queries use
+# new forms. These variants widen BIBLIOGRAPHIC DISCOVERY ONLY;
+# every downstream relevance/evidence judgement is unchanged.
+_OLD_NEW_PAIRS = [
+    ("發", "発"), ("廣", "広"), ("澤", "沢"), ("濱", "浜"), ("鐵", "鉄"),
+    ("氣", "気"), ("臺", "台"), ("應", "応"), ("驛", "駅"), ("圖", "図"),
+    ("會", "会"), ("遞", "逓"), ("邊", "辺"), ("齋", "斎"), ("櫻", "桜"),
+    ("龍", "竜"), ("國", "国"), ("學", "学"), ("實", "実"), ("價", "価"),
+    ("賣", "売"), ("歸", "帰"), ("舊", "旧"), ("圓", "円"), ("畫", "画"),
+    ("關", "関"), ("觀", "観"), ("鄕", "郷"), ("區", "区"), ("勳", "勲"),
+    ("徑", "径"), ("藝", "芸"), ("檢", "検"), ("驗", "験"), ("產", "産"),
+    ("絲", "糸"), ("齒", "歯"), ("辭", "辞"), ("兒", "児"), ("釋", "釈"),
+    ("壽", "寿"), ("稱", "称"), ("燒", "焼"), ("證", "証"), ("觸", "触"),
+    ("齊", "斉"), ("聲", "声"), ("潛", "潜"), ("錢", "銭"), ("體", "体"),
+    ("帶", "帯"), ("滯", "滞"), ("擔", "担"), ("單", "単"), ("斷", "断"),
+    ("團", "団"), ("彈", "弾"), ("遲", "遅"), ("蟲", "虫"), ("晝", "昼"),
+    ("鑄", "鋳"), ("廳", "庁"), ("點", "点"), ("傳", "伝"), ("黨", "党"),
+    ("盜", "盗"), ("鬪", "闘"), ("獨", "独"), ("讀", "読"), ("內", "内"),
+    ("佛", "仏"), ("塀", "塀"), ("幣", "幣"), ("竝", "並"), ("變", "変"),
+    ("步", "歩"), ("穗", "穂"), ("每", "毎"), ("萬", "万"), ("滿", "満"),
+    ("默", "黙"), ("譯", "訳"), ("藥", "薬"), ("豫", "予"), ("餘", "余"),
+    ("樣", "様"), ("搖", "揺"), ("覽", "覧"), ("亂", "乱"), ("勵", "励"),
+    ("隸", "隷"), ("靈", "霊"), ("曆", "暦"), ("歷", "歴"), ("勞", "労"),
+    ("錄", "録"), ("灣", "湾"), ("蠻", "蛮"), ("祕", "秘"),
+]
+_NEW_TO_OLD = {new: old for old, new in _OLD_NEW_PAIRS}
+_OLD_TO_NEW = {old: new for old, new in _OLD_NEW_PAIRS}
+
+
+def script_variants(text: str) -> list[str]:
+    """Old-form and new-form renderings of a Japanese query string
+    (excluding the input itself). Used only to widen search."""
+    old_form = "".join(_NEW_TO_OLD.get(ch, ch) for ch in text)
+    new_form = "".join(_OLD_TO_NEW.get(ch, ch) for ch in text)
+    out: list[str] = []
+    for candidate in (old_form, new_form):
+        if candidate != text and candidate not in out:
+            out.append(candidate)
+    return out
