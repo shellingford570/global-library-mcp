@@ -19,9 +19,20 @@ def _registry() -> Registry:
     return Registry(REGISTRY_PATH)
 
 
+_shared: tuple[httpx.AsyncClient, LibraryService] | None = None
+
+
 async def _with_service():
-    client = httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"})
-    return client, LibraryService(client)
+    # b3: one shared budgeted client + service for the process, so
+    # caches and the circuit breaker persist across tool calls
+    # (previously rebuilt per call and never effective).
+    global _shared
+    if _shared is None:
+        from global_library_mcp.http import make_client
+
+        client = make_client(timeout=30)
+        _shared = (client, LibraryService(client))
+    return _shared
 
 
 @mcp.tool()
@@ -40,11 +51,8 @@ def get_library_capabilities(library_id: str) -> dict[str, Any]:
 async def search_across_libraries(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
     """Search configured live adapters and preserve partial errors."""
     client, service = await _with_service()
-    try:
-        response = await service.search(query, libraries, min(max(limit, 1), 20))
-        return response.to_dict()
-    finally:
-        await client.aclose()
+    response = await service.search(query, libraries, min(max(limit, 1), 20))
+    return response.to_dict()
 
 
 @mcp.tool()
@@ -57,30 +65,21 @@ async def search_catalog(query: str, library_id: str, limit: int = 10) -> dict[s
 async def get_document(library_id: str, record_id: str) -> dict[str, Any]:
     """Retrieve a document record where the adapter supports it."""
     client, service = await _with_service()
-    try:
-        return await service.get_document(library_id, record_id)
-    finally:
-        await client.aclose()
+    return await service.get_document(library_id, record_id)
 
 
 @mcp.tool()
 async def search_in_document(library_id: str, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
     """Search within a document, returning page-level matches when supported."""
     client, service = await _with_service()
-    try:
-        return await service.search_in_document(library_id, record_id, query, min(max(limit, 1), 100))
-    finally:
-        await client.aclose()
+    return await service.search_in_document(library_id, record_id, query, min(max(limit, 1), 100))
 
 
 @mcp.tool()
 async def get_page_text(library_id: str, page_id: str) -> dict[str, Any]:
     """Return OCR text, coordinates, and an original-image link for a page/frame."""
     client, service = await _with_service()
-    try:
-        return await service.get_page_text(library_id, page_id)
-    finally:
-        await client.aclose()
+    return await service.get_page_text(library_id, page_id)
 
 
 @mcp.tool()
@@ -129,10 +128,7 @@ async def get_verified_evidence(query: str, libraries: list[str] | None = None, 
     ``unverified`` with reasons and must not be cited as page evidence.
     """
     client, service = await _with_service()
-    try:
-        return await service.collect_evidence(query, libraries, min(max(limit, 1), 20))
-    finally:
-        await client.aclose()
+    return await service.collect_evidence(query, libraries, min(max(limit, 1), 20))
 
 
 @mcp.tool()
@@ -146,10 +142,7 @@ async def verify_original_page(library_id: str, page_id: str) -> dict[str, Any]:
     fails, and ``unsupported`` for adapters without verification.
     """
     client, service = await _with_service()
-    try:
-        return await service.verify_page(library_id, page_id)
-    finally:
-        await client.aclose()
+    return await service.verify_page(library_id, page_id)
 
 
 @mcp.tool()
@@ -163,10 +156,7 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
     ``insufficient_evidence`` and no answer is produced.
     """
     client, service = await _with_service()
-    try:
-        return await service.answer(query, libraries, min(max(limit, 1), 20))
-    finally:
-        await client.aclose()
+    return await service.answer(query, libraries, min(max(limit, 1), 20))
 
 
 @mcp.tool()
@@ -192,10 +182,7 @@ async def compare_documents(documents: list[dict[str, str]], aspects: list[str] 
     textual; it never invents differences the pages do not show.
     """
     client, service = await _with_service()
-    try:
-        return await service.compare_documents(documents, aspects=aspects, question=question)
-    finally:
-        await client.aclose()
+    return await service.compare_documents(documents, aspects=aspects, question=question)
 
 
 def run() -> None:

@@ -60,6 +60,43 @@ class RateLimiter:
 RATE_LIMITER = RateLimiter()
 
 
+class ServiceRuntime:
+    """b3: one long-lived LibraryService on its own event-loop thread.
+
+    Previously every API request built a fresh client and service, so
+    the search/page caches and the circuit breaker were reset on
+    every request and never actually helped. The runtime owns one
+    budgeted client (make_client) and one service; handler threads
+    submit coroutines to its loop. Cancellation: if the handler's
+    wait times out, the coroutine is cancelled on the loop, which
+    stops its in-flight HTTP work.
+    """
+
+    def __init__(self) -> None:
+        import threading
+
+        self._loop = asyncio.new_event_loop()
+        self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
+        self._thread.start()
+        from global_library_mcp.http import make_client
+
+        async def _make_service():
+            return LibraryService(make_client(timeout=30))
+
+        self.service = asyncio.run_coroutine_threadsafe(_make_service(), self._loop).result(timeout=30)
+
+    def run(self, coro, timeout: float = 600):
+        future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        try:
+            return future.result(timeout=timeout)
+        except Exception:
+            future.cancel()
+            raise
+
+
+RUNTIME = ServiceRuntime()
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "GlobalLibrary/0.1"
 
@@ -101,10 +138,7 @@ class Handler(BaseHTTPRequestHandler):
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
-                async def execute():
-                    async with httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        return await LibraryService(client).search(query, libraries, 10)
-                response = asyncio.run(execute())
+                response = RUNTIME.run(RUNTIME.service.search(query, libraries, 10))
                 self._send(json_bytes(response.to_dict()))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
@@ -120,10 +154,7 @@ class Handler(BaseHTTPRequestHandler):
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
-                async def execute_answer():
-                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        return await LibraryService(client).answer(query, libraries, 10)
-                self._send(json_bytes(asyncio.run(execute_answer())))
+                self._send(json_bytes(RUNTIME.run(RUNTIME.service.answer(query, libraries, 10))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -138,10 +169,8 @@ class Handler(BaseHTTPRequestHandler):
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
-                async def execute_evidence():
-                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        return await LibraryService(client).collect_evidence(query, libraries, 10)
-                self._send(json_bytes(asyncio.run(execute_evidence())))
+                mode = parse_qs(parsed.query).get("mode", ["standard"])[0]
+                self._send(json_bytes(RUNTIME.run(RUNTIME.service.collect_evidence(query, libraries, 10, mode=mode))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -156,10 +185,8 @@ class Handler(BaseHTTPRequestHandler):
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
             try:
-                async def execute_materials():
-                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        return await LibraryService(client).research_materials(query, libraries, 10)
-                self._send(json_bytes(asyncio.run(execute_materials())))
+                mode = parse_qs(parsed.query).get("mode", ["standard"])[0]
+                self._send(json_bytes(RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -171,10 +198,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(json_bytes({"error": "library and id are required"}), status=400)
                 return
             try:
-                async def execute_verify():
-                    async with httpx.AsyncClient(timeout=30, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        return await LibraryService(client).verify_page(library_id, page_id)
-                self._send(json_bytes(asyncio.run(execute_verify())))
+                self._send(json_bytes(RUNTIME.run(RUNTIME.service.verify_page(library_id, page_id))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -195,10 +219,7 @@ class Handler(BaseHTTPRequestHandler):
             aspects = [item.strip() for item in params.get("aspects", [""])[0].split(",") if item.strip()][:8]
             question = params.get("q", [""])[0].strip()[:500] or None
             try:
-                async def execute_compare():
-                    async with httpx.AsyncClient(timeout=90, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        return await LibraryService(client).compare_documents(documents, aspects=aspects, question=question)
-                self._send(json_bytes(asyncio.run(execute_compare())))
+                self._send(json_bytes(RUNTIME.run(RUNTIME.service.compare_documents(documents, aspects=aspects, question=question))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -207,13 +228,11 @@ class Handler(BaseHTTPRequestHandler):
             library_id = params.get("library", [""])[0]
             identifier = params.get("id", [""])[0]
             try:
-                async def execute_detail():
-                    async with httpx.AsyncClient(timeout=20, follow_redirects=False, headers={"User-Agent": "global-library-mcp/0.1 (+https://github.com/shellingford570/global-library-mcp)"}) as client:
-                        service = LibraryService(client)
-                        if parsed.path == "/api/document":
-                            return await service.get_document(library_id, identifier)
-                        return await service.get_page_text(library_id, identifier)
-                self._send(json_bytes(asyncio.run(execute_detail())))
+                if parsed.path == "/api/document":
+                    detail = RUNTIME.run(RUNTIME.service.get_document(library_id, identifier))
+                else:
+                    detail = RUNTIME.run(RUNTIME.service.get_page_text(library_id, identifier))
+                self._send(json_bytes(detail))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return

@@ -29,6 +29,17 @@ const I18N = {
     searchButton: '検索する',
     answerButton: 'AI回答',
     materialsButton: '研究資料',
+    modeQuick: '簡易（書誌のみ）',
+    modeStandard: '標準',
+    modeDeep: '詳細',
+    cancelButton: 'キャンセル',
+    stageSearchDone: '書誌検索が完了しました。「研究資料」ボタンで選択中のモードの詳細調査（OCR・原本確認）を行えます。',
+    statusRunning: '詳細調査中…',
+    statusComplete: '詳細調査が完了しました。',
+    statusPartial: '部分的に完了しました（一部の機関で失敗または制限に達しました）。',
+    statusFailed: '詳細調査に失敗しました。',
+    statusCancelled: 'キャンセルしました。',
+    perfSummary: (s, n) => `処理時間 ${s} 秒 / 実HTTPリクエスト ${n} 件`,
     materialsTitle: '研究資料（関連候補）',
     copyCitation: '引用をコピー', copied: 'コピーしました', admittedOnly: '根拠として採用された資料のみ', sourcePage: '資料ページ',
     materialsNote: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
@@ -123,6 +134,17 @@ const I18N = {
     searchButton: 'Search',
     answerButton: 'AI answer',
     materialsButton: 'Research materials',
+    modeQuick: 'Quick (bibliographic only)',
+    modeStandard: 'Standard',
+    modeDeep: 'Deep',
+    cancelButton: 'Cancel',
+    stageSearchDone: 'Bibliographic search complete. Use "Research materials" to run the detailed investigation (OCR and original checks) in the selected mode.',
+    statusRunning: 'Investigating…',
+    statusComplete: 'Investigation complete.',
+    statusPartial: 'Partially complete (some libraries failed or hit a limit).',
+    statusFailed: 'Investigation failed.',
+    statusCancelled: 'Cancelled.',
+    perfSummary: (s, n) => `Elapsed ${s}s / ${n} actual HTTP requests`,
     materialsTitle: 'Research materials (candidates)',
     copyCitation: 'Copy citation', copied: 'Copied', admittedOnly: 'Admitted as evidence only', sourcePage: 'Record page',
     materialsNote: 'Candidates do not prove an answer. Read the excerpts and originals and judge for yourself.',
@@ -408,11 +430,21 @@ function selectedLibraries() {
   return [...form.querySelectorAll('input[name="library"]:checked')].map(i => i.value).join(',');
 }
 
-async function fetchJson(path) {
-  const response = await fetch(path);
+async function fetchJson(path, signal) {
+  const response = await fetch(path, { signal });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || t().requestFailed);
   return data;
+}
+
+let activeController = null;
+const cancelButton = document.querySelector('#cancel-button');
+const stageStatus = document.querySelector('#stage-status');
+const modeSelect = document.querySelector('#mode-select');
+if (cancelButton) {
+  cancelButton.addEventListener('click', () => {
+    if (activeController) activeController.abort();
+  });
 }
 
 function setBusy(busy) {
@@ -430,6 +462,7 @@ form.addEventListener('submit', async event => {
   notice.textContent = t().searchingNotice;
   try {
     renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    if (stageStatus) stageStatus.textContent = t().stageSearchDone;
   } catch (error) {
     results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
   } finally {
@@ -523,12 +556,30 @@ materialsButton.addEventListener('click', async () => {
   const q = query.value.trim();
   if (!q) return;
   setBusy(true);
+  if (cancelButton) cancelButton.hidden = false;
+  if (stageStatus) stageStatus.textContent = t().statusRunning;
   results.innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
+  activeController = new AbortController();
   try {
-    renderMaterials(await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    const mode = modeSelect ? modeSelect.value : 'standard';
+    const data = await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}&mode=${encodeURIComponent(mode)}`, activeController.signal);
+    renderMaterials(data);
+    const partial = (data.errors && data.errors.length) || (data.stage_log || []).some(s => s.status === 'early_stop' || s.status === 'deadline' || s.status === 'failed');
+    if (stageStatus) {
+      const perf = data.timings && data.http_stats ? ` ${t().perfSummary(data.timings.total_s ?? '?', data.http_stats.requests ?? '?')}` : '';
+      stageStatus.textContent = (partial ? t().statusPartial : t().statusComplete) + perf;
+    }
   } catch (error) {
-    results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
+    if (error.name === 'AbortError') {
+      if (stageStatus) stageStatus.textContent = t().statusCancelled;
+      results.innerHTML = `<div class="empty"><p>${t().statusCancelled}</p></div>`;
+    } else {
+      if (stageStatus) stageStatus.textContent = t().statusFailed;
+      results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
+    }
   } finally {
+    activeController = null;
+    if (cancelButton) cancelButton.hidden = true;
     setBusy(false);
   }
 });

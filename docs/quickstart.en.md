@@ -114,7 +114,9 @@ The server command is `global-library-mcp mcp` (stdio).
 
 Rights differ per holding library and per item. Check the
 rights statement shown on each page and credit the source.
-Lending-restricted items are never fetched.
+Lending-restricted items are never fetched. For a per-licence
+use guide see [rights-guide.md](rights-guide.md) (note:
+CC BY-NC-ND is not public domain).
 
 ## 12. Reporting bugs
 

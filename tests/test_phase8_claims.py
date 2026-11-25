@@ -11,7 +11,7 @@ class _StubService(LibraryService):
     def __init__(self, collected):
         self._collected = collected
 
-    async def collect_evidence(self, query, libraries=None, limit=10):
+    async def collect_evidence(self, query, libraries=None, limit=10, **kwargs):
         return self._collected
 
 
