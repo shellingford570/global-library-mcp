@@ -333,10 +333,17 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                 wait = _retry_after_seconds(response.headers.get("retry-after"))
                 if wait is not None:
                     _note_retry_after(host, wait)
+            encoding = (response.headers.get("content-encoding") or "").strip().lower()
+            if encoding not in ("", "identity", "gzip", "deflate"):
+                await response.aclose()
+                raise AdapterError(
+                    "http-budget",
+                    f"unsupported content-encoding {encoding!r} from {host}; refused",
+                    retryable=False,
+                )
             if budget is None:
                 return response
             try:
-                encoding = (response.headers.get("content-encoding") or "").strip().lower()
                 if encoding not in ("gzip", "deflate"):
                     # Content-Length pre-check (identity only: with
                     # compression the header counts wire bytes, not
@@ -397,6 +404,22 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                                 data = decomp.unconsumed_tail
                                 if not piece and not data:
                                     break
+                            if decomp.eof and decomp.unused_data:
+                                # concatenated gzip member (b5, S12)
+                                pending = decomp.unused_data
+                                decomp = zlib.decompressobj(wbits)
+                                data = pending
+                                while data:
+                                    piece = decomp.decompress(data, 65536)
+                                    if piece:
+                                        take(piece)
+                                    data = decomp.unconsumed_tail
+                                    if not piece and not data:
+                                        break
+                        if not decomp.eof:
+                            raise httpx.DecodingError(
+                                f"truncated {encoding} response from {host}: stream ended before the end-of-stream marker"
+                            )
                         tail = decomp.flush()
                         if tail:
                             take(tail)
@@ -454,8 +477,60 @@ def make_client(timeout: float = 30, **kwargs: Any) -> httpx.AsyncClient:
     return httpx.AsyncClient(
         timeout=timeout,
         follow_redirects=False,
-        headers={"User-Agent": "global-library-mcp/1.0 (+https://github.com/shellingford570/global-library-mcp)"},
+        headers={
+            "User-Agent": "global-library-mcp/1.0 (+https://github.com/shellingford570/global-library-mcp)",
+            # Only encodings the budgeted transport decodes
+            # incrementally; anything else is refused (b5, S12).
+            "Accept-Encoding": "gzip, deflate",
+        },
         transport=BudgetedTransport(),
         mounts=mounts or None,
         **kwargs,
     )
+
+
+_MULTI_LABEL_SUFFIXES = ("ndl.go.jp", "go.jp", "co.uk", "org.uk", "com.au")
+
+
+def registrable_domain(host: str) -> str:
+    """Registrable domain of a host, aware of the multi-label
+    public suffixes this project actually talks to."""
+    host = host.lower().strip(".")
+    for suffix in _MULTI_LABEL_SUFFIXES:
+        if host == suffix or host.endswith("." + suffix):
+            head = host[: -len(suffix)].rstrip(".")
+            label = head.rsplit(".", 1)[-1] if head else ""
+            return f"{label}.{suffix}" if label else suffix
+    parts = host.split(".")
+    return ".".join(parts[-2:]) if len(parts) >= 2 else host
+
+
+async def get_within_domain(
+    client: httpx.AsyncClient, url: str, *, max_hops: int = 3, **kwargs: Any
+) -> httpx.Response:
+    """GET that follows redirects manually (b5, S12): every hop is
+    a separate budgeted request, and a redirect to a DIFFERENT
+    registrable domain is refused instead of followed. The client
+    itself is built with follow_redirects=False."""
+    from urllib.parse import urljoin, urlparse
+
+    current = url
+    origin_domain = registrable_domain(urlparse(url).hostname or "")
+    for _ in range(max_hops + 1):
+        response = await client.get(current, follow_redirects=False, **kwargs)
+        if response.status_code not in (301, 302, 303, 307, 308):
+            return response
+        location = response.headers.get("location")
+        await response.aclose()
+        if not location:
+            return response
+        target = urljoin(current, location)
+        target_domain = registrable_domain(urlparse(target).hostname or "")
+        if target_domain != origin_domain:
+            raise AdapterError(
+                "http-redirect",
+                f"redirect from {origin_domain} to a different domain ({target_domain}) refused",
+                retryable=False,
+            )
+        current = target
+    raise AdapterError("http-redirect", f"too many redirects (>{max_hops}) for {url}", retryable=False)

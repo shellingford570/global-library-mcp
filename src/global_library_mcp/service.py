@@ -11,6 +11,8 @@ import httpx
 from global_library_mcp.adapters.aggregators import DdbAdapter, EuropeanaAdapter
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.adapters.gallica import GallicaAdapter
+from global_library_mcp.adapters.bsb import BsbAdapter
+from global_library_mcp.adapters.erara import EraraAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
 from global_library_mcp.adapters.ndl import NdlAdapter
@@ -250,6 +252,8 @@ class LibraryService:
             "internet-archive": InternetArchiveAdapter(client),
             "ddb": DdbAdapter(client),
             "europeana": EuropeanaAdapter(client),
+            "bsb": BsbAdapter(client),
+            "e-rara": EraraAdapter(client),
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
@@ -949,6 +953,16 @@ class LibraryService:
                 if _sv not in variants and _sv not in _script_extra:
                     _script_extra.append(_sv)
         variants = variants + _script_extra[:3]
+        # b5 (Section 10): German/French spelling variants widen
+        # bibliographic discovery in the same, search-only way.
+        from global_library_mcp.question import latin_variants
+
+        _latin_extra: list[str] = []
+        for _variant in list(variants):
+            for _lv in latin_variants(_variant):
+                if _lv not in variants and _lv not in _latin_extra:
+                    _latin_extra.append(_lv)
+        variants = variants + _latin_extra[:3]
         library_error_counts: dict[str, int] = {}
         active_libraries: list[str] | None = list(libraries) if libraries else None
         _early_stop_note: dict[str, Any] | None = None
@@ -1693,7 +1707,7 @@ class LibraryService:
         rows = []
         for aspect in aspect_list:
             texts = per_aspect_texts[aspect]
-            comparison = compare_aspect(aspect, texts) if len(texts) == 2 else {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
+            comparison = compare_aspect(aspect, texts) if len(texts) >= 2 else {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
             rows.append({
                 "aspect": aspect,
                 "documents": {
@@ -1713,8 +1727,9 @@ class LibraryService:
             match = re.search(r"(1[5-9]\d{2}|20\d{2})", str(entry.get("date") or ""))
             if match:
                 years.append((entry["record_id"], int(match.group(1))))
-        if len(years) == 2 and abs(years[0][1] - years[1][1]) >= 10:
-            notes.append(f"刊行年に差があります（{years[0][0]}: {years[0][1]}年 / {years[1][0]}: {years[1][1]}年）。資料が扱う内容の年代と刊行年は同一とは限りません。")
+        if len(years) >= 2 and max(year for _, year in years) - min(year for _, year in years) >= 10:
+            span = " / ".join(f"{rid}: {year}年" for rid, year in years)
+            notes.append(f"刊行年に差があります（{span}）。資料が扱う内容の年代と刊行年は同一とは限りません。")
         with_pages = [entry for entry in doc_results if entry["pages"]]
         return {
             "status": "compared" if len(with_pages) >= 2 else "insufficient_evidence",
