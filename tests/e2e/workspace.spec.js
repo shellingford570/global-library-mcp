@@ -12,6 +12,9 @@ let workspaceEnabled = false;
 let realToken = null;
 let realFirstTitle = null;
 let realPage = null;
+let realKbToken = null;
+let realKbTitle = null;
+let realKbRecordId = null;
 
 test.beforeAll(async ({ request }) => {
   const home = await request.get('/');
@@ -30,24 +33,49 @@ test.beforeAll(async ({ request }) => {
     const data = await page.json();
     if (data.save_token) realPage = data;
   }
+  // b8: a real token from a NEW library (KB/Delpher, live SRU).
+  const kbSearch = await request.get('/api/search?q=waterkracht&libraries=kb-delpher');
+  if (kbSearch.ok()) {
+    const data = await kbSearch.json();
+    const first = (data.results || []).find(r => r.save_token);
+    if (first) { realKbToken = first.save_token; realKbTitle = first.title; realKbRecordId = first.record_id; }
+  }
 });
 
 test.beforeEach(async ({ page }) => {
   test.skip(!workspaceEnabled, 'workspace not enabled on this server');
-  await page.route('**/api/search**', route => route.fulfill({
-    contentType: 'application/json',
-    body: JSON.stringify({
-      query: '種の起源', search_kind: 'plain_bibliographic', options_applied: false,
-      results: [{
-        library_id: 'internet-archive', library_name: 'Internet Archive',
-        record_id: 'onoriginofspecie1859darw', title: 'On the origin of species',
-        author: 'Darwin, Charles', date: '1859', description: 'fixture',
-        landing_url: 'https://archive.org/details/onoriginofspecie1859darw',
-        rights: { statement: 'Public Domain' }, save_token: realToken || 'fixture-token',
-      }],
-      errors: [], retrieved_at: '2026-11-26T00:00:00Z',
-    }),
-  }));
+  await page.route('**/api/search**', route => {
+    if (route.request().url().includes('kb-delpher')) {
+      return route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          query: 'waterkracht', search_kind: 'plain_bibliographic', options_applied: false,
+          results: [{
+            library_id: 'kb-delpher', library_name: 'KB / Delpher (National Library of the Netherlands)',
+            record_id: realKbRecordId || 'ddd:010286065:mpeg21:a0141', title: realKbTitle || 'Waterkracht-centrale.',
+            author: null, date: '1937', description: 'fixture',
+            landing_url: 'https://resolver.kb.nl/resolve?urn=' + (realKbRecordId || 'ddd:010286065:mpeg21:a0141'),
+            rights: { statement: 'unknown' }, save_token: realKbToken || 'fixture-token',
+          }],
+          errors: [], retrieved_at: '2026-11-26T00:00:00Z',
+        }),
+      });
+    }
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        query: '種の起源', search_kind: 'plain_bibliographic', options_applied: false,
+        results: [{
+          library_id: 'internet-archive', library_name: 'Internet Archive',
+          record_id: 'onoriginofspecie1859darw', title: 'On the origin of species',
+          author: 'Darwin, Charles', date: '1859', description: 'fixture',
+          landing_url: 'https://archive.org/details/onoriginofspecie1859darw',
+          rights: { statement: 'Public Domain' }, save_token: realToken || 'fixture-token',
+        }],
+        errors: [], retrieved_at: '2026-11-26T00:00:00Z',
+      }),
+    });
+  });
 });
 
 test('workspace journey: project, save, note (XSS-safe), export, delete', async ({ page }) => {
@@ -153,6 +181,27 @@ test('project edit journey: rename via prompts and archive toggle', async ({ pag
   await expect(page.locator('#ws-project-select')).toContainText('編集後プロジェクト');
   await page.click('#ws-panel button:text("アーカイブ / 解除")');
   await expect(page.locator('#ws-status')).toContainText('アーカイブしました');
+});
+
+test('b8 journey: KB/Delpher (new library) search and workspace save', async ({ page }) => {
+  test.skip(!realKbToken, 'no real KB save token available (upstream unreachable)');
+  await page.goto('/');
+  await page.fill('#ws-new-project-title', 'オランダ水力史');
+  await page.click('#ws-create-project');
+  await expect(page.locator('#ws-project-select')).toContainText('オランダ水力史');
+  // search ONLY the new library through the real UI controls
+  const boxes = page.locator('input[name="library"]');
+  for (let i = 0; i < await boxes.count(); i++) await boxes.nth(i).uncheck();
+  await page.check('input[name="library"][value="kb-delpher"]');
+  await page.fill('#query', 'waterkracht');
+  await page.click('#search-form button[type="submit"], #search-form button');
+  const saveButton = page.locator('.ws-save-doc').first();
+  await saveButton.waitFor({ state: 'visible' });
+  await saveButton.click();
+  await expect(page.locator('#ws-status')).toContainText('保存しました');
+  await page.click('[data-ws-tab="documents"]');
+  await expect(page.locator('#ws-panel')).toContainText(realKbTitle.slice(0, 24));
+  await expect(page.locator('#ws-panel')).toContainText('kb-delpher');
 });
 
 test('workspace layout on a mobile viewport', async ({ page }) => {

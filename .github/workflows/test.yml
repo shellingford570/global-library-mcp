@@ -29,7 +29,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: pip install '.[test]'
       - name: Workspace pytest (storage, web API, final review, real-HTTP integration)
-        run: pytest tests/test_b7_workspace.py tests/test_b7_web_api.py tests/test_b7_final_review.py tests/test_b7_http_integration.py -q
+        run: pytest tests/test_b7_workspace.py tests/test_b7_web_api.py tests/test_b7_final_review.py tests/test_b7_http_integration.py tests/test_b8_workspace.py tests/test_b8_stage0.py -q
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
