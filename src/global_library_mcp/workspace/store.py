@@ -1,15 +1,25 @@
-"""SQLite workspace store (b7, brief sections 7, 8).
+"""SQLite workspace store (b7, brief sections 7, 8; final
+review sections 9, 24).
 
 Design: Python stdlib sqlite3 only. One connection guarded by
 a re-entrant lock (the web server is threaded); foreign_keys
 ON for every connection; WAL journal; busy_timeout 5s;
-synchronous NORMAL (the standard WAL durability trade-off,
-documented in docs/workspace-database-schema.md). All
-timestamps are UTC ISO-8601 with a Z suffix. Structured
+synchronous FULL (final review: for long-lived research
+data, durability outranks the few-ms write difference of
+NORMAL; measured in docs/b7-performance-evaluation.md).
+All timestamps are UTC ISO-8601 with a Z suffix. Structured
 payloads are JSON text columns; every queryable field is a
 real column with constraints and indexes. Migrations are
-transactional and recorded; a database from a NEWER schema
-is refused untouched (FutureSchemaError).
+transactional, recorded, and preceded by an automatic
+backup of the pre-migration database; a database from a
+NEWER schema is refused untouched (FutureSchemaError).
+
+Referential integrity is enforced beyond bare foreign keys:
+a foreign key proves the referenced row EXISTS, not that it
+belongs to the same research project. Store methods that
+link rows across tables therefore validate project
+membership inside the same transaction (final review
+section 9).
 """
 from __future__ import annotations
 
@@ -23,7 +33,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-SCHEMA_VERSION = 1
+from . import policy as _policy
+
+SCHEMA_VERSION = 2
+
+# Verification-status vocabulary a genuine database of this
+# application can contain. Restore validation rejects
+# anything else (final review sections 7, 8).
+KNOWN_QUOTATION_STATUSES = {
+    "verified_against_fetched_ocr", "fetched_unverified_mapping",
+    "user_entered_unverified", "imported_unverified", "unchanged",
+    "metadata_changed", "ocr_changed", "quotation_not_found",
+    "source_unavailable", "mapping_unverified", "access_restricted",
+    "rights_changed", "recheck_failed", "not_rechecked",
+    "reference_only", "excerpt_not_checked", "metadata_check_failed",
+    "image_not_checked", "partial_verification",
+}
+KNOWN_PROVENANCE = {"system_fetched", "user_entered", "imported"}
+KNOWN_HISTORY_PROVENANCE = {"server_recorded", "user_entered", "imported"}
 
 
 def now_iso() -> str:
@@ -212,7 +239,30 @@ CREATE TABLE verification_observations (
 );
 """
 
-MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1)]
+_SCHEMA_V2 = """
+ALTER TABLE saved_documents ADD COLUMN citation_key TEXT;
+ALTER TABLE search_history ADD COLUMN provenance TEXT NOT NULL DEFAULT 'server_recorded';
+CREATE TABLE research_notes_v2 (
+    note_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    saved_document_id TEXT REFERENCES saved_documents(saved_document_id) ON DELETE SET NULL,
+    citation_id TEXT REFERENCES saved_citations(citation_id) ON DELETE SET NULL,
+    title TEXT NOT NULL DEFAULT '',
+    content TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    search_text TEXT NOT NULL DEFAULT ''
+);
+INSERT INTO research_notes_v2 (note_id, project_id, saved_document_id, citation_id,
+    title, content, created_at, updated_at, search_text)
+    SELECT note_id, project_id, saved_document_id, citation_id,
+    title, content, created_at, updated_at, search_text FROM research_notes;
+DROP TABLE research_notes;
+ALTER TABLE research_notes_v2 RENAME TO research_notes;
+CREATE INDEX idx_notes_project ON research_notes(project_id);
+"""
+
+MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2)]
 
 
 def _json(value: Any) -> str:
@@ -230,6 +280,8 @@ def _rows(rows: Iterable[sqlite3.Row]) -> list[dict[str, Any]]:
 class WorkspaceStore:
     def __init__(self, db_path: str | Path):
         self.db_path = Path(db_path)
+        if self.db_path.is_symlink():
+            raise ValueError("workspace database path must not be a symlink")
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._conn = self._connect()
@@ -252,7 +304,7 @@ class WorkspaceStore:
         conn.execute("PRAGMA foreign_keys = ON")
         conn.execute("PRAGMA journal_mode = WAL")
         conn.execute("PRAGMA busy_timeout = 5000")
-        conn.execute("PRAGMA synchronous = NORMAL")
+        conn.execute("PRAGMA synchronous = FULL")
         return conn
 
     def _migrate(self) -> None:
@@ -268,13 +320,71 @@ class WorkspaceStore:
                 raise FutureSchemaError(
                     f"workspace schema {current} is newer than this build "
                     f"supports ({SCHEMA_VERSION}); the database was left untouched")
-            for version, sql in MIGRATIONS:
-                if version > current:
-                    with self._conn:
-                        self._conn.executescript(sql)
-                        self._conn.execute(
-                            "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
-                            (version, now_iso()))
+            pending = [(v, s) for v, s in MIGRATIONS if v > current]
+            if pending and current >= 1 and self.db_path.exists() \
+                    and self.db_path.stat().st_size > 0:
+                # Never migrate the only copy: keep a backup of
+                # the pre-migration database beside it.
+                bak = self.db_path.with_name(
+                    self.db_path.name + f".pre-migration-v{current}.bak")
+                if not bak.exists():
+                    target = sqlite3.connect(str(bak))
+                    try:
+                        self._conn.backup(target)
+                    finally:
+                        target.close()
+                    try:
+                        import os
+                        os.chmod(bak, 0o600)
+                    except OSError:
+                        pass
+            for version, sql in pending:
+                with self._conn:
+                    self._conn.executescript(sql)
+                    self._conn.execute(
+                        "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
+                        (version, now_iso()))
+            if pending and any(v == 2 for v, _ in pending):
+                self._backfill_citation_keys()
+
+    def _backfill_citation_keys(self) -> None:
+        """Assign stored citation keys to documents saved
+        before schema v2 (deterministic, per project)."""
+        from .exports import base_citation_key
+        with self._lock, self._conn:
+            rows = self._conn.execute(
+                "SELECT saved_document_id, project_id, library_id, record_id,"
+                " author, publication_date, title FROM saved_documents"
+                " WHERE citation_key IS NULL").fetchall()
+            used: dict[str, set[str]] = {}
+            for row in rows:
+                used.setdefault(row["project_id"], set())
+            for row in self._conn.execute(
+                    "SELECT project_id, citation_key FROM saved_documents"
+                    " WHERE citation_key IS NOT NULL"):
+                used.setdefault(row["project_id"], set()).add(row["citation_key"])
+            for row in rows:
+                key = self._unique_citation_key(
+                    row["project_id"], base_citation_key(dict(row)),
+                    row["library_id"], row["record_id"], used[row["project_id"]])
+                self._conn.execute(
+                    "UPDATE saved_documents SET citation_key = ? WHERE saved_document_id = ?",
+                    (key, row["saved_document_id"]))
+
+    @staticmethod
+    def _unique_citation_key(project_id: str, base: str, library_id: str,
+                             record_id: str, used: set[str]) -> str:
+        if base not in used:
+            used.add(base)
+            return base
+        suffix = hashlib.sha256(f"{library_id}/{record_id}".encode("utf-8")).hexdigest()[:6]
+        key = f"{base}-{suffix}"
+        n = 2
+        while key in used:
+            key = f"{base}-{suffix}-{n}"
+            n += 1
+        used.add(key)
+        return key
 
     @property
     def schema_version(self) -> int:
@@ -405,16 +515,24 @@ class WorkspaceStore:
             text = search_text(values.get("title"), values.get("original_title"),
                                values.get("author"), values.get("publication_date"),
                                library_id, values.get("holding_institution"))
+            from .exports import base_citation_key
+            used = {r["citation_key"] for r in self._conn.execute(
+                "SELECT citation_key FROM saved_documents"
+                " WHERE project_id = ? AND citation_key IS NOT NULL", (project_id,))}
+            key = self._unique_citation_key(
+                project_id, base_citation_key({**values, "library_id": library_id}),
+                library_id, record_id, used)
             with self._conn:
                 self._conn.execute(
                     "INSERT INTO saved_documents (saved_document_id, project_id, library_id,"
                     " record_id, identifiers, rights_snapshot, saved_at, updated_at, search_text,"
+                    " citation_key, "
                     + ", ".join(self._DOC_FIELDS) + ")"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                     + ", ".join("?" for _ in self._DOC_FIELDS) + ")",
                     (doc_id, project_id, library_id, record_id,
                      _json(fields.get("identifiers")), _json(fields.get("rights_snapshot")),
-                     ts, ts, text, *[values[k] for k in self._DOC_FIELDS]))
+                     ts, ts, text, key, *[values[k] for k in self._DOC_FIELDS]))
                 self._conn.execute(
                     "UPDATE projects SET updated_at = ? WHERE project_id = ?", (ts, project_id))
             return self.get_document(doc_id)  # type: ignore[return-value]
@@ -504,6 +622,16 @@ class WorkspaceStore:
 
     def collection_add(self, collection_id: str, saved_document_id: str) -> None:
         with self._lock, self._conn:
+            coll = self._conn.execute(
+                "SELECT project_id FROM collections WHERE collection_id = ?",
+                (collection_id,)).fetchone()
+            if coll is None:
+                raise KeyError(collection_id)
+            doc = self.get_document(saved_document_id)
+            if doc is None:
+                raise KeyError(saved_document_id)
+            if doc["project_id"] != coll["project_id"]:
+                raise ValueError("document belongs to another project")
             self._conn.execute(
                 "INSERT OR IGNORE INTO collection_documents (collection_id, saved_document_id)"
                 " VALUES (?, ?)", (collection_id, saved_document_id))
@@ -619,6 +747,84 @@ class WorkspaceStore:
                 "SELECT * FROM rights_observations WHERE saved_document_id = ? ORDER BY observed_at",
                 (saved_document_id,)))
 
+    def latest_rights_observation(self, saved_document_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            return _row(self._conn.execute(
+                "SELECT * FROM rights_observations WHERE saved_document_id = ?"
+                " ORDER BY observed_at DESC, observation_id DESC LIMIT 1",
+                (saved_document_id,)))
+
+    # -- delete previews -----------------------------------------------------
+    def document_related_counts(self, saved_document_id: str) -> dict[str, int]:
+        """What deleting this document would affect (final
+        review section 25). Notes are NOT deleted: their link
+        is cleared (ON DELETE SET NULL) so the researcher's
+        own writing survives."""
+        with self._lock:
+            q = lambda sql, args: int(self._conn.execute(sql, args).fetchone()[0])
+            comparisons = 0
+            for row in self._conn.execute("SELECT saved_document_ids FROM saved_comparisons"):
+                try:
+                    if saved_document_id in json.loads(row["saved_document_ids"] or "[]"):
+                        comparisons += 1
+                except json.JSONDecodeError:
+                    pass
+            return {
+                "citations_deleted": q(
+                    "SELECT COUNT(*) FROM saved_citations WHERE saved_document_id = ?",
+                    (saved_document_id,)),
+                "notes_unlinked": q(
+                    "SELECT COUNT(*) FROM research_notes WHERE saved_document_id = ?",
+                    (saved_document_id,)),
+                "collection_memberships_removed": q(
+                    "SELECT COUNT(*) FROM collection_documents WHERE saved_document_id = ?",
+                    (saved_document_id,)),
+                "comparisons_kept_as_history": comparisons,
+                "rights_observations_deleted": q(
+                    "SELECT COUNT(*) FROM rights_observations WHERE saved_document_id = ?",
+                    (saved_document_id,)),
+            }
+
+    def citation_related_counts(self, citation_id: str) -> dict[str, int]:
+        with self._lock:
+            q = lambda sql, args: int(self._conn.execute(sql, args).fetchone()[0])
+            return {
+                "notes_unlinked": q(
+                    "SELECT COUNT(*) FROM research_notes WHERE citation_id = ?",
+                    (citation_id,)),
+                "verification_observations_deleted": q(
+                    "SELECT COUNT(*) FROM verification_observations WHERE citation_id = ?",
+                    (citation_id,)),
+            }
+
+    # -- consistent export bundle ---------------------------------------------
+    def export_bundle(self, project_id: str) -> dict[str, Any]:
+        """All reads for one project export under a single lock
+        acquisition, so the export is one consistent snapshot
+        even while other requests write (final review 26)."""
+        with self._lock:
+            project = self.get_project(project_id)
+            if project is None:
+                raise KeyError(project_id)
+            documents = self.list_documents(project_id)
+            return {
+                "project": project,
+                "documents": documents,
+                "citations": self.list_citations(project_id),
+                "notes": self.list_notes(project_id),
+                "history": self.list_history(project_id),
+                "comparisons": self.list_comparisons(project_id),
+                "collections": self.list_collections(project_id),
+                "collection_members": {
+                    c["collection_id"]: [d["saved_document_id"] for d in
+                                         self.list_documents(
+                                             project_id, collection_id=c["collection_id"])]
+                    for c in self.list_collections(project_id)},
+                "rights_observations": {
+                    d["saved_document_id"]: self.list_rights_observations(d["saved_document_id"])
+                    for d in documents},
+            }
+
     # -- notes -----------------------------------------------------------------
     def save_note(self, project_id: str, content: str, *, title: str = "",
                   saved_document_id: str | None = None,
@@ -627,6 +833,24 @@ class WorkspaceStore:
         with self._lock:
             if self.get_project(project_id) is None:
                 raise KeyError(project_id)
+            # Cross-project integrity (final review section 9):
+            # a foreign key proves existence, not membership.
+            if saved_document_id is not None:
+                doc = self.get_document(saved_document_id)
+                if doc is None:
+                    raise KeyError(saved_document_id)
+                if doc["project_id"] != project_id:
+                    raise ValueError("document belongs to another project")
+            if citation_id is not None:
+                cit = self.get_citation(citation_id)
+                if cit is None:
+                    raise KeyError(citation_id)
+                cit_doc = self.get_document(cit["saved_document_id"])
+                if cit_doc is None or cit_doc["project_id"] != project_id:
+                    raise ValueError("citation belongs to another project")
+                if saved_document_id is not None \
+                        and cit["saved_document_id"] != saved_document_id:
+                    raise ValueError("citation belongs to a different document")
             ts = now_iso()
             with self._conn:
                 if note_id:
@@ -667,19 +891,24 @@ class WorkspaceStore:
         with self._lock:
             if self.get_project(project_id) is None:
                 raise KeyError(project_id)
+            provenance = entry.get("provenance") or "server_recorded"
+            if provenance not in KNOWN_HISTORY_PROVENANCE:
+                raise ValueError(f"unknown history provenance: {provenance}")
             sid = new_id()
             ts = now_iso()
             with self._conn:
                 self._conn.execute(
                     "INSERT INTO search_history (search_id, project_id, original_query,"
                     " search_parameters, planned_variants, executed_variants, searched_libraries,"
-                    " skipped_libraries, result_summary, http_stats, search_status, created_at)"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    " skipped_libraries, result_summary, http_stats, search_status, created_at,"
+                    " provenance)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (sid, project_id, entry.get("original_query", ""),
                      _json(entry.get("search_parameters")), _json(entry.get("planned_variants")),
                      _json(entry.get("executed_variants")), _json(entry.get("searched_libraries")),
                      _json(entry.get("skipped_libraries")), _json(entry.get("result_summary")),
-                     _json(entry.get("http_stats")), entry.get("search_status", "completed"), ts))
+                     _json(entry.get("http_stats")), entry.get("search_status", "completed"),
+                     ts, provenance))
             return self.get_history(sid)  # type: ignore[return-value]
 
     def get_history(self, search_id: str) -> dict[str, Any] | None:
@@ -714,6 +943,12 @@ class WorkspaceStore:
         with self._lock:
             if self.get_project(project_id) is None:
                 raise KeyError(project_id)
+            for doc_id in fields.get("saved_document_ids") or []:
+                doc = self.get_document(doc_id)
+                if doc is None:
+                    raise KeyError(doc_id)
+                if doc["project_id"] != project_id:
+                    raise ValueError("comparison document belongs to another project")
             cid = new_id()
             with self._conn:
                 self._conn.execute(
@@ -796,6 +1031,11 @@ class WorkspaceStore:
                 self._conn.backup(target)
             finally:
                 target.close()
+        try:
+            import os
+            os.chmod(dest, 0o600)
+        except OSError:
+            pass
         data = dest.read_bytes()
         return {"path": str(dest), "bytes": len(data),
                 "sha256": hashlib.sha256(data).hexdigest(),
@@ -804,7 +1044,7 @@ class WorkspaceStore:
 
     @staticmethod
     def inspect_backup(path: str | Path) -> dict[str, Any]:
-        """Read-only validation of a backup candidate."""
+        """Read-only basic facts about a backup candidate."""
         p = Path(path)
         if not p.exists():
             raise FileNotFoundError(str(p))
@@ -824,3 +1064,109 @@ class WorkspaceStore:
         return {"path": str(p), "bytes": len(data),
                 "sha256": hashlib.sha256(data).hexdigest(),
                 "integrity": integrity, "schema_version": version}
+
+    # Tables and columns a genuine workspace database must
+    # have (schema v1 set; v2 additions are optional here
+    # because opening the store migrates them in).
+    _REQUIRED_SCHEMA = {
+        "schema_migrations": {"version", "applied_at"},
+        "projects": {"project_id", "title", "created_at", "updated_at"},
+        "saved_documents": {"saved_document_id", "project_id", "library_id",
+                            "record_id", "rights_snapshot", "saved_at"},
+        "saved_citations": {"citation_id", "saved_document_id", "page_id",
+                            "citation_key", "quotation_verification_status",
+                            "provenance", "rights_at_save", "saved_at"},
+        "research_notes": {"note_id", "project_id", "content"},
+        "search_history": {"search_id", "project_id", "original_query"},
+        "saved_comparisons": {"comparison_id", "project_id", "semantic_status"},
+        "tags": {"tag_id", "name"},
+        "collections": {"collection_id", "project_id", "name"},
+        "rights_observations": {"observation_id", "saved_document_id"},
+        "verification_observations": {"observation_id", "citation_id", "status"},
+    }
+
+    @staticmethod
+    def validate_backup(path: str | Path) -> dict[str, Any]:
+        """Deep validation of a restore candidate (final review
+        sections 7, 8). integrity_check alone does NOT prove a
+        file is one of this application's databases: required
+        tables/columns, foreign-key consistency, the absence
+        of unexpected schema objects (triggers/views), the
+        schema version range, and the value vocabularies for
+        verification state, provenance, rights categories and
+        excerpt length are all checked. A checksum computed
+        from the uploaded file itself proves nothing about
+        authenticity and is reported as a fact only."""
+        p = Path(path)
+        problems: list[str] = []
+        integrity = "unreadable"
+        version = 0
+        if not p.exists():
+            raise FileNotFoundError(str(p))
+        conn = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            integrity = str(conn.execute("PRAGMA integrity_check").fetchone()[0])
+            if integrity != "ok":
+                problems.append(f"integrity_check: {integrity}")
+            fk_violations = conn.execute("PRAGMA foreign_key_check").fetchall()
+            if fk_violations:
+                problems.append(f"foreign_key_check: {len(fk_violations)} violation(s)")
+            objects = conn.execute(
+                "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
+            ).fetchall()
+            for obj in objects:
+                if obj["type"] not in ("table", "index"):
+                    problems.append(f"unexpected schema object: {obj['type']} {obj['name']}")
+            tables = {o["name"] for o in objects if o["type"] == "table"}
+            for table, columns in WorkspaceStore._REQUIRED_SCHEMA.items():
+                if table not in tables:
+                    problems.append(f"missing table: {table}")
+                    continue
+                actual = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+                missing = columns - actual
+                if missing:
+                    problems.append(f"table {table} missing columns: {sorted(missing)}")
+            version = 0
+            if "schema_migrations" in tables:
+                row = conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()
+                version = int(row["v"] or 0)
+            if version < 1 or version > SCHEMA_VERSION:
+                problems.append(f"schema version {version} outside supported range")
+            if not problems:
+                for row in conn.execute(
+                        "SELECT quotation_verification_status AS s, provenance AS p,"
+                        " rights_at_save AS r, original_excerpt AS e FROM saved_citations"):
+                    if row["s"] is not None and row["s"] not in KNOWN_QUOTATION_STATUSES:
+                        problems.append(f"unknown quotation status: {row['s']}")
+                        break
+                    if row["p"] is not None and row["p"] not in KNOWN_PROVENANCE:
+                        problems.append(f"unknown citation provenance: {row['p']}")
+                        break
+                    if row["e"] is not None and len(row["e"]) > _policy.MAX_EXCERPT_CHARS:
+                        problems.append("stored excerpt exceeds the storage limit")
+                        break
+                    try:
+                        rights = json.loads(row["r"] or "{}")
+                    except (TypeError, json.JSONDecodeError):
+                        problems.append("unparsable rights_at_save")
+                        break
+                    if isinstance(rights, dict) and rights.get("category") is not None \
+                            and rights["category"] not in _policy.CATEGORIES:
+                        problems.append(f"unknown rights category: {rights['category']}")
+                        break
+                bad_semantic = conn.execute(
+                    "SELECT COUNT(*) FROM saved_comparisons WHERE semantic_status != 'not_checked'"
+                ).fetchone()[0]
+                if bad_semantic:
+                    problems.append("comparison semantic_status other than not_checked")
+        except sqlite3.Error as exc:
+            problems.append(f"not a readable SQLite database: {exc}")
+        finally:
+            conn.close()
+        data = p.read_bytes()
+        return {"path": str(p), "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "integrity": integrity,
+                "schema_version": version, "ok": not problems,
+                "problems": problems}
