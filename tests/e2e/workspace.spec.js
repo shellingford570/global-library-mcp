@@ -118,6 +118,43 @@ test('citation journey: fetch a page, select text, save the citation', async ({ 
   await expect(page.locator('#ws-panel')).toContainText('onoriginofspecie');
 });
 
+test('backup journey: create via POST, list, download by id, delete (no upstream token needed)', async ({ page }) => {
+  await page.goto('/');
+  await page.fill('#ws-new-project-title', 'バックアップテスト');
+  await page.click('#ws-create-project');
+  await expect(page.locator('#ws-project-select')).toContainText('バックアップテスト');
+  await page.click('[data-ws-tab="export"]');
+  // creation is an explicit POST; the list then shows the backup
+  await page.click('#ws-panel button:text("バックアップ作成")');
+  await expect(page.locator('#ws-status')).toContainText('バックアップを作成しました');
+  const downloadButton = page.locator('#ws-panel button:text-is("ダウンロード")');
+  await expect(downloadButton).toHaveCount(1);
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    downloadButton.click(),
+  ]);
+  expect(await download.suggestedFilename()).toContain('backup');
+  // deleting removes it from the list (GET download never creates)
+  await page.click('#ws-panel button:text-is("削除")');
+  await expect(page.locator('#ws-panel button:text-is("ダウンロード")')).toHaveCount(0);
+});
+
+test('project edit journey: rename via prompts and archive toggle', async ({ page }) => {
+  await page.goto('/');
+  await page.fill('#ws-new-project-title', '編集前プロジェクト');
+  await page.click('#ws-create-project');
+  await expect(page.locator('#ws-project-select')).toContainText('編集前プロジェクト');
+  await page.click('[data-ws-tab="export"]');
+  page.on('dialog', async dialog => {
+    if (dialog.message().includes('プロジェクト名')) await dialog.accept('編集後プロジェクト');
+    else await dialog.accept('説明テキスト');
+  });
+  await page.click('#ws-panel button:text("プロジェクト名・説明を編集")');
+  await expect(page.locator('#ws-project-select')).toContainText('編集後プロジェクト');
+  await page.click('#ws-panel button:text("アーカイブ / 解除")');
+  await expect(page.locator('#ws-status')).toContainText('アーカイブしました');
+});
+
 test('workspace layout on a mobile viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
