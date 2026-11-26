@@ -1,0 +1,908 @@
+[
+ {
+  "id": "D01",
+  "query": "進化論 ダーウィン",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:origin-species-1859",
+   "ndl:dobutsu-shinkaron"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D02",
+  "query": "産業革命 イギリス",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:steam-engine-watt"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D03",
+  "query": "ドイツ哲学 カント",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "ja",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:kanto-kenkyu",
+   "ddb:kritik-rv-1781"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D04",
+  "query": "電気工学 明治",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:denki-kogaku-1898"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D05",
+  "query": "電氣",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja",
+   "short"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:denki-kogaku-1898",
+   "ndl:suiryoku-hatsuden-1912"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D06",
+  "query": "鉄道 ヨーロッパ",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:chemin-de-fer",
+   "ddb:eisenbahn-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D07",
+  "query": "フランス 政治思想 ルソー",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:contrat-social"
+   ],
+   "authors": [
+    "author:rousseau"
+   ],
+   "languages": [
+    "ja",
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:shakai-keiyakuron",
+   "gallica:contrat-social"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D08",
+  "query": "天文学 19世紀",
+  "query_language": "ja",
+  "tags": [
+   "era"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:astronomy-herschel",
+   "ndl:tenmongaku-meiji"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D09",
+  "query": "ニュートン 力学",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:principia"
+   ],
+   "authors": [
+    "author:newton"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:principia-newton"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D10",
+  "query": "マルクス 経済学",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:das-kapital"
+   ],
+   "authors": [
+    "author:marx"
+   ],
+   "languages": [
+    "ja",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:shihonron",
+   "ddb:kapital-1867"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D11",
+  "query": "evolution natural selection",
+  "query_language": "en",
+  "tags": [
+   "en_term"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:origin-species-1859",
+   "loc:descent-of-man"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D12",
+  "query": "Kant epistemology",
+  "query_language": "en",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:critique-pure-reason"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D13",
+  "query": "industrial revolution steam",
+  "query_language": "en",
+  "tags": [
+   "en_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:steam-engine-watt"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D14",
+  "query": "Protestant ethic capitalism",
+  "query_language": "en",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:protestant-ethic"
+   ],
+   "authors": [
+    "author:weber-max"
+   ],
+   "languages": [
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:protestant-ethic-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D15",
+  "query": "French Revolution history",
+  "query_language": "en",
+  "tags": [
+   "translated_topic"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en",
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:french-revolution-carlyle",
+   "gallica:revolution-hist-fr"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D16",
+  "query": "Soseki literature",
+  "query_language": "en",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:soseki"
+   ],
+   "languages": [
+    "en",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:soseki-kokoro-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D17",
+  "query": "Fukuzawa Yukichi enlightenment",
+  "query_language": "en",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:gakumon-no-susume"
+   ],
+   "authors": [
+    "author:fukuzawa"
+   ],
+   "languages": [
+    "en",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:fukuzawa-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D18",
+  "query": "Wasserkraft Elektrizität",
+  "query_language": "de",
+  "tags": [
+   "de_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:wasserkraft-1908"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D19",
+  "query": "Eisenbahn Geschichte",
+  "query_language": "de",
+  "tags": [
+   "de_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:eisenbahn-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D20",
+  "query": "Entstehung der Arten Darwin",
+  "query_language": "de",
+  "tags": [
+   "original_title"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:abstammung-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D21",
+  "query": "Religionssoziologie Weber",
+  "query_language": "de",
+  "tags": [
+   "de_term"
+  ],
+  "expect": {
+   "works": [
+    "work:protestant-ethic"
+   ],
+   "authors": [
+    "author:weber-max"
+   ],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:protestantische-ethik"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D22",
+  "query": "Philosophie Erkenntnistheorie",
+  "query_language": "de",
+  "tags": [
+   "de_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:kritik-rv-1781"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D23",
+  "query": "histoire naturelle évolution",
+  "query_language": "fr",
+  "tags": [
+   "fr_accent"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:evolution-fr"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D24",
+  "query": "philosophie politique Rousseau",
+  "query_language": "fr",
+  "tags": [
+   "fr_term"
+  ],
+  "expect": {
+   "works": [
+    "work:contrat-social"
+   ],
+   "authors": [
+    "author:rousseau"
+   ],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:contrat-social"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D25",
+  "query": "électricité histoire",
+  "query_language": "fr",
+  "tags": [
+   "fr_accent"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D26",
+  "query": "Descartes méthode",
+  "query_language": "fr",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:discours-methode"
+   ],
+   "authors": [
+    "author:descartes"
+   ],
+   "languages": [
+    "fr",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:discours-methode"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D27",
+  "query": "水力発電 ダム",
+  "query_language": "ja",
+  "tags": [
+   "topic"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:suiryoku-hatsuden-1912",
+   "ia:hydroelectric-1905"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D28",
+  "query": "蒸気機関車",
+  "query_language": "ja",
+  "tags": [
+   "topic"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:railway-steam"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D29",
+  "query": "西洋哲学 日本 受容",
+  "query_language": "ja",
+  "tags": [
+   "topic"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:kanto-kenkyu"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D30",
+  "query": "新聞 明治",
+  "query_language": "ja",
+  "tags": [
+   "material_type"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D31",
+  "query": "Kapitalismus Soziologie",
+  "query_language": "de",
+  "tags": [
+   "de_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:protestantische-ethik",
+   "ddb:kapital-1867"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D32",
+  "query": "Darwin Descent of Man",
+  "query_language": "en",
+  "tags": [
+   "original_title"
+  ],
+  "expect": {
+   "works": [
+    "work:descent-of-man"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "loc:descent-of-man"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D33",
+  "query": "astronomy outlines Herschel",
+  "query_language": "en",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:outlines-astronomy"
+   ],
+   "authors": [
+    "author:herschel"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:astronomy-herschel"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D34",
+  "query": "吾輩は猫である",
+  "query_language": "ja",
+  "tags": [
+   "original_title"
+  ],
+  "expect": {
+   "works": [
+    "work:wagahai"
+   ],
+   "authors": [
+    "author:soseki"
+   ],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:soseki-wagahai"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D35",
+  "query": "Kokoro Soseki",
+  "query_language": "en",
+  "tags": [
+   "mixed_title"
+  ],
+  "expect": {
+   "works": [
+    "work:kokoro"
+   ],
+   "authors": [
+    "author:soseki"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:soseki-kokoro-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D36",
+  "query": "学問のすゝめ",
+  "query_language": "ja",
+  "tags": [
+   "historical_kana"
+  ],
+  "expect": {
+   "works": [
+    "work:gakumon-no-susume"
+   ],
+   "authors": [
+    "author:fukuzawa"
+   ],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:fukuzawa-gakumon"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D37",
+  "query": "慶應義塾 福澤",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:fukuzawa"
+   ],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:fukuzawa-gakumon"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "D38",
+  "query": "震災 記録 1923",
+  "query_language": "ja",
+  "tags": [
+   "no_ocr"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:kanto-jiken-1923"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "OCRなし資料も発見対象"
+ },
+ {
+  "id": "D39",
+  "query": "Max Müller language",
+  "query_language": "en",
+  "tags": [
+   "same_name"
+  ],
+  "expect": {
+   "works": [
+    "work:sprache-mueller"
+   ],
+   "authors": [
+    "author:mueller-max"
+   ],
+   "languages": [
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:mueller-max"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "蒸気機関のMüllerとは別人"
+ },
+ {
+  "id": "D40",
+  "query": "Erasmus Darwin biology",
+  "query_language": "en",
+  "tags": [
+   "same_name"
+  ],
+  "expect": {
+   "works": [
+    "work:zoonomia"
+   ],
+   "authors": [
+    "author:darwin-erasmus"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:darwin-erasmus"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ }
+]

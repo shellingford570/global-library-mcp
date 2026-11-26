@@ -1,0 +1,448 @@
+[
+ {
+  "id": "H01",
+  "query": "ヘーゲル 哲学",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:hegel"
+   ],
+   "languages": [
+    "ja",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H02",
+  "query": "ニーチェ",
+  "query_language": "ja",
+  "tags": [
+   "author_short"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:nietzsche"
+   ],
+   "languages": [
+    "ja",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H03",
+  "query": "アインシュタイン 相対性理論",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:einstein"
+   ],
+   "languages": [
+    "ja",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H04",
+  "query": "デカルト 方法序説",
+  "query_language": "ja",
+  "tags": [
+   "author_title"
+  ],
+  "expect": {
+   "works": [
+    "work:discours-methode"
+   ],
+   "authors": [
+    "author:descartes"
+   ],
+   "languages": [
+    "ja",
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:hoho-josetsu",
+   "gallica:discours-methode"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H05",
+  "query": "Origin of Species first edition 1859",
+  "query_language": "en",
+  "tags": [
+   "edition",
+   "era"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:origin-species-1859"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "版の識別：1859年初版を1872年版と区別"
+ },
+ {
+  "id": "H06",
+  "query": "Critique of Pure Reason translation",
+  "query_language": "en",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:critique-pure-reason"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H07",
+  "query": "Die protestantische Ethik",
+  "query_language": "de",
+  "tags": [
+   "original_title"
+  ],
+  "expect": {
+   "works": [
+    "work:protestant-ethic"
+   ],
+   "authors": [
+    "author:weber-max"
+   ],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:protestantische-ethik"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H08",
+  "query": "Du contrat social Rousseau 1762",
+  "query_language": "fr",
+  "tags": [
+   "original_title",
+   "era"
+  ],
+  "expect": {
+   "works": [
+    "work:contrat-social"
+   ],
+   "authors": [
+    "author:rousseau"
+   ],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:contrat-social"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H09",
+  "query": "天文學 明治",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:tenmongaku-meiji"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H10",
+  "query": "日本鐵道史 鉄道省",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja",
+   "author"
+  ],
+  "expect": {
+   "works": [
+    "work:nihon-tetsudoshi"
+   ],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:tetsudo-shi"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H11",
+  "query": "アメリカ 新聞 1907 鉄道",
+  "query_language": "ja",
+  "tags": [
+   "newspaper"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "loc:ca-tribune-1907"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H12",
+  "query": "révolution journaux 1789",
+  "query_language": "fr",
+  "tags": [
+   "fr_accent",
+   "era"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:moniteur-1789"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H13",
+  "query": "Kant カント Kritik",
+  "query_language": "ja",
+  "tags": [
+   "mixed_language"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "de",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:kritik-rv-1781",
+   "ndl:junsui-risei-hihan"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "混在言語クエリ"
+ },
+ {
+  "id": "H14",
+  "query": "水力と蒸気 発電の歴史",
+  "query_language": "ja",
+  "tags": [
+   "topic"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:suiryoku-hatsuden-1912",
+   "ia:hydroelectric-1905"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H15",
+  "query": "実在しない：織田信長の写真集",
+  "query_language": "ja",
+  "tags": [
+   "nonexistent"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": []
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": "写真術以前の人物の写真集は存在しない"
+ },
+ {
+  "id": "H16",
+  "query": "シェイクスピアが書いた資本論",
+  "query_language": "ja",
+  "tags": [
+   "false_premise"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:marx"
+   ],
+   "languages": []
+  },
+  "relevant_record_ids": "誤った前提",
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H17",
+  "query": "Weber sociology religion",
+  "query_language": "en",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:protestant-ethic"
+   ],
+   "authors": [
+    "author:weber-max"
+   ],
+   "languages": [
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:protestant-ethic-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H18",
+  "query": "chemin de fer vapeur",
+  "query_language": "fr",
+  "tags": [
+   "fr_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:chemin-de-fer",
+   "gallica:machine-vapeur"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H19",
+  "query": "Sprachwissenschaft Müller",
+  "query_language": "de",
+  "tags": [
+   "same_name"
+  ],
+  "expect": {
+   "works": [
+    "work:sprache-mueller"
+   ],
+   "authors": [
+    "author:mueller-max"
+   ],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:mueller-max"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "H20",
+  "query": "進化論 スペンサー 社会進化",
+  "query_language": "ja",
+  "tags": [
+   "related_concept"
+  ],
+  "expect": {
+   "works": [
+    "work:evolution-spencer"
+   ],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:shinka-ron-1882"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "ダーウィンとは別概念（関連概念）"
+ }
+]
