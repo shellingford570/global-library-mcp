@@ -8,12 +8,11 @@
 // hit the real server.
 const { test, expect } = require('@playwright/test');
 
-// The beforeAll hook performs several LIVE upstream calls
-// (IA search + IA page + KB search) to obtain genuine save
-// tokens; on a slow runner that exceeds the 30s default hook
-// timeout (observed in CI 2026-11-26, run 45816029731: two
-// journeys timed out in beforeAll while the identical push
-// run passed). Give the whole file real headroom.
+// Test bodies in this file drive live upstream interactions
+// and get real headroom. (Hooks do NOT inherit this - the
+// beforeAll token fetches carry their own per-call bounds
+// below; a slow hook otherwise fails the whole file, as
+// observed in CI on 2026-11-26.)
 test.setTimeout(180_000);
 
 let workspaceEnabled = false;
@@ -25,25 +24,41 @@ let realKbTitle = null;
 let realKbRecordId = null;
 
 test.beforeAll(async ({ request }) => {
-  const home = await request.get('/');
+  // Every live fetch is individually time-bounded and
+  // failure-tolerant: a slow upstream must degrade to
+  // token-dependent journeys skipping, never to the whole
+  // file failing in the hook (the b8 KB token fetch pushed
+  // this hook past the 30s config timeout on parallel
+  // workers in CI). Hooks do not inherit test.setTimeout,
+  // so the bounds live here.
+  const bounded = async (url, ms = 12_000) => {
+    try {
+      const res = await request.get(url, { timeout: ms });
+      return res.ok() ? res : null;
+    } catch {
+      return null;
+    }
+  };
+  const home = await bounded('/', 10_000);
+  if (!home) return;
   const html = await home.text();
   workspaceEnabled = html.includes('name="glm-workspace" content="1"');
   if (!workspaceEnabled) return;
   // one real upstream search to obtain a genuine save token
-  const search = await request.get('/api/search?q=On%20the%20origin%20of%20species&libraries=internet-archive');
-  if (search.ok()) {
+  const search = await bounded('/api/search?q=On%20the%20origin%20of%20species&libraries=internet-archive');
+  if (search) {
     const data = await search.json();
     const first = (data.results || []).find(r => r.save_token);
     if (first) { realToken = first.save_token; realFirstTitle = first.title; }
   }
-  const page = await request.get('/api/page?library=internet-archive&id=onoriginofspecie1859darw@20');
-  if (page.ok()) {
+  const page = await bounded('/api/page?library=internet-archive&id=onoriginofspecie1859darw@20', 20_000);
+  if (page) {
     const data = await page.json();
     if (data.save_token) realPage = data;
   }
   // b8: a real token from a NEW library (KB/Delpher, live SRU).
-  const kbSearch = await request.get('/api/search?q=waterkracht&libraries=kb-delpher');
-  if (kbSearch.ok()) {
+  const kbSearch = await bounded('/api/search?q=waterkracht&libraries=kb-delpher');
+  if (kbSearch) {
     const data = await kbSearch.json();
     const first = (data.results || []).find(r => r.save_token);
     if (first) { realKbToken = first.save_token; realKbTitle = first.title; realKbRecordId = first.record_id; }
