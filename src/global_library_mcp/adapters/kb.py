@@ -27,12 +27,17 @@ verified live from this network):
 The Delpher website itself is closed to crawlers and is NOT
 scraped; only the SRU API and the resolver are used.
 
-Identity (brief section 10): ``verified_mapping`` for a page
-requires the resolver OCR payload's own <title> to correspond
-exactly (after normalisation) to the SRU record title for the
-SAME URN, where the SRU record was itself selected by an exact
-identifier match on the resolver URL. Constructing the
-resolver URL proves nothing on its own.
+Identity (brief section 10; b8 final review section 5):
+the resolver OCR payload carries NO article identifier - only
+a <title>. A title correspondence with the SRU record is
+reported as ``article_title_matches`` and nothing more: the
+same title can head different articles in different papers,
+issues and pages, so a title match alone NEVER makes
+``verified_mapping`` true and never admits the OCR as
+verified evidence. Article URN, issue URN, physical page and
+digital page are kept as separate fields; the article is the
+OCR unit, and article OCR is not page-full OCR. Constructing
+the resolver URL proves nothing on its own.
 
 Rights: KB metadata is CC0; the item rights are per-record -
 ``dc:rights`` when the SRU record carries it (often a holder
@@ -48,7 +53,7 @@ import unicodedata
 import xml.etree.ElementTree as ET
 from dataclasses import asdict
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlparse
 
 import httpx
 
@@ -62,8 +67,35 @@ _RESOLVER_HOSTS = {"resolver.kb.nl"}
 COLLECTION = "DDD_artikel"
 _MAX_XML = 10_000_000
 # Article/page URNs: <prefix>:<digits>:mpeg21:<a|p><digits>
-_URN_RE = re.compile(r"^[A-Za-z0-9]+:[0-9A-Za-z]+:mpeg21:[ap]\d+$")
-_RESOLVER_URN_RE = re.compile(r"[?&]urn=([^&]+)$")
+_URN_RE = re.compile(r"[A-Za-z0-9]+:[0-9A-Za-z]+:mpeg21:[ap]\d+")
+
+
+def _is_urn(value: Any) -> bool:
+    """Full-string URN match: a trailing newline or any extra
+    character fails (re.fullmatch, never a $-anchored search,
+    so no line-terminator smuggling)."""
+    return isinstance(value, str) and _URN_RE.fullmatch(value) is not None
+
+
+def _cql_literal(text: str) -> str:
+    """A CQL string literal for the given plain text (b8 final
+    review section 16): backslash and double-quote are escaped
+    per the CQL grammar and control characters are refused, so
+    caller text can never become CQL syntax (operators, index
+    specifications or parentheses stay literal characters
+    inside the quoted string)."""
+    if any(ord(ch) < 0x20 for ch in text):
+        raise ValueError("control characters are not allowed in a KB query")
+    return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def cql_keyword_query(query: str) -> str:
+    """Plain keyword search expressed as ONE quoted literal on
+    the default index - never as caller-supplied CQL."""
+    terms = " ".join((query or "").split())
+    if not terms:
+        raise ValueError("empty search query")
+    return _cql_literal(terms)
 
 
 def _local(tag: str) -> str:
@@ -83,25 +115,40 @@ def _norm_title(text: str) -> str:
 
 
 def _urn_from_identifier(identifier: str) -> str | None:
-    """Article URN out of a resolver identifier URL: the URL
-    must be on the exact resolver host with a single urn query
-    parameter whose value carries the :ocr suffix."""
+    """Article URN out of a resolver identifier URL, parsed
+    structurally (b8 final review section 16): exact resolver
+    host, /resolve path, no userinfo, no abnormal port, no
+    fragment, and EXACTLY ONE urn query parameter whose value
+    carries the :ocr suffix and full-matches the URN grammar.
+    Duplicated urn parameters or several different article
+    identifiers in one URL are refused, never first-wins."""
+    if not isinstance(identifier, str) or any(
+            ord(ch) < 0x20 for ch in identifier):
+        return None
     try:
-        parsed = urlparse(identifier or "")
+        parsed = urlparse(identifier)
     except ValueError:
         return None
     if parsed.scheme not in ("http", "https") or (parsed.hostname or "").lower() not in _RESOLVER_HOSTS:
         return None
+    if parsed.username or parsed.password or parsed.fragment:
+        return None
+    try:
+        if parsed.port not in (None, 80, 443):
+            return None
+    except ValueError:
+        return None
     if parsed.path != "/resolve":
         return None
-    match = _RESOLVER_URN_RE.search("?" + (parsed.query or ""))
-    if not match:
+    urns = [value for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+            if key == "urn"]
+    if len(urns) != 1:
         return None
-    urn = match.group(1)
+    urn = urns[0]
     if not urn.endswith(":ocr"):
         return None
     urn = urn[: -len(":ocr")]
-    return urn if _URN_RE.match(urn) else None
+    return urn if _is_urn(urn) else None
 
 
 def _date_from_dc(raw: str | None) -> str | None:
@@ -219,18 +266,21 @@ class KbDelpherAdapter(LibraryAdapter):
         )
 
     async def search(self, query: str, limit: int = 10) -> list[SearchResult]:
-        # Plain keyword CQL: the query is passed as search terms;
-        # embedded double quotes are removed so the caller's text
-        # cannot silently become a different CQL expression.
-        terms = (query or "").replace('"', " ").strip()
-        if not terms:
-            raise AdapterError(self.library_id, "empty search query", retryable=False)
-        root = await self._sru(terms, min(max(limit, 1), 100))
+        # Plain keyword search only: the caller's text becomes
+        # ONE quoted CQL literal (section 16), so embedded
+        # quotes, operators, index names and parentheses are
+        # literal characters, never CQL syntax. There is no
+        # advanced-CQL mode in this adapter.
+        try:
+            cql = cql_keyword_query(query or "")
+        except ValueError as exc:
+            raise AdapterError(self.library_id, str(exc), retryable=False) from exc
+        root = await self._sru(cql, min(max(limit, 1), 100))
         return [self._result(record) for record in self._records(root)[:limit]]
 
     async def _record_by_urn(self, urn: str) -> dict[str, Any]:
         resolver_url = f"http://resolver.kb.nl/resolve?urn={urn}:ocr"
-        root = await self._sru(f'dc.identifier all "{resolver_url}"', 5)
+        root = await self._sru(f"dc.identifier all {_cql_literal(resolver_url)}", 5)
         for record in self._records(root):
             if record["urn"] == urn:
                 return record
@@ -238,7 +288,7 @@ class KbDelpherAdapter(LibraryAdapter):
 
     async def get_document(self, record_id: str) -> dict[str, Any]:
         urn = (record_id or "").strip()
-        if not _URN_RE.match(urn):
+        if not _is_urn(urn):
             raise AdapterError(self.library_id, f"invalid KB article URN: {record_id!r}", retryable=False)
         record = await self._record_by_urn(urn)
         result = self._result(record)
@@ -270,7 +320,7 @@ class KbDelpherAdapter(LibraryAdapter):
 
     async def get_page_text(self, page_id: str) -> dict[str, Any]:
         urn = (page_id or "").strip()
-        if not _URN_RE.match(urn):
+        if not _is_urn(urn):
             raise AdapterError(self.library_id, f"invalid KB page id (article URN expected): {page_id!r}", retryable=False)
         record = await self._record_by_urn(urn)
         expected_title = (record["fields"].get("title") or [""])[0]
@@ -308,18 +358,35 @@ class KbDelpherAdapter(LibraryAdapter):
         title_matches = bool(
             payload_title and expected_title and _norm_title(payload_title) == _norm_title(expected_title)
         )
-        verified = bool(ocr_fetched and title_matches)
+        # Identity separation (b8 final review section 5): the
+        # OCR payload carries no article identifier, so strict
+        # article identity CANNOT be confirmed from it; the
+        # physical page is a different unit again and is not
+        # identified at all. verified_mapping therefore stays
+        # False: a title match is a correspondence signal, not
+        # proof, and this OCR is never admitted as verified
+        # evidence on its basis.
+        verified = False
         return {
             "library_id": self.library_id,
             "page_id": urn,
             "record_id": urn,
             "urn": urn,
+            "article_urn": urn,
             "issue_urn": urn.rsplit(":", 1)[0],
+            "page_urn": None,
+            "page_urn_status": "not established: the resolver OCR payload identifies no physical page",
+            "digital_page_id": urn,
             "printed_page": "unknown",
             "printed_page_source": "the article URN is the page-level unit in Delpher; a printed page number is not asserted",
             "contents": text,
             "ocr_source": ocr_url,
-            "ocr_format": "KB resolver OCR XML (Delpher)",
+            "ocr_format": "KB resolver OCR XML (Delpher article unit - not a full page OCR)",
+            "ocr_unit": "article",
+            "article_ocr_fetched": ocr_fetched,
+            "article_title_matches": title_matches,
+            "article_identity_confirmed": False,
+            "page_identity_confirmed": False,
             "ocr_fetched": ocr_fetched,
             "ocr_nonempty": bool(text and text.strip()),
             "ocr_fetch_error": fetch_error,
@@ -330,6 +397,14 @@ class KbDelpherAdapter(LibraryAdapter):
                 "ocr_payload_title": payload_title,
                 "sru_record_title": expected_title or None,
                 "title_matches": title_matches,
+                "article_title_matches": title_matches,
+                "ocr_payload_carries_article_identifier": False,
+                "article_identity_confirmed": False,
+                "page_identity_confirmed": False,
+                "identity_note": ("the resolver OCR payload contains no article "
+                                  "identifier - only a title - so strict article "
+                                  "identity cannot be confirmed; title correspondence "
+                                  "alone never verifies the mapping"),
             },
             "image_url": f"{RESOLVER_BASE}?urn={urn}:image",
             "landing_url": f"{RESOLVER_BASE}?urn={urn}",
@@ -341,7 +416,7 @@ class KbDelpherAdapter(LibraryAdapter):
         (the article is the single page-level unit in Delpher),
         in the common result schema."""
         urn = (record_id or "").strip()
-        if not _URN_RE.match(urn):
+        if not _is_urn(urn):
             raise AdapterError(self.library_id, f"invalid KB article URN: {record_id!r}", retryable=False)
         needle = (query or "").strip().lower()
         if not needle:
@@ -392,19 +467,31 @@ class KbDelpherAdapter(LibraryAdapter):
                 )
             except Exception as exc:  # noqa: BLE001
                 image_detail = sanitize_error(exc)
-        verified = bool(page.get("verified_mapping") and image_ok)
+        # Reachability, format and identity are separate
+        # checks (b8 final review section 6): a reachable,
+        # well-formed image is not thereby THIS article's page
+        # image. The :image URL is constructed from the article
+        # URN, the payload carries no image identifier, and
+        # article identity itself is unconfirmed - so the
+        # status stays unverified. (Live, on 2026-11-26, the
+        # :image suffix answered 404 for the tested article.)
         checks = page.get("mapping_checks") or {}
         return {
             "library_id": self.library_id,
             "page_id": page_id,
-            "status": "verified" if verified else "unverified",
+            "status": "unverified",
             "checks": {
-                "document_identity": {"ok": True, "detail": page.get("urn") or ""},
-                "page_identity": {"ok": bool(page.get("page_identity_verified")), "detail": str(checks)},
-                "ocr_fetched": {"ok": bool(page.get("ocr_fetched")), "detail": page.get("ocr_fetch_error") or "OCR retrieved"},
+                "document_identity": {"ok": bool(checks.get("sru_record_selected_by_exact_identifier")), "detail": page.get("urn") or ""},
+                "article_identity": {"ok": False, "detail": "title correspondence only; the OCR payload carries no article identifier"},
+                "page_identity": {"ok": False, "detail": "physical page not identified by the article OCR payload"},
+                "ocr_fetched": {"ok": bool(page.get("ocr_fetched")), "detail": page.get("ocr_fetch_error") or "article OCR retrieved"},
                 "ocr_mapping_verified": {"ok": bool(page.get("verified_mapping")), "detail": str(checks)},
+                "image_url_structure": {"ok": bool(image_url and image_url.endswith(":image")), "detail": image_url or ""},
                 "image_reachable": {"ok": image_ok, "detail": image_detail},
+                "image_identity_confirmed": {"ok": False, "detail": "image bytes carry no identifier; correspondence is not confirmed"},
+                "human_visual_check": {"ok": False, "detail": "not performed"},
             },
             "image_url": image_url,
+            "image_identity_status": "unconfirmed",
             "landing_url": page.get("landing_url"),
         }

@@ -109,37 +109,74 @@ _DIGI_GENRES = {"sanomalehti", "aikakauslehti", "teos"}
 _DIGI_BINDING_RE = re.compile(r"^\d+$")
 
 
+_NLF_DATA_SOURCE = "kansalliskirjasto"
+_NLF_BUILDING_SEGMENT = "Kansalliskirjasto"
+_NLF_LABELS = {"kansalliskirjasto", "national library of finland"}
+
+
+def _finna_provider_is_nlf(finndoc: dict[str, Any]) -> tuple[bool, str]:
+    """Structured National Library of Finland provider
+    evidence in a Finna document payload: the record's data
+    source prefix, or a buildings/institutions facet naming
+    the National Library. Free text is never used."""
+    data_source = str(finndoc.get("data_source") or "")
+    if data_source == _NLF_DATA_SOURCE:
+        return True, "Finna data source is kansalliskirjasto (National Library of Finland)"
+    for entry in finndoc.get("buildings") or []:
+        if isinstance(entry, dict):
+            value = str(entry.get("value") or "")
+            label = str(entry.get("label") or entry.get("translated") or "")
+            if _NLF_BUILDING_SEGMENT in value.split("/") or label.strip().lower() in _NLF_LABELS:
+                return True, "Finna buildings facet names the National Library of Finland"
+    for label in finndoc.get("provider_institutions") or []:
+        if str(label).strip().lower() in _NLF_LABELS:
+            return True, "Finna institutions facet names the National Library of Finland"
+    return False, "no structured National Library of Finland provider identifier in the Finna record"
+
+
 def extract_digi_candidate(finndoc: dict[str, Any]) -> dict[str, Any]:
     """{status, binding_id, genre, basis} for a Finna document
-    payload's provider links (b8, section 6).
+    payload's provider links (b8, section 6; final review
+    section 7).
 
-    A Digi binding is a candidate ONLY when a provider link in
-    the Finna record parses structurally as
+    Candidate EXTRACTION and handoff IDENTITY are separate
+    steps. A binding becomes a full ``candidate`` only when
+    ALL of these hold: a provider link parses structurally as
     ``https://digi.kansalliskirjasto.fi/<genre>/binding/<digits>...``
-    on the exact official host (the English alias host is
-    accepted as the same service). Links on any other host, with
-    a non-https scheme, or whose path does not match the binding
-    grammar are data, not candidates. Two DIFFERENT binding ids
-    make the handoff ambiguous and it is refused; repeated links
-    to the same binding are one candidate. Nothing here fetches
-    the URL: the candidate is handed to the Digi adapter, whose
-    OAI identity checks decide whether the binding is what the
-    Finna record says it is, and the caller must still check
-    bibliographic correspondence (titles_correspond / year)
-    before treating the handoff as established.
+    on the exact official host (no userinfo, no abnormal
+    port); exactly ONE binding id and ONE genre are named
+    (the same binding under two different genres is refused,
+    never last-wins); and the Finna record's STRUCTURED
+    provider fields identify the National Library of Finland
+    as the provider of the record. Without the provider
+    evidence the link is reported as
+    ``candidate_provider_unverified`` - displayable as a
+    candidate, never a confirmed handoff. Bibliographic
+    correspondence (title/author/year/format) must still be
+    checked by the caller against the Digi record itself;
+    nothing here fetches any URL.
     """
     if not isinstance(finndoc, dict):
         return {"status": "no_candidate", "binding_id": None, "genre": None, "basis": "no Finna document"}
-    found: dict[str, str] = {}
+    found: dict[str, set[str]] = {}
     for link in finndoc.get("provider_links") or []:
         if not isinstance(link, dict):
             continue
         url = str(link.get("url") or "")
+        if any(ord(ch) < 0x20 for ch in url):
+            continue
         try:
             parsed = urlparse(url)
         except ValueError:
             continue
         if parsed.scheme != "https" or (parsed.hostname or "").lower() not in _DIGI_HOSTS:
+            continue
+        if parsed.username or parsed.password:
+            continue
+        try:
+            if parsed.port not in (None, 443):
+                continue
+        except ValueError:
             continue
         segments = [seg for seg in (parsed.path or "").split("/") if seg]
         if len(segments) < 3:
@@ -147,7 +184,7 @@ def extract_digi_candidate(finndoc: dict[str, Any]) -> dict[str, Any]:
         genre, marker, binding = segments[0], segments[1], segments[2]
         if genre not in _DIGI_GENRES or marker != "binding" or not _DIGI_BINDING_RE.match(binding):
             continue
-        found[binding] = genre
+        found.setdefault(binding, set()).add(genre)
     if not found:
         return {"status": "no_candidate", "binding_id": None, "genre": None, "basis": "no structurally valid Digi binding link in the Finna record"}
     if len(found) > 1:
@@ -157,12 +194,31 @@ def extract_digi_candidate(finndoc: dict[str, Any]) -> dict[str, Any]:
             "genre": None,
             "basis": f"Finna record links to {len(found)} different Digi bindings: {sorted(found)}",
         }
-    binding_id, genre = next(iter(found.items()))
+    binding_id, genres = next(iter(found.items()))
+    if len(genres) > 1:
+        return {
+            "status": "refused_ambiguous",
+            "binding_id": None,
+            "genre": None,
+            "basis": f"Finna record links binding {binding_id} under conflicting genres: {sorted(genres)}",
+        }
+    genre = next(iter(genres))
+    provider_ok, provider_basis = _finna_provider_is_nlf(finndoc)
+    if not provider_ok:
+        return {
+            "status": "candidate_provider_unverified",
+            "binding_id": binding_id,
+            "genre": genre,
+            "basis": ("Digi binding URL on the exact official host in the Finna record's "
+                      "provider links, but " + provider_basis + "; candidate display "
+                      "only, not a confirmed handoff"),
+        }
     return {
         "status": "candidate",
         "binding_id": binding_id,
         "genre": genre,
-        "basis": "Digi binding URL on the exact official host in the Finna record's provider links",
+        "basis": ("Digi binding URL on the exact official host in the Finna record's "
+                  "provider links; " + provider_basis),
     }
 
 

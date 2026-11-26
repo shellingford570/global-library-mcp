@@ -32,14 +32,22 @@ to a binding id. Claiming a search capability that does not
 officially exist would be fabrication.
 
 Page identity is proven structurally, never by URL
-constructibility (brief section 10): ``verified_mapping``
-requires the fetched ALTO to carry at least one internal
-identity signal for THIS binding and page - the ALTO Page
-element's PHYSICAL_IMG_NR equals the requested page, or the
-ALTO source-image fileName mentions the binding id and the
-page as delimited tokens. Digi answers out-of-range page
-requests with an error page rather than an error status, so
-HTTP 200 alone certifies nothing.
+constructibility (brief section 10; b8 final review section
+3): document identity and page identity are confirmed
+INDEPENDENTLY, and ``verified_mapping`` requires BOTH - the
+ALTO source-image fileName must carry THIS binding id as a
+full delimited token with no foreign numeric identifier
+token, AND a page signal (PHYSICAL_IMG_NR or the fileName's
+page token) must match the requested page, AND the ALTO must
+contain exactly one Page element, AND no signal may
+contradict another, AND the page must belong to the OAI
+record's own kk:checksum page set when that set is present.
+A page number alone - e.g. another binding's ALTO whose
+PHYSICAL_IMG_NR happens to equal the requested page - never
+verifies anything. When the official signals are absent the
+OCR is returned as fetched-but-unverified. Digi answers
+out-of-range page requests with an error page rather than an
+error status, so HTTP 200 alone certifies nothing.
 
 Rights: the OAI record's dc:rights is kept verbatim (Finnish
 statements such as "Tekijänoikeuden alainen" = in copyright).
@@ -119,39 +127,78 @@ def _genre_from_href(href: str, binding_id: str) -> str | None:
 
 
 def _alto_identity(xml_text: str, binding_id: str, page_num: int) -> dict[str, Any]:
-    """Internal identity signals inside an ALTO document."""
+    """Internal identity signals inside an ALTO document,
+    split into document identity and page identity (b8 final
+    review section 3). ``binding_confirmed`` requires the
+    binding id as a full delimited token in a source-image
+    fileName AND no foreign numeric identifier token (a digit
+    token that is neither the binding id nor the page number
+    in plain or zero-padded form). ``page_confirmed``
+    requires a page signal matching the requested page with
+    no contradiction from PHYSICAL_IMG_NR. A bare page-number
+    match confirms nothing about the document."""
     signals: dict[str, Any] = {
         "alto_parsed": False,
+        "alto_page_count": 0,
         "physical_img_nr": None,
+        "physical_img_nrs": [],
         "source_filename": None,
+        "source_filenames": [],
         "page_nr_matches": False,
         "filename_mentions_binding": False,
         "filename_mentions_page": False,
+        "foreign_numeric_tokens": [],
+        "binding_confirmed": False,
+        "page_confirmed": False,
+        "signals_consistent": True,
     }
     try:
         root = ET.fromstring(xml_text)
     except ET.ParseError:
         return signals
     signals["alto_parsed"] = True
-    for page in _iter_local(root, "Page"):
+    pages = list(_iter_local(root, "Page"))
+    signals["alto_page_count"] = len(pages)
+    nrs: list[int] = []
+    for page in pages:
         nr = page.get("PHYSICAL_IMG_NR")
         if nr is not None:
-            signals["physical_img_nr"] = nr
+            signals["physical_img_nrs"].append(nr)
             try:
-                signals["page_nr_matches"] = int(nr) == page_num
+                nrs.append(int(nr))
             except ValueError:
-                signals["page_nr_matches"] = False
-        break
-    filename = None
-    for element in _iter_local(root, "fileName"):
-        filename = (element.text or "").strip() or None
-        if filename:
-            break
-    signals["source_filename"] = filename
-    if filename:
+                signals["signals_consistent"] = False
+    if signals["physical_img_nrs"]:
+        signals["physical_img_nr"] = signals["physical_img_nrs"][0]
+    signals["page_nr_matches"] = page_num in nrs
+    if nrs and page_num not in nrs:
+        signals["signals_consistent"] = False
+    filenames = [
+        (element.text or "").strip()
+        for element in _iter_local(root, "fileName")
+        if (element.text or "").strip()
+    ]
+    signals["source_filenames"] = filenames
+    signals["source_filename"] = filenames[0] if filenames else None
+    page_tokens = {str(page_num), f"{page_num:04d}"}
+    foreign: list[str] = []
+    for filename in filenames:
         tokens = [t for t in re.split(r"[^A-Za-z0-9]+", filename) if t]
-        signals["filename_mentions_binding"] = binding_id in tokens
-        signals["filename_mentions_page"] = str(page_num) in tokens or f"{page_num:04d}" in tokens
+        if binding_id in tokens:
+            signals["filename_mentions_binding"] = True
+        if page_tokens & set(tokens):
+            signals["filename_mentions_page"] = True
+        for token in tokens:
+            if token.isdigit() and token != binding_id and token not in page_tokens:
+                foreign.append(token)
+    signals["foreign_numeric_tokens"] = sorted(set(foreign))
+    if foreign:
+        signals["signals_consistent"] = False
+    signals["binding_confirmed"] = bool(
+        signals["filename_mentions_binding"] and not foreign)
+    signals["page_confirmed"] = bool(
+        (signals["page_nr_matches"] or signals["filename_mentions_page"])
+        and signals["signals_consistent"])
     return signals
 
 
@@ -243,7 +290,7 @@ class DigiAdapter(LibraryAdapter):
         languages = _texts(metadata, "language")
         identifiers = _texts(metadata, "identifier")
 
-        genre: str | None = None
+        genres: set[str] = set()
         file_links: list[dict[str, Any]] = []
         page_numbers: set[int] = set()
         for element in _iter_local(metadata, "file"):
@@ -258,8 +305,18 @@ class DigiAdapter(LibraryAdapter):
                 }
             )
             found_genre = _genre_from_href(href, binding_id)
-            if found_genre and genre is None:
-                genre = found_genre
+            if found_genre:
+                genres.add(found_genre)
+        # Genre is never guessed and never resolved by
+        # overwriting (b8 final review section 4): exactly one
+        # genre signal from this binding's own file links
+        # establishes it; zero signals leave it unknown and
+        # several DIFFERENT signals make it ambiguous - both
+        # leave the landing URL undetermined and refuse page
+        # access rather than assuming a newspaper.
+        genre: str | None = genres.pop() if len(genres) == 1 else None
+        genre_status = ("established" if genre else
+                        "ambiguous" if len(genres) > 1 else "unknown")
         for element in _iter_local(metadata, "checksum"):
             pagenumber = element.get("pagenumber")
             if pagenumber and pagenumber.isdigit():
@@ -278,16 +335,26 @@ class DigiAdapter(LibraryAdapter):
             "publisher": "; ".join(publishers) or None,
             "language": languages[0] if languages else None,
             "identifiers": identifiers,
-            "page_count": max(page_numbers) if page_numbers else None,
-            "page_count_source": "OAI kk:checksum page numbers" if page_numbers else None,
-            "landing_url": f"{BASE}/{genre}/binding/{binding_id}" if genre else f"{BASE}/sanomalehti/binding/{binding_id}",
+            "page_count": len(page_numbers) if page_numbers else None,
+            "page_numbers": sorted(page_numbers),
+            "page_count_source": ("OAI kk:checksum page set (sparse sets are "
+                                  "possible; no page existence is inferred "
+                                  "from the maximum)") if page_numbers else None,
+            "genre_status": genre_status,
+            "landing_url": f"{BASE}/{genre}/binding/{binding_id}" if genre else None,
+            "landing_url_status": ("established" if genre else
+                                   "undetermined: the binding's genre is "
+                                   f"{genre_status}, and no genre-independent "
+                                   "landing URL is officially confirmed"),
             "rights": asdict(rights),
             "source_protocol": "OAI-PMH (qdc_finna)",
             "note": (
                 "Binding-level metadata from Digi's OAI-PMH. The genre segment used for page "
                 "URLs is recovered from the record's own file links on the official host; "
-                "when no such link exists the genre stays unknown and page access is refused "
-                "rather than guessed."
+                "when no unique such link exists the genre stays unknown or ambiguous, the "
+                "landing URL stays undetermined, and page access is refused rather than "
+                "guessed. The page set comes from the record's kk:checksum entries; a "
+                "missing page number is never inferred from the maximum."
             ),
         }
         self._documents[binding_id] = dict(document)
@@ -349,11 +416,20 @@ class DigiAdapter(LibraryAdapter):
             raise
         except Exception as exc:  # noqa: BLE001
             fetch_error = sanitize_error(exc)
+        page_numbers = document.get("page_numbers") or []
+        oai_page_listed = (page_num in page_numbers) if page_numbers else None
+        if oai_page_listed is False:
+            identity = {**identity, "signals_consistent": False}
         verified = bool(
             ocr_fetched
             and identity.get("alto_parsed")
-            and (identity.get("page_nr_matches") or (identity.get("filename_mentions_binding") and identity.get("filename_mentions_page")))
+            and identity.get("alto_page_count") == 1
+            and identity.get("binding_confirmed")
+            and identity.get("page_confirmed")
+            and identity.get("signals_consistent")
+            and oai_page_listed is not False
         )
+        identity = {**identity, "oai_page_listed": oai_page_listed}
         return {
             "library_id": self.library_id,
             "page_id": page_id,
@@ -369,6 +445,8 @@ class DigiAdapter(LibraryAdapter):
             "ocr_fetched": ocr_fetched,
             "ocr_nonempty": bool(text and text.strip()),
             "ocr_fetch_error": fetch_error,
+            "document_identity_confirmed": bool(identity.get("binding_confirmed")),
+            "page_identity_confirmed": bool(identity.get("page_confirmed")),
             "page_identity_verified": verified,
             "verified_mapping": verified,
             "mapping_checks": identity,
@@ -378,37 +456,68 @@ class DigiAdapter(LibraryAdapter):
         }
 
     async def verify_original(self, page_id: str) -> dict[str, Any]:
+        """Original-image verification with reachability and
+        identity kept SEPARATE (b8 final review section 6):
+        HTTP 200 plus a valid image signature proves only that
+        SOME image was served. The image/page correspondence
+        claimed here rests on the URL structure - the image
+        URL is constructed by this adapter from the verified
+        binding id, genre and page number on the exact
+        official host - and on the OCR page identity; no
+        human visual comparison is performed and none is
+        claimed."""
         page = await self.get_page_text(page_id)
         image_url = page.get("image_url")
+        structure_ok = False
+        if image_url:
+            parsed = urlparse(image_url)
+            segments = [seg for seg in (parsed.path or "").split("/") if seg]
+            structure_ok = bool(
+                parsed.scheme == "https"
+                and (parsed.hostname or "").lower() in _ALLOWED_HOSTS
+                and not parsed.username and not parsed.password
+                and len(segments) == 5 and segments[0] in GENRES
+                and segments[1] == "binding"
+                and segments[2] == str(page.get("binding_id"))
+                and segments[3] == "image"
+                and segments[4] == str(page.get("digital_frame")))
         image_ok = False
+        format_ok = False
         image_detail = "no image URL"
         if image_url:
             try:
                 response = await fetch_validated(self.client, image_url, allowed_hosts=_ALLOWED_HOSTS)
                 body = response.content or b""
                 content_type = (response.headers.get("content-type") or "").lower()
-                image_ok = response.status_code in (200, 206) and response_looks_like_image(body, content_type)
+                format_ok = response_looks_like_image(body, content_type)
+                image_ok = response.status_code in (200, 206) and format_ok
                 image_detail = (
                     f"image GET status {response.status_code}, content-type {content_type or 'none'}, "
-                    f"{len(body)} bytes, image signature {'ok' if image_ok else 'not an image'}"
+                    f"{len(body)} bytes, image signature {'ok' if format_ok else 'not an image'}"
                 )
             except Exception as exc:  # noqa: BLE001
                 image_detail = sanitize_error(exc)
-        verified = bool(page.get("verified_mapping") and image_ok)
+        correspondence_ok = bool(structure_ok and page.get("verified_mapping"))
+        verified = bool(correspondence_ok and image_ok)
         checks = page.get("mapping_checks") or {}
         return {
             "library_id": self.library_id,
             "page_id": page_id,
             "status": "verified" if verified else "unverified",
             "checks": {
-                "document_identity": {"ok": True, "detail": page.get("binding_id") or ""},
+                "document_identity": {"ok": bool(page.get("document_identity_confirmed")), "detail": page.get("binding_id") or ""},
                 "page_identity": {
                     "ok": bool(page.get("page_identity_verified")),
                     "detail": str({k: checks.get(k) for k in ("physical_img_nr", "source_filename")}),
                 },
                 "ocr_fetched": {"ok": bool(page.get("ocr_fetched")), "detail": page.get("ocr_fetch_error") or "ALTO retrieved"},
                 "ocr_mapping_verified": {"ok": bool(page.get("verified_mapping")), "detail": str(checks)},
+                "image_url_structure": {"ok": structure_ok, "detail": image_url or ""},
                 "image_reachable": {"ok": image_ok, "detail": image_detail},
+                "image_format": {"ok": format_ok, "detail": image_detail},
+                "image_page_correspondence": {"ok": correspondence_ok,
+                                              "detail": "image URL constructed from the verified binding/genre/page on the official host; bytes carry no independent identifier"},
+                "human_visual_check": {"ok": False, "detail": "not performed"},
             },
             "image_url": image_url,
             "landing_url": page.get("landing_url"),
@@ -420,21 +529,26 @@ class DigiAdapter(LibraryAdapter):
         mapping_status), over the binding's ALTO pages.
         Coverage is reported, never implied."""
         document = await self.get_document(record_id)
+        page_numbers = document.get("page_numbers") or []
         page_count = document.get("page_count")
         if not page_count:
             raise AdapterError(
                 self.library_id,
-                "in-document search requires the binding's page count from its OAI record; not established",
+                "in-document search requires the binding's page set from its OAI record; not established",
                 retryable=False,
             )
         needle = (query or "").strip().lower()
         if not needle:
             raise AdapterError(self.library_id, "empty in-document query", retryable=False)
-        cap = min(int(page_count), _IN_DOC_PAGE_CAP)
+        # Search exactly the CONFIRMED page set from the OAI
+        # record (b8 final review section 4): a sparse set is
+        # searched as-is; pages are never inferred from the
+        # maximum page number.
+        candidates = page_numbers[:_IN_DOC_PAGE_CAP] if page_numbers else []
         matches: list[dict[str, Any]] = []
         failures: list[dict[str, Any]] = []
         searched = 0
-        for page_num in range(1, cap + 1):
+        for page_num in candidates:
             try:
                 page = await self.get_page_text(f"{record_id}@{page_num}")
             except AdapterError as exc:
@@ -465,8 +579,10 @@ class DigiAdapter(LibraryAdapter):
             "matches": {"list": matches},
             "hits": matches,
             "pages_searched": searched,
+            "pages_considered": candidates,
+            "coverage_basis": "the OAI record's kk:checksum page set, searched as-is (sparse sets are not filled in)",
             "total_pages": page_count,
-            "complete": cap >= int(page_count) and not failures,
+            "complete": len(candidates) >= int(page_count) and not failures,
             "partial_failures": failures,
-            "note": "bounded in-document search over the binding's ALTO pages; coverage is reported, not implied",
+            "note": "bounded in-document search over the binding's confirmed ALTO page set; coverage is reported, not implied",
         }

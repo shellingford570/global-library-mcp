@@ -200,6 +200,16 @@ class QueryExpansionEngine:
         # before second labels of any pair: a whole language is
         # worth more than a spelling doublet in a language that
         # is already represented.
+        # Final review (section 19): the diagonal can still
+        # starve the last languages (sv/nl) when three or more
+        # concepts match. A primary-concept-per-language
+        # guarantee was evaluated in this round: it improved
+        # the b8 fixed set (Standard Recall@10 0.75 -> 0.8583)
+        # but regressed the b6 fixed simulation (Recall@10
+        # 0.8819 -> 0.8542), so per the brief it was NOT
+        # adopted. The languages that miss out under the cap
+        # are reported in languages_not_represented below
+        # instead of being silently dropped.
         _translations.sort(key=lambda item: (item[2], item[0] + item[1], item[1], item[0]))
         for _ci, _li, _bi, lang, label, concept in _translations:
             add(label, lang, "concept_translation", "translation",
@@ -253,12 +263,23 @@ class QueryExpansionEngine:
         variants = variants[:cap]
         for extra in overflow:
             skip(extra["text"], "variant cap reached")
+        # Section 19 reporting: which languages had candidates
+        # but received no selected variant, and why. Surfaced in
+        # the plan so a dropped language is explicit, never
+        # silent.
+        represented = {v["language"] for v in variants if v.get("language")}
+        candidate_languages = represented | {
+            v["language"] for v in overflow if v.get("language")}
+        not_represented = sorted(candidate_languages - represented)
         return {
             "original_query": query,
             "normalized_query": norm(query),
             "query_language": analysis.query_language,
             "variants": variants,
             "skipped": skipped,
+            "languages_represented": sorted(represented),
+            "languages_not_represented": not_represented,
+            "cap_reason": ("variant cap reached" if overflow else None),
             "budget": {"variant_cap": cap, "variants_used": len(variants),
                        "mode": mode},
             "multilingual_enabled": expand_multilingual,

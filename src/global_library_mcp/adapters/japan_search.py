@@ -47,6 +47,7 @@ import httpx
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.http import fetch_validated, sanitize_error
 from global_library_mcp.languages import normalize_language
+from global_library_mcp.rights_uri import rights_uri_label
 from global_library_mcp.models import Rights, SearchResult
 
 SPARQL_URL = "https://jpsearch.go.jp/rdf/sparql"
@@ -82,22 +83,15 @@ def _sparql_literal(text: str) -> str:
 
 
 def _rights_classification(url: str | None) -> str | None:
-    if not url:
-        return None
-    lowered = url.lower()
-    if "publicdomain/zero" in lowered or lowered.rstrip("/").endswith("cc0"):
-        return "cc0"
-    if "publicdomain/mark" in lowered:
-        return "public-domain-mark"
-    if "creativecommons.org/licenses/" in lowered:
-        return "creative-commons-licence"
-    if "rightsstatements.org/vocab/inc/" in lowered:
-        return "rightsstatements-in-copyright"
-    if "rightsstatements.org/vocab/noc-" in lowered:
-        return "rightsstatements-no-copyright"
-    if "rightsstatements.org/vocab/" in lowered:
-        return "rightsstatements-other"
-    return "other"
+    """Display-only classification of a rights URI, parsed
+    STRUCTURALLY via the shared rights_uri parser (b8 final
+    review section 15): exact official hosts and path
+    grammar only. A licence URI embedded in another URL's
+    query, a lookalike host, or a malformed version is
+    "other", never a licence. This label is never used for
+    storage permission - that is the workspace policy's job,
+    on statements the server itself observed."""
+    return rights_uri_label(url)
 
 
 def _entity_name(uri: Any) -> str | None:
@@ -273,7 +267,13 @@ class JapanSearchAdapter(LibraryAdapter):
             "access_restrictions": restrictions,
             "ndl_pid": ndl_pid,
             "handoff_candidates": (
-                [{"library_id": "ndl", "record_id": ndl_pid, "basis": "info:ndljp/pid identifier in the Japan Search record"}]
+                [{"library_id": "ndl", "record_id": ndl_pid,
+                  "status": "candidate",
+                  "identity_confirmed": False,
+                  "basis": ("info:ndljp/pid identifier structurally extracted from the "
+                            "Japan Search record; extraction is not identity "
+                            "confirmation - the NDL adapter's own record checks "
+                            "decide whether the pid names the same item")}]
                 if ndl_pid
                 else []
             ),

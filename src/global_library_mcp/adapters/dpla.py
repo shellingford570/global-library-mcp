@@ -30,37 +30,26 @@ the URI is never paraphrased into a licence grant.
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
 from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
-from global_library_mcp.http import get_json
+from global_library_mcp.http import get_json, sanitize_error
+from global_library_mcp.rights_uri import rights_uri_label
 from global_library_mcp.models import Rights, SearchResult
 
 API_BASE = "https://api.dp.la/v2"
 ENV_KEY = "DPLA_API_KEY"
+_RECORD_ID_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 
 
 def _rights_classification(url: str | None) -> str | None:
-    if not url:
-        return None
-    lowered = url.lower()
-    if "publicdomain/zero" in lowered or lowered.rstrip("/").endswith("cc0"):
-        return "cc0"
-    if "publicdomain/mark" in lowered:
-        return "public-domain-mark"
-    if "creativecommons.org/licenses/" in lowered:
-        return "creative-commons-licence"
-    if "creativecommons.org/publicdomain/" in lowered:
-        return "creative-commons-public-domain"
-    if "rightsstatements.org/vocab/inc/" in lowered:
-        return "rightsstatements-in-copyright"
-    if "rightsstatements.org/vocab/noc-" in lowered:
-        return "rightsstatements-no-copyright"
-    if "rightsstatements.org/vocab/" in lowered:
-        return "rightsstatements-other"
-    return "other"
+    """Display-only classification via the shared strict
+    rights_uri parser (b8 final review section 15)."""
+    return rights_uri_label(url)
 
 
 def _as_text(value: Any) -> str | None:
@@ -94,8 +83,21 @@ class DplaAdapter(LibraryAdapter):
         return "configured" if (os.getenv(ENV_KEY) or "").strip() else "authentication_required"
 
     async def _get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
+        # Credential hygiene (b8 final review section 17): the
+        # key travels ONLY as this request's api_key query
+        # parameter. Errors are re-sanitised here as a second
+        # line of defence so a URL carrying the key can never
+        # surface in an exception, a log line, HTTP statistics
+        # (per-host counts only), search history or an MCP
+        # response; httpx does not forward query parameters
+        # across redirects, so a redirect cannot leak it either.
         key = self._api_key()
-        payload = await get_json(self.client, f"{API_BASE}{path}", params={**params, "api_key": key})
+        try:
+            payload = await get_json(self.client, f"{API_BASE}{path}", params={**params, "api_key": key})
+        except AdapterError as exc:
+            raise AdapterError(self.library_id, sanitize_error(str(exc)), retryable=exc.retryable) from exc
+        except Exception as exc:  # noqa: BLE001
+            raise AdapterError(self.library_id, sanitize_error(exc), retryable=True) from exc
         if not isinstance(payload, dict):
             raise AdapterError(self.library_id, "DPLA returned an unexpected payload", retryable=False)
         return payload
@@ -155,7 +157,11 @@ class DplaAdapter(LibraryAdapter):
         record_id = (record_id or "").strip()
         if not record_id:
             raise AdapterError(self.library_id, "empty DPLA record id", retryable=False)
-        payload = await self._get(f"/items/{record_id}", {})
+        if not _RECORD_ID_RE.fullmatch(record_id):
+            # A record id must never change the request's path
+            # or query structure (section 17).
+            raise AdapterError(self.library_id, f"invalid DPLA record id: {record_id!r}", retryable=False)
+        payload = await self._get(f"/items/{quote(record_id, safe='')}", {})
         docs = payload.get("docs")
         if not isinstance(docs, list) or not docs or not isinstance(docs[0], dict):
             raise AdapterError(self.library_id, f"DPLA record not found: {record_id}", retryable=False)
