@@ -174,7 +174,10 @@ def test_new_library_research_journey_over_real_http(env):
     status, page = _call(env, "GET", "/api/page?" + _q(
         library="kb-delpher", id="ddd:010286065:mpeg21:a0141"))
     assert status == 200 and page["save_token"], page
-    assert page["verified_mapping"] is True
+    # b8 final review section 5: KB article OCR is
+    # title-correspondence only - fetched, never verified.
+    assert page["verified_mapping"] is False
+    assert page["article_title_matches"] is True
     status, cit = _call(env, "POST", "/api/workspace/citations",
                         {"project_id": pid, "save_token": page["save_token"],
                          "saved_document_id": kb_doc["saved_document_id"],

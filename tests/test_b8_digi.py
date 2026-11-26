@@ -183,7 +183,7 @@ async def test_search_in_document_bounded_with_coverage():
 
 
 def _finndoc(links):
-    return {"provider_links": links}
+    return {"provider_links": links, "data_source": "kansalliskirjasto"}
 
 
 def test_handoff_candidate_from_digi_link():

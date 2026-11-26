@@ -160,14 +160,24 @@ async def test_kb_search_parses_sru_records():
 
 
 @pytest.mark.asyncio
-async def test_kb_page_text_verified_by_title_correspondence():
+async def test_kb_page_text_title_correspondence_is_not_identity():
+    # b8 final review section 5: the resolver OCR payload
+    # carries no article identifier - only a title. A matching
+    # title is a correspondence signal, never verified
+    # identity, so the OCR is fetched but NOT verified.
     async with _client(_kb_handler()) as client:
         page = await KbDelpherAdapter(client).get_page_text("ddd:010286065:mpeg21:a0141")
     assert "waterkracht" in (page["contents"] or "")
-    assert page["verified_mapping"] is True
+    assert page["article_ocr_fetched"] is True
+    assert page["article_title_matches"] is True
     assert page["mapping_checks"]["title_matches"] is True
+    assert page["article_identity_confirmed"] is False
+    assert page["page_identity_confirmed"] is False
+    assert page["verified_mapping"] is False
     assert page["record_id"] == "ddd:010286065:mpeg21:a0141"
+    assert page["article_urn"] == "ddd:010286065:mpeg21:a0141"
     assert page["issue_urn"] == "ddd:010286065:mpeg21"
+    assert page["page_urn"] is None
 
 
 @pytest.mark.asyncio
@@ -181,12 +191,19 @@ async def test_kb_page_text_title_mismatch_unverified():
 
 @pytest.mark.asyncio
 async def test_kb_verify_original():
+    # Reachability and identity are separate (final review
+    # section 6): even a reachable, well-formed image is not
+    # confirmed as this article's page image, so the status
+    # stays unverified.
     async with _client(_kb_handler()) as client:
         result = await KbDelpherAdapter(client).verify_original("ddd:010286065:mpeg21:a0141")
-    assert result["status"] == "verified"
+    assert result["status"] == "unverified"
+    assert result["checks"]["image_reachable"]["ok"] is True
+    assert result["checks"]["image_identity_confirmed"]["ok"] is False
     async with _client(_kb_handler(image_body=b"<html>blocked</html>", image_type="text/html")) as client:
         result = await KbDelpherAdapter(client).verify_original("ddd:010286065:mpeg21:a0141")
     assert result["status"] == "unverified"
+    assert result["checks"]["image_reachable"]["ok"] is False
 
 
 @pytest.mark.asyncio
@@ -287,7 +304,12 @@ async def test_japan_search_document_rights_restrictions_and_handoff():
     assert doc["access_restrictions"] == ["アクセス制限: 国立国会図書館内限定公開"]
     assert doc["ndl_pid"] == "12676713"
     assert doc["handoff_candidates"] == [
-        {"library_id": "ndl", "record_id": "12676713", "basis": "info:ndljp/pid identifier in the Japan Search record"}
+        {"library_id": "ndl", "record_id": "12676713", "status": "candidate",
+         "identity_confirmed": False,
+         "basis": ("info:ndljp/pid identifier structurally extracted from the "
+                   "Japan Search record; extraction is not identity "
+                   "confirmation - the NDL adapter's own record checks "
+                   "decide whether the pid names the same item")}
     ]
     # Provider URLs are data, not fetched by the adapter.
     assert doc["provider_urls"] == ["https://dl.ndl.go.jp/pid/12676713"]
@@ -351,14 +373,23 @@ async def test_compare_kb_and_digi_cross_language():
             ],
             aspects=["waterkracht", "vesivoima"],
         )
-    assert result["status"] == "compared"
+    # With KB contributing no verified pages, only one
+    # document has verified evidence, so the comparison
+    # honestly reports insufficient_evidence (the frozen
+    # admission rule: bibliographic records alone never
+    # compare) - the disclosed cost of strict KB identity.
+    assert result["status"] == "insufficient_evidence"
     docs = {(d["library_id"], d["record_id"]): d for d in result["documents"]}
-    assert docs[("kb-delpher", "ddd:010286065:mpeg21:a0141")]["verified_pages"] >= 1
+    # b8 final review section 5 consequence, disclosed: KB
+    # article OCR is title-correspondence only, so it
+    # contributes NO verified pages and no verified excerpts
+    # to a comparison; Digi's strict ALTO identity still does.
+    assert docs[("kb-delpher", "ddd:010286065:mpeg21:a0141")]["verified_pages"] == 0
     assert docs[("finland-nl-digi", "123456")]["verified_pages"] >= 1
     rows = {row["aspect"]: row for row in result["rows"]}
     kb_key = "kb-delpher|ddd:010286065:mpeg21:a0141"
     digi_key = "finland-nl-digi|123456"
-    assert rows["waterkracht"]["documents"][kb_key]["found"] is True
+    assert rows["waterkracht"]["documents"][kb_key]["found"] is False
     assert rows["waterkracht"]["documents"][digi_key]["found"] is False
     assert rows["vesivoima"]["documents"][digi_key]["found"] is True
     assert rows["vesivoima"]["documents"][kb_key]["found"] is False

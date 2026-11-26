@@ -63,7 +63,12 @@ def test_list_libraries_includes_new_institutions():
     capabilities = mcp_server.get_library_capabilities("dpla")
     assert capabilities["capability_status"]["catalog_search"] == "authentication_required"
     kb = mcp_server.get_library_capabilities("kb-delpher")
-    assert kb["capability_status"]["page_ocr"] == "live_page_verified"
+    # Final review reclassification: the live KB result is an
+    # ARTICLE OCR fetch with title correspondence only - strict
+    # page identity is not verified and must not be advertised.
+    assert kb["capability_status"]["page_ocr"] == "live_article_ocr_fetched"
+    assert kb["capability_status"]["page_mapping"] == "unverified"
+    assert kb["capability_status"]["original_image"] == "unverified"
 
 
 @pytest.mark.asyncio

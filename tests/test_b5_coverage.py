@@ -388,6 +388,9 @@ _ALLOWED_STATUSES = {
     "research_only", "implemented", "fixture_verified", "live_catalog_verified",
     "live_page_verified", "live_end_to_end_verified", "unavailable",
     "authentication_required", "unsupported", "bounded",
+    # b8 final review: article-level OCR fetch (KB) is not page
+    # verification, and unverified must be sayable explicitly.
+    "live_article_ocr_fetched", "unverified",
 }
 
 
