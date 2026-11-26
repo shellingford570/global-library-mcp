@@ -401,3 +401,21 @@ libraries:
     existing_mcp: unknown
     verification: "official API page reviewed"
     last_verified: "2026-11-19"
+  - id: finna
+    name: "Finna (Finnish discovery service, National Library of Finland)"
+    region: Europe
+    country: FI
+    official_site: https://www.finna.fi/
+    api_specs: ["https://api.finna.fi/api/v1/search", "https://api.finna.fi/api/v1/record", "https://api.finna.fi/api/v1/?openapi"]
+    languages: [fi, sv, multi]
+    material_types: [books, newspapers, journals, images, audio, video]
+    capabilities: {bibliographic: true, document_by_id: true, fulltext: false, ocr: false, image: false, page: false, iiif: false}
+    standards: [REST, JSON, OpenAPI]
+    auth: "public; no API key"
+    terms_rights: "Finna metadata is CC0 1.0; item rights are per-record (usageRights labels); metadata CC0 does not extend to item OCR or images"
+    rate_limits: "no published limit confirmed (checked 2026-11-26); treated as unconfirmed"
+    existing_mcp: unknown
+    implementation_status: implemented
+    capability_status: {catalog_search: fixture_verified, document_by_id: fixture_verified, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: unsupported, page_mapping: unsupported, rights: fixture_verified}
+    verification: "b8 (2026-11-26): response shape confirmed against a real API response observed in the user's ordinary browser (status OK, resultCount 530965 for 'Suomen historia'); from this development network api.finna.fi answers a Cloudflare bot challenge (HTTP 403 via curl, the project HTTP client and a text fetch), so LibraryService live verification is NOT achieved and no evasion was attempted. Finna is a cross-search platform, not a holding library; holdings come from the record buildings hierarchy."
+    last_verified: "2026-11-26"
