@@ -1,6 +1,14 @@
 {
  "dataset": "dev",
- "cases": 40,
+ "evaluation_kind": "A: variant-generation simulation over a fixed fixture corpus (NOT live recall)",
+ "label_source": "agent_assigned",
+ "cases_total": 40,
+ "cases_with_relevant": 38,
+ "cases_without_relevant": 2,
+ "commit": "62c7118d6ab852958a4fe1b7e6eda14a38ad5447",
+ "dataset_sha256": "e5bdf2a98152920c",
+ "corpus_sha256": "63cf8cd8af63ebb2",
+ "lexicon_sha256": "f600cafef48f831f",
  "configs": {
   "A": {
    "aggregate": {
@@ -10,9 +18,32 @@
     "precision@5": 0.1947,
     "mrr": 0.8487,
     "ndcg@10": 0.787,
+    "recall_denominator": 38,
     "cross_language_rate": 0.0526,
+    "cross_language_denominator": 38,
     "avg_attempts": 27.8,
-    "avg_variants": 4.6
+    "attempts_denominator": 40,
+    "avg_variants": 4.6,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.5,
+    "irrelevant_retrieval_rate": 0.025,
+    "per_tag": {
+     "original_title": {
+      "cases": 3,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "translated_title": {
+      "cases": 1,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "cross_language": {
+      "cases": 2,
+      "any_hit_rate": 0.5,
+      "full_recall_rate": 0.0
+     }
+    }
    },
    "cases": [
     {
@@ -1013,4750 +1044,6 @@
     }
    ]
   },
-  "B": {
-   "aggregate": {
-    "recall@5": 0.8421,
-    "recall@10": 0.8421,
-    "recall@20": 0.8421,
-    "precision@5": 0.2053,
-    "mrr": 0.8706,
-    "ndcg@10": 0.8168,
-    "cross_language_rate": 0.0789,
-    "avg_attempts": 31.5,
-    "avg_variants": 5.2
-   },
-   "cases": [
-    {
-     "id": "D01",
-     "variants": [
-      "進化論 ダーウィン",
-      "進化論",
-      "ダーウィン",
-      "進化論 ターウィン",
-      "ターウィン"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ndl:dobutsu-shinkaron",
-      "ndl:shinka-ron-1882"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "ndl:dobutsu-shinkaron"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D02",
-     "variants": [
-      "産業革命 イギリス",
-      "産業革命",
-      "イギリス",
-      "產業革命 イギリス",
-      "產業革命",
-      "産業革命 イキリス",
-      "イキリス",
-      "產業革命 イキリス",
-      "工業"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ndl:jokikikan-meiji"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D03",
-     "variants": [
-      "ドイツ哲学 カント",
-      "ドイツ哲学",
-      "カント",
-      "ドイツ哲學 カント",
-      "ドイツ哲學",
-      "トイツ哲学 カント",
-      "トイツ哲学",
-      "トイツ哲學 カント",
-      "哲學"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ndl:kanto-kenkyu",
-      "ndl:junsui-risei-hihan",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu",
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D04",
-     "variants": [
-      "電気工学 明治",
-      "電気工学",
-      "明治",
-      "電氣工學 明治",
-      "電氣工學",
-      "電氣"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D05",
-     "variants": [
-      "電氣",
-      "電気"
-     ],
-     "attempts": 12,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D06",
-     "variants": [
-      "鉄道 ヨーロッパ",
-      "鉄道",
-      "ヨーロッパ",
-      "鐵道 ヨーロッパ",
-      "鐵道",
-      "鉄道 ヨーロッハ",
-      "ヨーロッハ",
-      "鐵道 ヨーロッハ"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:tetsudo-shi"
-     ],
-     "relevant": [
-      "gallica:chemin-de-fer",
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D07",
-     "variants": [
-      "フランス 政治思想 ルソー",
-      "フランス",
-      "政治思想",
-      "ルソー"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ndl:shakai-keiyakuron"
-     ],
-     "relevant": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D08",
-     "variants": [
-      "天文学 19世紀",
-      "天文学",
-      "19世紀",
-      "天文學 19世紀",
-      "天文學",
-      "文學"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D09",
-     "variants": [
-      "ニュートン 力学",
-      "ニュートン",
-      "力学",
-      "ニュートン 力學",
-      "力學"
-     ],
-     "attempts": 30,
-     "retrieved": [],
-     "relevant": [
-      "ia:principia-newton"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D10",
-     "variants": [
-      "マルクス 経済学",
-      "マルクス",
-      "経済学",
-      "マルクス 経済學",
-      "経済學",
-      "經濟學"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:shihonron"
-     ],
-     "relevant": [
-      "ndl:shihonron",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D11",
-     "variants": [
-      "evolution natural selection",
-      "evolution",
-      "natural",
-      "selection"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "loc:descent-of-man",
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de",
-      "ia:principia-newton",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D12",
-     "variants": [
-      "Kant epistemology",
-      "Kant",
-      "epistemology"
-     ],
-     "attempts": 18,
-     "retrieved": [
-      "ia:critique-pure-reason",
-      "ddb:kritik-rv-1781"
-     ],
-     "relevant": [
-      "ia:critique-pure-reason"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D13",
-     "variants": [
-      "industrial revolution steam",
-      "industrial",
-      "revolution",
-      "steam"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:steam-engine-watt",
-      "ia:french-revolution-carlyle",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ia:railway-steam"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D14",
-     "variants": [
-      "Protestant ethic capitalism",
-      "Protestant",
-      "ethic",
-      "capitalism"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:protestant-ethic-en",
-      "ddb:protestantische-ethik",
-      "ia:capital-en"
-     ],
-     "relevant": [
-      "ia:protestant-ethic-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D15",
-     "variants": [
-      "French Revolution history",
-      "French",
-      "Revolution",
-      "歷史"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr"
-     ],
-     "relevant": [
-      "ia:french-revolution-carlyle",
-      "gallica:revolution-hist-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D16",
-     "variants": [
-      "Soseki literature",
-      "Soseki",
-      "literature",
-      "文學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D17",
-     "variants": [
-      "Fukuzawa Yukichi enlightenment",
-      "Fukuzawa",
-      "Yukichi",
-      "enlightenment"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:fukuzawa-en"
-     ],
-     "relevant": [
-      "ia:fukuzawa-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D18",
-     "variants": [
-      "Wasserkraft Elektrizität",
-      "Wasserkraft",
-      "Elektrizität",
-      "Wasserkraft Elektrizitaet",
-      "Wasserkraft Elektrizitat",
-      "Elektrizitaet",
-      "電氣"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ddb:wasserkraft-1908",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898"
-     ],
-     "relevant": [
-      "ddb:wasserkraft-1908"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D19",
-     "variants": [
-      "Eisenbahn Geschichte",
-      "Eisenbahn",
-      "Geschichte",
-      "鐵道",
-      "歷史"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:eisenbahn-de",
-      "ndl:tetsudo-shi"
-     ],
-     "relevant": [
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D20",
-     "variants": [
-      "Entstehung der Arten Darwin",
-      "Entstehung",
-      "der",
-      "Arten",
-      "Darwin"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:abstammung-de",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:kritik-rv-1781",
-      "ddb:dampfmaschine-1850",
-      "ddb:eisenbahn-de",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ddb:mueller-max"
-     ],
-     "relevant": [
-      "ddb:abstammung-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D21",
-     "variants": [
-      "Religionssoziologie Weber",
-      "Religionssoziologie",
-      "Weber",
-      "社會學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ia:protestant-ethic-en",
-      "ia:weber-alfred",
-      "ndl:weber-shukyo"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D22",
-     "variants": [
-      "Philosophie Erkenntnistheorie",
-      "Philosophie",
-      "Erkenntnistheorie",
-      "哲學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:kritik-rv-1781",
-      "gallica:discours-methode",
-      "gallica:contrat-social",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D23",
-     "variants": [
-      "histoire naturelle évolution",
-      "histoire",
-      "naturelle",
-      "évolution",
-      "histoire naturelle evolution",
-      "evolution",
-      "博物學",
-      "歷史"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ia:french-revolution-carlyle",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "gallica:evolution-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.25,
-     "ndcg@10": 0.43067655807339306,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D24",
-     "variants": [
-      "philosophie politique Rousseau",
-      "philosophie",
-      "politique",
-      "Rousseau",
-      "哲學"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "gallica:contrat-social",
-      "gallica:discours-methode",
-      "ddb:kritik-rv-1781",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D25",
-     "variants": [
-      "électricité histoire",
-      "électricité",
-      "histoire",
-      "electricite histoire",
-      "electricite",
-      "電氣",
-      "歷史"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898"
-     ],
-     "relevant": []
-    },
-    {
-     "id": "D26",
-     "variants": [
-      "Descartes méthode",
-      "Descartes",
-      "méthode",
-      "Descartes methode",
-      "methode"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "gallica:discours-methode"
-     ],
-     "relevant": [
-      "gallica:discours-methode"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D27",
-     "variants": [
-      "水力発電 ダム",
-      "水力発電",
-      "ダム",
-      "水力發電 ダム",
-      "水力發電",
-      "水力発電 タム",
-      "タム",
-      "水力發電 タム"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:suiryoku-hatsuden-1912",
-      "ia:hydroelectric-1905"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D28",
-     "variants": [
-      "蒸気機関車",
-      "蒸氣機關車",
-      "蒸氣機關",
-      "steam-engine"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ndl:jokikikan-meiji",
-      "ia:railway-steam"
-     ],
-     "relevant": [
-      "ia:railway-steam"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.5,
-     "ndcg@10": 0.6309297535714575,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D29",
-     "variants": [
-      "西洋哲学 日本 受容",
-      "西洋哲学",
-      "日本",
-      "受容",
-      "西洋哲學 日本 受容",
-      "西洋哲學",
-      "哲學"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:tetsudo-shi",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.3333333333333333,
-     "ndcg@10": 0.5,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D30",
-     "variants": [
-      "新聞 明治",
-      "新聞",
-      "明治"
-     ],
-     "attempts": 18,
-     "retrieved": [],
-     "relevant": []
-    },
-    {
-     "id": "D31",
-     "variants": [
-      "Kapitalismus Soziologie",
-      "Kapitalismus",
-      "Soziologie",
-      "社會學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ndl:weber-shukyo"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D32",
-     "variants": [
-      "Darwin Descent of Man",
-      "Darwin",
-      "Descent",
-      "Man"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:abstammung-de",
-      "ia:critique-pure-reason",
-      "ia:water-power-1885",
-      "ddb:kritik-rv-1781"
-     ],
-     "relevant": [
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D33",
-     "variants": [
-      "astronomy outlines Herschel",
-      "astronomy",
-      "outlines",
-      "Herschel",
-      "天文學"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D34",
-     "variants": [
-      "吾輩は猫である",
-      "吾輩",
-      "ある",
-      "吾輩は猫てある"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ndl:soseki-wagahai"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D35",
-     "variants": [
-      "Kokoro Soseki",
-      "Kokoro",
-      "Soseki"
-     ],
-     "attempts": 18,
-     "retrieved": [
-      "ia:soseki-kokoro-en"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D36",
-     "variants": [
-      "学問のすゝめ",
-      "学問",
-      "すゝめ",
-      "學問のすゝめ",
-      "學問",
-      "学問のすすめ",
-      "すすめ"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D37",
-     "variants": [
-      "慶應義塾 福澤",
-      "慶應義塾",
-      "福澤",
-      "慶応義塾 福沢",
-      "慶応義塾",
-      "福沢"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D38",
-     "variants": [
-      "震災 記録 1923",
-      "震災",
-      "記録",
-      "1923",
-      "震災 記錄 1923",
-      "記錄"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "relevant": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D39",
-     "variants": [
-      "Max Müller language",
-      "Max",
-      "Müller",
-      "language",
-      "Max Mueller language",
-      "Max Muller language",
-      "Mueller"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ddb:mueller-max",
-      "ia:protestant-ethic-en",
-      "ddb:protestantische-ethik",
-      "ddb:dampfmaschine-1850",
-      "ddb:wasserkraft-1908",
-      "ddb:eisenbahn-de"
-     ],
-     "relevant": [
-      "ddb:mueller-max"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D40",
-     "variants": [
-      "Erasmus Darwin biology",
-      "Erasmus",
-      "Darwin",
-      "biology",
-      "生物學"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ia:darwin-erasmus",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:darwin-erasmus"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    }
-   ]
-  },
-  "C": {
-   "aggregate": {
-    "recall@5": 0.9211,
-    "recall@10": 0.9211,
-    "recall@20": 0.9211,
-    "precision@5": 0.2316,
-    "mrr": 0.8969,
-    "ndcg@10": 0.8745,
-    "cross_language_rate": 0.2105,
-    "avg_attempts": 40.0,
-    "avg_variants": 6.7
-   },
-   "cases": [
-    {
-     "id": "D01",
-     "variants": [
-      "進化論 ダーウィン",
-      "進化論",
-      "ダーウィン",
-      "進化論 ターウィン",
-      "ターウィン",
-      "チャールズ・ダーウィン",
-      "Charles Darwin",
-      "Darwin, Charles"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:dobutsu-shinkaron",
-      "ndl:shinka-ron-1882",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "ndl:dobutsu-shinkaron"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8503449055347546,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D02",
-     "variants": [
-      "産業革命 イギリス",
-      "産業革命",
-      "イギリス",
-      "產業革命 イギリス",
-      "產業革命",
-      "産業革命 イキリス",
-      "イキリス",
-      "產業革命 イキリス",
-      "工業"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ndl:jokikikan-meiji"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D03",
-     "variants": [
-      "ドイツ哲学 カント",
-      "ドイツ哲学",
-      "カント",
-      "ドイツ哲學 カント",
-      "ドイツ哲學",
-      "トイツ哲学 カント",
-      "トイツ哲学",
-      "トイツ哲學 カント",
-      "イマヌエル・カント",
-      "Immanuel Kant",
-      "Kant, Immanuel",
-      "Emmanuel Kant",
-      "哲學"
-     ],
-     "attempts": 78,
-     "retrieved": [
-      "ndl:kanto-kenkyu",
-      "ndl:junsui-risei-hihan",
-      "ia:critique-pure-reason",
-      "ddb:kritik-rv-1781",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu",
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D04",
-     "variants": [
-      "電気工学 明治",
-      "電気工学",
-      "明治",
-      "電氣工學 明治",
-      "電氣工學",
-      "電氣"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D05",
-     "variants": [
-      "電氣",
-      "電気"
-     ],
-     "attempts": 12,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D06",
-     "variants": [
-      "鉄道 ヨーロッパ",
-      "鉄道",
-      "ヨーロッパ",
-      "鐵道 ヨーロッパ",
-      "鐵道",
-      "鉄道 ヨーロッハ",
-      "ヨーロッハ",
-      "鐵道 ヨーロッハ"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:tetsudo-shi"
-     ],
-     "relevant": [
-      "gallica:chemin-de-fer",
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D07",
-     "variants": [
-      "フランス 政治思想 ルソー",
-      "フランス",
-      "政治思想",
-      "ルソー",
-      "ジャン＝ジャック・ルソー",
-      "Jean-Jacques Rousseau",
-      "Rousseau, Jean-Jacques"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "relevant": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D08",
-     "variants": [
-      "天文学 19世紀",
-      "天文学",
-      "19世紀",
-      "天文學 19世紀",
-      "天文學",
-      "文學"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D09",
-     "variants": [
-      "ニュートン 力学",
-      "ニュートン",
-      "力学",
-      "ニュートン 力學",
-      "力學",
-      "アイザック・ニュートン",
-      "Isaac Newton",
-      "Newton, Isaac"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:principia-newton"
-     ],
-     "relevant": [
-      "ia:principia-newton"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D10",
-     "variants": [
-      "マルクス 経済学",
-      "マルクス",
-      "経済学",
-      "マルクス 経済學",
-      "経済學",
-      "カール・マルクス",
-      "Karl Marx",
-      "Marx, Karl",
-      "經濟學"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ndl:shihonron",
-      "ia:capital-en",
-      "ddb:kapital-1867"
-     ],
-     "relevant": [
-      "ndl:shihonron",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D11",
-     "variants": [
-      "evolution natural selection",
-      "evolution",
-      "natural",
-      "selection"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "loc:descent-of-man",
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de",
-      "ia:principia-newton",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D12",
-     "variants": [
-      "Kant epistemology",
-      "Kant",
-      "epistemology",
-      "カント",
-      "イマヌエル・カント",
-      "Immanuel Kant",
-      "Kant, Immanuel",
-      "Emmanuel Kant"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:critique-pure-reason",
-      "ddb:kritik-rv-1781",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu"
-     ],
-     "relevant": [
-      "ia:critique-pure-reason"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D13",
-     "variants": [
-      "industrial revolution steam",
-      "industrial",
-      "revolution",
-      "steam"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:steam-engine-watt",
-      "ia:french-revolution-carlyle",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ia:railway-steam"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D14",
-     "variants": [
-      "Protestant ethic capitalism",
-      "Protestant",
-      "ethic",
-      "capitalism",
-      "マルクス",
-      "カール・マルクス",
-      "Karl Marx",
-      "Marx, Karl"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:protestant-ethic-en",
-      "ia:capital-en",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ndl:shihonron"
-     ],
-     "relevant": [
-      "ia:protestant-ethic-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D15",
-     "variants": [
-      "French Revolution history",
-      "French",
-      "Revolution",
-      "歷史"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr"
-     ],
-     "relevant": [
-      "ia:french-revolution-carlyle",
-      "gallica:revolution-hist-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D16",
-     "variants": [
-      "Soseki literature",
-      "Soseki",
-      "literature",
-      "文學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D17",
-     "variants": [
-      "Fukuzawa Yukichi enlightenment",
-      "Fukuzawa",
-      "Yukichi",
-      "enlightenment",
-      "福沢諭吉",
-      "福澤諭吉",
-      "フクザワユキチ",
-      "Fukuzawa Yukichi",
-      "Yukichi Fukuzawa"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ia:fukuzawa-en",
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ia:fukuzawa-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D18",
-     "variants": [
-      "Wasserkraft Elektrizität",
-      "Wasserkraft",
-      "Elektrizität",
-      "Wasserkraft Elektrizitaet",
-      "Wasserkraft Elektrizitat",
-      "Elektrizitaet",
-      "電氣"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ddb:wasserkraft-1908",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898"
-     ],
-     "relevant": [
-      "ddb:wasserkraft-1908"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D19",
-     "variants": [
-      "Eisenbahn Geschichte",
-      "Eisenbahn",
-      "Geschichte",
-      "鐵道",
-      "歷史"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:eisenbahn-de",
-      "ndl:tetsudo-shi"
-     ],
-     "relevant": [
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D20",
-     "variants": [
-      "Entstehung der Arten Darwin",
-      "Entstehung",
-      "der",
-      "Arten",
-      "Darwin"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:abstammung-de",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:kritik-rv-1781",
-      "ddb:dampfmaschine-1850",
-      "ddb:eisenbahn-de",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ddb:mueller-max"
-     ],
-     "relevant": [
-      "ddb:abstammung-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D21",
-     "variants": [
-      "Religionssoziologie Weber",
-      "Religionssoziologie",
-      "Weber",
-      "社會學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ia:protestant-ethic-en",
-      "ia:weber-alfred",
-      "ndl:weber-shukyo"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D22",
-     "variants": [
-      "Philosophie Erkenntnistheorie",
-      "Philosophie",
-      "Erkenntnistheorie",
-      "哲學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:kritik-rv-1781",
-      "gallica:discours-methode",
-      "gallica:contrat-social",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D23",
-     "variants": [
-      "histoire naturelle évolution",
-      "histoire",
-      "naturelle",
-      "évolution",
-      "histoire naturelle evolution",
-      "evolution",
-      "博物學",
-      "歷史"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ia:french-revolution-carlyle",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "gallica:evolution-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.25,
-     "ndcg@10": 0.43067655807339306,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D24",
-     "variants": [
-      "philosophie politique Rousseau",
-      "philosophie",
-      "politique",
-      "Rousseau",
-      "ルソー",
-      "ジャン＝ジャック・ルソー",
-      "Jean-Jacques Rousseau",
-      "Rousseau, Jean-Jacques",
-      "哲學"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "gallica:contrat-social",
-      "gallica:discours-methode",
-      "ddb:kritik-rv-1781",
-      "ndl:shakai-keiyakuron",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D25",
-     "variants": [
-      "électricité histoire",
-      "électricité",
-      "histoire",
-      "electricite histoire",
-      "electricite",
-      "電氣",
-      "歷史"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898"
-     ],
-     "relevant": []
-    },
-    {
-     "id": "D26",
-     "variants": [
-      "Descartes méthode",
-      "Descartes",
-      "méthode",
-      "Descartes methode",
-      "methode",
-      "デカルト",
-      "ルネ・デカルト",
-      "René Descartes",
-      "Descartes, René"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "gallica:discours-methode",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "gallica:discours-methode"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D27",
-     "variants": [
-      "水力発電 ダム",
-      "水力発電",
-      "ダム",
-      "水力發電 ダム",
-      "水力發電",
-      "水力発電 タム",
-      "タム",
-      "水力發電 タム"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:suiryoku-hatsuden-1912",
-      "ia:hydroelectric-1905"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D28",
-     "variants": [
-      "蒸気機関車",
-      "蒸氣機關車",
-      "蒸氣機關",
-      "steam-engine"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ndl:jokikikan-meiji",
-      "ia:railway-steam"
-     ],
-     "relevant": [
-      "ia:railway-steam"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.5,
-     "ndcg@10": 0.6309297535714575,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D29",
-     "variants": [
-      "西洋哲学 日本 受容",
-      "西洋哲学",
-      "日本",
-      "受容",
-      "西洋哲學 日本 受容",
-      "西洋哲學",
-      "哲學"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:tetsudo-shi",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.3333333333333333,
-     "ndcg@10": 0.5,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D30",
-     "variants": [
-      "新聞 明治",
-      "新聞",
-      "明治"
-     ],
-     "attempts": 18,
-     "retrieved": [],
-     "relevant": []
-    },
-    {
-     "id": "D31",
-     "variants": [
-      "Kapitalismus Soziologie",
-      "Kapitalismus",
-      "Soziologie",
-      "社會學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ndl:weber-shukyo"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D32",
-     "variants": [
-      "Darwin Descent of Man",
-      "Darwin",
-      "Descent",
-      "Man"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:abstammung-de",
-      "ia:critique-pure-reason",
-      "ia:water-power-1885",
-      "ddb:kritik-rv-1781"
-     ],
-     "relevant": [
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D33",
-     "variants": [
-      "astronomy outlines Herschel",
-      "astronomy",
-      "outlines",
-      "Herschel",
-      "ハーシェル",
-      "John F. W. Herschel",
-      "John Herschel",
-      "天文學"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D34",
-     "variants": [
-      "吾輩は猫である",
-      "吾輩",
-      "ある",
-      "吾輩は猫てある",
-      "夏目漱石",
-      "ナツメソセキ",
-      "Natsume Sōseki",
-      "Natsume Soseki",
-      "Soseki Natsume"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ndl:soseki-wagahai",
-      "ia:soseki-kokoro-en"
-     ],
-     "relevant": [
-      "ndl:soseki-wagahai"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D35",
-     "variants": [
-      "Kokoro Soseki",
-      "Kokoro",
-      "Soseki",
-      "夏目漱石",
-      "ナツメソセキ",
-      "Natsume Sōseki",
-      "Natsume Soseki",
-      "Soseki Natsume"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D36",
-     "variants": [
-      "学問のすゝめ",
-      "学問",
-      "すゝめ",
-      "學問のすゝめ",
-      "學問",
-      "学問のすすめ",
-      "すすめ"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D37",
-     "variants": [
-      "慶應義塾 福澤",
-      "慶應義塾",
-      "福澤",
-      "慶応義塾 福沢",
-      "慶応義塾",
-      "福沢"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D38",
-     "variants": [
-      "震災 記録 1923",
-      "震災",
-      "記録",
-      "1923",
-      "震災 記錄 1923",
-      "記錄"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "relevant": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D39",
-     "variants": [
-      "Max Müller language",
-      "Max",
-      "Müller",
-      "language",
-      "Max Mueller language",
-      "Max Muller language",
-      "Mueller",
-      "マックス・ミュラー",
-      "Friedrich Max Müller",
-      "Max Müller",
-      "F. Max Müller"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ddb:mueller-max",
-      "ia:protestant-ethic-en",
-      "ddb:protestantische-ethik",
-      "ddb:dampfmaschine-1850",
-      "ddb:wasserkraft-1908",
-      "ddb:eisenbahn-de"
-     ],
-     "relevant": [
-      "ddb:mueller-max"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D40",
-     "variants": [
-      "Erasmus Darwin biology",
-      "Erasmus",
-      "Darwin",
-      "biology",
-      "エラズマス・ダーウィン",
-      "Erasmus Darwin",
-      "生物學"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ia:darwin-erasmus",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:darwin-erasmus"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    }
-   ]
-  },
-  "D": {
-   "aggregate": {
-    "recall@5": 0.9211,
-    "recall@10": 0.9211,
-    "recall@20": 0.9211,
-    "precision@5": 0.2316,
-    "mrr": 0.8969,
-    "ndcg@10": 0.8796,
-    "cross_language_rate": 0.2105,
-    "avg_attempts": 43.0,
-    "avg_variants": 7.2
-   },
-   "cases": [
-    {
-     "id": "D01",
-     "variants": [
-      "進化論 ダーウィン",
-      "進化論",
-      "ダーウィン",
-      "進化論 ターウィン",
-      "ターウィン",
-      "チャールズ・ダーウィン",
-      "Charles Darwin",
-      "Darwin, Charles",
-      "On the Origin of Species",
-      "The Descent of Man, and Selection in Relation to Sex"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ndl:dobutsu-shinkaron",
-      "loc:descent-of-man",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ndl:shinka-ron-1882",
-      "gallica:evolution-fr",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "ndl:dobutsu-shinkaron"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D02",
-     "variants": [
-      "産業革命 イギリス",
-      "産業革命",
-      "イギリス",
-      "產業革命 イギリス",
-      "產業革命",
-      "産業革命 イキリス",
-      "イキリス",
-      "產業革命 イキリス",
-      "工業"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ndl:jokikikan-meiji"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D03",
-     "variants": [
-      "ドイツ哲学 カント",
-      "ドイツ哲学",
-      "カント",
-      "ドイツ哲學 カント",
-      "ドイツ哲學",
-      "トイツ哲学 カント",
-      "トイツ哲学",
-      "トイツ哲學 カント",
-      "イマヌエル・カント",
-      "Immanuel Kant",
-      "Kant, Immanuel",
-      "Emmanuel Kant",
-      "Kritik der reinen Vernunft",
-      "哲學"
-     ],
-     "attempts": 84,
-     "retrieved": [
-      "ndl:kanto-kenkyu",
-      "ndl:junsui-risei-hihan",
-      "ddb:kritik-rv-1781",
-      "ia:critique-pure-reason",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu",
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D04",
-     "variants": [
-      "電気工学 明治",
-      "電気工学",
-      "明治",
-      "電氣工學 明治",
-      "電氣工學",
-      "電氣"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D05",
-     "variants": [
-      "電氣",
-      "電気"
-     ],
-     "attempts": 12,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D06",
-     "variants": [
-      "鉄道 ヨーロッパ",
-      "鉄道",
-      "ヨーロッパ",
-      "鐵道 ヨーロッパ",
-      "鐵道",
-      "鉄道 ヨーロッハ",
-      "ヨーロッハ",
-      "鐵道 ヨーロッハ"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:tetsudo-shi"
-     ],
-     "relevant": [
-      "gallica:chemin-de-fer",
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 0.0,
-     "recall@10": 0.0,
-     "recall@20": 0.0,
-     "precision@5": 0.0,
-     "mrr": 0.0,
-     "ndcg@10": 0.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D07",
-     "variants": [
-      "フランス 政治思想 ルソー",
-      "フランス",
-      "政治思想",
-      "ルソー",
-      "ジャン＝ジャック・ルソー",
-      "Jean-Jacques Rousseau",
-      "Rousseau, Jean-Jacques",
-      "Du contrat social"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "relevant": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D08",
-     "variants": [
-      "天文学 19世紀",
-      "天文学",
-      "19世紀",
-      "天文學 19世紀",
-      "天文學",
-      "文學"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D09",
-     "variants": [
-      "ニュートン 力学",
-      "ニュートン",
-      "力学",
-      "ニュートン 力學",
-      "力學",
-      "アイザック・ニュートン",
-      "Isaac Newton",
-      "Newton, Isaac",
-      "Philosophiæ Naturalis Principia Mathematica"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ia:principia-newton"
-     ],
-     "relevant": [
-      "ia:principia-newton"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D10",
-     "variants": [
-      "マルクス 経済学",
-      "マルクス",
-      "経済学",
-      "マルクス 経済學",
-      "経済學",
-      "カール・マルクス",
-      "Karl Marx",
-      "Marx, Karl",
-      "Das Kapital",
-      "經濟學"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ndl:shihonron",
-      "ddb:kapital-1867",
-      "ia:capital-en"
-     ],
-     "relevant": [
-      "ndl:shihonron",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D11",
-     "variants": [
-      "evolution natural selection",
-      "evolution",
-      "natural",
-      "selection"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "loc:descent-of-man",
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de",
-      "ia:principia-newton",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D12",
-     "variants": [
-      "Kant epistemology",
-      "Kant",
-      "epistemology",
-      "カント",
-      "イマヌエル・カント",
-      "Immanuel Kant",
-      "Kant, Immanuel",
-      "Emmanuel Kant",
-      "Kritik der reinen Vernunft"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ia:critique-pure-reason",
-      "ddb:kritik-rv-1781",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu"
-     ],
-     "relevant": [
-      "ia:critique-pure-reason"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D13",
-     "variants": [
-      "industrial revolution steam",
-      "industrial",
-      "revolution",
-      "steam"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:steam-engine-watt",
-      "ia:french-revolution-carlyle",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ia:railway-steam"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D14",
-     "variants": [
-      "Protestant ethic capitalism",
-      "Protestant",
-      "ethic",
-      "capitalism",
-      "Das Kapital",
-      "資本論",
-      "Capital",
-      "Le Capital",
-      "マルクス",
-      "カール・マルクス",
-      "Karl Marx",
-      "Marx, Karl"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ia:protestant-ethic-en",
-      "ia:capital-en",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ndl:shihonron"
-     ],
-     "relevant": [
-      "ia:protestant-ethic-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D15",
-     "variants": [
-      "French Revolution history",
-      "French",
-      "Revolution",
-      "歷史"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr"
-     ],
-     "relevant": [
-      "ia:french-revolution-carlyle",
-      "gallica:revolution-hist-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D16",
-     "variants": [
-      "Soseki literature",
-      "Soseki",
-      "literature",
-      "文學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D17",
-     "variants": [
-      "Fukuzawa Yukichi enlightenment",
-      "Fukuzawa",
-      "Yukichi",
-      "enlightenment",
-      "福沢諭吉",
-      "福澤諭吉",
-      "フクザワユキチ",
-      "Fukuzawa Yukichi",
-      "Yukichi Fukuzawa",
-      "學問のすゝめ"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ia:fukuzawa-en",
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ia:fukuzawa-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D18",
-     "variants": [
-      "Wasserkraft Elektrizität",
-      "Wasserkraft",
-      "Elektrizität",
-      "Wasserkraft Elektrizitaet",
-      "Wasserkraft Elektrizitat",
-      "Elektrizitaet",
-      "電氣"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ddb:wasserkraft-1908",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898"
-     ],
-     "relevant": [
-      "ddb:wasserkraft-1908"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D19",
-     "variants": [
-      "Eisenbahn Geschichte",
-      "Eisenbahn",
-      "Geschichte",
-      "鐵道",
-      "歷史"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:eisenbahn-de",
-      "ndl:tetsudo-shi"
-     ],
-     "relevant": [
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D20",
-     "variants": [
-      "Entstehung der Arten Darwin",
-      "Entstehung",
-      "der",
-      "Arten",
-      "Darwin"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:abstammung-de",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:kritik-rv-1781",
-      "ddb:dampfmaschine-1850",
-      "ddb:eisenbahn-de",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ddb:mueller-max"
-     ],
-     "relevant": [
-      "ddb:abstammung-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D21",
-     "variants": [
-      "Religionssoziologie Weber",
-      "Religionssoziologie",
-      "Weber",
-      "社會學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ia:protestant-ethic-en",
-      "ia:weber-alfred",
-      "ndl:weber-shukyo"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D22",
-     "variants": [
-      "Philosophie Erkenntnistheorie",
-      "Philosophie",
-      "Erkenntnistheorie",
-      "哲學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:kritik-rv-1781",
-      "gallica:discours-methode",
-      "gallica:contrat-social",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D23",
-     "variants": [
-      "histoire naturelle évolution",
-      "histoire",
-      "naturelle",
-      "évolution",
-      "histoire naturelle evolution",
-      "evolution",
-      "博物學",
-      "歷史"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ia:french-revolution-carlyle",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "gallica:evolution-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.25,
-     "ndcg@10": 0.43067655807339306,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D24",
-     "variants": [
-      "philosophie politique Rousseau",
-      "philosophie",
-      "politique",
-      "Rousseau",
-      "ルソー",
-      "ジャン＝ジャック・ルソー",
-      "Jean-Jacques Rousseau",
-      "Rousseau, Jean-Jacques",
-      "Du contrat social",
-      "哲學"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "gallica:contrat-social",
-      "gallica:discours-methode",
-      "ddb:kritik-rv-1781",
-      "ndl:shakai-keiyakuron",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D25",
-     "variants": [
-      "électricité histoire",
-      "électricité",
-      "histoire",
-      "electricite histoire",
-      "electricite",
-      "電氣",
-      "歷史"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898"
-     ],
-     "relevant": []
-    },
-    {
-     "id": "D26",
-     "variants": [
-      "Descartes méthode",
-      "Descartes",
-      "méthode",
-      "Descartes methode",
-      "methode",
-      "デカルト",
-      "ルネ・デカルト",
-      "René Descartes",
-      "Descartes, René",
-      "Discours de la méthode"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "gallica:discours-methode",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "gallica:discours-methode"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D27",
-     "variants": [
-      "水力発電 ダム",
-      "水力発電",
-      "ダム",
-      "水力發電 ダム",
-      "水力發電",
-      "水力発電 タム",
-      "タム",
-      "水力發電 タム"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "relevant": [
-      "ndl:suiryoku-hatsuden-1912",
-      "ia:hydroelectric-1905"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 0.5,
-     "recall@20": 0.5,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 0.6131471927654584,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D28",
-     "variants": [
-      "蒸気機関車",
-      "蒸氣機關車",
-      "蒸氣機關",
-      "steam-engine"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ndl:jokikikan-meiji",
-      "ia:railway-steam"
-     ],
-     "relevant": [
-      "ia:railway-steam"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.5,
-     "ndcg@10": 0.6309297535714575,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D29",
-     "variants": [
-      "西洋哲学 日本 受容",
-      "西洋哲学",
-      "日本",
-      "受容",
-      "西洋哲學 日本 受容",
-      "西洋哲學",
-      "哲學"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:tetsudo-shi",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.3333333333333333,
-     "ndcg@10": 0.5,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D30",
-     "variants": [
-      "新聞 明治",
-      "新聞",
-      "明治"
-     ],
-     "attempts": 18,
-     "retrieved": [],
-     "relevant": []
-    },
-    {
-     "id": "D31",
-     "variants": [
-      "Kapitalismus Soziologie",
-      "Kapitalismus",
-      "Soziologie",
-      "社會學"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ndl:weber-shukyo"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D32",
-     "variants": [
-      "Darwin Descent of Man",
-      "Darwin",
-      "Descent",
-      "Man"
-     ],
-     "attempts": 24,
-     "retrieved": [
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:abstammung-de",
-      "ia:critique-pure-reason",
-      "ia:water-power-1885",
-      "ddb:kritik-rv-1781"
-     ],
-     "relevant": [
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D33",
-     "variants": [
-      "astronomy outlines Herschel",
-      "astronomy",
-      "outlines",
-      "Herschel",
-      "ハーシェル",
-      "John F. W. Herschel",
-      "John Herschel",
-      "天文學"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D34",
-     "variants": [
-      "吾輩は猫である",
-      "吾輩",
-      "ある",
-      "吾輩は猫てある",
-      "I Am a Cat",
-      "夏目漱石",
-      "ナツメソセキ",
-      "Natsume Sōseki",
-      "Natsume Soseki",
-      "Soseki Natsume",
-      "こころ"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ndl:soseki-wagahai",
-      "ia:soseki-kokoro-en"
-     ],
-     "relevant": [
-      "ndl:soseki-wagahai"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D35",
-     "variants": [
-      "Kokoro Soseki",
-      "Kokoro",
-      "Soseki",
-      "こころ",
-      "夏目漱石",
-      "ナツメソセキ",
-      "Natsume Sōseki",
-      "Natsume Soseki",
-      "Soseki Natsume",
-      "吾輩は猫である"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D36",
-     "variants": [
-      "学問のすゝめ",
-      "学問",
-      "すゝめ",
-      "學問のすゝめ",
-      "學問",
-      "学問のすすめ",
-      "すすめ"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D37",
-     "variants": [
-      "慶應義塾 福澤",
-      "慶應義塾",
-      "福澤",
-      "慶応義塾 福沢",
-      "慶応義塾",
-      "福沢"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D38",
-     "variants": [
-      "震災 記録 1923",
-      "震災",
-      "記録",
-      "1923",
-      "震災 記錄 1923",
-      "記錄"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "relevant": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D39",
-     "variants": [
-      "Max Müller language",
-      "Max",
-      "Müller",
-      "language",
-      "Max Mueller language",
-      "Max Muller language",
-      "Mueller",
-      "マックス・ミュラー",
-      "Friedrich Max Müller",
-      "Max Müller",
-      "F. Max Müller",
-      "Lectures on the Science of Language"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ddb:mueller-max",
-      "ia:protestant-ethic-en",
-      "ddb:protestantische-ethik",
-      "ddb:dampfmaschine-1850",
-      "ddb:wasserkraft-1908",
-      "ddb:eisenbahn-de"
-     ],
-     "relevant": [
-      "ddb:mueller-max"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D40",
-     "variants": [
-      "Erasmus Darwin biology",
-      "Erasmus",
-      "Darwin",
-      "biology",
-      "エラズマス・ダーウィン",
-      "Erasmus Darwin",
-      "Zoonomia",
-      "生物學"
-     ],
-     "attempts": 48,
-     "retrieved": [
-      "ia:darwin-erasmus",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:darwin-erasmus"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    }
-   ]
-  },
-  "E": {
-   "aggregate": {
-    "recall@5": 0.9868,
-    "recall@10": 1.0,
-    "recall@20": 1.0,
-    "precision@5": 0.2526,
-    "mrr": 0.9285,
-    "ndcg@10": 0.9307,
-    "cross_language_rate": 0.3158,
-    "avg_attempts": 65.0,
-    "avg_variants": 10.8
-   },
-   "cases": [
-    {
-     "id": "D01",
-     "variants": [
-      "進化論 ダーウィン",
-      "進化論",
-      "ダーウィン",
-      "進化論 ターウィン",
-      "ターウィン",
-      "チャールズ・ダーウィン",
-      "Charles Darwin",
-      "Darwin, Charles",
-      "On the Origin of Species",
-      "The Descent of Man, and Selection in Relation to Sex",
-      "evolution",
-      "theory of evolution"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ndl:dobutsu-shinkaron",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de",
-      "ndl:shinka-ron-1882",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ia:steam-engine-watt",
-      "ia:french-revolution-carlyle"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "ndl:dobutsu-shinkaron"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D02",
-     "variants": [
-      "産業革命 イギリス",
-      "産業革命",
-      "イギリス",
-      "產業革命 イギリス",
-      "產業革命",
-      "産業革命 イキリス",
-      "イキリス",
-      "產業革命 イキリス",
-      "工業",
-      "industrial revolution",
-      "industrielle Revolution",
-      "Industrialisierung",
-      "révolution industrielle",
-      "industry"
-     ],
-     "attempts": 84,
-     "retrieved": [
-      "ndl:jokikikan-meiji",
-      "ia:steam-engine-watt",
-      "ia:weber-alfred"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.5,
-     "ndcg@10": 0.6309297535714575,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D03",
-     "variants": [
-      "ドイツ哲学 カント",
-      "ドイツ哲学",
-      "カント",
-      "ドイツ哲學 カント",
-      "ドイツ哲學",
-      "トイツ哲学 カント",
-      "トイツ哲学",
-      "トイツ哲學 カント",
-      "イマヌエル・カント",
-      "Immanuel Kant",
-      "Kant, Immanuel",
-      "Emmanuel Kant",
-      "Kritik der reinen Vernunft",
-      "哲學"
-     ],
-     "attempts": 84,
-     "retrieved": [
-      "ndl:kanto-kenkyu",
-      "ndl:junsui-risei-hihan",
-      "ddb:kritik-rv-1781",
-      "ia:critique-pure-reason",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu",
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D04",
-     "variants": [
-      "電気工学 明治",
-      "電気工学",
-      "明治",
-      "電氣工學 明治",
-      "電氣工學",
-      "電氣",
-      "electricity",
-      "Elektrizität",
-      "électricité",
-      "electrical engineering",
-      "Elektrotechnik"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912",
-      "ddb:wasserkraft-1908"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D05",
-     "variants": [
-      "電氣",
-      "電気",
-      "electricity",
-      "Elektrizität",
-      "électricité"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912",
-      "ddb:wasserkraft-1908"
-     ],
-     "relevant": [
-      "ndl:denki-kogaku-1898",
-      "ndl:suiryoku-hatsuden-1912"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D06",
-     "variants": [
-      "鉄道 ヨーロッパ",
-      "鉄道",
-      "ヨーロッパ",
-      "鐵道 ヨーロッパ",
-      "鐵道",
-      "鉄道 ヨーロッハ",
-      "ヨーロッハ",
-      "鐵道 ヨーロッハ",
-      "railway",
-      "railroad",
-      "Eisenbahn",
-      "chemin de fer",
-      "鉄道-ヨーロッパ"
-     ],
-     "attempts": 78,
-     "retrieved": [
-      "ndl:tetsudo-shi",
-      "ia:railway-steam",
-      "ia:railroad-history-us",
-      "loc:ca-tribune-1907",
-      "ddb:eisenbahn-de",
-      "gallica:chemin-de-fer"
-     ],
-     "relevant": [
-      "gallica:chemin-de-fer",
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 0.5,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.2,
-     "ndcg@10": 0.45560514958746035,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D07",
-     "variants": [
-      "フランス 政治思想 ルソー",
-      "フランス",
-      "政治思想",
-      "ルソー",
-      "ジャン＝ジャック・ルソー",
-      "Jean-Jacques Rousseau",
-      "Rousseau, Jean-Jacques",
-      "Du contrat social",
-      "political philosophy",
-      "political thought",
-      "politische Philosophie"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "relevant": [
-      "ndl:shakai-keiyakuron",
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D08",
-     "variants": [
-      "天文学 19世紀",
-      "天文学",
-      "19世紀",
-      "天文學 19世紀",
-      "天文學",
-      "文學",
-      "astronomy",
-      "Astronomie",
-      "literature",
-      "Literatur",
-      "littérature"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ndl:tenmongaku-meiji",
-      "ia:soseki-kokoro-en",
-      "ndl:soseki-wagahai",
-      "ia:astronomy-herschel",
-      "ddb:astronomie-de"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D09",
-     "variants": [
-      "ニュートン 力学",
-      "ニュートン",
-      "力学",
-      "ニュートン 力學",
-      "力學",
-      "アイザック・ニュートン",
-      "Isaac Newton",
-      "Newton, Isaac",
-      "Philosophiæ Naturalis Principia Mathematica",
-      "mechanics"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ia:principia-newton"
-     ],
-     "relevant": [
-      "ia:principia-newton"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D10",
-     "variants": [
-      "マルクス 経済学",
-      "マルクス",
-      "経済学",
-      "マルクス 経済學",
-      "経済學",
-      "カール・マルクス",
-      "Karl Marx",
-      "Marx, Karl",
-      "Das Kapital",
-      "經濟學"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ndl:shihonron",
-      "ddb:kapital-1867",
-      "ia:capital-en"
-     ],
-     "relevant": [
-      "ndl:shihonron",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D11",
-     "variants": [
-      "evolution natural selection",
-      "evolution",
-      "natural",
-      "selection",
-      "進化論",
-      "進化",
-      "Evolution",
-      "Abstammungslehre",
-      "Entwicklungslehre",
-      "évolution",
-      "théorie de l'évolution",
-      "自然選択"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:french-revolution-carlyle",
-      "loc:descent-of-man",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ia:principia-newton",
-      "ndl:shinka-ron-1882",
-      "ndl:dobutsu-shinkaron"
-     ],
-     "relevant": [
-      "ia:origin-species-1859",
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D12",
-     "variants": [
-      "Kant epistemology",
-      "Kant",
-      "epistemology",
-      "カント",
-      "イマヌエル・カント",
-      "Immanuel Kant",
-      "Kant, Immanuel",
-      "Emmanuel Kant",
-      "Kritik der reinen Vernunft",
-      "認識論",
-      "Erkenntnistheorie"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ia:critique-pure-reason",
-      "ddb:kritik-rv-1781",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu"
-     ],
-     "relevant": [
-      "ia:critique-pure-reason"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D13",
-     "variants": [
-      "industrial revolution steam",
-      "industrial",
-      "revolution",
-      "steam",
-      "産業革命",
-      "industrielle Revolution",
-      "Industrialisierung",
-      "révolution industrielle",
-      "進化論",
-      "進化",
-      "Evolution",
-      "Abstammungslehre"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ia:steam-engine-watt",
-      "ia:french-revolution-carlyle",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ndl:shinka-ron-1882",
-      "ndl:dobutsu-shinkaron",
-      "ia:railway-steam",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:steam-engine-watt"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D14",
-     "variants": [
-      "Protestant ethic capitalism",
-      "Protestant",
-      "ethic",
-      "capitalism",
-      "Das Kapital",
-      "資本論",
-      "Capital",
-      "Le Capital",
-      "マルクス",
-      "カール・マルクス",
-      "Karl Marx",
-      "Marx, Karl"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ia:protestant-ethic-en",
-      "ia:capital-en",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ndl:shihonron"
-     ],
-     "relevant": [
-      "ia:protestant-ethic-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D15",
-     "variants": [
-      "French Revolution history",
-      "French",
-      "Revolution",
-      "歷史",
-      "進化論",
-      "進化",
-      "Evolution",
-      "Abstammungslehre",
-      "Entwicklungslehre",
-      "évolution",
-      "théorie de l'évolution"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ia:french-revolution-carlyle",
-      "ia:steam-engine-watt",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ndl:shinka-ron-1882",
-      "ndl:dobutsu-shinkaron",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de"
-     ],
-     "relevant": [
-      "ia:french-revolution-carlyle",
-      "gallica:revolution-hist-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.8772153153380493,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D16",
-     "variants": [
-      "Soseki literature",
-      "Soseki",
-      "literature",
-      "文學",
-      "文学",
-      "Literatur",
-      "littérature",
-      "Soseki-literature",
-      "linguistics",
-      "science of language"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:tenmongaku-meiji",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D17",
-     "variants": [
-      "Fukuzawa Yukichi enlightenment",
-      "Fukuzawa",
-      "Yukichi",
-      "enlightenment",
-      "福沢諭吉",
-      "福澤諭吉",
-      "フクザワユキチ",
-      "Fukuzawa Yukichi",
-      "Yukichi Fukuzawa",
-      "學問のすゝめ",
-      "啓蒙",
-      "Aufklärung"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ia:fukuzawa-en",
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ia:fukuzawa-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D18",
-     "variants": [
-      "Wasserkraft Elektrizität",
-      "Wasserkraft",
-      "Elektrizität",
-      "Wasserkraft Elektrizitaet",
-      "Wasserkraft Elektrizitat",
-      "Elektrizitaet",
-      "電氣",
-      "水力",
-      "water power",
-      "hydraulic power",
-      "force hydraulique",
-      "énergie hydraulique",
-      "電気",
-      "electricity"
-     ],
-     "attempts": 84,
-     "retrieved": [
-      "ddb:wasserkraft-1908",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898",
-      "ia:water-power-1885",
-      "ia:hydroelectric-1905"
-     ],
-     "relevant": [
-      "ddb:wasserkraft-1908"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D19",
-     "variants": [
-      "Eisenbahn Geschichte",
-      "Eisenbahn",
-      "Geschichte",
-      "鐵道",
-      "歷史",
-      "鉄道",
-      "railway",
-      "railroad",
-      "chemin de fer",
-      "歴史",
-      "history"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ddb:eisenbahn-de",
-      "ndl:tetsudo-shi",
-      "ia:railway-steam",
-      "ia:railroad-history-us",
-      "loc:ca-tribune-1907",
-      "gallica:chemin-de-fer",
-      "ia:french-revolution-carlyle"
-     ],
-     "relevant": [
-      "ddb:eisenbahn-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D20",
-     "variants": [
-      "Entstehung der Arten Darwin",
-      "Entstehung",
-      "der",
-      "Arten",
-      "Darwin"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "ddb:abstammung-de",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:kritik-rv-1781",
-      "ddb:dampfmaschine-1850",
-      "ddb:eisenbahn-de",
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867",
-      "ddb:mueller-max"
-     ],
-     "relevant": [
-      "ddb:abstammung-de"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D21",
-     "variants": [
-      "Religionssoziologie Weber",
-      "Religionssoziologie",
-      "Weber",
-      "社會學",
-      "宗教社会学",
-      "sociology of religion",
-      "sociologie des religions",
-      "宗教",
-      "religion",
-      "社会学",
-      "sociology"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ia:protestant-ethic-en",
-      "ndl:weber-shukyo",
-      "ia:weber-alfred"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D22",
-     "variants": [
-      "Philosophie Erkenntnistheorie",
-      "Philosophie",
-      "Erkenntnistheorie",
-      "哲學",
-      "認識論",
-      "epistemology",
-      "theory of knowledge",
-      "épistémologie",
-      "théorie de la connaissance",
-      "哲学",
-      "philosophy"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ddb:kritik-rv-1781",
-      "ndl:junsui-risei-hihan",
-      "gallica:discours-methode",
-      "gallica:contrat-social",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu",
-      "ia:critique-pure-reason",
-      "ia:principia-newton"
-     ],
-     "relevant": [
-      "ddb:kritik-rv-1781"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D23",
-     "variants": [
-      "histoire naturelle évolution",
-      "histoire",
-      "naturelle",
-      "évolution",
-      "histoire naturelle evolution",
-      "evolution",
-      "博物學",
-      "歷史",
-      "進化論",
-      "進化",
-      "theory of evolution",
-      "Abstammungslehre",
-      "Entwicklungslehre"
-     ],
-     "attempts": 78,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ia:french-revolution-carlyle",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "gallica:moniteur-1789",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:steam-engine-watt",
-      "ddb:abstammung-de",
-      "ndl:shinka-ron-1882",
-      "ndl:dobutsu-shinkaron"
-     ],
-     "relevant": [
-      "gallica:evolution-fr"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.25,
-     "ndcg@10": 0.43067655807339306,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D24",
-     "variants": [
-      "philosophie politique Rousseau",
-      "philosophie",
-      "politique",
-      "Rousseau",
-      "ルソー",
-      "ジャン＝ジャック・ルソー",
-      "Jean-Jacques Rousseau",
-      "Rousseau, Jean-Jacques",
-      "Du contrat social",
-      "哲學",
-      "哲学",
-      "philosophy"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "gallica:contrat-social",
-      "gallica:discours-methode",
-      "ddb:kritik-rv-1781",
-      "ndl:junsui-risei-hihan",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu",
-      "ndl:shakai-keiyakuron",
-      "ia:critique-pure-reason",
-      "ia:principia-newton"
-     ],
-     "relevant": [
-      "gallica:contrat-social"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D25",
-     "variants": [
-      "électricité histoire",
-      "électricité",
-      "histoire",
-      "electricite histoire",
-      "electricite",
-      "電氣",
-      "歷史",
-      "電気",
-      "electricity",
-      "Elektrizität",
-      "歴史",
-      "history",
-      "Geschichte"
-     ],
-     "attempts": 78,
-     "retrieved": [
-      "gallica:revolution-hist-fr",
-      "ndl:suiryoku-hatsuden-1912",
-      "ndl:denki-kogaku-1898",
-      "ddb:wasserkraft-1908",
-      "ia:railroad-history-us",
-      "ia:french-revolution-carlyle",
-      "ddb:eisenbahn-de"
-     ],
-     "relevant": []
-    },
-    {
-     "id": "D26",
-     "variants": [
-      "Descartes méthode",
-      "Descartes",
-      "méthode",
-      "Descartes methode",
-      "methode",
-      "デカルト",
-      "ルネ・デカルト",
-      "René Descartes",
-      "Descartes, René",
-      "Discours de la méthode",
-      "Descartes-méthode"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "gallica:discours-methode",
-      "ndl:hoho-josetsu"
-     ],
-     "relevant": [
-      "gallica:discours-methode"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D27",
-     "variants": [
-      "水力発電 ダム",
-      "水力発電",
-      "ダム",
-      "水力發電 ダム",
-      "水力發電",
-      "水力発電 タム",
-      "タム",
-      "水力發電 タム",
-      "hydroelectric power",
-      "hydro-electric power",
-      "Wasserkraftwerk",
-      "Hydroelektrizität",
-      "hydroélectricité",
-      "water power"
-     ],
-     "attempts": 84,
-     "retrieved": [
-      "ndl:suiryoku-hatsuden-1912",
-      "ia:hydroelectric-1905",
-      "ia:water-power-1885"
-     ],
-     "relevant": [
-      "ndl:suiryoku-hatsuden-1912",
-      "ia:hydroelectric-1905"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D28",
-     "variants": [
-      "蒸気機関車",
-      "蒸氣機關車",
-      "蒸氣機關",
-      "steam-engine",
-      "steam engine",
-      "Dampfmaschine",
-      "machine à vapeur",
-      "locomotive",
-      "Lokomotive"
-     ],
-     "attempts": 54,
-     "retrieved": [
-      "ia:railway-steam",
-      "ndl:jokikikan-meiji",
-      "ia:steam-engine-watt",
-      "ddb:dampfmaschine-1850",
-      "gallica:machine-vapeur"
-     ],
-     "relevant": [
-      "ia:railway-steam"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D29",
-     "variants": [
-      "西洋哲学 日本 受容",
-      "西洋哲学",
-      "日本",
-      "受容",
-      "西洋哲學 日本 受容",
-      "西洋哲學",
-      "哲學",
-      "philosophy",
-      "Philosophie",
-      "認識論",
-      "政治哲学",
-      "政治思想"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ndl:junsui-risei-hihan",
-      "ndl:tetsudo-shi",
-      "ndl:kanto-kenkyu",
-      "ndl:hoho-josetsu",
-      "ia:critique-pure-reason",
-      "ia:principia-newton",
-      "gallica:discours-methode",
-      "gallica:contrat-social",
-      "ddb:kritik-rv-1781",
-      "ndl:shakai-keiyakuron"
-     ],
-     "relevant": [
-      "ndl:kanto-kenkyu"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 0.3333333333333333,
-     "ndcg@10": 0.5,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D30",
-     "variants": [
-      "新聞 明治",
-      "新聞",
-      "明治",
-      "newspaper",
-      "press",
-      "Zeitung",
-      "Presse",
-      "journal",
-      "新聞-明治",
-      "フランス革命"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "gallica:moniteur-1789"
-     ],
-     "relevant": []
-    },
-    {
-     "id": "D31",
-     "variants": [
-      "Kapitalismus Soziologie",
-      "Kapitalismus",
-      "Soziologie",
-      "社會學",
-      "資本主義",
-      "capitalism",
-      "capitalisme",
-      "社会学",
-      "sociology",
-      "sociologie",
-      "Kapitalismus-Soziologie"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ddb:protestantische-ethik",
-      "ndl:weber-shukyo",
-      "ddb:kapital-1867",
-      "ia:protestant-ethic-en",
-      "ia:capital-en"
-     ],
-     "relevant": [
-      "ddb:protestantische-ethik",
-      "ddb:kapital-1867"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.4,
-     "mrr": 1.0,
-     "ndcg@10": 0.9197207891481876,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D32",
-     "variants": [
-      "Darwin Descent of Man",
-      "Darwin",
-      "Descent",
-      "Man",
-      "Darwin-Descent"
-     ],
-     "attempts": 30,
-     "retrieved": [
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ia:darwin-erasmus",
-      "ddb:abstammung-de",
-      "ia:critique-pure-reason",
-      "ia:water-power-1885",
-      "ddb:kritik-rv-1781"
-     ],
-     "relevant": [
-      "loc:descent-of-man"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D33",
-     "variants": [
-      "astronomy outlines Herschel",
-      "astronomy",
-      "outlines",
-      "Herschel",
-      "ハーシェル",
-      "John F. W. Herschel",
-      "John Herschel",
-      "天文學",
-      "天文学",
-      "Astronomie",
-      "mechanics"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ia:astronomy-herschel",
-      "ndl:tenmongaku-meiji",
-      "ddb:astronomie-de",
-      "ia:principia-newton"
-     ],
-     "relevant": [
-      "ia:astronomy-herschel"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D34",
-     "variants": [
-      "吾輩は猫である",
-      "吾輩",
-      "ある",
-      "吾輩は猫てある",
-      "I Am a Cat",
-      "夏目漱石",
-      "ナツメソセキ",
-      "Natsume Sōseki",
-      "Natsume Soseki",
-      "Soseki Natsume",
-      "こころ"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ndl:soseki-wagahai",
-      "ia:soseki-kokoro-en"
-     ],
-     "relevant": [
-      "ndl:soseki-wagahai"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D35",
-     "variants": [
-      "Kokoro Soseki",
-      "Kokoro",
-      "Soseki",
-      "こころ",
-      "夏目漱石",
-      "ナツメソセキ",
-      "Natsume Sōseki",
-      "Natsume Soseki",
-      "Soseki Natsume",
-      "吾輩は猫である"
-     ],
-     "attempts": 60,
-     "retrieved": [
-      "ia:soseki-kokoro-en",
-      "ndl:soseki-wagahai"
-     ],
-     "relevant": [
-      "ia:soseki-kokoro-en"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D36",
-     "variants": [
-      "学問のすゝめ",
-      "学問",
-      "すゝめ",
-      "學問のすゝめ",
-      "學問",
-      "学問のすすめ",
-      "すすめ",
-      "learning",
-      "scholarship",
-      "Gelehrsamkeit",
-      "Wissenschaft"
-     ],
-     "attempts": 66,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon",
-      "ia:fukuzawa-en",
-      "ddb:mueller-max"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D37",
-     "variants": [
-      "慶應義塾 福澤",
-      "慶應義塾",
-      "福澤",
-      "慶応義塾 福沢",
-      "慶応義塾",
-      "福沢",
-      "慶應義塾-福澤"
-     ],
-     "attempts": 42,
-     "retrieved": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "relevant": [
-      "ndl:fukuzawa-gakumon"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D38",
-     "variants": [
-      "震災 記録 1923",
-      "震災",
-      "記録",
-      "1923",
-      "震災 記錄 1923",
-      "記錄"
-     ],
-     "attempts": 36,
-     "retrieved": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "relevant": [
-      "ndl:kanto-jiken-1923"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    },
-    {
-     "id": "D39",
-     "variants": [
-      "Max Müller language",
-      "Max",
-      "Müller",
-      "language",
-      "Max Mueller language",
-      "Max Muller language",
-      "Mueller",
-      "マックス・ミュラー",
-      "Friedrich Max Müller",
-      "Max Müller",
-      "F. Max Müller",
-      "Lectures on the Science of Language"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ddb:mueller-max",
-      "ia:protestant-ethic-en",
-      "ddb:protestantische-ethik",
-      "ddb:dampfmaschine-1850",
-      "ddb:wasserkraft-1908",
-      "ddb:eisenbahn-de"
-     ],
-     "relevant": [
-      "ddb:mueller-max"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": true
-    },
-    {
-     "id": "D40",
-     "variants": [
-      "Erasmus Darwin biology",
-      "Erasmus",
-      "Darwin",
-      "biology",
-      "エラズマス・ダーウィン",
-      "Erasmus Darwin",
-      "Zoonomia",
-      "生物學",
-      "生物学",
-      "Biologie",
-      "natural history",
-      "evolution"
-     ],
-     "attempts": 72,
-     "retrieved": [
-      "ia:darwin-erasmus",
-      "loc:descent-of-man",
-      "gallica:evolution-fr",
-      "ia:origin-species-1859",
-      "ia:origin-species-1872",
-      "ddb:abstammung-de",
-      "gallica:moniteur-1789",
-      "gallica:revolution-hist-fr",
-      "ia:steam-engine-watt",
-      "ia:french-revolution-carlyle"
-     ],
-     "relevant": [
-      "ia:darwin-erasmus"
-     ],
-     "recall@5": 1.0,
-     "recall@10": 1.0,
-     "recall@20": 1.0,
-     "precision@5": 0.2,
-     "mrr": 1.0,
-     "ndcg@10": 1.0,
-     "cross_language_hit": false
-    }
-   ]
-  },
   "F": {
    "aggregate": {
     "recall@5": 0.9474,
@@ -5765,9 +1052,32 @@
     "precision@5": 0.2421,
     "mrr": 0.9263,
     "ndcg@10": 0.9275,
+    "recall_denominator": 38,
     "cross_language_rate": 0.3158,
-    "avg_attempts": 44.0,
-    "avg_variants": 10.8
+    "cross_language_denominator": 38,
+    "avg_attempts": 41.0,
+    "attempts_denominator": 40,
+    "avg_variants": 10.8,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.5,
+    "irrelevant_retrieval_rate": 0.175,
+    "per_tag": {
+     "original_title": {
+      "cases": 3,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "translated_title": {
+      "cases": 1,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "cross_language": {
+      "cases": 2,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     }
+    }
    },
    "cases": [
     {
@@ -5786,7 +1096,7 @@
       "evolution",
       "theory of evolution"
      ],
-     "attempts": 40,
+     "attempts": 36,
      "retrieved": [
       "ndl:dobutsu-shinkaron",
       "loc:descent-of-man",
@@ -5828,7 +1138,7 @@
       "révolution industrielle",
       "industry"
      ],
-     "attempts": 44,
+     "attempts": 40,
      "retrieved": [
       "ndl:jokikikan-meiji",
       "ia:steam-engine-watt",
@@ -5863,7 +1173,7 @@
       "Kritik der reinen Vernunft",
       "哲學"
      ],
-     "attempts": 49,
+     "attempts": 48,
      "retrieved": [
       "ndl:kanto-kenkyu",
       "ndl:junsui-risei-hihan",
@@ -5898,7 +1208,7 @@
       "electrical engineering",
       "Elektrotechnik"
      ],
-     "attempts": 42,
+     "attempts": 38,
      "retrieved": [
       "ndl:denki-kogaku-1898",
       "ndl:suiryoku-hatsuden-1912",
@@ -5924,7 +1234,7 @@
       "Elektrizität",
       "électricité"
      ],
-     "attempts": 21,
+     "attempts": 18,
      "retrieved": [
       "ndl:denki-kogaku-1898",
       "ndl:suiryoku-hatsuden-1912",
@@ -5959,7 +1269,7 @@
       "chemin de fer",
       "鉄道-ヨーロッパ"
      ],
-     "attempts": 45,
+     "attempts": 42,
      "retrieved": [
       "ndl:tetsudo-shi",
       "ia:railway-steam",
@@ -5995,7 +1305,7 @@
       "political thought",
       "politische Philosophie"
      ],
-     "attempts": 38,
+     "attempts": 34,
      "retrieved": [
       "ndl:shakai-keiyakuron",
       "gallica:contrat-social"
@@ -6027,7 +1337,7 @@
       "Literatur",
       "littérature"
      ],
-     "attempts": 45,
+     "attempts": 42,
      "retrieved": [
       "ndl:tenmongaku-meiji",
       "ia:soseki-kokoro-en",
@@ -6058,10 +1368,10 @@
       "アイザック・ニュートン",
       "Isaac Newton",
       "Newton, Isaac",
-      "Philosophiæ Naturalis Principia Mathematica",
-      "mechanics"
+      "mechanics",
+      "Mechanik"
      ],
-     "attempts": 42,
+     "attempts": 44,
      "retrieved": [
       "ia:principia-newton"
      ],
@@ -6090,7 +1400,7 @@
       "Das Kapital",
       "經濟學"
      ],
-     "attempts": 33,
+     "attempts": 32,
      "retrieved": [
       "ndl:shihonron",
       "ddb:kapital-1867",
@@ -6124,7 +1434,7 @@
       "théorie de l'évolution",
       "自然選択"
      ],
-     "attempts": 52,
+     "attempts": 48,
      "retrieved": [
       "ia:origin-species-1859",
       "ia:origin-species-1872",
@@ -6165,7 +1475,7 @@
       "認識論",
       "Erkenntnistheorie"
      ],
-     "attempts": 48,
+     "attempts": 46,
      "retrieved": [
       "ia:critique-pure-reason",
       "ddb:kritik-rv-1781",
@@ -6199,7 +1509,7 @@
       "Evolution",
       "Abstammungslehre"
      ],
-     "attempts": 52,
+     "attempts": 48,
      "retrieved": [
       "ia:steam-engine-watt",
       "ia:french-revolution-carlyle",
@@ -6237,7 +1547,7 @@
       "Karl Marx",
       "Marx, Karl"
      ],
-     "attempts": 51,
+     "attempts": 48,
      "retrieved": [
       "ia:protestant-ethic-en",
       "ia:capital-en",
@@ -6271,7 +1581,7 @@
       "évolution",
       "théorie de l'évolution"
      ],
-     "attempts": 50,
+     "attempts": 46,
      "retrieved": [
       "ia:french-revolution-carlyle",
       "ia:steam-engine-watt",
@@ -6310,7 +1620,7 @@
       "linguistics",
       "science of language"
      ],
-     "attempts": 45,
+     "attempts": 40,
      "retrieved": [
       "ia:soseki-kokoro-en",
       "ndl:tenmongaku-meiji",
@@ -6343,7 +1653,7 @@
       "啓蒙",
       "Aufklärung"
      ],
-     "attempts": 50,
+     "attempts": 48,
      "retrieved": [
       "ia:fukuzawa-en",
       "ndl:fukuzawa-gakumon"
@@ -6377,7 +1687,7 @@
       "電気",
       "electricity"
      ],
-     "attempts": 69,
+     "attempts": 64,
      "retrieved": [
       "ddb:wasserkraft-1908",
       "ndl:suiryoku-hatsuden-1912",
@@ -6411,7 +1721,7 @@
       "歴史",
       "history"
      ],
-     "attempts": 51,
+     "attempts": 46,
      "retrieved": [
       "ddb:eisenbahn-de",
       "ndl:tetsudo-shi",
@@ -6482,7 +1792,7 @@
       "社会学",
       "sociology"
      ],
-     "attempts": 39,
+     "attempts": 34,
      "retrieved": [
       "ddb:protestantische-ethik",
       "ia:protestant-ethic-en",
@@ -6515,7 +1825,7 @@
       "哲学",
       "philosophy"
      ],
-     "attempts": 44,
+     "attempts": 38,
      "retrieved": [
       "ddb:kritik-rv-1781",
       "ndl:junsui-risei-hihan",
@@ -6552,7 +1862,7 @@
       "Abstammungslehre",
       "Entwicklungslehre"
      ],
-     "attempts": 55,
+     "attempts": 50,
      "retrieved": [
       "gallica:revolution-hist-fr",
       "ia:french-revolution-carlyle",
@@ -6592,7 +1902,7 @@
       "哲学",
       "philosophy"
      ],
-     "attempts": 55,
+     "attempts": 52,
      "retrieved": [
       "gallica:contrat-social",
       "ddb:kritik-rv-1781",
@@ -6631,7 +1941,7 @@
       "history",
       "Geschichte"
      ],
-     "attempts": 57,
+     "attempts": 50,
      "retrieved": [
       "gallica:revolution-hist-fr",
       "ndl:suiryoku-hatsuden-1912",
@@ -6658,7 +1968,7 @@
       "Discours de la méthode",
       "Descartes-méthode"
      ],
-     "attempts": 55,
+     "attempts": 54,
      "retrieved": [
       "gallica:discours-methode",
       "ndl:hoho-josetsu"
@@ -6692,7 +2002,7 @@
       "hydroélectricité",
       "water power"
      ],
-     "attempts": 38,
+     "attempts": 32,
      "retrieved": [
       "ndl:suiryoku-hatsuden-1912",
       "ia:hydroelectric-1905",
@@ -6723,7 +2033,7 @@
       "locomotive",
       "Lokomotive"
      ],
-     "attempts": 31,
+     "attempts": 26,
      "retrieved": [
       "ia:railway-steam",
       "ndl:jokikikan-meiji",
@@ -6757,7 +2067,7 @@
       "政治哲学",
       "政治思想"
      ],
-     "attempts": 42,
+     "attempts": 40,
      "retrieved": [
       "ndl:junsui-risei-hihan",
       "ndl:tetsudo-shi",
@@ -6793,7 +2103,7 @@
       "新聞-明治",
       "フランス革命"
      ],
-     "attempts": 43,
+     "attempts": 40,
      "retrieved": [],
      "relevant": []
     },
@@ -6812,7 +2122,7 @@
       "sociologie",
       "Kapitalismus-Soziologie"
      ],
-     "attempts": 42,
+     "attempts": 38,
      "retrieved": [
       "ddb:protestantische-ethik",
       "ndl:weber-shukyo",
@@ -6879,7 +2189,7 @@
       "Astronomie",
       "mechanics"
      ],
-     "attempts": 48,
+     "attempts": 46,
      "retrieved": [
       "ia:astronomy-herschel",
       "ndl:tenmongaku-meiji",
@@ -6912,7 +2222,7 @@
       "Soseki Natsume",
       "こころ"
      ],
-     "attempts": 43,
+     "attempts": 42,
      "retrieved": [
       "ndl:soseki-wagahai",
       "ia:soseki-kokoro-en"
@@ -6942,7 +2252,7 @@
       "Soseki Natsume",
       "吾輩は猫である"
      ],
-     "attempts": 41,
+     "attempts": 40,
      "retrieved": [
       "ia:soseki-kokoro-en",
       "ndl:soseki-wagahai"
@@ -6973,7 +2283,7 @@
       "Gelehrsamkeit",
       "Wissenschaft"
      ],
-     "attempts": 41,
+     "attempts": 38,
      "retrieved": [
       "ndl:fukuzawa-gakumon",
       "ia:fukuzawa-en",
@@ -7057,7 +2367,7 @@
       "F. Max Müller",
       "Lectures on the Science of Language"
      ],
-     "attempts": 53,
+     "attempts": 48,
      "retrieved": [
       "ddb:mueller-max",
       "ia:protestant-ethic-en",
@@ -7093,7 +2403,7 @@
       "natural history",
       "evolution"
      ],
-     "attempts": 48,
+     "attempts": 44,
      "retrieved": [
       "ia:darwin-erasmus",
       "loc:descent-of-man",
@@ -7125,9 +2435,32 @@
     "precision@5": 0.2421,
     "mrr": 0.9263,
     "ndcg@10": 0.9275,
+    "recall_denominator": 38,
     "cross_language_rate": 0.3158,
-    "avg_attempts": 44.0,
-    "avg_variants": 10.8
+    "cross_language_denominator": 38,
+    "avg_attempts": 41.0,
+    "attempts_denominator": 40,
+    "avg_variants": 10.8,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.5,
+    "irrelevant_retrieval_rate": 0.175,
+    "per_tag": {
+     "original_title": {
+      "cases": 3,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "translated_title": {
+      "cases": 1,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "cross_language": {
+      "cases": 2,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     }
+    }
    },
    "cases": [
     {
@@ -7146,7 +2479,7 @@
       "evolution",
       "theory of evolution"
      ],
-     "attempts": 40,
+     "attempts": 36,
      "retrieved": [
       "ndl:dobutsu-shinkaron",
       "loc:descent-of-man",
@@ -7188,7 +2521,7 @@
       "révolution industrielle",
       "industry"
      ],
-     "attempts": 44,
+     "attempts": 40,
      "retrieved": [
       "ndl:jokikikan-meiji",
       "ia:steam-engine-watt",
@@ -7223,7 +2556,7 @@
       "Kritik der reinen Vernunft",
       "哲學"
      ],
-     "attempts": 49,
+     "attempts": 48,
      "retrieved": [
       "ndl:kanto-kenkyu",
       "ndl:junsui-risei-hihan",
@@ -7258,7 +2591,7 @@
       "electrical engineering",
       "Elektrotechnik"
      ],
-     "attempts": 42,
+     "attempts": 38,
      "retrieved": [
       "ndl:denki-kogaku-1898",
       "ndl:suiryoku-hatsuden-1912",
@@ -7284,7 +2617,7 @@
       "Elektrizität",
       "électricité"
      ],
-     "attempts": 21,
+     "attempts": 18,
      "retrieved": [
       "ndl:denki-kogaku-1898",
       "ndl:suiryoku-hatsuden-1912",
@@ -7319,7 +2652,7 @@
       "chemin de fer",
       "鉄道-ヨーロッパ"
      ],
-     "attempts": 45,
+     "attempts": 42,
      "retrieved": [
       "ndl:tetsudo-shi",
       "ia:railway-steam",
@@ -7355,7 +2688,7 @@
       "political thought",
       "politische Philosophie"
      ],
-     "attempts": 38,
+     "attempts": 34,
      "retrieved": [
       "ndl:shakai-keiyakuron",
       "gallica:contrat-social"
@@ -7387,7 +2720,7 @@
       "Literatur",
       "littérature"
      ],
-     "attempts": 45,
+     "attempts": 42,
      "retrieved": [
       "ndl:tenmongaku-meiji",
       "ia:soseki-kokoro-en",
@@ -7418,10 +2751,10 @@
       "アイザック・ニュートン",
       "Isaac Newton",
       "Newton, Isaac",
-      "Philosophiæ Naturalis Principia Mathematica",
-      "mechanics"
+      "mechanics",
+      "Mechanik"
      ],
-     "attempts": 42,
+     "attempts": 44,
      "retrieved": [
       "ia:principia-newton"
      ],
@@ -7450,7 +2783,7 @@
       "Das Kapital",
       "經濟學"
      ],
-     "attempts": 33,
+     "attempts": 32,
      "retrieved": [
       "ndl:shihonron",
       "ddb:kapital-1867",
@@ -7484,7 +2817,7 @@
       "théorie de l'évolution",
       "自然選択"
      ],
-     "attempts": 52,
+     "attempts": 48,
      "retrieved": [
       "ia:origin-species-1859",
       "ia:origin-species-1872",
@@ -7525,7 +2858,7 @@
       "認識論",
       "Erkenntnistheorie"
      ],
-     "attempts": 48,
+     "attempts": 46,
      "retrieved": [
       "ia:critique-pure-reason",
       "ddb:kritik-rv-1781",
@@ -7559,7 +2892,7 @@
       "Evolution",
       "Abstammungslehre"
      ],
-     "attempts": 52,
+     "attempts": 48,
      "retrieved": [
       "ia:steam-engine-watt",
       "ia:french-revolution-carlyle",
@@ -7597,7 +2930,7 @@
       "Karl Marx",
       "Marx, Karl"
      ],
-     "attempts": 51,
+     "attempts": 48,
      "retrieved": [
       "ia:protestant-ethic-en",
       "ia:capital-en",
@@ -7631,7 +2964,7 @@
       "évolution",
       "théorie de l'évolution"
      ],
-     "attempts": 50,
+     "attempts": 46,
      "retrieved": [
       "ia:french-revolution-carlyle",
       "ia:steam-engine-watt",
@@ -7670,7 +3003,7 @@
       "linguistics",
       "science of language"
      ],
-     "attempts": 45,
+     "attempts": 40,
      "retrieved": [
       "ia:soseki-kokoro-en",
       "ndl:tenmongaku-meiji",
@@ -7703,7 +3036,7 @@
       "啓蒙",
       "Aufklärung"
      ],
-     "attempts": 50,
+     "attempts": 48,
      "retrieved": [
       "ia:fukuzawa-en",
       "ndl:fukuzawa-gakumon"
@@ -7737,7 +3070,7 @@
       "電気",
       "electricity"
      ],
-     "attempts": 69,
+     "attempts": 64,
      "retrieved": [
       "ddb:wasserkraft-1908",
       "ndl:suiryoku-hatsuden-1912",
@@ -7771,7 +3104,7 @@
       "歴史",
       "history"
      ],
-     "attempts": 51,
+     "attempts": 46,
      "retrieved": [
       "ddb:eisenbahn-de",
       "ndl:tetsudo-shi",
@@ -7842,7 +3175,7 @@
       "社会学",
       "sociology"
      ],
-     "attempts": 39,
+     "attempts": 34,
      "retrieved": [
       "ddb:protestantische-ethik",
       "ia:protestant-ethic-en",
@@ -7875,7 +3208,7 @@
       "哲学",
       "philosophy"
      ],
-     "attempts": 44,
+     "attempts": 38,
      "retrieved": [
       "ddb:kritik-rv-1781",
       "ndl:junsui-risei-hihan",
@@ -7912,7 +3245,7 @@
       "Abstammungslehre",
       "Entwicklungslehre"
      ],
-     "attempts": 55,
+     "attempts": 50,
      "retrieved": [
       "gallica:revolution-hist-fr",
       "ia:french-revolution-carlyle",
@@ -7952,7 +3285,7 @@
       "哲学",
       "philosophy"
      ],
-     "attempts": 55,
+     "attempts": 52,
      "retrieved": [
       "gallica:contrat-social",
       "ddb:kritik-rv-1781",
@@ -7991,7 +3324,7 @@
       "history",
       "Geschichte"
      ],
-     "attempts": 57,
+     "attempts": 50,
      "retrieved": [
       "gallica:revolution-hist-fr",
       "ndl:suiryoku-hatsuden-1912",
@@ -8018,7 +3351,7 @@
       "Discours de la méthode",
       "Descartes-méthode"
      ],
-     "attempts": 55,
+     "attempts": 54,
      "retrieved": [
       "gallica:discours-methode",
       "ndl:hoho-josetsu"
@@ -8052,7 +3385,7 @@
       "hydroélectricité",
       "water power"
      ],
-     "attempts": 38,
+     "attempts": 32,
      "retrieved": [
       "ndl:suiryoku-hatsuden-1912",
       "ia:hydroelectric-1905",
@@ -8083,7 +3416,7 @@
       "locomotive",
       "Lokomotive"
      ],
-     "attempts": 31,
+     "attempts": 26,
      "retrieved": [
       "ia:railway-steam",
       "ndl:jokikikan-meiji",
@@ -8117,7 +3450,7 @@
       "政治哲学",
       "政治思想"
      ],
-     "attempts": 42,
+     "attempts": 40,
      "retrieved": [
       "ndl:junsui-risei-hihan",
       "ndl:tetsudo-shi",
@@ -8153,7 +3486,7 @@
       "新聞-明治",
       "フランス革命"
      ],
-     "attempts": 43,
+     "attempts": 40,
      "retrieved": [],
      "relevant": []
     },
@@ -8172,7 +3505,7 @@
       "sociologie",
       "Kapitalismus-Soziologie"
      ],
-     "attempts": 42,
+     "attempts": 38,
      "retrieved": [
       "ddb:protestantische-ethik",
       "ndl:weber-shukyo",
@@ -8239,7 +3572,7 @@
       "Astronomie",
       "mechanics"
      ],
-     "attempts": 48,
+     "attempts": 46,
      "retrieved": [
       "ia:astronomy-herschel",
       "ndl:tenmongaku-meiji",
@@ -8272,7 +3605,7 @@
       "Soseki Natsume",
       "こころ"
      ],
-     "attempts": 43,
+     "attempts": 42,
      "retrieved": [
       "ndl:soseki-wagahai",
       "ia:soseki-kokoro-en"
@@ -8302,7 +3635,7 @@
       "Soseki Natsume",
       "吾輩は猫である"
      ],
-     "attempts": 41,
+     "attempts": 40,
      "retrieved": [
       "ia:soseki-kokoro-en",
       "ndl:soseki-wagahai"
@@ -8333,7 +3666,7 @@
       "Gelehrsamkeit",
       "Wissenschaft"
      ],
-     "attempts": 41,
+     "attempts": 38,
      "retrieved": [
       "ndl:fukuzawa-gakumon",
       "ia:fukuzawa-en",
@@ -8417,7 +3750,7 @@
       "F. Max Müller",
       "Lectures on the Science of Language"
      ],
-     "attempts": 53,
+     "attempts": 48,
      "retrieved": [
       "ddb:mueller-max",
       "ia:protestant-ethic-en",
@@ -8453,7 +3786,1390 @@
       "natural history",
       "evolution"
      ],
+     "attempts": 44,
+     "retrieved": [
+      "ia:darwin-erasmus",
+      "loc:descent-of-man",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "gallica:evolution-fr",
+      "ddb:abstammung-de",
+      "ia:steam-engine-watt",
+      "ia:french-revolution-carlyle"
+     ],
+     "relevant": [
+      "ia:darwin-erasmus"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    }
+   ]
+  },
+  "Gx": {
+   "aggregate": {
+    "recall@5": 0.9342,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2368,
+    "mrr": 0.8276,
+    "ndcg@10": 0.8614,
+    "recall_denominator": 38,
+    "cross_language_rate": 0.3158,
+    "cross_language_denominator": 38,
+    "avg_attempts": 41.0,
+    "attempts_denominator": 40,
+    "avg_variants": 10.8,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.5,
+    "irrelevant_retrieval_rate": 0.175,
+    "per_tag": {
+     "original_title": {
+      "cases": 3,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "translated_title": {
+      "cases": 1,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "cross_language": {
+      "cases": 2,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     }
+    }
+   },
+   "cases": [
+    {
+     "id": "D01",
+     "variants": [
+      "進化論 ダーウィン",
+      "進化論",
+      "ダーウィン",
+      "進化論 ターウィン",
+      "ターウィン",
+      "チャールズ・ダーウィン",
+      "Charles Darwin",
+      "Darwin, Charles",
+      "On the Origin of Species",
+      "The Descent of Man, and Selection in Relation to Sex",
+      "evolution",
+      "theory of evolution"
+     ],
+     "attempts": 36,
+     "retrieved": [
+      "loc:descent-of-man",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "gallica:evolution-fr",
+      "ddb:abstammung-de",
+      "ndl:dobutsu-shinkaron",
+      "ndl:shinka-ron-1882",
+      "ia:french-revolution-carlyle",
+      "ia:steam-engine-watt"
+     ],
+     "relevant": [
+      "ia:origin-species-1859",
+      "ndl:dobutsu-shinkaron"
+     ],
+     "recall@5": 0.5,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.5,
+     "ndcg@10": 0.6052602440527057,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D02",
+     "variants": [
+      "産業革命 イギリス",
+      "産業革命",
+      "イギリス",
+      "產業革命 イギリス",
+      "產業革命",
+      "産業革命 イキリス",
+      "イキリス",
+      "產業革命 イキリス",
+      "工業",
+      "industrial revolution",
+      "industrielle Revolution",
+      "Industrialisierung",
+      "révolution industrielle",
+      "industry"
+     ],
+     "attempts": 40,
+     "retrieved": [
+      "ia:weber-alfred",
+      "ndl:jokikikan-meiji",
+      "ia:steam-engine-watt"
+     ],
+     "relevant": [
+      "ia:steam-engine-watt"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.3333333333333333,
+     "ndcg@10": 0.5,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D03",
+     "variants": [
+      "ドイツ哲学 カント",
+      "ドイツ哲学",
+      "カント",
+      "ドイツ哲學 カント",
+      "ドイツ哲學",
+      "トイツ哲学 カント",
+      "トイツ哲学",
+      "トイツ哲學 カント",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel",
+      "Emmanuel Kant",
+      "Kritik der reinen Vernunft",
+      "哲學"
+     ],
      "attempts": 48,
+     "retrieved": [
+      "ndl:junsui-risei-hihan",
+      "ddb:kritik-rv-1781",
+      "ia:critique-pure-reason",
+      "ndl:kanto-kenkyu",
+      "ndl:hoho-josetsu"
+     ],
+     "relevant": [
+      "ndl:kanto-kenkyu",
+      "ddb:kritik-rv-1781"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 0.5,
+     "ndcg@10": 0.6509209298071326,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D04",
+     "variants": [
+      "電気工学 明治",
+      "電気工学",
+      "明治",
+      "電氣工學 明治",
+      "電氣工學",
+      "電氣",
+      "electricity",
+      "Elektrizität",
+      "électricité",
+      "electrical engineering",
+      "Elektrotechnik"
+     ],
+     "attempts": 38,
+     "retrieved": [
+      "ndl:denki-kogaku-1898",
+      "ndl:suiryoku-hatsuden-1912",
+      "ddb:wasserkraft-1908"
+     ],
+     "relevant": [
+      "ndl:denki-kogaku-1898"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D05",
+     "variants": [
+      "電氣",
+      "電気",
+      "electricity",
+      "Elektrizität",
+      "électricité"
+     ],
+     "attempts": 18,
+     "retrieved": [
+      "ndl:denki-kogaku-1898",
+      "ndl:suiryoku-hatsuden-1912",
+      "ddb:wasserkraft-1908"
+     ],
+     "relevant": [
+      "ndl:denki-kogaku-1898",
+      "ndl:suiryoku-hatsuden-1912"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D06",
+     "variants": [
+      "鉄道 ヨーロッパ",
+      "鉄道",
+      "ヨーロッパ",
+      "鐵道 ヨーロッパ",
+      "鐵道",
+      "鉄道 ヨーロッハ",
+      "ヨーロッハ",
+      "鐵道 ヨーロッハ",
+      "railway",
+      "railroad",
+      "Eisenbahn",
+      "chemin de fer",
+      "鉄道-ヨーロッパ"
+     ],
+     "attempts": 42,
+     "retrieved": [
+      "ndl:tetsudo-shi",
+      "ia:railway-steam",
+      "ia:railroad-history-us",
+      "ddb:eisenbahn-de",
+      "loc:ca-tribune-1907",
+      "gallica:chemin-de-fer"
+     ],
+     "relevant": [
+      "gallica:chemin-de-fer",
+      "ddb:eisenbahn-de"
+     ],
+     "recall@5": 0.5,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.25,
+     "ndcg@10": 0.48247555939075504,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D07",
+     "variants": [
+      "フランス 政治思想 ルソー",
+      "フランス",
+      "政治思想",
+      "ルソー",
+      "ジャン＝ジャック・ルソー",
+      "Jean-Jacques Rousseau",
+      "Rousseau, Jean-Jacques",
+      "Du contrat social",
+      "political philosophy",
+      "political thought",
+      "politische Philosophie"
+     ],
+     "attempts": 34,
+     "retrieved": [
+      "ndl:shakai-keiyakuron",
+      "gallica:contrat-social"
+     ],
+     "relevant": [
+      "ndl:shakai-keiyakuron",
+      "gallica:contrat-social"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D08",
+     "variants": [
+      "天文学 19世紀",
+      "天文学",
+      "19世紀",
+      "天文學 19世紀",
+      "天文學",
+      "文學",
+      "astronomy",
+      "Astronomie",
+      "literature",
+      "Literatur",
+      "littérature"
+     ],
+     "attempts": 42,
+     "retrieved": [
+      "ndl:tenmongaku-meiji",
+      "ia:astronomy-herschel",
+      "ddb:astronomie-de",
+      "ndl:soseki-wagahai",
+      "ia:soseki-kokoro-en"
+     ],
+     "relevant": [
+      "ia:astronomy-herschel",
+      "ndl:tenmongaku-meiji"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D09",
+     "variants": [
+      "ニュートン 力学",
+      "ニュートン",
+      "力学",
+      "ニュートン 力學",
+      "力學",
+      "アイザック・ニュートン",
+      "Isaac Newton",
+      "Newton, Isaac",
+      "mechanics",
+      "Mechanik"
+     ],
+     "attempts": 44,
+     "retrieved": [
+      "ia:principia-newton"
+     ],
+     "relevant": [
+      "ia:principia-newton"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D10",
+     "variants": [
+      "マルクス 経済学",
+      "マルクス",
+      "経済学",
+      "マルクス 経済學",
+      "経済學",
+      "カール・マルクス",
+      "Karl Marx",
+      "Marx, Karl",
+      "Das Kapital",
+      "經濟學"
+     ],
+     "attempts": 32,
+     "retrieved": [
+      "ddb:kapital-1867",
+      "ia:capital-en",
+      "ndl:shihonron"
+     ],
+     "relevant": [
+      "ndl:shihonron",
+      "ddb:kapital-1867"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 0.9197207891481876,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D11",
+     "variants": [
+      "evolution natural selection",
+      "evolution",
+      "natural",
+      "selection",
+      "進化論",
+      "進化",
+      "Evolution",
+      "Abstammungslehre",
+      "Entwicklungslehre",
+      "évolution",
+      "théorie de l'évolution",
+      "自然選択"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "ia:french-revolution-carlyle",
+      "ndl:shinka-ron-1882",
+      "ndl:dobutsu-shinkaron",
+      "loc:descent-of-man",
+      "ia:steam-engine-watt",
+      "gallica:revolution-hist-fr",
+      "ia:principia-newton",
+      "gallica:evolution-fr",
+      "gallica:moniteur-1789"
+     ],
+     "relevant": [
+      "ia:origin-species-1859",
+      "loc:descent-of-man"
+     ],
+     "recall@5": 0.5,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 0.8315546295836225,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D12",
+     "variants": [
+      "Kant epistemology",
+      "Kant",
+      "epistemology",
+      "カント",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel",
+      "Emmanuel Kant",
+      "Kritik der reinen Vernunft",
+      "認識論",
+      "Erkenntnistheorie"
+     ],
+     "attempts": 46,
+     "retrieved": [
+      "ia:critique-pure-reason",
+      "ddb:kritik-rv-1781",
+      "ndl:junsui-risei-hihan",
+      "ndl:kanto-kenkyu"
+     ],
+     "relevant": [
+      "ia:critique-pure-reason"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D13",
+     "variants": [
+      "industrial revolution steam",
+      "industrial",
+      "revolution",
+      "steam",
+      "産業革命",
+      "industrielle Revolution",
+      "Industrialisierung",
+      "révolution industrielle",
+      "進化論",
+      "進化",
+      "Evolution",
+      "Abstammungslehre"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ia:french-revolution-carlyle",
+      "ndl:shinka-ron-1882",
+      "ndl:dobutsu-shinkaron",
+      "ia:steam-engine-watt",
+      "ia:railway-steam",
+      "loc:descent-of-man",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872"
+     ],
+     "relevant": [
+      "ia:steam-engine-watt"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.25,
+     "ndcg@10": 0.43067655807339306,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D14",
+     "variants": [
+      "Protestant ethic capitalism",
+      "Protestant",
+      "ethic",
+      "capitalism",
+      "Das Kapital",
+      "資本論",
+      "Capital",
+      "Le Capital",
+      "マルクス",
+      "カール・マルクス",
+      "Karl Marx",
+      "Marx, Karl"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ia:capital-en",
+      "ddb:kapital-1867",
+      "ndl:shihonron",
+      "ia:protestant-ethic-en",
+      "ddb:protestantische-ethik"
+     ],
+     "relevant": [
+      "ia:protestant-ethic-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.25,
+     "ndcg@10": 0.43067655807339306,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D15",
+     "variants": [
+      "French Revolution history",
+      "French",
+      "Revolution",
+      "歷史",
+      "進化論",
+      "進化",
+      "Evolution",
+      "Abstammungslehre",
+      "Entwicklungslehre",
+      "évolution",
+      "théorie de l'évolution"
+     ],
+     "attempts": 46,
+     "retrieved": [
+      "ia:french-revolution-carlyle",
+      "gallica:revolution-hist-fr",
+      "ndl:shinka-ron-1882",
+      "ndl:dobutsu-shinkaron",
+      "ia:steam-engine-watt",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "loc:descent-of-man",
+      "gallica:evolution-fr",
+      "gallica:moniteur-1789"
+     ],
+     "relevant": [
+      "ia:french-revolution-carlyle",
+      "gallica:revolution-hist-fr"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D16",
+     "variants": [
+      "Soseki literature",
+      "Soseki",
+      "literature",
+      "文學",
+      "文学",
+      "Literatur",
+      "littérature",
+      "Soseki-literature",
+      "linguistics",
+      "science of language"
+     ],
+     "attempts": 40,
+     "retrieved": [
+      "ndl:tenmongaku-meiji",
+      "ia:soseki-kokoro-en",
+      "ndl:soseki-wagahai"
+     ],
+     "relevant": [
+      "ia:soseki-kokoro-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.5,
+     "ndcg@10": 0.6309297535714575,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D17",
+     "variants": [
+      "Fukuzawa Yukichi enlightenment",
+      "Fukuzawa",
+      "Yukichi",
+      "enlightenment",
+      "福沢諭吉",
+      "福澤諭吉",
+      "フクザワユキチ",
+      "Fukuzawa Yukichi",
+      "Yukichi Fukuzawa",
+      "學問のすゝめ",
+      "啓蒙",
+      "Aufklärung"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ia:fukuzawa-en",
+      "ndl:fukuzawa-gakumon"
+     ],
+     "relevant": [
+      "ia:fukuzawa-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D18",
+     "variants": [
+      "Wasserkraft Elektrizität",
+      "Wasserkraft",
+      "Elektrizität",
+      "Wasserkraft Elektrizitaet",
+      "Wasserkraft Elektrizitat",
+      "Elektrizitaet",
+      "電氣",
+      "水力",
+      "water power",
+      "hydraulic power",
+      "force hydraulique",
+      "énergie hydraulique",
+      "電気",
+      "electricity"
+     ],
+     "attempts": 64,
+     "retrieved": [
+      "ddb:wasserkraft-1908",
+      "ndl:suiryoku-hatsuden-1912",
+      "ndl:denki-kogaku-1898",
+      "ia:water-power-1885",
+      "ia:hydroelectric-1905"
+     ],
+     "relevant": [
+      "ddb:wasserkraft-1908"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D19",
+     "variants": [
+      "Eisenbahn Geschichte",
+      "Eisenbahn",
+      "Geschichte",
+      "鐵道",
+      "歷史",
+      "鉄道",
+      "railway",
+      "railroad",
+      "chemin de fer",
+      "歴史",
+      "history"
+     ],
+     "attempts": 46,
+     "retrieved": [
+      "ddb:eisenbahn-de",
+      "ia:railroad-history-us",
+      "ndl:tetsudo-shi",
+      "ia:railway-steam",
+      "ia:french-revolution-carlyle",
+      "loc:ca-tribune-1907",
+      "gallica:chemin-de-fer"
+     ],
+     "relevant": [
+      "ddb:eisenbahn-de"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D20",
+     "variants": [
+      "Entstehung der Arten Darwin",
+      "Entstehung",
+      "der",
+      "Arten",
+      "Darwin"
+     ],
+     "attempts": 30,
+     "retrieved": [
+      "ddb:abstammung-de",
+      "ddb:kritik-rv-1781",
+      "ddb:dampfmaschine-1850",
+      "ddb:eisenbahn-de",
+      "ddb:protestantische-ethik",
+      "ddb:kapital-1867",
+      "ddb:mueller-max",
+      "loc:descent-of-man",
+      "gallica:evolution-fr",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "ia:darwin-erasmus"
+     ],
+     "relevant": [
+      "ddb:abstammung-de"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D21",
+     "variants": [
+      "Religionssoziologie Weber",
+      "Religionssoziologie",
+      "Weber",
+      "社會學",
+      "宗教社会学",
+      "sociology of religion",
+      "sociologie des religions",
+      "宗教",
+      "religion",
+      "社会学",
+      "sociology"
+     ],
+     "attempts": 34,
+     "retrieved": [
+      "ddb:protestantische-ethik",
+      "ia:protestant-ethic-en",
+      "ndl:weber-shukyo",
+      "ia:weber-alfred"
+     ],
+     "relevant": [
+      "ddb:protestantische-ethik"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D22",
+     "variants": [
+      "Philosophie Erkenntnistheorie",
+      "Philosophie",
+      "Erkenntnistheorie",
+      "哲學",
+      "認識論",
+      "epistemology",
+      "theory of knowledge",
+      "épistémologie",
+      "théorie de la connaissance",
+      "哲学",
+      "philosophy"
+     ],
+     "attempts": 38,
+     "retrieved": [
+      "ddb:kritik-rv-1781",
+      "ia:principia-newton",
+      "ndl:junsui-risei-hihan",
+      "ndl:hoho-josetsu",
+      "ia:critique-pure-reason",
+      "ndl:kanto-kenkyu"
+     ],
+     "relevant": [
+      "ddb:kritik-rv-1781"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D23",
+     "variants": [
+      "histoire naturelle évolution",
+      "histoire",
+      "naturelle",
+      "évolution",
+      "histoire naturelle evolution",
+      "evolution",
+      "博物學",
+      "歷史",
+      "進化論",
+      "進化",
+      "theory of evolution",
+      "Abstammungslehre",
+      "Entwicklungslehre"
+     ],
+     "attempts": 50,
+     "retrieved": [
+      "gallica:revolution-hist-fr",
+      "ia:french-revolution-carlyle",
+      "ndl:shinka-ron-1882",
+      "ndl:dobutsu-shinkaron",
+      "gallica:evolution-fr",
+      "gallica:moniteur-1789",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "ia:steam-engine-watt",
+      "loc:descent-of-man"
+     ],
+     "relevant": [
+      "gallica:evolution-fr"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.2,
+     "ndcg@10": 0.38685280723454163,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D24",
+     "variants": [
+      "philosophie politique Rousseau",
+      "philosophie",
+      "politique",
+      "Rousseau",
+      "ルソー",
+      "ジャン＝ジャック・ルソー",
+      "Jean-Jacques Rousseau",
+      "Rousseau, Jean-Jacques",
+      "Du contrat social",
+      "哲學",
+      "哲学",
+      "philosophy"
+     ],
+     "attempts": 52,
+     "retrieved": [
+      "gallica:contrat-social",
+      "ndl:shakai-keiyakuron",
+      "ia:principia-newton",
+      "ddb:kritik-rv-1781",
+      "ndl:junsui-risei-hihan",
+      "ndl:hoho-josetsu",
+      "ndl:kanto-kenkyu",
+      "ia:critique-pure-reason"
+     ],
+     "relevant": [
+      "gallica:contrat-social"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D25",
+     "variants": [
+      "électricité histoire",
+      "électricité",
+      "histoire",
+      "electricite histoire",
+      "electricite",
+      "電氣",
+      "歷史",
+      "電気",
+      "electricity",
+      "Elektrizität",
+      "歴史",
+      "history",
+      "Geschichte"
+     ],
+     "attempts": 50,
+     "retrieved": [
+      "gallica:revolution-hist-fr",
+      "ndl:denki-kogaku-1898",
+      "ia:railroad-history-us",
+      "ia:french-revolution-carlyle",
+      "ddb:eisenbahn-de",
+      "ndl:suiryoku-hatsuden-1912",
+      "ddb:wasserkraft-1908"
+     ],
+     "relevant": []
+    },
+    {
+     "id": "D26",
+     "variants": [
+      "Descartes méthode",
+      "Descartes",
+      "méthode",
+      "Descartes methode",
+      "methode",
+      "デカルト",
+      "ルネ・デカルト",
+      "René Descartes",
+      "Descartes, René",
+      "Discours de la méthode",
+      "Descartes-méthode"
+     ],
+     "attempts": 54,
+     "retrieved": [
+      "gallica:discours-methode",
+      "ndl:hoho-josetsu"
+     ],
+     "relevant": [
+      "gallica:discours-methode"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D27",
+     "variants": [
+      "水力発電 ダム",
+      "水力発電",
+      "ダム",
+      "水力發電 ダム",
+      "水力發電",
+      "水力発電 タム",
+      "タム",
+      "水力發電 タム",
+      "hydroelectric power",
+      "hydro-electric power",
+      "Wasserkraftwerk",
+      "Hydroelektrizität",
+      "hydroélectricité",
+      "water power"
+     ],
+     "attempts": 32,
+     "retrieved": [
+      "ndl:suiryoku-hatsuden-1912",
+      "ia:hydroelectric-1905",
+      "ia:water-power-1885"
+     ],
+     "relevant": [
+      "ndl:suiryoku-hatsuden-1912",
+      "ia:hydroelectric-1905"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D28",
+     "variants": [
+      "蒸気機関車",
+      "蒸氣機關車",
+      "蒸氣機關",
+      "steam-engine",
+      "steam engine",
+      "Dampfmaschine",
+      "machine à vapeur",
+      "locomotive",
+      "Lokomotive"
+     ],
+     "attempts": 26,
+     "retrieved": [
+      "ndl:jokikikan-meiji",
+      "ia:railway-steam",
+      "ia:steam-engine-watt",
+      "gallica:machine-vapeur"
+     ],
+     "relevant": [
+      "ia:railway-steam"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.5,
+     "ndcg@10": 0.6309297535714575,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D29",
+     "variants": [
+      "西洋哲学 日本 受容",
+      "西洋哲学",
+      "日本",
+      "受容",
+      "西洋哲學 日本 受容",
+      "西洋哲學",
+      "哲學",
+      "philosophy",
+      "Philosophie",
+      "認識論",
+      "政治哲学",
+      "政治思想"
+     ],
+     "attempts": 40,
+     "retrieved": [
+      "ia:principia-newton",
+      "ndl:junsui-risei-hihan",
+      "ndl:tetsudo-shi",
+      "ndl:hoho-josetsu",
+      "ndl:shakai-keiyakuron",
+      "ndl:kanto-kenkyu",
+      "ia:critique-pure-reason",
+      "ddb:kritik-rv-1781"
+     ],
+     "relevant": [
+      "ndl:kanto-kenkyu"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.0,
+     "mrr": 0.16666666666666666,
+     "ndcg@10": 0.3562071871080222,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D30",
+     "variants": [
+      "新聞 明治",
+      "新聞",
+      "明治",
+      "newspaper",
+      "press",
+      "Zeitung",
+      "Presse",
+      "journal",
+      "新聞-明治",
+      "フランス革命"
+     ],
+     "attempts": 40,
+     "retrieved": [],
+     "relevant": []
+    },
+    {
+     "id": "D31",
+     "variants": [
+      "Kapitalismus Soziologie",
+      "Kapitalismus",
+      "Soziologie",
+      "社會學",
+      "資本主義",
+      "capitalism",
+      "capitalisme",
+      "社会学",
+      "sociology",
+      "sociologie",
+      "Kapitalismus-Soziologie"
+     ],
+     "attempts": 38,
+     "retrieved": [
+      "ddb:protestantische-ethik",
+      "ndl:weber-shukyo",
+      "ia:protestant-ethic-en",
+      "ddb:kapital-1867",
+      "ia:capital-en"
+     ],
+     "relevant": [
+      "ddb:protestantische-ethik",
+      "ddb:kapital-1867"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 0.8772153153380493,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D32",
+     "variants": [
+      "Darwin Descent of Man",
+      "Darwin",
+      "Descent",
+      "Man",
+      "Darwin-Descent"
+     ],
+     "attempts": 30,
+     "retrieved": [
+      "loc:descent-of-man",
+      "ia:origin-species-1859",
+      "ia:origin-species-1872",
+      "ia:darwin-erasmus",
+      "ia:critique-pure-reason",
+      "ia:water-power-1885",
+      "gallica:evolution-fr",
+      "ddb:kritik-rv-1781",
+      "ddb:abstammung-de"
+     ],
+     "relevant": [
+      "loc:descent-of-man"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D33",
+     "variants": [
+      "astronomy outlines Herschel",
+      "astronomy",
+      "outlines",
+      "Herschel",
+      "ハーシェル",
+      "John F. W. Herschel",
+      "John Herschel",
+      "天文學",
+      "天文学",
+      "Astronomie",
+      "mechanics"
+     ],
+     "attempts": 46,
+     "retrieved": [
+      "ia:astronomy-herschel",
+      "ndl:tenmongaku-meiji",
+      "ddb:astronomie-de",
+      "ia:principia-newton"
+     ],
+     "relevant": [
+      "ia:astronomy-herschel"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D34",
+     "variants": [
+      "吾輩は猫である",
+      "吾輩",
+      "ある",
+      "吾輩は猫てある",
+      "I Am a Cat",
+      "夏目漱石",
+      "ナツメソセキ",
+      "Natsume Sōseki",
+      "Natsume Soseki",
+      "Soseki Natsume",
+      "こころ"
+     ],
+     "attempts": 42,
+     "retrieved": [
+      "ndl:soseki-wagahai",
+      "ia:soseki-kokoro-en"
+     ],
+     "relevant": [
+      "ndl:soseki-wagahai"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D35",
+     "variants": [
+      "Kokoro Soseki",
+      "Kokoro",
+      "Soseki",
+      "こころ",
+      "夏目漱石",
+      "ナツメソセキ",
+      "Natsume Sōseki",
+      "Natsume Soseki",
+      "Soseki Natsume",
+      "吾輩は猫である"
+     ],
+     "attempts": 40,
+     "retrieved": [
+      "ia:soseki-kokoro-en",
+      "ndl:soseki-wagahai"
+     ],
+     "relevant": [
+      "ia:soseki-kokoro-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D36",
+     "variants": [
+      "学問のすゝめ",
+      "学問",
+      "すゝめ",
+      "學問のすゝめ",
+      "學問",
+      "学問のすすめ",
+      "すすめ",
+      "learning",
+      "scholarship",
+      "Gelehrsamkeit",
+      "Wissenschaft"
+     ],
+     "attempts": 38,
+     "retrieved": [
+      "ndl:fukuzawa-gakumon",
+      "ia:fukuzawa-en",
+      "ddb:mueller-max"
+     ],
+     "relevant": [
+      "ndl:fukuzawa-gakumon"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D37",
+     "variants": [
+      "慶應義塾 福澤",
+      "慶應義塾",
+      "福澤",
+      "慶応義塾 福沢",
+      "慶応義塾",
+      "福沢",
+      "慶應義塾-福澤"
+     ],
+     "attempts": 26,
+     "retrieved": [
+      "ndl:fukuzawa-gakumon"
+     ],
+     "relevant": [
+      "ndl:fukuzawa-gakumon"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D38",
+     "variants": [
+      "震災 記録 1923",
+      "震災",
+      "記録",
+      "1923",
+      "震災 記錄 1923",
+      "記錄"
+     ],
+     "attempts": 32,
+     "retrieved": [
+      "ndl:kanto-jiken-1923"
+     ],
+     "relevant": [
+      "ndl:kanto-jiken-1923"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "D39",
+     "variants": [
+      "Max Müller language",
+      "Max",
+      "Müller",
+      "language",
+      "Max Mueller language",
+      "Max Muller language",
+      "Mueller",
+      "マックス・ミュラー",
+      "Friedrich Max Müller",
+      "Max Müller",
+      "F. Max Müller",
+      "Lectures on the Science of Language"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ddb:mueller-max",
+      "ddb:dampfmaschine-1850",
+      "ddb:eisenbahn-de",
+      "ddb:wasserkraft-1908",
+      "ddb:protestantische-ethik",
+      "ia:protestant-ethic-en"
+     ],
+     "relevant": [
+      "ddb:mueller-max"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "D40",
+     "variants": [
+      "Erasmus Darwin biology",
+      "Erasmus",
+      "Darwin",
+      "biology",
+      "エラズマス・ダーウィン",
+      "Erasmus Darwin",
+      "Zoonomia",
+      "生物學",
+      "生物学",
+      "Biologie",
+      "natural history",
+      "evolution"
+     ],
+     "attempts": 44,
      "retrieved": [
       "ia:darwin-erasmus",
       "loc:descent-of-man",
@@ -8485,9 +5201,32 @@
     "precision@5": 0.2421,
     "mrr": 0.9263,
     "ndcg@10": 0.9275,
+    "recall_denominator": 38,
     "cross_language_rate": 0.3158,
-    "avg_attempts": 44.0,
-    "avg_variants": 10.8
+    "cross_language_denominator": 38,
+    "avg_attempts": 41.0,
+    "attempts_denominator": 40,
+    "avg_variants": 10.8,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.5,
+    "irrelevant_retrieval_rate": 0.175,
+    "per_tag": {
+     "original_title": {
+      "cases": 3,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "translated_title": {
+      "cases": 1,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     },
+     "cross_language": {
+      "cases": 2,
+      "any_hit_rate": 1.0,
+      "full_recall_rate": 1.0
+     }
+    }
    },
    "cases": [
     {
@@ -8506,7 +5245,7 @@
       "evolution",
       "theory of evolution"
      ],
-     "attempts": 40,
+     "attempts": 36,
      "retrieved": [
       "ndl:dobutsu-shinkaron",
       "loc:descent-of-man",
@@ -8548,7 +5287,7 @@
       "révolution industrielle",
       "industry"
      ],
-     "attempts": 44,
+     "attempts": 40,
      "retrieved": [
       "ndl:jokikikan-meiji",
       "ia:steam-engine-watt",
@@ -8583,7 +5322,7 @@
       "Kritik der reinen Vernunft",
       "哲學"
      ],
-     "attempts": 49,
+     "attempts": 48,
      "retrieved": [
       "ndl:kanto-kenkyu",
       "ndl:junsui-risei-hihan",
@@ -8618,7 +5357,7 @@
       "electrical engineering",
       "Elektrotechnik"
      ],
-     "attempts": 42,
+     "attempts": 38,
      "retrieved": [
       "ndl:denki-kogaku-1898",
       "ndl:suiryoku-hatsuden-1912",
@@ -8644,7 +5383,7 @@
       "Elektrizität",
       "électricité"
      ],
-     "attempts": 21,
+     "attempts": 18,
      "retrieved": [
       "ndl:denki-kogaku-1898",
       "ndl:suiryoku-hatsuden-1912",
@@ -8679,7 +5418,7 @@
       "chemin de fer",
       "鉄道-ヨーロッパ"
      ],
-     "attempts": 45,
+     "attempts": 42,
      "retrieved": [
       "ndl:tetsudo-shi",
       "ia:railway-steam",
@@ -8715,7 +5454,7 @@
       "political thought",
       "politische Philosophie"
      ],
-     "attempts": 38,
+     "attempts": 34,
      "retrieved": [
       "ndl:shakai-keiyakuron",
       "gallica:contrat-social"
@@ -8747,7 +5486,7 @@
       "Literatur",
       "littérature"
      ],
-     "attempts": 45,
+     "attempts": 42,
      "retrieved": [
       "ndl:tenmongaku-meiji",
       "ia:soseki-kokoro-en",
@@ -8778,10 +5517,10 @@
       "アイザック・ニュートン",
       "Isaac Newton",
       "Newton, Isaac",
-      "Philosophiæ Naturalis Principia Mathematica",
-      "mechanics"
+      "mechanics",
+      "Mechanik"
      ],
-     "attempts": 42,
+     "attempts": 44,
      "retrieved": [
       "ia:principia-newton"
      ],
@@ -8810,7 +5549,7 @@
       "Das Kapital",
       "經濟學"
      ],
-     "attempts": 33,
+     "attempts": 32,
      "retrieved": [
       "ndl:shihonron",
       "ddb:kapital-1867",
@@ -8844,7 +5583,7 @@
       "théorie de l'évolution",
       "自然選択"
      ],
-     "attempts": 52,
+     "attempts": 48,
      "retrieved": [
       "ia:origin-species-1859",
       "ia:origin-species-1872",
@@ -8885,7 +5624,7 @@
       "認識論",
       "Erkenntnistheorie"
      ],
-     "attempts": 48,
+     "attempts": 46,
      "retrieved": [
       "ia:critique-pure-reason",
       "ddb:kritik-rv-1781",
@@ -8919,7 +5658,7 @@
       "Evolution",
       "Abstammungslehre"
      ],
-     "attempts": 52,
+     "attempts": 48,
      "retrieved": [
       "ia:steam-engine-watt",
       "ia:french-revolution-carlyle",
@@ -8957,7 +5696,7 @@
       "Karl Marx",
       "Marx, Karl"
      ],
-     "attempts": 51,
+     "attempts": 48,
      "retrieved": [
       "ia:protestant-ethic-en",
       "ia:capital-en",
@@ -8991,7 +5730,7 @@
       "évolution",
       "théorie de l'évolution"
      ],
-     "attempts": 50,
+     "attempts": 46,
      "retrieved": [
       "ia:french-revolution-carlyle",
       "ia:steam-engine-watt",
@@ -9030,7 +5769,7 @@
       "linguistics",
       "science of language"
      ],
-     "attempts": 45,
+     "attempts": 40,
      "retrieved": [
       "ia:soseki-kokoro-en",
       "ndl:tenmongaku-meiji",
@@ -9063,7 +5802,7 @@
       "啓蒙",
       "Aufklärung"
      ],
-     "attempts": 50,
+     "attempts": 48,
      "retrieved": [
       "ia:fukuzawa-en",
       "ndl:fukuzawa-gakumon"
@@ -9097,7 +5836,7 @@
       "電気",
       "electricity"
      ],
-     "attempts": 69,
+     "attempts": 64,
      "retrieved": [
       "ddb:wasserkraft-1908",
       "ndl:suiryoku-hatsuden-1912",
@@ -9131,7 +5870,7 @@
       "歴史",
       "history"
      ],
-     "attempts": 51,
+     "attempts": 46,
      "retrieved": [
       "ddb:eisenbahn-de",
       "ndl:tetsudo-shi",
@@ -9202,7 +5941,7 @@
       "社会学",
       "sociology"
      ],
-     "attempts": 39,
+     "attempts": 34,
      "retrieved": [
       "ddb:protestantische-ethik",
       "ia:protestant-ethic-en",
@@ -9235,7 +5974,7 @@
       "哲学",
       "philosophy"
      ],
-     "attempts": 44,
+     "attempts": 38,
      "retrieved": [
       "ddb:kritik-rv-1781",
       "ndl:junsui-risei-hihan",
@@ -9272,7 +6011,7 @@
       "Abstammungslehre",
       "Entwicklungslehre"
      ],
-     "attempts": 55,
+     "attempts": 50,
      "retrieved": [
       "gallica:revolution-hist-fr",
       "ia:french-revolution-carlyle",
@@ -9312,7 +6051,7 @@
       "哲学",
       "philosophy"
      ],
-     "attempts": 55,
+     "attempts": 52,
      "retrieved": [
       "gallica:contrat-social",
       "ddb:kritik-rv-1781",
@@ -9351,7 +6090,7 @@
       "history",
       "Geschichte"
      ],
-     "attempts": 57,
+     "attempts": 50,
      "retrieved": [
       "gallica:revolution-hist-fr",
       "ndl:suiryoku-hatsuden-1912",
@@ -9378,7 +6117,7 @@
       "Discours de la méthode",
       "Descartes-méthode"
      ],
-     "attempts": 55,
+     "attempts": 54,
      "retrieved": [
       "gallica:discours-methode",
       "ndl:hoho-josetsu"
@@ -9412,7 +6151,7 @@
       "hydroélectricité",
       "water power"
      ],
-     "attempts": 38,
+     "attempts": 32,
      "retrieved": [
       "ndl:suiryoku-hatsuden-1912",
       "ia:hydroelectric-1905",
@@ -9443,7 +6182,7 @@
       "locomotive",
       "Lokomotive"
      ],
-     "attempts": 31,
+     "attempts": 26,
      "retrieved": [
       "ia:railway-steam",
       "ndl:jokikikan-meiji",
@@ -9477,7 +6216,7 @@
       "政治哲学",
       "政治思想"
      ],
-     "attempts": 42,
+     "attempts": 40,
      "retrieved": [
       "ndl:junsui-risei-hihan",
       "ndl:tetsudo-shi",
@@ -9513,7 +6252,7 @@
       "新聞-明治",
       "フランス革命"
      ],
-     "attempts": 43,
+     "attempts": 40,
      "retrieved": [],
      "relevant": []
     },
@@ -9532,7 +6271,7 @@
       "sociologie",
       "Kapitalismus-Soziologie"
      ],
-     "attempts": 42,
+     "attempts": 38,
      "retrieved": [
       "ddb:protestantische-ethik",
       "ndl:weber-shukyo",
@@ -9599,7 +6338,7 @@
       "Astronomie",
       "mechanics"
      ],
-     "attempts": 48,
+     "attempts": 46,
      "retrieved": [
       "ia:astronomy-herschel",
       "ndl:tenmongaku-meiji",
@@ -9632,7 +6371,7 @@
       "Soseki Natsume",
       "こころ"
      ],
-     "attempts": 43,
+     "attempts": 42,
      "retrieved": [
       "ndl:soseki-wagahai",
       "ia:soseki-kokoro-en"
@@ -9662,7 +6401,7 @@
       "Soseki Natsume",
       "吾輩は猫である"
      ],
-     "attempts": 41,
+     "attempts": 40,
      "retrieved": [
       "ia:soseki-kokoro-en",
       "ndl:soseki-wagahai"
@@ -9693,7 +6432,7 @@
       "Gelehrsamkeit",
       "Wissenschaft"
      ],
-     "attempts": 41,
+     "attempts": 38,
      "retrieved": [
       "ndl:fukuzawa-gakumon",
       "ia:fukuzawa-en",
@@ -9777,7 +6516,7 @@
       "F. Max Müller",
       "Lectures on the Science of Language"
      ],
-     "attempts": 53,
+     "attempts": 48,
      "retrieved": [
       "ddb:mueller-max",
       "ia:protestant-ethic-en",
@@ -9813,7 +6552,7 @@
       "natural history",
       "evolution"
      ],
-     "attempts": 48,
+     "attempts": 44,
      "retrieved": [
       "ia:darwin-erasmus",
       "loc:descent-of-man",

@@ -149,3 +149,10 @@ with reasons, ambiguous authors) and per-material
 `author_link`, `duplicate_group` and, for DDB records,
 `bsb_handoff`. Tool counts are unchanged (15 full / 14
 research profile).
+
+Final-review clarification: `search_catalog` and
+`search_across_libraries` are plain bibliographic searches —
+no multilingual expansion and no structured filters. Those
+live only on `research_materials`, in all modes including
+Quick. The discovery block distinguishes planned variants
+from executed ones (`variant_execution`).

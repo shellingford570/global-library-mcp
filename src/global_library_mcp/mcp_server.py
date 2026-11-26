@@ -83,9 +83,10 @@ def get_library_capabilities(library_id: str) -> dict[str, Any]:
 async def search_across_libraries(query: str, libraries: list[str] | None = None, limit: int = 10) -> dict[str, Any]:
     """Search the catalogues of the configured live libraries.
 
-    Scope: bibliographic search only (titles/authors/metadata) across
-    the libraries named in `libraries` (default: all searchable
-    adapters). Returns matching records plus a per-library `errors`
+    Scope: PLAIN bibliographic search only (titles/authors/metadata)
+    across the libraries named in `libraries` (default: all searchable
+    adapters) - no multilingual expansion and no structured filters;
+    for those, use research_materials. Returns matching records plus a per-library `errors`
     list: a library that failed appears there instead of failing the
     whole call, and a library with no matches simply contributes no
     records. No OCR text is fetched by this tool. `limit` is clamped
@@ -102,8 +103,10 @@ async def search_catalog(query: str, library_id: str, limit: int = 10) -> dict[s
     """Search one library's catalogue by its registry id.
 
     `library_id` must be an id from list_libraries (for example
-    "ndl" or "internet-archive"). Bibliographic records only; use
-    research_materials for OCR-backed investigation of the hits.
+    "ndl" or "internet-archive"). Plain bibliographic search of one
+    library, without multilingual expansion or structured filters;
+    use research_materials for those and for OCR-backed
+    investigation of the hits.
     Returns the same shape as search_across_libraries, including
     partial-failure errors."""
     limit = max(1, min(int(limit), 50))

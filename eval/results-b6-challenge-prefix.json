@@ -1,0 +1,1111 @@
+{
+ "dataset": "challenge",
+ "cases_total": 20,
+ "cases_with_relevant": 18,
+ "cases_without_relevant": 2,
+ "label_source": "agent_assigned",
+ "commit": "62c7118d6ab852958a4fe1b7e6eda14a38ad5447",
+ "dataset_sha256": "690d779075af23a0",
+ "corpus_sha256": "ecf4f41c0b70c9a5",
+ "lexicon_sha256": "4e0b78c356740e26",
+ "configs": {
+  "A": {
+   "aggregate": {
+    "recall@5": 0.5278,
+    "recall@10": 0.5278,
+    "recall@20": 0.5278,
+    "precision@5": 0.1222,
+    "mrr": 0.5278,
+    "ndcg@10": 0.5136,
+    "cross_language_rate": 0.1111,
+    "avg_attempts": 28.2,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.0,
+    "irrelevant_retrieval_rate": 0.0
+   },
+   "cases": [
+    {
+     "id": "challenge-01",
+     "variants": [
+      "ダーウィンの進化論",
+      "ダーウィン",
+      "進化論",
+      "ターウィンの進化論",
+      "ターウィン"
+     ],
+     "attempts": 30,
+     "retrieved": [],
+     "relevant": [
+      "ch-charles"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-02",
+     "variants": [
+      "Darwin evolution",
+      "Darwin",
+      "evolution"
+     ],
+     "attempts": 18,
+     "retrieved": [
+      "ch-erasmus",
+      "ch-charles"
+     ],
+     "relevant": [
+      "ch-charles"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.5,
+     "ndcg@10": 0.6309297535714575,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-03",
+     "variants": [
+      "純粋理性批判"
+     ],
+     "attempts": 6,
+     "retrieved": [
+      "ch-kant-study"
+     ],
+     "relevant": [
+      "ch-kant-orig",
+      "ch-kant-en"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-04",
+     "variants": [
+      "Kritik der reinen Vernunft",
+      "Kritik",
+      "der",
+      "reinen",
+      "Vernunft"
+     ],
+     "attempts": 30,
+     "retrieved": [
+      "ch-kant-orig",
+      "ch-kant-komm",
+      "ch-weber-max"
+     ],
+     "relevant": [
+      "ch-kant-orig"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-05",
+     "variants": [
+      "カントの認識論",
+      "カント",
+      "認識論"
+     ],
+     "attempts": 18,
+     "retrieved": [
+      "ch-kant-study"
+     ],
+     "relevant": [
+      "ch-kant-orig",
+      "ch-kant-en"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-06",
+     "variants": [
+      "ウェーバーの宗教社会学",
+      "ウェーバー",
+      "宗教社会学",
+      "ウェーバーの宗教社會學",
+      "宗教社會學",
+      "ウェーハーの宗教社会学",
+      "ウェーハー",
+      "ウェーハーの宗教社會學"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ch-weber-alfred"
+     ],
+     "relevant": [
+      "ch-weber-max"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-07",
+     "variants": [
+      "産業立地論",
+      "產業立地論"
+     ],
+     "attempts": 12,
+     "retrieved": [
+      "ch-weber-alfred"
+     ],
+     "relevant": [
+      "ch-weber-alfred"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-08",
+     "variants": [
+      "Faust Goethe 1808",
+      "Faust",
+      "Goethe",
+      "1808"
+     ],
+     "attempts": 24,
+     "retrieved": [
+      "ch-faust-a",
+      "ch-faust-b"
+     ],
+     "relevant": [
+      "ch-faust-a",
+      "ch-faust-b"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-09",
+     "variants": [
+      "ドイツの蒸気機関",
+      "ドイツ",
+      "蒸気機関",
+      "ドイツの蒸氣機關",
+      "蒸氣機關",
+      "トイツの蒸気機関",
+      "トイツ",
+      "トイツの蒸氣機關"
+     ],
+     "attempts": 48,
+     "retrieved": [
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-steam-de"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-10",
+     "variants": [
+      "蒸気機関の古い図説",
+      "蒸気機関",
+      "古い図説",
+      "蒸氣機關の古い圖説",
+      "蒸氣機關",
+      "古い圖説"
+     ],
+     "attempts": 36,
+     "retrieved": [
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-nolang"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-11",
+     "variants": [
+      "明治時代の水力発電",
+      "明治時代",
+      "水力発電",
+      "明治時代の水力發電",
+      "水力發電"
+     ],
+     "attempts": 30,
+     "retrieved": [
+      "ch-hydro"
+     ],
+     "relevant": [
+      "ch-hydro"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-12",
+     "variants": [
+      "19世紀の鉄道技術",
+      "19世紀",
+      "鉄道技術",
+      "19世紀の鐵道技術",
+      "鐵道技術"
+     ],
+     "attempts": 30,
+     "retrieved": [],
+     "relevant": [
+      "ch-rail-en"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-13",
+     "variants": [
+      "ダーウィンが書いた純粋理性批判",
+      "ダーウィン",
+      "書いた純粋理性批判",
+      "ターウィンか書いた純粋理性批判",
+      "ターウィン"
+     ],
+     "attempts": 30,
+     "retrieved": [],
+     "relevant": []
+    },
+    {
+     "id": "challenge-14",
+     "variants": [
+      "火星の植物図鑑 22世紀",
+      "火星",
+      "植物図鑑",
+      "22世紀",
+      "火星の植物圖鑑 22世紀",
+      "植物圖鑑"
+     ],
+     "attempts": 36,
+     "retrieved": [],
+     "relevant": []
+    },
+    {
+     "id": "challenge-15",
+     "variants": [
+      "Kant Kritik der reinen Vernunft 1781",
+      "Kant",
+      "Kritik",
+      "der",
+      "reinen"
+     ],
+     "attempts": 30,
+     "retrieved": [
+      "ch-kant-orig",
+      "ch-kant-komm",
+      "ch-kant-en",
+      "ch-weber-max"
+     ],
+     "relevant": [
+      "ch-kant-orig"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-16",
+     "variants": [
+      "プロテスタンティズムの倫理と資本主義の精神",
+      "プロテスタンティズム",
+      "倫理",
+      "資本主義",
+      "精神",
+      "フロテスタンティスムの倫理と資本主義の精神",
+      "フロテスタンティスム"
+     ],
+     "attempts": 42,
+     "retrieved": [],
+     "relevant": [
+      "ch-weber-max"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-17",
+     "variants": [
+      "種の起源",
+      "起源"
+     ],
+     "attempts": 12,
+     "retrieved": [],
+     "relevant": [
+      "ch-charles"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-18",
+     "variants": [
+      "Zoonomia Erasmus Darwin",
+      "Zoonomia",
+      "Erasmus",
+      "Darwin"
+     ],
+     "attempts": 24,
+     "retrieved": [
+      "ch-erasmus",
+      "ch-charles"
+     ],
+     "relevant": [
+      "ch-erasmus"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-19",
+     "variants": [
+      "Kant Kommentar",
+      "Kant",
+      "Kommentar"
+     ],
+     "attempts": 18,
+     "retrieved": [
+      "ch-kant-komm",
+      "ch-kant-en",
+      "ch-kant-orig"
+     ],
+     "relevant": [
+      "ch-kant-komm"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-20",
+     "variants": [
+      "水力発電と蒸気機関の比較",
+      "水力発電",
+      "蒸気機関",
+      "比較",
+      "水力發電と蒸氣機關の比較",
+      "水力發電",
+      "蒸氣機關"
+     ],
+     "attempts": 42,
+     "retrieved": [
+      "ch-hydro",
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-hydro",
+      "ch-steam-de"
+     ],
+     "recall@5": 0.5,
+     "recall@10": 0.5,
+     "recall@20": 0.5,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 0.6131471927654584,
+     "cross_language_hit": false
+    }
+   ]
+  },
+  "F": {
+   "aggregate": {
+    "recall@5": 0.9167,
+    "recall@10": 0.9167,
+    "recall@20": 0.9167,
+    "precision@5": 0.2222,
+    "mrr": 0.8611,
+    "ndcg@10": 0.8684,
+    "cross_language_rate": 0.5,
+    "avg_attempts": 39.6,
+    "negative_cases": 2,
+    "false_candidate_rate": 0.5,
+    "irrelevant_retrieval_rate": 0.125
+   },
+   "cases": [
+    {
+     "id": "challenge-01",
+     "variants": [
+      "ダーウィンの進化論",
+      "ダーウィン",
+      "進化論",
+      "ターウィンの進化論",
+      "ターウィン",
+      "チャールズ・ダーウィン",
+      "Charles Darwin",
+      "Darwin, Charles",
+      "On the Origin of Species",
+      "The Descent of Man, and Selection in Relation to Sex",
+      "evolution",
+      "theory of evolution"
+     ],
+     "attempts": 40,
+     "retrieved": [
+      "ch-charles",
+      "ch-erasmus"
+     ],
+     "relevant": [
+      "ch-charles"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-02",
+     "variants": [
+      "Darwin evolution",
+      "Darwin",
+      "evolution",
+      "進化論",
+      "進化",
+      "Evolution",
+      "Abstammungslehre",
+      "Entwicklungslehre",
+      "évolution",
+      "théorie de l'évolution",
+      "Darwin-evolution"
+     ],
+     "attempts": 47,
+     "retrieved": [
+      "ch-erasmus",
+      "ch-charles"
+     ],
+     "relevant": [
+      "ch-charles"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 0.5,
+     "ndcg@10": 0.6309297535714575,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-03",
+     "variants": [
+      "純粋理性批判",
+      "Kritik der reinen Vernunft",
+      "Critique of Pure Reason",
+      "Critique de la raison pure",
+      "カント",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel",
+      "Emmanuel Kant"
+     ],
+     "attempts": 37,
+     "retrieved": [
+      "ch-kant-study",
+      "ch-kant-orig",
+      "ch-kant-en",
+      "ch-kant-komm"
+     ],
+     "relevant": [
+      "ch-kant-orig",
+      "ch-kant-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 0.5,
+     "ndcg@10": 0.6934264036172708,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-04",
+     "variants": [
+      "Kritik der reinen Vernunft",
+      "Kritik",
+      "der",
+      "reinen",
+      "Vernunft",
+      "純粋理性批判",
+      "Critique of Pure Reason",
+      "Critique de la raison pure",
+      "カント",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel",
+      "Emmanuel Kant"
+     ],
+     "attempts": 60,
+     "retrieved": [
+      "ch-kant-orig",
+      "ch-kant-komm",
+      "ch-kant-en",
+      "ch-kant-study",
+      "ch-weber-max"
+     ],
+     "relevant": [
+      "ch-kant-orig"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-05",
+     "variants": [
+      "カントの認識論",
+      "カント",
+      "認識論",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel",
+      "Emmanuel Kant",
+      "Kritik der reinen Vernunft",
+      "epistemology",
+      "theory of knowledge"
+     ],
+     "attempts": 39,
+     "retrieved": [
+      "ch-kant-study",
+      "ch-kant-en",
+      "ch-kant-orig",
+      "ch-kant-komm"
+     ],
+     "relevant": [
+      "ch-kant-orig",
+      "ch-kant-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 0.5,
+     "ndcg@10": 0.6934264036172708,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-06",
+     "variants": [
+      "ウェーバーの宗教社会学",
+      "ウェーバー",
+      "宗教社会学",
+      "ウェーバーの宗教社會學",
+      "宗教社會學",
+      "ウェーハーの宗教社会学",
+      "ウェーハー",
+      "ウェーハーの宗教社會學",
+      "マックス・ウェーバー",
+      "Max Weber",
+      "Weber, Max",
+      "Die protestantische Ethik und der Geist des Kapitalismus",
+      "社會學"
+     ],
+     "attempts": 39,
+     "retrieved": [
+      "ch-weber-max",
+      "ch-weber-alfred"
+     ],
+     "relevant": [
+      "ch-weber-max"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-07",
+     "variants": [
+      "産業立地論",
+      "產業立地論",
+      "Theory of the Location of Industries",
+      "Über den Standort der Industrien",
+      "アルフレート・ウェーバー",
+      "Alfred Weber",
+      "工業",
+      "industry",
+      "Industrie"
+     ],
+     "attempts": 37,
+     "retrieved": [
+      "ch-weber-alfred"
+     ],
+     "relevant": [
+      "ch-weber-alfred"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-08",
+     "variants": [
+      "Faust Goethe 1808",
+      "Faust",
+      "Goethe",
+      "1808"
+     ],
+     "attempts": 24,
+     "retrieved": [
+      "ch-faust-a",
+      "ch-faust-b"
+     ],
+     "relevant": [
+      "ch-faust-a",
+      "ch-faust-b"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.4,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-09",
+     "variants": [
+      "ドイツの蒸気機関",
+      "ドイツ",
+      "蒸気機関",
+      "ドイツの蒸氣機關",
+      "蒸氣機關",
+      "トイツの蒸気機関",
+      "トイツ",
+      "トイツの蒸氣機關",
+      "steam-engine",
+      "steam engine",
+      "Dampfmaschine",
+      "machine à vapeur"
+     ],
+     "attempts": 32,
+     "retrieved": [
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-steam-de"
+     ],
+     "recall@5": 0.0,
+     "recall@10": 0.0,
+     "recall@20": 0.0,
+     "precision@5": 0.0,
+     "mrr": 0.0,
+     "ndcg@10": 0.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-10",
+     "variants": [
+      "蒸気機関の古い図説",
+      "蒸気機関",
+      "古い図説",
+      "蒸氣機關の古い圖説",
+      "蒸氣機關",
+      "古い圖説",
+      "steam-engine",
+      "steam engine",
+      "Dampfmaschine",
+      "machine à vapeur",
+      "産業革命"
+     ],
+     "attempts": 30,
+     "retrieved": [
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-nolang"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-11",
+     "variants": [
+      "明治時代の水力発電",
+      "明治時代",
+      "水力発電",
+      "明治時代の水力發電",
+      "水力發電",
+      "hydroelectric power",
+      "hydro-electric power",
+      "Wasserkraftwerk",
+      "Hydroelektrizität",
+      "hydroélectricité",
+      "water power"
+     ],
+     "attempts": 32,
+     "retrieved": [
+      "ch-hydro"
+     ],
+     "relevant": [
+      "ch-hydro"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-12",
+     "variants": [
+      "19世紀の鉄道技術",
+      "19世紀",
+      "鉄道技術",
+      "19世紀の鐵道技術",
+      "鐵道技術",
+      "鐵道",
+      "railway",
+      "railroad",
+      "Eisenbahn",
+      "chemin de fer",
+      "蒸気機関"
+     ],
+     "attempts": 41,
+     "retrieved": [
+      "ch-rail-en",
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-rail-en"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-13",
+     "variants": [
+      "ダーウィンが書いた純粋理性批判",
+      "ダーウィン",
+      "書いた純粋理性批判",
+      "ターウィンか書いた純粋理性批判",
+      "ターウィン",
+      "Kritik der reinen Vernunft",
+      "純粋理性批判",
+      "Critique of Pure Reason",
+      "Critique de la raison pure",
+      "チャールズ・ダーウィン",
+      "Charles Darwin",
+      "Darwin, Charles"
+     ],
+     "attempts": 39,
+     "retrieved": [
+      "ch-charles",
+      "ch-kant-orig",
+      "ch-kant-komm",
+      "ch-kant-study",
+      "ch-kant-en"
+     ],
+     "relevant": []
+    },
+    {
+     "id": "challenge-14",
+     "variants": [
+      "火星の植物図鑑 22世紀",
+      "火星",
+      "植物図鑑",
+      "22世紀",
+      "火星の植物圖鑑 22世紀",
+      "植物圖鑑",
+      "火星の植物図鑑-22世紀"
+     ],
+     "attempts": 26,
+     "retrieved": [],
+     "relevant": []
+    },
+    {
+     "id": "challenge-15",
+     "variants": [
+      "Kant Kritik der reinen Vernunft 1781",
+      "Kant",
+      "Kritik",
+      "der",
+      "reinen",
+      "Kritik der reinen Vernunft",
+      "純粋理性批判",
+      "Critique of Pure Reason",
+      "Critique de la raison pure",
+      "カント",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel"
+     ],
+     "attempts": 57,
+     "retrieved": [
+      "ch-kant-orig",
+      "ch-kant-komm",
+      "ch-kant-en",
+      "ch-kant-study",
+      "ch-weber-max"
+     ],
+     "relevant": [
+      "ch-kant-orig"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-16",
+     "variants": [
+      "プロテスタンティズムの倫理と資本主義の精神",
+      "プロテスタンティズム",
+      "倫理",
+      "資本主義",
+      "精神",
+      "フロテスタンティスムの倫理と資本主義の精神",
+      "フロテスタンティスム",
+      "Die protestantische Ethik und der Geist des Kapitalismus",
+      "The Protestant Ethic and the Spirit of Capitalism",
+      "L'Éthique protestante et l'esprit du capitalisme",
+      "マックス・ウェーバー",
+      "ウェーバー",
+      "Max Weber",
+      "Weber, Max",
+      "capitalism"
+     ],
+     "attempts": 54,
+     "retrieved": [
+      "ch-weber-max",
+      "ch-weber-alfred"
+     ],
+     "relevant": [
+      "ch-weber-max"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-17",
+     "variants": [
+      "種の起源",
+      "起源",
+      "On the Origin of Species",
+      "Über die Entstehung der Arten",
+      "Die Entstehung der Arten",
+      "De l'origine des espèces",
+      "L'Origine des espèces",
+      "ダーウィン",
+      "チャールズ・ダーウィン",
+      "Charles Darwin"
+     ],
+     "attempts": 37,
+     "retrieved": [
+      "ch-charles"
+     ],
+     "relevant": [
+      "ch-charles"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": true
+    },
+    {
+     "id": "challenge-18",
+     "variants": [
+      "Zoonomia Erasmus Darwin",
+      "Zoonomia",
+      "Erasmus",
+      "Darwin",
+      "Zoonomie",
+      "エラズマス・ダーウィン",
+      "Erasmus Darwin"
+     ],
+     "attempts": 35,
+     "retrieved": [
+      "ch-erasmus",
+      "ch-charles"
+     ],
+     "relevant": [
+      "ch-erasmus"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-19",
+     "variants": [
+      "Kant Kommentar",
+      "Kant",
+      "Kommentar",
+      "カント",
+      "イマヌエル・カント",
+      "Immanuel Kant",
+      "Kant, Immanuel",
+      "Emmanuel Kant",
+      "Kritik der reinen Vernunft",
+      "Kant-Kommentar"
+     ],
+     "attempts": 49,
+     "retrieved": [
+      "ch-kant-komm",
+      "ch-kant-en",
+      "ch-kant-orig",
+      "ch-kant-study"
+     ],
+     "relevant": [
+      "ch-kant-komm"
+     ],
+     "recall@5": 1.0,
+     "recall@10": 1.0,
+     "recall@20": 1.0,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 1.0,
+     "cross_language_hit": false
+    },
+    {
+     "id": "challenge-20",
+     "variants": [
+      "水力発電と蒸気機関の比較",
+      "水力発電",
+      "蒸気機関",
+      "比較",
+      "水力發電と蒸氣機關の比較",
+      "水力發電",
+      "蒸氣機關",
+      "steam-engine",
+      "steam engine",
+      "Dampfmaschine",
+      "machine à vapeur",
+      "hydroelectric power"
+     ],
+     "attempts": 37,
+     "retrieved": [
+      "ch-hydro",
+      "ch-nolang"
+     ],
+     "relevant": [
+      "ch-hydro",
+      "ch-steam-de"
+     ],
+     "recall@5": 0.5,
+     "recall@10": 0.5,
+     "recall@20": 0.5,
+     "precision@5": 0.2,
+     "mrr": 1.0,
+     "ndcg@10": 0.6131471927654584,
+     "cross_language_hit": false
+    }
+   ]
+  }
+ }
+}

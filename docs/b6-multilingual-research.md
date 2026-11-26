@@ -106,3 +106,18 @@ admission rule and all Phase 7-10 logic are unchanged, and
 the full pre-b6 suite (309 tests) passes unmodified.
 No paid LLM/translation calls (0), no external AI
 transmission, no new external APIs.
+
+## Final-review round
+
+An external review of the submitted code found release-
+blocking defects (Quick ignoring the new options, filters
+that were only hints, OCR fetched before filtering, toggle
+leaks, permissive linking, string-pattern handoff
+identifiers, simulation/production divergence). All were
+reproduced, fixed and regression-tested; the full record is
+docs/b6-final-review.md, and the evaluation was split into
+simulation (A) and real-service fixture evaluation (B) in
+docs/b6-evaluation.md. A live follow-up also fixed plan
+variants being starved by pool saturation when they
+duplicated legacy script variants (明治時代の水力発電 now
+surfaces NDL materials at the top).

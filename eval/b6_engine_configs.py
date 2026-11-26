@@ -24,14 +24,20 @@ _KIND_STAGES = {
     "E": {"historical", "author_name", "original_title", "translated_title",
           "concept_translation", "related_concept", "spelling_variant", "compound_split"},
 }
-for later in ("F", "G", "H"):
+for later in ("F", "G", "H", "Gx"):
     _KIND_STAGES[later] = _KIND_STAGES["E"]
 
+# Routing mirrors the production service (service.py): Europeana
+# is NOT routed while it is authentication-pending
+# (EUROPEANA_API_KEY unset), and ID-only libraries are never
+# keyword-routed. The b6 candidate originally routed to
+# Europeana as well; the final review (section 13) removed it,
+# which also reduced simulated attempts.
 _ROUTING = {  # variant language -> libraries it is dispatched to (F+)
     "ja": ("ndl", "internet-archive"),
-    "en": ("loc", "internet-archive", "europeana"),
-    "de": ("ddb", "internet-archive", "europeana"),
-    "fr": ("gallica", "internet-archive", "europeana"),
+    "en": ("loc", "internet-archive"),
+    "de": ("ddb", "internet-archive"),
+    "fr": ("gallica", "internet-archive"),
 }
 
 
@@ -46,7 +52,7 @@ def engine_variants(config: str, query: str):
     for variant in plan["variants"]:
         if variant["kind"] in allowed and variant["text"] not in variants:
             variants.append(variant["text"])
-    if config in ("F", "G", "H"):
+    if config in ("F", "G", "H", "Gx"):
         # Routing: the original query still goes everywhere; every
         # other variant is dispatched by its detected language.
         # Unknown-language variants keep the full dispatch.
@@ -59,13 +65,29 @@ def engine_variants(config: str, query: str):
     return variants, {"routing": routing, "plan": plan}
 
 
+def engine_rank_experimental(case, items, query_hits, plan):
+    """G_experimental (final review, section 16): the NOT-shipped
+    configuration that actually reorders results with the
+    discovery ranker. Kept reproducible so the rejection stays
+    verifiable; do not confuse with G_shipped below."""
+    return _rank_discovery_for(case, items, query_hits)
+
+
+def _rank_discovery_for(case, items, query_hits):
+    from global_library_mcp.discovery import analyze_discovery_query
+    from global_library_mcp.ranking import rank_discovery
+
+    analysis = analyze_discovery_query(case["query"])
+    return rank_discovery(analysis, items, query_hits)
+
+
 def engine_rank(case, items, query_hits, plan):
-    # Ablation finding (all three datasets): replacing the
-    # incumbent rank_candidates ordering with rank_discovery
+    # G_shipped: ablation finding (all three datasets): replacing
+    # the incumbent rank_candidates ordering with rank_discovery
     # kept Recall@10 but lowered MRR (dev 0.93->0.81). The
     # shipped design therefore keeps rank_candidates for order
     # and uses score_item only to attach explanations; the
-    # replacement ranking remains available as an opt-in.
+    # replacement ranking remains available as G_experimental.
     from global_library_mcp.discovery import analyze_discovery_query
     from global_library_mcp.ranking import score_item
     from global_library_mcp.service import rank_candidates

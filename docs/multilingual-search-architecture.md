@@ -51,3 +51,21 @@
    the evaluation harness.
 4. Add evaluation cases in the new language before claiming
    quality.
+
+## Final-review amendments
+
+- Quick mode uses the same plan/filter pipeline (variant cap
+  3, no OCR fetching, own HTTP budget) instead of an early
+  raw-query return.
+- Explicit author/title/year/language/OCR conditions are
+  applied as a bibliographic filter on the candidate pool
+  BEFORE ranking and before any OCR fetching; the filter
+  report is part of every response.
+- Responses distinguish planned / executed / cached /
+  skipped variants (`variant_execution` with skip reasons)
+  and routing skips (e.g. Europeana while its API key is
+  pending). Plan variants execute in plan order even when
+  they duplicate legacy script/term variants.
+- Language matching normalises ISO 639-1/-2/T/B codes,
+  English names, endonyms and Japanese names; unknown never
+  counts as a match.

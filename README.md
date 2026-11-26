@@ -54,6 +54,12 @@ newspaper issues are discoverable from a title's LCCN.
 Expansion is discovery only - evidence admission is
 unchanged, and no translation or LLM is involved. See
 docs/b6-multilingual-research.md and docs/b6-evaluation.md.
+The final-review round (docs/b6-final-review.md) made the
+structured conditions apply in every mode including Quick,
+moved filtering before OCR fetching, tightened author/work/
+edition identification and DDB→BSB identifier validation,
+and split the evaluation into a simulation and a
+real-service fixture evaluation.
 
 ## Quick start (local)
 

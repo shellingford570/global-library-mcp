@@ -107,8 +107,16 @@ def concept_overlap(per_doc_texts: dict[str, str]) -> dict[str, Any]:
         for concept_id in concepts:
             counts[concept_id] = counts.get(concept_id, 0) + 1
     shared = sorted(cid for cid, n in counts.items() if n >= 2)
+    # Final review (section 24): with 3-4 documents, a concept
+    # shared by ALL documents is a different signal from one
+    # shared by only some; report both instead of one lump.
+    shared_all = sorted(cid for cid, n in counts.items()
+                        if per_doc and n == len(per_doc))
+    shared_some = sorted(cid for cid in shared if cid not in shared_all)
     return {
         "dictionary_concept_overlap": shared,
+        "shared_by_all_documents": shared_all,
+        "shared_by_some_documents": shared_some,
         "per_document_concepts": per_doc,
         "possible_related_concepts": shared,
         "semantic_comparison": "not_checked",

@@ -444,7 +444,8 @@ test('b6 multilingual discovery: panel, matched variant, reasons, BSB handoff, e
         query: '蒸気機関の歴史',
         discovery: {
           query_language: { language: 'ja', confidence: 1.0 },
-          variants: [{ text: 'Dampfmaschine', language: 'de', kind: 'concept_translation', relation: 'translation', reason: 'de label of concept:steam-engine' }],
+          planned_variants: [{ text: 'Dampfmaschine', language: 'de', kind: 'concept_translation', relation: 'translation', reason: 'de label of concept:steam-engine' }],
+          executed_variants: ['Dampfmaschine'],
           skipped: [], ambiguous_authors: [], budget: { variant_cap: 8, variants_used: 1, mode: 'standard' },
         },
         materials: [{
@@ -478,4 +479,54 @@ test('b6 multilingual discovery: panel, matched variant, reasons, BSB handoff, e
   await page.locator('#materials-button').click();
   await expect(page.locator('#discovery-panel')).toBeVisible();
   expect(lastUrl).toContain('expand=0');
+});
+
+test('b6 final review: quick mode sends structured conditions and marks executed variants', async ({ page }) => {
+  let lastUrl = '';
+  await page.route('**/api/materials**', async route => {
+    lastUrl = route.request().url();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        mode: 'quick',
+        note: '書誌検索のみの高速モードです。',
+        query: '哲学',
+        discovery: {
+          query_language: { language: 'ja', confidence: 1.0 },
+          planned_variants: [
+            { text: 'カント', language: 'ja', kind: 'author_name', relation: 'translation', reason: 'name form of author:kant' },
+            { text: 'Kritik der reinen Vernunft', language: 'de', kind: 'original_title', relation: 'synonym', reason: 'original title' },
+          ],
+          executed_variants: ['カント'],
+          skipped: [], ambiguous_authors: [], budget: { variant_cap: 3, variants_used: 1, mode: 'quick' },
+        },
+        filters: { applied_local: ['author', 'publication_year_range'], metadata_missing: {}, candidates_before: 2, candidates_after: 1 },
+        materials: [{
+          citation_key: null, library_id: 'ndl', record_id: 'N1', page_id: null,
+          title: '純粋理性批判', author: 'カント', date: '1935',
+          image_url: null, landing_url: 'https://example.org/n1', rights: {},
+          admitted_as_evidence: false,
+          access_state: { bibliographic: true, ocr_fetched: false, ocr_nonempty: false, mapping_confirmed: false, passage_found: false, assessed_as_evidence: false },
+          states: { discovered: true, accessible: false, source_verified: false, relevant_candidate: false, supporting_passage: false, assessed_evidence: false, rejected_for_answer: false },
+          excerpts: [], not_admitted_reasons: [],
+        }],
+      }),
+    });
+  });
+  await page.goto('/');
+  await page.locator('#mode-select').selectOption('quick');
+  await page.locator('#author-input').fill('カント');
+  await page.locator('#year-from').fill('1900');
+  await page.locator('#query').fill('哲学');
+  await page.locator('#materials-button').click();
+  await expect(page.locator('#discovery-panel')).toBeVisible();
+  // The request carries mode + structured conditions.
+  expect(lastUrl).toContain('mode=quick');
+  expect(lastUrl).toContain('author=');
+  expect(lastUrl).toContain('year_from=1900');
+  // Planned variants are marked executed vs not executed.
+  await expect(page.locator('#discovery-panel')).toContainText('実行済み');
+  await expect(page.locator('#discovery-panel')).toContainText('未実行');
+  await expect(page.locator('#materials-results')).toContainText('純粋理性批判');
 });

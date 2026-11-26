@@ -65,3 +65,37 @@ holdings in the live runs above.
   tools, research_question absent, all read-only,
   research_materials succeeds. (list_libraries emits one
   content block per library, as established in b5.)
+
+## Final-review re-verification (2026-11-26)
+
+Limited live re-runs after the final-review fixes (details in
+docs/b6-final-review.md):
+
+- 明治時代の水力発電: after the variant-ordering fix, the
+  historical forms execute first (水力發電 → 10 new records)
+  and NDL materials dominate the top ranks (発電水力の標準
+  使用水量…, 新編水力発電, 松花江水力發電計畫概要). Before
+  the fix they were planned but skipped.
+- 19世紀ドイツの蒸気機関: Dampfmaschine executes against
+  DDB and DDB records enter the pool; top ranks are NDL
+  historical-script hits and IA (ranking unchanged). LoC hit
+  the 10s search deadline; Gallica 403 (not retried).
+- 純粋理性批判: four-language variants execute; NDL Kant
+  studies stay unlinked; an IA commemoration volume is
+  refused_author_mismatch. The Kritik itself did not reach
+  the sampled top 10 (ranking limitation, recorded).
+- Wrong-author control: author=Hegel filter cuts 70
+  candidates to the 3 Hegel records pre-OCR.
+- BSB bsb11650472: pages 1-6 identity-verified; OCR
+  non-empty on 5 of 6 (page 4 empty); verify_page verified
+  with a real image fetch (200, JPEG).
+- LoC chain: New-York Tribune, 45 issues; issue
+  1917-09-02 ed-1, page seq-1: OCR 901 chars, identity
+  verified, image reachable, citation available,
+  verify_page verified. Search-to-admission remains
+  unverified.
+- MCP final confirmation: stdio 15 tools (list_libraries
+  checked across all 25 content blocks); HTTP research
+  profile 14 tools, all readOnlyHint, research_question
+  absent and its call refused (isError), consecutive Quick
+  calls with structured conditions succeed.

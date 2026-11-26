@@ -161,3 +161,10 @@ languages, expansion toggles) are on the search form; every
 result shows which search term found it and why it is
 shown. Expansion widens discovery only; it is not
 translation, and evidence admission is unchanged.
+Since the b6 final review, the structured conditions
+(author, title, year range, document languages, expansion
+toggles, OCR requirement) apply in Quick mode too — Quick
+uses at most 3 expansion variants, applies the conditions
+to the bibliographic results, and never fetches OCR text.
+The discovery panel marks which planned variants were
+actually executed.

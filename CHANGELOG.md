@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.0b6 — Multilingual Research & Intelligent Discovery
+
+Final-review fixes (2026-11-26, docs/b6-final-review.md):
+Quick mode now applies the structured options (discovery
+plan cap 3, bibliographic filters, no OCR fetching, own
+HTTP budget); author/title filters are real bibliographic
+filters applied BEFORE OCR fetching; expansion toggles gate
+every generation path, and plan variants execute in plan
+order even when duplicating legacy script variants;
+author/work resolution is equality-based with an explicit
+status vocabulary (nothing is authority-verified);
+same-edition classification requires edition-level evidence;
+DDB→BSB identifiers are validated structurally (URN form,
+exact MDZ host, structured provider code); empty OCR is
+reported separately from verified page identity
+(`ocr_state`); language filters normalise ISO 639 codes and
+names; Europeana is not routed while its API key is pending;
+planned vs executed variants are distinguished in responses
+and the Web UI; the evaluation is split into simulation (A)
+and a real-LibraryService fixture evaluation (B), with a
+pre-fixed 20-case challenge set. Suites: pytest 362,
+Playwright 17. Paid API calls: 0.
+
 ## 1.0.0b6 — Multilingual Research (candidate)
 
 Discovery from already-connected libraries, in the user's

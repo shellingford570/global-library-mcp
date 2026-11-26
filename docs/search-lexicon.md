@@ -45,3 +45,15 @@ meaning (split near-synonyms and cross-link them as related +
 excluded_confusions), historical forms only where attested,
 and a source note for anything non-obvious. Grow by quality
 of distinction, not by count.
+
+## Quality gates (final review)
+
+The lexicon is validated at load: unique concept/author/
+work ids, work→author reference integrity, valid language
+keys, no empty surfaces, no duplicate surfaces within one
+list, `source` required, `verification_status` in
+{unverified, verified}, author surnames present, work
+original languages normalisable, no concept self-reference.
+Invalid data fails loudly instead of silently degrading
+search. All 98 entries remain `unverified`; candidates
+generated from an entry inherit its verification status.

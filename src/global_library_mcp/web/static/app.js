@@ -72,7 +72,7 @@ const I18N = {
     expandMulti: '多言語展開', expandHist: '歴史的表記展開',
     discoveryTitle: '検索の展開（資料発見のみ・根拠判定には使いません）',
     queryLanguageLabel: '質問の言語', matchedVariantLabel: '発見した検索語', discoveryReasonsLabel: '表示理由',
-    workLinkLabel: '作品候補', ambiguousAuthorLabel: '同名の著者が複数いるため特定していません',
+    workLinkLabel: '作品候補', ambiguousAuthorLabel: '同名の著者が複数いるため特定していません', variantExecuted: '実行済み', variantNotExecuted: '未実行',
     bsbHandoffLabel: 'BSB/MDZで原本を確認', dupGroupLabel: '同一作品の候補グループ',
     materialsNote: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
     stateDiscovered: '資料発見', stateAccessible: 'ページ取得', stateVerified: '原本対応確認',
@@ -209,7 +209,7 @@ const I18N = {
     expandMulti: 'Multilingual expansion', expandHist: 'Historical spellings',
     discoveryTitle: 'Search expansion (discovery only; never used for evidence admission)',
     queryLanguageLabel: 'Query language', matchedVariantLabel: 'Found by search term', discoveryReasonsLabel: 'Why shown',
-    workLinkLabel: 'Work candidate', ambiguousAuthorLabel: 'Several authors share this name; not identified',
+    workLinkLabel: 'Work candidate', ambiguousAuthorLabel: 'Several authors share this name; not identified', variantExecuted: 'executed', variantNotExecuted: 'not executed',
     bsbHandoffLabel: 'Check the original at BSB/MDZ', dupGroupLabel: 'Same-work candidate group',
     materialsNote: 'Candidates do not prove an answer. Read the excerpts and originals and judge for yourself.',
     stateDiscovered: 'Discovered', stateAccessible: 'Page fetched', stateVerified: 'Source verified',
@@ -606,11 +606,16 @@ function renderMaterials(data) {
     + `<label class="filter-toggle"><input type="checkbox" id="materials-admitted-only" ${materialsAdmittedOnly ? 'checked' : ''}> ${t().admittedOnly}</label>`;
   if (data.discovery) {
     const d = data.discovery;
-    const variantLines = (d.variants || []).map(v => `<li>${esc(v.text)} <span class="meta-line">[${esc(v.language)} · ${esc(v.kind)}] ${esc(v.reason || '')}</span></li>`).join('');
+    // Final review (section 14): planned and executed variants
+    // are different things - mark each planned variant with its
+    // execution state instead of implying all of them ran.
+    const executedSet = new Set(d.executed_variants || []);
+    const variantLines = (d.planned_variants || []).map(v => `<li>${esc(v.text)} <span class="meta-line">[${esc(v.language)} · ${esc(v.kind)}] ${esc(v.reason || '')} · ${executedSet.has(v.text) ? t().variantExecuted : t().variantNotExecuted}</span></li>`).join('');
     const ambiguous = (d.ambiguous_authors || []).length ? `<p class="rights">${t().ambiguousAuthorLabel}: ${esc(d.ambiguous_authors.join(', '))}</p>` : '';
+    const routingSkipped = Object.entries(d.routing_skipped || {}).map(([lib, why]) => `<p class="rights">${esc(lib)}: ${esc(why)}</p>`).join('');
     html += `<div class="notice" id="discovery-panel"><strong>${t().discoveryTitle}</strong>`
       + `<p class="meta-line">${t().queryLanguageLabel}: ${esc((d.query_language || {}).language || 'unknown')}</p>`
-      + (variantLines ? `<ul>${variantLines}</ul>` : '') + ambiguous + `</div>`;
+      + (variantLines ? `<ul>${variantLines}</ul>` : '') + ambiguous + routingSkipped + `</div>`;
   }
   for (const item of items) {
     const excerpts = (item.excerpts || []).map(p => `<blockquote class="correction-quote">${esc(p.text)}</blockquote>`).join('');

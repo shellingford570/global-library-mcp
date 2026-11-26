@@ -43,11 +43,49 @@ def load_lexicon() -> dict[str, Any]:
                 for ref in entry.get("related", []) + entry.get("excluded_confusions", []):
                     if ref not in {c["concept_id"] for c in data["concepts"]}:
                         raise ValueError(f"lexicon: concept {entry_id} references unknown concept {ref}")
-            if section == "authors" and not (entry.get("names") or {}):
-                raise ValueError(f"lexicon: author {entry_id} has no names")
-            if section == "works":
+                    if ref == entry_id:
+                        raise ValueError(f"lexicon: concept {entry_id} references itself")
+            # Final review (section 23): structural quality gates -
+            # valid language keys, no empty or duplicated surfaces,
+            # a source on every entry.
+            # Surface groups are validated independently: the
+            # same string may legitimately appear as both a
+            # current label and a historical form (e.g. 言語学),
+            # but never twice inside one list.
+            surface_groups: list[dict] = []
+            if section == "concepts":
+                surface_groups = [entry.get("labels") or {}, entry.get("historical_variants") or {}]
+            elif section == "authors":
+                surface_groups = [entry.get("names") or {}]
+                if not entry.get("surname"):
+                    raise ValueError(f"lexicon: author {entry_id} has no surname")
+            elif section == "works":
+                surface_groups = [dict(entry.get("translated_titles") or {})]
+                if not entry.get("original_title"):
+                    raise ValueError(f"lexicon: work {entry_id} has no original_title")
+                from global_library_mcp.languages import normalize_language
+
+                if not normalize_language(entry.get("original_language")):
+                    raise ValueError(f"lexicon: work {entry_id} has invalid original_language "
+                                     f"{entry.get('original_language')!r}")
                 if entry.get("author_id") not in {a["author_id"] for a in data["authors"]}:
                     raise ValueError(f"lexicon: work {entry_id} references unknown author {entry.get('author_id')}")
+            for surfaces in surface_groups:
+                for lang, values in surfaces.items():
+                    if lang not in _LANGUAGES:
+                        raise ValueError(f"lexicon: {entry_id} uses unknown language key {lang!r}")
+                    seen_surfaces: set[str] = set()
+                    for value in values or []:
+                        if not (value or "").strip():
+                            raise ValueError(f"lexicon: {entry_id} has an empty surface in {lang}")
+                        if _norm(value) in seen_surfaces:
+                            raise ValueError(f"lexicon: {entry_id} duplicates surface {value!r} in {lang}")
+                        seen_surfaces.add(_norm(value))
+            if not (entry.get("source") or "").strip():
+                raise ValueError(f"lexicon: {entry_id} has no source recorded")
+            if entry.get("verification_status") not in ("unverified", "verified"):
+                raise ValueError(f"lexicon: {entry_id} has invalid verification_status "
+                                 f"{entry.get('verification_status')!r}")
     return data
 
 

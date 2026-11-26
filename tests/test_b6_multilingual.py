@@ -126,7 +126,7 @@ def test_resolve_work_refuses_author_mismatch():
 
 def test_resolve_work_links_translated_title():
     result = resolve_work("資本論", "マルクス")
-    assert result["work_id"] == "work:das-kapital" and result["status"] == "linked"
+    assert result["work_id"] == "work:das-kapital" and result["status"] == "candidate_exact_title_and_author"
 
 
 def test_resolve_author_refuses_shared_surname():
@@ -261,7 +261,7 @@ async def test_research_materials_discovery_block(monkeypatch):
         monkeypatch.setattr(service, "search", fake_search)
         result = await service.research_materials("蒸気機関の歴史", libraries=["ddb", "internet-archive"])
     assert result["discovery"] is not None
-    variants = {v["text"] for v in result["discovery"]["variants"]}
+    variants = {v["text"] for v in result["discovery"]["planned_variants"]}
     assert "Dampfmaschine" in variants
     ddb_material = next(m for m in result["materials"] if m["library_id"] == "ddb")
     assert ddb_material["bsb_handoff"]["bsb_object_id"] == "bsb11650472"

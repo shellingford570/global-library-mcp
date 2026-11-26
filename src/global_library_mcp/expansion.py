@@ -94,73 +94,99 @@ class QueryExpansionEngine:
     ) -> dict[str, Any]:
         cap = _MODE_CAPS.get(mode, 8)
         query = analysis.raw
-        languages = target_languages or list(_ALL_LANGS)
+        query_lang = analysis.query_language["language"]
+        # Final review (section 5): the two expansion toggles and
+        # the explicit target languages gate EVERY candidate path
+        # centrally here - original titles, author works and
+        # concept labels included. A variant in a language other
+        # than the query language is a multilingual candidate,
+        # whoever generated it; a historical-form candidate is a
+        # historical candidate, whoever generated it.
+        if target_languages:
+            allowed_languages = set(target_languages) | ({query_lang} if query_lang != "unknown" else set())
+        elif expand_multilingual:
+            allowed_languages = set(_ALL_LANGS)
+        else:
+            allowed_languages = {query_lang} if query_lang != "unknown" else set()
         variants: list[dict[str, Any]] = []
         skipped: list[dict[str, str]] = []
         seen: set[str] = set()
+        seen_skipped: set[str] = set()
 
         def norm(text: str) -> str:
             return re.sub(r"\s+", " ", unicodedata.normalize("NFKC", text).lower()).strip()
 
+        def skip(text: str, reason: str) -> None:
+            if text and text not in seen_skipped:
+                seen_skipped.add(text)
+                skipped.append({"candidate": text, "reason": reason})
+
         def add(text: str, language: str, kind: str, relation: str, reason: str,
-                source: str, priority: int) -> None:
+                source: str, priority: int, status: str | None = None) -> None:
             key = norm(text)
             if not text or key == norm(query) or key in seen:
                 return
+            if kind == "historical" and not expand_historical:
+                skip(text, "historical expansion disabled")
+                return
+            if (language and language != "unknown" and language != query_lang
+                    and language not in allowed_languages):
+                skip(text, "multilingual expansion disabled"
+                     if not expand_multilingual else
+                     f"language {language} not in the requested document languages")
+                return
             seen.add(key)
-            variants.append({"text": text, "language": language, "kind": kind,
-                             "relation": relation, "reason": reason, "source": source,
-                             "priority": priority})
+            variant = {"text": text, "language": language, "kind": kind,
+                       "relation": relation, "reason": reason, "source": source,
+                       "priority": priority}
+            if status is not None:
+                variant["lexicon_verification_status"] = status
+            variants.append(variant)
 
         # 1) Works matched: original + translated titles (priority 1).
         for work in analysis.works:
             add(work["original_title"], work.get("original_language") or "en",
-                "original_title", "synonym", f"original title of {work['work_id']}", "lexicon:works", 1)
+                "original_title", "synonym", f"original title of {work['work_id']}",
+                "lexicon:works", 1, status=work.get("verification_status"))
             for lang, titles in (work.get("translated_titles") or {}).items():
-                if not expand_multilingual and lang != analysis.query_language["language"]:
-                    skipped.append({"candidate": titles[0], "reason": "multilingual expansion disabled"})
-                    continue
                 for title in titles:
                     add(title, lang, "translated_title", "translation",
-                        f"translated title of {work['work_id']}", "lexicon:works", 1)
+                        f"translated title of {work['work_id']}", "lexicon:works", 1,
+                        status=work.get("verification_status"))
         # 2) Specific authors: name forms in other languages (1),
         #    then their works' titles (2). Ambiguous authors are
         #    never expanded into a specific person's works.
         for author in analysis.authors:
             for lang, names in (author.get("names") or {}).items():
-                if not expand_multilingual and lang != analysis.query_language["language"]:
-                    continue
                 for name in names:
                     add(name, lang, "author_name", "translation",
-                        f"name form of {author['author_id']}", "lexicon:authors", 1)
+                        f"name form of {author['author_id']}", "lexicon:authors", 1,
+                        status=author.get("verification_status"))
             for work in lexicon_mod.works_by_author(author["author_id"]):
                 add(work["original_title"], work.get("original_language") or "en",
-                    "original_title", "synonym", f"work of {author['author_id']}", "lexicon:works", 2)
+                    "original_title", "synonym", f"work of {author['author_id']}",
+                    "lexicon:works", 2, status=work.get("verification_status"))
         seen_ambiguous: set[str] = set()
         for author in analysis.ambiguous_authors:
             if author["surname"] in seen_ambiguous:
                 continue
             seen_ambiguous.add(author["surname"])
-            skipped.append({"candidate": author["surname"],
-                            "reason": "ambiguous author (shared surname); not expanded into a specific person's works"})
+            skip(author["surname"],
+                 "ambiguous author (shared surname); not expanded into a specific person's works")
         # 3) Concepts: labels in other languages (3), historical
         #    forms (2), related concepts (5, standard/deep only).
-        query_lang = analysis.query_language["language"]
         for concept in analysis.concepts:
             for lang, label, kind in lexicon_mod.labels_for(concept):
                 if kind == "historical":
-                    if expand_historical:
-                        add(label, lang, "historical", "spelling_variant",
-                            f"historical form of {concept['concept_id']}", "lexicon:concepts", 2)
+                    add(label, lang, "historical", "spelling_variant",
+                        f"historical form of {concept['concept_id']}", "lexicon:concepts", 2,
+                        status=concept.get("verification_status"))
                     continue
                 if lang == query_lang:
                     continue
-                if not expand_multilingual:
-                    skipped.append({"candidate": label, "reason": "multilingual expansion disabled"})
-                    continue
-                if lang in languages:
-                    add(label, lang, "concept_translation", "translation",
-                        f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3)
+                add(label, lang, "concept_translation", "translation",
+                    f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3,
+                    status=concept.get("verification_status"))
             if mode in ("standard", "deep"):
                 for ref in concept.get("related", []):
                     related = next((c for c in lexicon_mod.load_lexicon()["concepts"]
@@ -170,7 +196,8 @@ class QueryExpansionEngine:
                             if kind == "label" and lang == query_lang:
                                 add(label, lang, "related_concept", "related",
                                     f"related concept {ref} of {concept['concept_id']}",
-                                    "lexicon:concepts", 5)
+                                    "lexicon:concepts", 5,
+                                    status=related.get("verification_status"))
         # 4) Script / spelling variants of the query and its terms.
         bases = [query, *analysis.terms]
         for base in bases:
@@ -199,7 +226,7 @@ class QueryExpansionEngine:
         overflow = variants[cap:]
         variants = variants[:cap]
         for extra in overflow:
-            skipped.append({"candidate": extra["text"], "reason": "variant cap reached"})
+            skip(extra["text"], "variant cap reached")
         return {
             "original_query": query,
             "normalized_query": norm(query),
@@ -210,4 +237,5 @@ class QueryExpansionEngine:
                        "mode": mode},
             "multilingual_enabled": expand_multilingual,
             "historical_enabled": expand_historical,
+            "allowed_languages": sorted(allowed_languages),
         }

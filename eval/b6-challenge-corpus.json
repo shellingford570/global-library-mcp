@@ -1,0 +1,213 @@
+[
+ {
+  "library_id": "internet-archive",
+  "record_id": "ch-erasmus",
+  "title": "Zoonomia; or, The Laws of Organic Life",
+  "author": "Darwin, Erasmus",
+  "subjects": [
+   "evolution",
+   "medicine"
+  ],
+  "language": "en",
+  "year": 1794,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": null
+ },
+ {
+  "library_id": "internet-archive",
+  "record_id": "ch-charles",
+  "title": "On the Origin of Species",
+  "author": "Darwin, Charles",
+  "subjects": [
+   "evolution",
+   "natural selection"
+  ],
+  "language": "en",
+  "year": 1859,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": "work:origin-of-species"
+ },
+ {
+  "library_id": "ddb",
+  "record_id": "ch-kant-orig",
+  "title": "Kritik der reinen Vernunft",
+  "author": "Kant, Immanuel",
+  "subjects": [
+   "Philosophie",
+   "Erkenntnistheorie"
+  ],
+  "language": "de",
+  "year": 1781,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": "work:kritik-reinen-vernunft"
+ },
+ {
+  "library_id": "ddb",
+  "record_id": "ch-kant-komm",
+  "title": "Kommentar zu Kants Kritik der reinen Vernunft",
+  "author": "Vaihinger, Hans",
+  "subjects": [
+   "Philosophie",
+   "Kant Kommentar"
+  ],
+  "language": "de",
+  "year": 1922,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": null
+ },
+ {
+  "library_id": "internet-archive",
+  "record_id": "ch-kant-en",
+  "title": "Critique of Pure Reason",
+  "author": "Kant, Immanuel",
+  "subjects": [
+   "philosophy",
+   "epistemology"
+  ],
+  "language": "en",
+  "year": 1929,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": "work:kritik-reinen-vernunft"
+ },
+ {
+  "library_id": "ndl",
+  "record_id": "ch-kant-study",
+  "title": "カント『純粋理性批判』研究",
+  "author": "田中太郎",
+  "subjects": [
+   "哲学",
+   "カント"
+  ],
+  "language": "ja",
+  "year": 1985,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": null
+ },
+ {
+  "library_id": "ddb",
+  "record_id": "ch-weber-max",
+  "title": "Die protestantische Ethik und der Geist des Kapitalismus",
+  "author": "Weber, Max",
+  "subjects": [
+   "Soziologie",
+   "Religion"
+  ],
+  "language": "de",
+  "year": 1905,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": "work:protestant-ethic"
+ },
+ {
+  "library_id": "ndl",
+  "record_id": "ch-weber-alfred",
+  "title": "産業立地論",
+  "author": "ウェーバー, アルフレッド",
+  "subjects": [
+   "経済地理",
+   "立地論"
+  ],
+  "language": "ja",
+  "year": 1986,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": "work:standort-industrien"
+ },
+ {
+  "library_id": "ddb",
+  "record_id": "ch-faust-a",
+  "title": "Faust: Eine Tragödie",
+  "author": "Goethe, Johann Wolfgang von",
+  "subjects": [
+   "Literatur",
+   "Drama"
+  ],
+  "language": "de",
+  "year": 1808,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": "work:faust",
+  "publisher": "Cotta"
+ },
+ {
+  "library_id": "ddb",
+  "record_id": "ch-faust-b",
+  "title": "Faust: Eine Tragödie",
+  "author": "Goethe, Johann Wolfgang von",
+  "subjects": [
+   "Literatur",
+   "Drama"
+  ],
+  "language": "de",
+  "year": 1808,
+  "ocr": false,
+  "material_type": "book",
+  "work_id": "work:faust",
+  "publisher": "Reclam"
+ },
+ {
+  "library_id": "ddb",
+  "record_id": "ch-steam-de",
+  "title": "Die Dampfmaschine: ihre Geschichte und Konstruktion",
+  "author": "Müller, Wilhelm",
+  "subjects": [
+   "Dampfmaschine",
+   "Technik"
+  ],
+  "language": "de",
+  "year": 1875,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": null
+ },
+ {
+  "library_id": "ndl",
+  "record_id": "ch-nolang",
+  "title": "蒸氣機關圖説",
+  "author": "佐藤一郎",
+  "subjects": [
+   "蒸気機関"
+  ],
+  "language": null,
+  "year": 1889,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": null
+ },
+ {
+  "library_id": "ndl",
+  "record_id": "ch-hydro",
+  "title": "水力發電所設計",
+  "author": "鈴木次郎",
+  "subjects": [
+   "水力発電",
+   "電気"
+  ],
+  "language": "ja",
+  "year": 1912,
+  "ocr": true,
+  "material_type": "book",
+  "work_id": null
+ },
+ {
+  "library_id": "internet-archive",
+  "record_id": "ch-rail-en",
+  "title": "The Railroad and Its Engineering",
+  "author": "Smith, John",
+  "subjects": [
+   "railroad",
+   "engineering"
+  ],
+  "language": "en",
+  "year": 1880,
+  "ocr": false,
+  "material_type": "book",
+  "work_id": null
+ }
+]

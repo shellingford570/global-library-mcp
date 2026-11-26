@@ -118,6 +118,10 @@ def run_case(case: dict, corpus: list[dict], config: str) -> dict:
     if config in ("A", "B", "C", "D", "E", "F"):
         analysis = analyze_question(case["query"])
         ranked = rank_candidates(analysis, items, query_hits)
+    elif config == "Gx":
+        from b6_engine_configs import engine_rank_experimental  # type: ignore
+
+        ranked = engine_rank_experimental(case, items, query_hits, plan)
     else:
         from b6_engine_configs import engine_rank  # type: ignore
 
@@ -150,17 +154,71 @@ def main() -> None:
     args = ap.parse_args()
     corpus = json.loads((ROOT / "b6-corpus.json").read_text(encoding="utf-8"))
     cases = json.loads((ROOT / f"b6-{args.dataset}.json").read_text(encoding="utf-8"))
-    report: dict = {"dataset": args.dataset, "cases": len(cases), "configs": {}}
+    # Final review (sections 16/17): every report states its
+    # denominators, the negative-case metrics, per-tag results
+    # with SEPARATE denominators, and the hashes/commit needed
+    # to reproduce it. Recall-family metrics are computed over
+    # cases WITH relevant records only; attempts over ALL cases.
+    import hashlib
+    import subprocess
+
+    def _sha(path: Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+
+    try:
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
+                                text=True, cwd=ROOT.parent).stdout.strip()
+    except Exception:
+        commit = "unknown"
+    report: dict = {
+        "dataset": args.dataset,
+        "evaluation_kind": "A: variant-generation simulation over a fixed fixture corpus (NOT live recall)",
+        "label_source": "agent_assigned",
+        "cases_total": len(cases),
+        "cases_with_relevant": sum(1 for c in cases if c["relevant_record_ids"]),
+        "cases_without_relevant": sum(1 for c in cases if not c["relevant_record_ids"]),
+        "commit": commit,
+        "dataset_sha256": _sha(ROOT / f"b6-{args.dataset}.json"),
+        "corpus_sha256": _sha(ROOT / "b6-corpus.json"),
+        "lexicon_sha256": _sha(ROOT.parent / "src/global_library_mcp/data/search_lexicon.json"),
+        "configs": {},
+    }
+    case_by_id = {c["id"]: c for c in cases}
     for config in args.configs.split(","):
         results = [run_case(c, corpus, config) for c in cases]
         scored = [r for r in results if r["relevant"]]
+        negatives = [r for r in results if not r["relevant"]]
         agg = {}
         for key in ("recall@5", "recall@10", "recall@20", "precision@5", "mrr", "ndcg@10"):
             agg[key] = round(sum(r.get(key, 0.0) for r in scored) / len(scored), 4) if scored else 0.0
+        agg["recall_denominator"] = len(scored)
         agg["cross_language_rate"] = round(
             sum(1 for r in scored if r.get("cross_language_hit")) / len(scored), 4) if scored else 0.0
+        agg["cross_language_denominator"] = len(scored)
         agg["avg_attempts"] = round(sum(r["attempts"] for r in results) / len(results), 1)
+        agg["attempts_denominator"] = len(results)
         agg["avg_variants"] = round(sum(len(r["variants"]) for r in results) / len(results), 1)
+        # Negative cases (section 17): any retrieved record for a
+        # no-relevant case is a false candidate.
+        agg["negative_cases"] = len(negatives)
+        agg["false_candidate_rate"] = round(
+            sum(1 for r in negatives if r["retrieved"]) / len(negatives), 4) if negatives else 0.0
+        agg["irrelevant_retrieval_rate"] = round(
+            sum(len(r["retrieved"]) for r in negatives) / max(1, len(negatives) * 20), 4) if negatives else 0.0
+        # Per-tag success with separate denominators - author and
+        # title success are reported per tag, never as one
+        # combined count presented as two independent results.
+        per_tag: dict[str, dict] = {}
+        for tag in ("author", "original_title", "translated_title", "historical", "cross_language"):
+            tagged = [r for r in scored if tag in (case_by_id[r["id"]].get("tags") or [])]
+            if tagged:
+                per_tag[tag] = {
+                    "cases": len(tagged),
+                    "any_hit_rate": round(sum(1 for r in tagged if r["retrieved"]) / len(tagged), 4),
+                    "full_recall_rate": round(
+                        sum(1 for r in tagged if set(r["relevant"]) <= set(r["retrieved"][:20])) / len(tagged), 4),
+                }
+        agg["per_tag"] = per_tag
         report["configs"][config] = {"aggregate": agg, "cases": results}
         print(config, agg)
     if args.out:

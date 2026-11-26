@@ -22,3 +22,12 @@ entries and, for materials, on work_link / duplicate_group:
 same work in different editions or translations is grouped
 for presentation while every record keeps its own citation
 identity.
+
+## Final-review note
+
+For 3-4 document comparisons, concept overlap is reported
+as `shared_by_all_documents` vs `shared_by_some_documents`
+so partial sharing is not presented as unanimity.
+`semantic_comparison` remains `not_checked`: dictionary
+concept overlap is a lexical signal, never a claim that the
+documents agree in thought, argument or explanation.
