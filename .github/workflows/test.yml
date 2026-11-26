@@ -77,6 +77,16 @@ jobs:
           done
           if [ -z "$ok" ]; then cat /tmp/glm-ws-ci/server2.log; exit 1; fi
           curl --fail --silent http://127.0.0.1:8128/ | grep -q 'name="glm-workspace" content="1"'
+      - name: Upload workspace Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-playwright-report
+          path: |
+            /tmp/glm-ws-ci/pw.json
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
       - name: Show workspace server log
         if: always()
         run: cat /tmp/glm-ws-ci/server.log || true
