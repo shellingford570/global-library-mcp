@@ -1,9 +1,11 @@
 # b7 design: Research Workspace & Citation Management
 
-Design document only. Nothing in this document is
-implemented in b6, and implementation requires separate
-approval. Local-first throughout; no cloud sync, no writes
-to external services.
+Status (2026-11-26): IMPLEMENTED in v1.0.0b7 — see
+docs/b7-research-workspace.md for the implementation record
+and the points where the implementation refines this
+design. The text below is the original b6-era design,
+kept for reference. Local-first throughout; no cloud sync,
+no writes to external services.
 
 ## Entities
 

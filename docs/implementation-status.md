@@ -1,8 +1,23 @@
 # Implementation status
 
-Last updated: 2026-11-26 (branch `feat/multilingual-research-b6`, b6 candidate).
+Last updated: 2026-11-26 (branch `feat/research-workspace-b7`, b7 candidate).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
+
+## Research workspace (b7)
+
+| Capability | Status | Notes |
+|---|---|---|
+| SQLite store (schema v1) | implemented, verified | stdlib sqlite3; WAL; FK on; future-schema DBs refused untouched; docs/workspace-database-schema.md |
+| Projects / documents / citations | implemented, verified | Server-side save snapshots; client-supplied verified flags never trusted; verbatim excerpt check + SHA-256 |
+| Notes / history / comparisons | implemented, verified | History opt-in only; comparisons keep semantic_status not_checked |
+| Tags / collections / local search | implemented, verified | NFKC+casefold substring search; FTS5 evaluated and not adopted (CJK tokenisation) |
+| Rights policy for storage | implemented, verified | Excerpts only for permissive categories; full text and images never stored; docs/workspace-rights-policy.md |
+| Exports (BibTeX/RIS/CSL/Markdown/JSON) | implemented, verified | BibTeX parsed by independent bibtexparser in checks; no real Zotero import performed |
+| Import / backup / restore | implemented, verified | Strict validation, id remapping, single-transaction rollback; online backup API |
+| Workspace web security | implemented, verified | Loopback-only, Host/Origin checks, per-process CSRF token, body caps; docs/workspace-security.md |
+| MCP workspace tools | not implemented | By design in b7; MCP (full 15 / research 14) has no workspace access |
+| Docker workspace mode | not verified | Search-only Docker mode unchanged; workspace defaults off in Docker |
 
 ## Multilingual discovery (b6)
 

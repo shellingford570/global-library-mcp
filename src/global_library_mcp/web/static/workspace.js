@@ -88,7 +88,11 @@
 
   // ---- save buttons injected into result cards ------------------------
   function injectButtons(root) {
-    root.querySelectorAll('[data-save-token]').forEach(card => {
+    // the added node itself may be a card (innerHTML renders add
+    // the article elements directly), so include it in the scan
+    const cards = [...root.querySelectorAll('[data-save-token]')];
+    if (root.matches && root.matches('[data-save-token]')) cards.unshift(root);
+    cards.forEach(card => {
       const token = card.getAttribute('data-save-token');
       if (!token || card.querySelector('.ws-save-doc')) return;
       const b = button('プロジェクトへ保存', async () => {
@@ -103,7 +107,9 @@
       b.className = 'ws-save-doc';
       card.appendChild(b);
     });
-    root.querySelectorAll('[data-page-token]').forEach(card => {
+    const pageCards = [...root.querySelectorAll('[data-page-token]')];
+    if (root.matches && root.matches('[data-page-token]')) pageCards.unshift(root);
+    pageCards.forEach(card => {
       const token = card.getAttribute('data-page-token');
       if (!token || card.querySelector('.ws-save-cite')) return;
       const b = button('引用を作成', () => {

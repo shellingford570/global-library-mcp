@@ -83,11 +83,18 @@ def csl_author(name: str) -> dict[str, str]:
 
 # ---------------------------------------------------------------- BibTeX
 def _tex(value: Any) -> str:
+    # Single-pass escaping: chained replaces would re-escape
+    # the backslashes introduced by earlier replacements.
     text = str(value).replace("\r", " ").replace("\n", " ")
-    text = text.replace("\\", r"\textbackslash{}")
-    for ch in ("{", "}", "&", "%", "#", "_"):
-        text = text.replace(ch, "\\" + ch)
-    return text
+    out = []
+    for ch in text:
+        if ch == "\\":
+            out.append(r"\textbackslash{}")
+        elif ch in "{}&%#_":
+            out.append("\\" + ch)
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def _bibtex_type(doc: dict[str, Any]) -> str:

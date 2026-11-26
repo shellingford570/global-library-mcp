@@ -61,6 +61,25 @@ edition identification and DDB→BSB identifier validation,
 and split the evaluation into a simulation and a
 real-service fixture evaluation.
 
+### Research workspace (1.0.0b7)
+
+Searches can now feed a local research workspace: projects,
+saved documents, page-level citations with provenance and
+re-verification, research notes, opt-in search history,
+saved comparisons, tags and collections, all in a local
+SQLite database under your OS user data directory (override
+with `GLM_WORKSPACE_PATH`). Enable it with
+`global-library-mcp web --workspace`; the workspace web mode
+binds to loopback only and refuses anything else. Exports:
+BibTeX, RIS, CSL JSON, Markdown reports and a portable JSON
+project format, plus online backup/restore. Rights are
+handled conservatively: OCR full text and image bytes are
+never stored, and excerpts are stored/exported only where
+the rights category permits. MCP tools are unchanged and
+have no access to the workspace. See
+docs/b7-research-workspace.md and
+docs/workspace-user-guide.md.
+
 ## Quick start (local)
 
 ```bash

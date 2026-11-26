@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.0.0b7 — Research Workspace & Citation Management
+
+- Local-first research workspace on SQLite (stdlib only):
+  projects, saved documents (server-side snapshot
+  provenance, per-project deduplication, editions kept
+  distinct), page-level citations with verbatim excerpt
+  verification, SHA-256 and re-verification history,
+  research notes, opt-in search history with rerun,
+  saved comparisons (semantic_status stays not_checked),
+  tags, collections, local substring search.
+- Rights policy for persistence: metadata always storable;
+  excerpts stored/exported only for public-domain and
+  permissive-CC categories by default; OCR full text and
+  image bytes never stored; imported verification claims
+  are downgraded to historical claims.
+- Exports: BibTeX (classic, single-pass escaping, stable
+  keys), RIS (injection-safe), CSL JSON (literal names when
+  the split is unsafe), plain text, deterministic Markdown
+  project reports, versioned JSON project export/import
+  (strict validation, id remapping, single-transaction
+  rollback), online backup/restore with integrity checks.
+- Web security for the stateful mode: loopback-only bind
+  (non-loopback refused at startup), Host/Origin checks,
+  per-process CSRF token, body caps, no-store. MCP is
+  unchanged and has no workspace access.
+- Fixes: /api/search's structured options were parsed and
+  never used — stage-1 now applies them via the Quick path
+  and the UI shares one parameter builder; /api/materials
+  referenced a variable that only existed in the /api/search
+  branch, so every real HTTP materials call failed with a
+  NameError masked as a 502 (hidden by the mocked
+  Playwright route) — fixed with a shared parser and
+  verified live.
+- Suites: pytest 404, Playwright 17 + 3 workspace journeys.
+  Paid API calls: 0.
+
 ## 1.0.0b6 — Multilingual Research & Intelligent Discovery
 
 Final-review fixes (2026-11-26, docs/b6-final-review.md):

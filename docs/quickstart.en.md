@@ -168,3 +168,24 @@ uses at most 3 expansion variants, applies the conditions
 to the bibliographic results, and never fetches OCR text.
 The discovery panel marks which planned variants were
 actually executed.
+
+## Research workspace (b7)
+
+To keep what you find, start the web UI with the workspace
+enabled:
+
+```sh
+.venv/bin/global-library-mcp web --port 8000 --workspace
+```
+
+Data lives in your OS user data directory (on Linux,
+`~/.local/share/global-library-mcp/workspace.db`); set
+`GLM_WORKSPACE_PATH` to change it. Workspace mode is
+loopback-only. Create a project in the workspace section,
+save documents from the search results, and save citations
+by selecting a passage in the page view; citations can be
+re-verified later. Search history is recorded only when you
+tick the opt-in checkbox. BibTeX / RIS / CSL JSON /
+Markdown / JSON export, JSON import and backup/restore are
+on the export tab. OCR full text and image bytes are never
+stored. See docs/workspace-user-guide.md (Japanese).
