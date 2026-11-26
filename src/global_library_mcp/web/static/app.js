@@ -772,13 +772,13 @@ function renderCompare(data) {
   for (const row of data.rows || []) {
     html += `<div class="compare-row"><h3>${esc(row.aspect)}</h3><div class="compare-sides">`;
     for (const d of docs) {
-      const side = (row.documents || {})[d.record_id] || {found: false, excerpts: []};
+      const side = (row.documents || {})[`${d.library_id}|${d.record_id}`] || (row.documents || {})[d.record_id] || {found: false, excerpts: []};
       html += `<div class="compare-side"><h4>${esc(d.title)}</h4>`;
       if (!side.found) html += `<p class="rights">${t().compareNotFound}</p>`;
       for (const ex of side.excerpts || []) {
         html += `<blockquote class="compare-excerpt">${esc(ex.excerpt)}<footer>${esc(ex.citation_key)}${safeHref(ex.image_url) ? ` · <a href="${esc(safeHref(ex.image_url))}" target="_blank" rel="noreferrer noopener">${t().viewImage}</a>` : ''}</footer></blockquote>`;
       }
-      const unique = (row.unique_terms || {})[d.record_id] || [];
+      const unique = (row.unique_terms || {})[`${d.library_id}|${d.record_id}`] || (row.unique_terms || {})[d.record_id] || [];
       if (unique.length) html += `<p class="rights">${t().uniqueTerms}: ${unique.map(esc).join('、')}</p>`;
       html += `</div>`;
     }

@@ -92,9 +92,40 @@ class WorkspaceWebRuntime:
         self._sessions: dict[str, dict[str, Any]] = {}
         self._session_lock = threading.Lock()
         self.restoring = False
+        self._ops_cond = threading.Condition()
+        self._ops_inflight = 0
         self._backups: OrderedDict[str, dict[str, Any]] = OrderedDict()
         self._backup_lock = threading.Lock()
         self._scan_backups()
+
+    # -- operation quiescence (b8 section 2) --------------------------------
+    def op_begin(self) -> None:
+        """Register an in-flight workspace operation. New
+        operations are refused while a restore is quiescing or
+        swapping the database."""
+        with self._ops_cond:
+            if self.restoring:
+                raise ApiError(503, "a restore is in progress; retry shortly")
+            self._ops_inflight += 1
+
+    def op_end(self) -> None:
+        with self._ops_cond:
+            self._ops_inflight -= 1
+            self._ops_cond.notify_all()
+
+    def quiesce(self, timeout: float = 30.0) -> bool:
+        """Stop new operations and wait for in-flight ones to
+        finish. Returns False on timeout (the caller aborts the
+        restore and clears the flag)."""
+        with self._ops_cond:
+            self.restoring = True
+            return self._ops_cond.wait_for(
+                lambda: self._ops_inflight == 0, timeout=timeout)
+
+    def unquiesce(self) -> None:
+        with self._ops_cond:
+            self.restoring = False
+            self._ops_cond.notify_all()
 
     # -- sessions ------------------------------------------------------------
     def issue_session(self) -> tuple[str, str]:
@@ -411,8 +442,18 @@ class WorkspaceApi:
         parsed = urlparse(handler.path)
         if not parsed.path.startswith("/api/workspace"):
             return False
+        # The restore route quiesces the API itself; every other
+        # route registers as an in-flight operation so a restore
+        # can wait for it (b8 section 2).
+        is_restore = method == "POST" and parsed.path == "/api/workspace/restore"
         try:
-            self._dispatch(handler, method, parsed.path, parse_qs(parsed.query))
+            if not is_restore:
+                self.ws.op_begin()
+            try:
+                self._dispatch(handler, method, parsed.path, parse_qs(parsed.query))
+            finally:
+                if not is_restore:
+                    self.ws.op_end()
         except ApiError as exc:
             handler._send(_json({"error": exc.message}), status=exc.status)
         except DuplicateError as exc:
@@ -705,32 +746,48 @@ class WorkspaceApi:
         raise ApiError(404, "workspace route not found")
 
     # -- views with current-rights gating ---------------------------------------
+    def _citation_trust(self, store: WorkspaceStore, cit: dict[str, Any]) -> str:
+        """Trust state governing a citation's rights (b8
+        section 2): server-fetched citations carry this server's
+        own observation; imported ones are claims; user-entered
+        ones inherit their document's trust."""
+        if cit.get("provenance") == "system_fetched":
+            return rights_policy.TRUST_SERVER_OBSERVED
+        if cit.get("provenance") == "imported":
+            return rights_policy.TRUST_IMPORTED_CLAIM
+        doc = store.get_document(cit["saved_document_id"]) or {}
+        return doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED
+
     def _document_view(self, store: WorkspaceStore, doc: dict[str, Any]) -> dict[str, Any]:
-        latest = store.latest_rights_observation(doc["saved_document_id"])
-        if latest is not None:
+        observations = store.list_rights_observations(doc["saved_document_id"])
+        if observations:
             doc = dict(doc)
-            decision = rights_policy.effective_decision(
+            latest = observations[-1]
+            decision = rights_policy.trusted_decision(
                 (doc.get("rights_snapshot") or {}).get("statement"),
-                latest.get("statement"))
+                doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED,
+                observations)
             doc["rights_current"] = {
                 "latest_statement": latest.get("statement"),
                 "latest_category": latest.get("category"),
                 "observed_at": latest.get("observed_at"),
+                "trust": doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED,
                 "excerpt_storage_now": decision["excerpt_storage"],
                 "reason": decision["reason"]}
         return doc
 
     def _citation_view(self, store: WorkspaceStore, cit: dict[str, Any]) -> dict[str, Any]:
         """Display view: the excerpt text is included only if
-        the CURRENT effective rights still permit it (final
-        review section 6). The stored row is never mutated."""
+        the CURRENT trusted rights still permit it (final review
+        section 6, b8 section 2). The stored row is never
+        mutated."""
         cit = dict(cit)
         cit["excerpt_stored"] = cit.get("original_excerpt") is not None
         if cit["excerpt_stored"]:
-            latest = store.latest_rights_observation(cit["saved_document_id"])
-            decision = rights_policy.effective_decision(
+            observations = store.list_rights_observations(cit["saved_document_id"])
+            decision = rights_policy.trusted_decision(
                 (cit.get("rights_at_save") or {}).get("statement"),
-                latest.get("statement") if latest else None)
+                self._citation_trust(store, cit), observations)
             if not decision["excerpt_export"]:
                 cit["original_excerpt"] = None
                 cit["excerpt_stored"] = False
@@ -743,10 +800,12 @@ class WorkspaceApi:
         for doc_id, value in (comp.get("original_excerpts") or {}).items():
             if isinstance(value, list):
                 doc = store.get_document(doc_id)
-                latest = store.latest_rights_observation(doc_id) if doc else None
-                decision = rights_policy.effective_decision(
+                observations = store.list_rights_observations(doc_id) if doc else []
+                decision = rights_policy.trusted_decision(
                     (doc.get("rights_snapshot") or {}).get("statement") if doc else None,
-                    latest.get("statement") if latest else None)
+                    (doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED) if doc
+                    else rights_policy.TRUST_IMPORTED_CLAIM,
+                    observations)
                 if decision["excerpt_export"]:
                     excerpts[doc_id] = value
                 else:
@@ -853,21 +912,61 @@ class WorkspaceApi:
         except DuplicateError as exc:
             return exc.args[0]
 
+    def _gate_new_excerpt(self, store: WorkspaceStore, doc: dict[str, Any],
+                          statement: Any, excerpt: str, body: dict[str, Any],
+                          *, basis: str) -> tuple[str | None, dict[str, Any]]:
+        """Gate a NEW excerpt save (b8 section 2): the latest
+        rights observation always applies (an older permissive
+        token cannot bypass a newer restriction), stored
+        statements count only under the trust model, and
+        NonCommercial categories require an explicit per-save
+        purpose confirmation (409 so the UI can ask and retry).
+        ``basis`` is "live" when the statement was observed by
+        this server in this request, "stored" when it comes from
+        saved data."""
+        observations = store.list_rights_observations(doc["saved_document_id"])
+        latest_statement = observations[-1].get("statement") if observations else None
+        if basis == "live":
+            decision = rights_policy.effective_decision(statement, latest_statement)
+        else:
+            decision = rights_policy.trusted_decision(
+                statement,
+                doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED,
+                observations)
+        if not decision["excerpt_storage"]:
+            return None, decision
+        if decision.get("excerpt_requires_confirmation") \
+                and body.get("nc_purpose_confirmed") is not True:
+            raise ApiError(
+                409, "nc_confirmation_required: excerpt storage under a "
+                     "NonCommercial licence requires confirming a "
+                     "non-commercial research purpose for this save")
+        if len(excerpt) > rights_policy.MAX_EXCERPT_CHARS:
+            return None, {**decision,
+                          "reason": (f"excerpt exceeds the {rights_policy.MAX_EXCERPT_CHARS}-character "
+                                     "storage limit; withheld rather than truncated")}
+        return excerpt, decision
+
     def _citation_rights_statement(self, body: dict[str, Any], payload: dict[str, Any],
                                    doc: dict[str, Any], library_id: str,
-                                   record_id: str) -> Any:
-        """Rights for a citation, from server-side sources only.
-        A document-token fallback is honoured ONLY when that
-        snapshot names the very same document (final review
-        section 3): another document's - or another edition's -
-        rights never leak into this citation."""
+                                   record_id: str) -> tuple[Any, str]:
+        """Rights for a citation, from server-side sources only,
+        as (statement, basis). A document-token fallback is
+        honoured ONLY when that snapshot names the very same
+        document (final review section 3): another document's -
+        or another edition's - rights never leak into this
+        citation. The saved-document fallback is honoured only
+        when the document's rights are server-observed (b8
+        section 2): an imported claim is never a fallback basis."""
         rights = payload.get("rights")
         statement = rights.get("statement") if isinstance(rights, dict) else rights
         if rights_policy.classify_rights(statement) != "unknown":
-            return statement
+            return statement, "live"
+        doc_trust = doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED
         doc_statement = (doc.get("rights_snapshot") or {}).get("statement")
-        if doc_statement and rights_policy.classify_rights(doc_statement) != "unknown":
-            return doc_statement
+        if doc_trust == rights_policy.TRUST_SERVER_OBSERVED and doc_statement \
+                and rights_policy.classify_rights(doc_statement) != "unknown":
+            return doc_statement, "stored"
         doc_snap = self.ws.get_snapshot(body.get("document_token"))
         if doc_snap is not None and doc_snap["kind"] == "document" \
                 and doc_snap["library_id"] == library_id:
@@ -878,8 +977,8 @@ class WorkspaceApi:
                 snap_statement = (snap_rights.get("statement")
                                   if isinstance(snap_rights, dict) else snap_rights)
                 if snap_statement and rights_policy.classify_rights(snap_statement) != "unknown":
-                    return snap_statement
-        return statement
+                    return snap_statement, "live"
+        return statement, "live"
 
     def _save_citation_from_snapshot(self, body: dict[str, Any]) -> dict[str, Any]:
         store = self.ws.store
@@ -903,9 +1002,10 @@ class WorkspaceApi:
         doc_id = self._document_for_page(store, project_id, library_id, record_id,
                                          snap, body.get("saved_document_id"))
         doc = store.get_document(doc_id) or {}
-        rights_statement = self._citation_rights_statement(
+        rights_statement, rights_basis = self._citation_rights_statement(
             body, payload, doc, library_id, record_id)
-        stored_excerpt, decision = rights_policy.gate_excerpt(excerpt, rights_statement)
+        stored_excerpt, decision = self._gate_new_excerpt(
+            store, doc, rights_statement, excerpt, body, basis=rights_basis)
         state = payload.get("ocr_state") or {}
         identity = bool(state.get("page_identity_verified")
                         or payload.get("verified_mapping"))
@@ -953,7 +1053,8 @@ class WorkspaceApi:
             raise ApiError(422, f"excerpt exceeds the {rights_policy.MAX_EXCERPT_CHARS}-character "
                                 "storage limit; enter a shorter passage")
         statement = (doc.get("rights_snapshot") or {}).get("statement")
-        stored_excerpt, decision = rights_policy.gate_excerpt(excerpt, statement)
+        stored_excerpt, decision = self._gate_new_excerpt(
+            store, doc, statement, excerpt, body, basis="stored")
         page_id = str(body.get("page_id") or "")
         fields = {
             "page_id": page_id,
@@ -1018,6 +1119,10 @@ class WorkspaceApi:
                 checks["image_reachable"] = "check_failed"
         else:
             checks["image_reachable"] = "not_checked"
+        current_rights = page.get("rights")
+        current_statement = (current_rights.get("statement")
+                             if isinstance(current_rights, dict) else current_rights)
+        saved_statement = (cit.get("rights_at_save") or {}).get("statement")
         excerpt_state = "not_applicable"
         if cit.get("original_excerpt"):
             present = cit["original_excerpt"] in text
@@ -1026,14 +1131,38 @@ class WorkspaceApi:
             checks["excerpt_present"] = present
             checks["excerpt_hash_matches"] = hash_ok
             excerpt_state = "present" if present and hash_ok else "not_found"
+        elif (cit.get("excerpt_hash") and cit.get("excerpt_start") is not None
+                and cit.get("excerpt_end") is not None):
+            # b8 section 2 re-admission: a reference-only citation
+            # (imported / restored / rights-withheld) can regain
+            # its excerpt ONLY from this fresh server-side fetch:
+            # the slice at the stored offsets must hash to the
+            # stored reference hash, and the CURRENT rights -
+            # observed by this server just now - must permit
+            # storage. NonCommercial categories cannot re-admit
+            # here (no purpose-confirmation channel).
+            start = int(cit["excerpt_start"])
+            end = int(cit["excerpt_end"])
+            readmitted = False
+            if 0 <= start < end <= len(text):
+                candidate = text[start:end]
+                if hashlib.sha256(candidate.encode("utf-8")).hexdigest() == cit["excerpt_hash"]:
+                    latest = store.latest_rights_observation(cit["saved_document_id"])
+                    decision = rights_policy.effective_decision(
+                        current_statement or saved_statement,
+                        latest.get("statement") if latest else None)
+                    if decision["excerpt_storage"] and not decision.get(
+                            "excerpt_requires_confirmation"):
+                        store.update_citation_excerpt(citation_id, candidate)
+                        readmitted = True
+            checks["excerpt_readmitted"] = readmitted
+            excerpt_state = "present" if readmitted else "reference_only"
+            if not readmitted:
+                checks["excerpt"] = "not_checked_reference_only"
         else:
             checks["excerpt"] = "not_checked_reference_only"
             excerpt_state = "reference_only"
         rights_changed = False
-        current_rights = page.get("rights")
-        current_statement = (current_rights.get("statement")
-                             if isinstance(current_rights, dict) else current_rights)
-        saved_statement = (cit.get("rights_at_save") or {}).get("statement")
         if current_statement and current_statement != saved_statement:
             rights_changed = True
             checks["rights_changed"] = {"from": saved_statement, "to": current_statement}
@@ -1041,6 +1170,16 @@ class WorkspaceApi:
                 cit["saved_document_id"], current_statement,
                 rights_policy.classify_rights(current_statement),
                 "reverify", "rights_changed")
+        elif current_statement and (doc.get("rights_trust")
+                                    or rights_policy.TRUST_SERVER_OBSERVED) != (
+                                        rights_policy.TRUST_SERVER_OBSERVED):
+            # A claim-trust document gains a server-side rights
+            # observation through re-verification, so the trust
+            # model can permit excerpts again afterwards.
+            store.add_rights_observation(
+                cit["saved_document_id"], current_statement,
+                rights_policy.classify_rights(current_statement),
+                "reverify", "observed")
         metadata_state = "not_checked"
         try:
             fresh = self.runtime.run(self.runtime.service.get_document(
@@ -1099,7 +1238,11 @@ class WorkspaceApi:
         concepts: dict[str, Any] = {}
         shared_all: list[str] = []
         shared_some: list[str] = []
-        excerpts_by_record: dict[str, list[dict[str, Any]]] = {}
+        # b8 section 2: excerpts are aggregated by the composite
+        # (library_id, record_id) identity - never by record_id
+        # alone, which mixed up different libraries' documents
+        # that happen to share a record_id.
+        excerpts_by_record: dict[tuple[str, str], list[dict[str, Any]]] = {}
         for row in rows:
             aspect = row.get("aspect") or ""
             lexical[aspect] = {"shared_terms": row.get("shared_terms") or [],
@@ -1112,9 +1255,20 @@ class WorkspaceApi:
             for term in row.get("partial_terms") or []:
                 if term not in shared_some:
                     shared_some.append(term)
-            for record_id, cell in (row.get("documents") or {}).items():
+            for key, cell in (row.get("documents") or {}).items():
+                if "|" in str(key):
+                    library_id, _, record_id = str(key).partition("|")
+                else:
+                    # Legacy plain-record_id key: attribute it
+                    # only when exactly one compared document
+                    # carries that record_id; an ambiguous key is
+                    # dropped rather than guessed.
+                    matches = [d for d in docs if d["record_id"] == str(key)]
+                    if len(matches) != 1:
+                        continue
+                    library_id, record_id = matches[0]["library_id"], str(key)
                 for entry in cell.get("excerpts") or []:
-                    excerpts_by_record.setdefault(record_id, []).append({
+                    excerpts_by_record.setdefault((library_id, record_id), []).append({
                         "text": entry.get("excerpt") or "",
                         "page_id": entry.get("page_id"),
                         "citation_key": entry.get("citation_key"),
@@ -1125,7 +1279,7 @@ class WorkspaceApi:
         insufficient: list[dict[str, Any]] = []
         total_bytes = 0
         for doc in docs:
-            entries = excerpts_by_record.get(doc["record_id"]) or []
+            entries = excerpts_by_record.get((doc["library_id"], doc["record_id"])) or []
             result_doc = result_docs.get((doc["library_id"], doc["record_id"]))
             if result_doc is not None and result_doc.get("error"):
                 insufficient.append({"library_id": doc["library_id"],
@@ -1136,7 +1290,17 @@ class WorkspaceApi:
                                      "record_id": doc["record_id"],
                                      "reason": "no verified excerpt pages in the comparison"})
             statement = (doc.get("rights_snapshot") or {}).get("statement")
-            decision = rights_policy.evaluate(statement)
+            decision = rights_policy.trusted_decision(
+                statement,
+                doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED,
+                store.list_rights_observations(doc["saved_document_id"]))
+            if (decision.get("excerpt_requires_confirmation")
+                    and body.get("nc_purpose_confirmed") is not True):
+                decision = {**decision, "excerpt_storage": False,
+                            "reason": ("excerpt withheld: NonCommercial "
+                                       "licence and no non-commercial "
+                                       "research purpose was confirmed "
+                                       "for this save")}
             if not decision["excerpt_storage"]:
                 excerpts[doc["saved_document_id"]] = {
                     "omitted": decision["reason"], "count": len(entries)}
@@ -1168,9 +1332,14 @@ class WorkspaceApi:
 
     # -- restore ------------------------------------------------------------------------
     def _restore(self, data: bytes) -> dict[str, Any]:
-        """Restore with deep candidate validation, a quiesced
-        API, a pre-restore backup, a post-swap open check and
-        automatic rollback (final review sections 7, 8)."""
+        """Restore with deep candidate validation, full
+        quiescence, a pre-restore backup taken AFTER in-flight
+        operations finish, a post-swap open check, automatic
+        rollback, and a trust downgrade of the restored data
+        (final review sections 7, 8; b8 section 2). Structural
+        validation cannot prove a backup file is authentic, so
+        restored verification states and rights are claims until
+        re-verified against the live sources."""
         store = self.ws.store
         db_path = store.db_path
         tmp = db_path.parent / f"restore-candidate-{secrets.token_urlsafe(6)}.db"
@@ -1183,12 +1352,16 @@ class WorkspaceApi:
         if not info["ok"]:
             tmp.unlink(missing_ok=True)
             raise ApiError(400, "backup rejected: " + "; ".join(info["problems"][:5]))
-        pre = store.backup(db_path.parent / "backups" /
-                           f"pre-restore-{now_iso().replace(':', '')}.db")
-        self.ws.restoring = True
+        if not self.ws.quiesce(timeout=30.0):
+            tmp.unlink(missing_ok=True)
+            self.ws.unquiesce()
+            raise ApiError(409, "restore aborted: workspace operations "
+                                "did not finish in time; nothing was changed")
         try:
-            store.close()
+            pre = store.backup(db_path.parent / "backups" /
+                               f"pre-restore-{now_iso().replace(':', '')}.db")
             try:
+                store.close()
                 for suffix in ("-wal", "-shm"):
                     Path(str(db_path) + suffix).unlink(missing_ok=True)
                 os.replace(tmp, db_path)
@@ -1205,15 +1378,19 @@ class WorkspaceApi:
                 self.ws.store = WorkspaceStore(db_path)
                 raise ApiError(500, "restore failed after replacement; the previous "
                                     "database was rolled back from the pre-restore backup")
+            downgrade = new_store.apply_restore_trust_downgrade()
             self.ws.store = new_store
         finally:
-            self.ws.restoring = False
+            self.ws.unquiesce()
         return {"restored": True, "schema_version": self.ws.store.schema_version,
                 "candidate_sha256": info["sha256"],
                 "pre_restore_backup": pre["path"],
+                "trust_downgrade": downgrade,
                 "note": "the previous database was backed up before replacement; "
-                        "a checksum of an uploaded file is reported as a fact "
-                        "only and does not prove the file is authentic"}
+                        "a checksum of an uploaded file does not prove the file "
+                        "is authentic, so restored verification states were "
+                        "downgraded to restored_unverified and restored rights "
+                        "are treated as claims until re-verification"}
 
 
 def _json(value: object) -> bytes:

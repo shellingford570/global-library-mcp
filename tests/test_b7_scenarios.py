@@ -175,7 +175,11 @@ def test_scenario_a_permitted_material_full_journey(env):
     status, md = _call(env, "GET", "/api/workspace/export/project?" + urllib.parse.urlencode(
         {"project_id": project["project_id"], "format": "markdown"}))
     assert status == 200 and "variation under domestication" in md["_text"]
-    # JSON migration keeps the relationship (verification downgraded)
+    # JSON migration keeps the relationship (verification downgraded).
+    # b8 section 2: the excerpt TEXT is withheld on import - the
+    # file's rights statement is an unverified claim; the reference
+    # (page, offsets, hash) is kept, and re-verification against
+    # the live source re-admits the excerpt.
     status, exported = _call(env, "GET", "/api/workspace/export/project?" + urllib.parse.urlencode(
         {"project_id": project["project_id"], "format": "json"}))
     status, imported = _call(env, "POST", "/api/workspace/import", exported)
@@ -183,7 +187,13 @@ def test_scenario_a_permitted_material_full_journey(env):
     new_cits = env["store"].list_citations(imported["project"]["project_id"])
     assert len(new_cits) == 1
     assert new_cits[0]["quotation_verification_status"] == "imported_unverified"
-    assert new_cits[0]["original_excerpt"] == "variation under domestication"
+    assert new_cits[0]["original_excerpt"] is None
+    assert new_cits[0]["excerpt_hash"] == cit["excerpt_hash"]
+    status, obs = _call(env, "POST",
+                        f"/api/workspace/citations/{new_cits[0]['citation_id']}/reverify", {})
+    assert status == 200 and obs["status"] == "unchanged", obs
+    readmitted = env["store"].get_citation(new_cits[0]["citation_id"])
+    assert readmitted["original_excerpt"] == "variation under domestication"
 
 
 def test_scenario_b_unknown_rights_reference_only(env):

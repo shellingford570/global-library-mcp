@@ -388,7 +388,16 @@
       if (!excerpt) { say('範囲を選択してください'); return; }
       if (!citeState.token) { say('先にページを取得してください'); return; }
       try {
-        const saved = await wsFetch('/api/workspace/citations', { method: 'POST', body: { project_id: projectId, save_token: citeState.token, excerpt } });
+        let saved;
+        try {
+          saved = await wsFetch('/api/workspace/citations', { method: 'POST', body: { project_id: projectId, save_token: citeState.token, excerpt } });
+        } catch (e) {
+          // b8: NonCommercial licences need an explicit purpose
+          // confirmation per save; ask and retry once with it.
+          if (e.status !== 409 || !String(e.message).includes('nc_confirmation_required')) throw e;
+          if (!confirm('この資料は非商用（NonCommercial）ライセンスです。非商用の研究目的での引用保存であることを確認しますか？')) { say('引用保存を中止しました'); return; }
+          saved = await wsFetch('/api/workspace/citations', { method: 'POST', body: { project_id: projectId, save_token: citeState.token, excerpt, nc_purpose_confirmed: true } });
+        }
         say(`引用を保存しました: ${saved.citation_key}（${saved.quotation_verification_status}）`);
       } catch (e) { say(e.message); }
     }));

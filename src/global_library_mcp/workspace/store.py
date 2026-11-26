@@ -35,14 +35,15 @@ from typing import Any, Iterable
 
 from . import policy as _policy
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 # Verification-status vocabulary a genuine database of this
 # application can contain. Restore validation rejects
 # anything else (final review sections 7, 8).
 KNOWN_QUOTATION_STATUSES = {
     "verified_against_fetched_ocr", "fetched_unverified_mapping",
-    "user_entered_unverified", "imported_unverified", "unchanged",
+    "user_entered_unverified", "imported_unverified", "restored_unverified",
+    "restored_downgrade", "unchanged",
     "metadata_changed", "ocr_changed", "quotation_not_found",
     "source_unavailable", "mapping_unverified", "access_restricted",
     "rights_changed", "recheck_failed", "not_rechecked",
@@ -262,7 +263,11 @@ ALTER TABLE research_notes_v2 RENAME TO research_notes;
 CREATE INDEX idx_notes_project ON research_notes(project_id);
 """
 
-MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2)]
+_SCHEMA_V3 = """
+ALTER TABLE saved_documents ADD COLUMN rights_trust TEXT NOT NULL DEFAULT 'server_observed';
+"""
+
+MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3)]
 
 
 def _json(value: Any) -> str:
@@ -346,6 +351,21 @@ class WorkspaceStore:
                         (version, now_iso()))
             if pending and any(v == 2 for v, _ in pending):
                 self._backfill_citation_keys()
+            if pending and any(v == 3 for v, _ in pending):
+                self._mark_imported_document_trust()
+
+    def _mark_imported_document_trust(self) -> None:
+        """b8 migration: documents whose citations arrived via a
+        b7 import carry claim-trust rights (their rights_at_save
+        was marked imported_claim at import time). Everything
+        else in a pre-b8 database was saved by this server and
+        keeps server_observed trust."""
+        with self._lock, self._conn:
+            self._conn.execute(
+                "UPDATE saved_documents SET rights_trust = 'imported_claim'"
+                " WHERE saved_document_id IN ("
+                " SELECT DISTINCT saved_document_id FROM saved_citations"
+                " WHERE rights_at_save LIKE '%\"imported_claim\"%')")
 
     def _backfill_citation_keys(self) -> None:
         """Assign stored citation keys to documents saved
@@ -526,13 +546,15 @@ class WorkspaceStore:
                 self._conn.execute(
                     "INSERT INTO saved_documents (saved_document_id, project_id, library_id,"
                     " record_id, identifiers, rights_snapshot, saved_at, updated_at, search_text,"
-                    " citation_key, "
+                    " citation_key, rights_trust, "
                     + ", ".join(self._DOC_FIELDS) + ")"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                     + ", ".join("?" for _ in self._DOC_FIELDS) + ")",
                     (doc_id, project_id, library_id, record_id,
                      _json(fields.get("identifiers")), _json(fields.get("rights_snapshot")),
-                     ts, ts, text, key, *[values[k] for k in self._DOC_FIELDS]))
+                     ts, ts, text, key,
+                     str(fields.get("rights_trust") or "server_observed"),
+                     *[values[k] for k in self._DOC_FIELDS]))
                 self._conn.execute(
                     "UPDATE projects SET updated_at = ? WHERE project_id = ?", (ts, project_id))
             return self.get_document(doc_id)  # type: ignore[return-value]
@@ -762,6 +784,86 @@ class WorkspaceStore:
                 "SELECT * FROM rights_observations WHERE saved_document_id = ?"
                 " ORDER BY observed_at DESC, observation_id DESC LIMIT 1",
                 (saved_document_id,)).fetchone())
+
+    def update_citation_excerpt(self, citation_id: str, excerpt: str) -> None:
+        """Store an excerpt text for an existing citation. Used
+        ONLY by re-verification re-admission (b8 section 2): the
+        text comes from a fresh server-side fetch whose slice
+        hash matched the stored reference hash, never from a
+        client or a file."""
+        with self._lock, self._conn:
+            row = self._conn.execute(
+                "SELECT page_id FROM saved_citations WHERE citation_id = ?",
+                (citation_id,)).fetchone()
+            if row is None:
+                raise KeyError(citation_id)
+            self._conn.execute(
+                "UPDATE saved_citations SET original_excerpt = ?,"
+                " excerpt_omitted_reason = NULL, search_text = ?"
+                " WHERE citation_id = ?",
+                (excerpt, search_text(excerpt, row["page_id"]), citation_id))
+
+    def apply_restore_trust_downgrade(self) -> dict[str, int]:
+        """Trust downgrade applied to EVERY restored database
+        (b8 section 2): structural validation cannot prove a
+        backup file is authentic, so verification states become
+        restored_unverified (prior values preserved as an
+        observation) and all document rights become claims until
+        a server-side observation confirms them again. Stored
+        excerpt texts are kept in the database but are withheld
+        from views and exports by the trust-aware policy."""
+        ts = now_iso()
+        downgraded = 0
+        with self._lock, self._conn:
+            rows = self._conn.execute(
+                "SELECT citation_id, quotation_verification_status,"
+                " page_mapping_status, image_verification_status, verified_at"
+                " FROM saved_citations").fetchall()
+            for row in rows:
+                keep = {"imported_unverified", "restored_unverified",
+                        "user_entered_unverified"}
+                if row["quotation_verification_status"] in keep \
+                        and row["page_mapping_status"] != "verified" \
+                        and row["verified_at"] is None:
+                    continue
+                self._conn.execute(
+                    "INSERT INTO verification_observations (observation_id,"
+                    " citation_id, status, detail, observed_at) VALUES (?, ?,"
+                    " 'restored_downgrade', ?, ?)",
+                    (new_id(), row["citation_id"], json.dumps({
+                        "claimed_status": row["quotation_verification_status"],
+                        "claimed_mapping": row["page_mapping_status"],
+                        "claimed_image_status": row["image_verification_status"],
+                        "claimed_verified_at": row["verified_at"],
+                        "restored_at": ts}, ensure_ascii=False), ts))
+                self._conn.execute(
+                    "UPDATE saved_citations SET"
+                    " quotation_verification_status = 'restored_unverified',"
+                    " page_mapping_status = 'restored_unverified',"
+                    " image_verification_status = 'restored_unverified',"
+                    " verified_at = NULL WHERE citation_id = ?",
+                    (row["citation_id"],))
+                downgraded += 1
+            docs = self._conn.execute(
+                "SELECT saved_document_id, rights_snapshot FROM saved_documents"
+            ).fetchall()
+            for doc in docs:
+                try:
+                    snapshot = json.loads(doc["rights_snapshot"] or "{}")
+                except (TypeError, json.JSONDecodeError):
+                    snapshot = {}
+                statement = snapshot.get("statement") if isinstance(snapshot, dict) else None
+                self._conn.execute(
+                    "INSERT INTO rights_observations (observation_id,"
+                    " saved_document_id, statement, category, source,"
+                    " observed_at, change_status) VALUES (?, ?, ?, ?,"
+                    " 'restored_backup', ?, 'trust_downgraded')",
+                    (new_id(), doc["saved_document_id"], statement,
+                     _policy.classify_rights(statement), ts))
+            self._conn.execute(
+                "UPDATE saved_documents SET rights_trust = 'restored_claim'")
+        return {"citations_downgraded": downgraded,
+                "documents_marked": len(docs)}
 
     # -- delete previews -----------------------------------------------------
     def document_related_counts(self, saved_document_id: str) -> dict[str, int]:
@@ -1154,6 +1256,10 @@ class WorkspaceStore:
                         actual = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
                         if not columns <= actual:
                             problems.append(f"schema claims v{version} but {table} lacks v2 columns")
+            if version >= 3 and "saved_documents" in tables:
+                actual = {r["name"] for r in conn.execute("PRAGMA table_info(saved_documents)")}
+                if "rights_trust" not in actual:
+                    problems.append(f"schema claims v{version} but saved_documents lacks the v3 rights_trust column")
             if not problems:
                 for row in conn.execute(
                         "SELECT quotation_verification_status AS s, provenance AS p,"

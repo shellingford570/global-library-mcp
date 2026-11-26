@@ -2414,7 +2414,8 @@ class LibraryService:
                             "image_url": page.get("image_url"),
                             "excerpt": excerpt.strip(),
                         })
-                        per_aspect_texts[aspect][record_id] = per_aspect_texts[aspect].get(record_id, "") + "\n" + text
+                        doc_key = f"{library_id}|{record_id}"
+                        per_aspect_texts[aspect][doc_key] = per_aspect_texts[aspect].get(doc_key, "") + "\n" + text
             except Exception as exc:  # noqa: BLE001 - per-document failure is reported, not raised
                 entry["error"] = str(exc) if isinstance(exc, AdapterError) else sanitize_error(exc)
             doc_results.append(entry)
@@ -2435,7 +2436,7 @@ class LibraryService:
                 "possible_related_concepts": _overlap["possible_related_concepts"],
                 "semantic_comparison": "not_checked",
                 "documents": {
-                    entry["record_id"]: {
+                    f"{entry['library_id']}|{entry['record_id']}": {
                         "found": any(p["aspect"] == aspect for p in entry["pages"]),
                         "excerpts": [p for p in entry["pages"] if p["aspect"] == aspect],
                     } for entry in doc_results

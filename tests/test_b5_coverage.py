@@ -469,4 +469,4 @@ async def test_compare_three_documents_service_level():
     assert result["status"] == "compared"
     row = result["rows"][0]
     assert row["shared_terms"], "3-document comparison must compute shared terms"
-    assert set(row["unique_terms"]) == {"994120", "1018770", "1886468"}
+    assert set(row["unique_terms"]) == {"ndl|994120", "ndl|1018770", "ndl|1886468"}

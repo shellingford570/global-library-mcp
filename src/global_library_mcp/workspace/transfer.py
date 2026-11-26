@@ -53,6 +53,7 @@ except Exception:  # pragma: no cover - source checkout without install
 from .policy import MAX_EXCERPT_CHARS
 from .policy import effective_decision
 from .policy import evaluate as evaluate_rights
+from .policy import trusted_decision
 from .store import SCHEMA_VERSION, WorkspaceStore, new_id, now_iso, search_text
 
 FORMAT_VERSION = 1
@@ -82,17 +83,26 @@ def export_project(store: WorkspaceStore, project_id: str) -> dict[str, Any]:
     documents = bundle["documents"]
     citations = bundle["citations"]
     docs_by_id = {d["saved_document_id"]: d for d in documents}
-    latest_rights = {}
-    for doc in documents:
-        obs = bundle["rights_observations"].get(doc["saved_document_id"]) or []
-        latest_rights[doc["saved_document_id"]] = obs[-1]["statement"] if obs else None
+
+    def _trust_for(cit: dict[str, Any]) -> str:
+        # b8 trust model: only citations this server fetched
+        # itself carry server-observed rights; everything else
+        # inherits the document's trust state.
+        if cit.get("provenance") == "system_fetched":
+            return "server_observed"
+        if cit.get("provenance") == "imported":
+            return "imported_claim"
+        doc = docs_by_id.get(cit["saved_document_id"]) or {}
+        return doc.get("rights_trust") or "server_observed"
+
     omissions: list[dict[str, Any]] = []
     export_citations = []
     for cit in citations:
         item = dict(cit)
         statement = (cit.get("rights_at_save") or {}).get("statement")
-        decision = effective_decision(
-            statement, latest_rights.get(cit["saved_document_id"]))
+        decision = trusted_decision(
+            statement, _trust_for(cit),
+            bundle["rights_observations"].get(cit["saved_document_id"]) or [])
         if item.get("original_excerpt") and not decision["excerpt_export"]:
             item["original_excerpt"] = None
             item["excerpt_omitted_reason"] = "omitted at export: " + decision["reason"]
@@ -109,7 +119,9 @@ def export_project(store: WorkspaceStore, project_id: str) -> dict[str, Any]:
             if isinstance(value, list):
                 doc = docs_by_id.get(doc_id, {})
                 statement = (doc.get("rights_snapshot") or {}).get("statement")
-                decision = effective_decision(statement, latest_rights.get(doc_id))
+                decision = trusted_decision(
+                    statement, doc.get("rights_trust") or "server_observed",
+                    bundle["rights_observations"].get(doc_id) or [])
                 if decision["excerpt_export"]:
                     excerpts[doc_id] = value
                 else:
@@ -357,17 +369,19 @@ def import_project(store: WorkspaceStore, payload: Any) -> dict[str, Any]:
                 values["resolution_status"] = "imported_unverified"
             conn.execute(
                 "INSERT INTO saved_documents (saved_document_id, project_id, library_id, record_id,"
-                " identifiers, rights_snapshot, saved_at, updated_at, search_text, citation_key, "
-                + ", ".join(WorkspaceStore._DOC_FIELDS) + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                " identifiers, rights_snapshot, saved_at, updated_at, search_text, citation_key,"
+                " rights_trust, "
+                + ", ".join(WorkspaceStore._DOC_FIELDS) + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                 + ", ".join("?" for _ in WorkspaceStore._DOC_FIELDS) + ")",
                 (new_doc_id, new_project_id, str(doc["library_id"])[:100],
                  str(doc["record_id"])[:500],
                  json.dumps(doc.get("identifiers") or {}, ensure_ascii=False),
-                 json.dumps(doc.get("rights_snapshot") or {}, ensure_ascii=False),
+                 json.dumps({**(doc.get("rights_snapshot") or {}),
+                             "trust": "imported_claim"}, ensure_ascii=False),
                  _ts(doc.get("saved_at"), ts), _ts(doc.get("updated_at"), ts),
                  search_text(values.get("title"), values.get("author"),
                              values.get("publication_date"), doc.get("library_id")),
-                 doc.get("citation_key"),
+                 doc.get("citation_key"), "imported_claim",
                  *[values[k] for k in WorkspaceStore._DOC_FIELDS]))
             for name in doc.get("tags") or []:
                 if isinstance(name, str):
@@ -389,31 +403,31 @@ def import_project(store: WorkspaceStore, payload: Any) -> dict[str, Any]:
                 "claimed_verified_at": values.get("verified_at"),
                 "imported_at": ts,
             }
-            # Storage policy applies to imports exactly as to
-            # UI saves. The file's rights statement is an
-            # unverified claim and is recorded as one.
+            # b8 section 2: an imported file's rights statement
+            # is an unverified claim and can NEVER permit excerpt
+            # storage by itself. Excerpt texts are withheld on
+            # import regardless of the claimed category; the
+            # reference information (page, offsets, hash) is kept
+            # so re-verification against the live source can
+            # re-admit the excerpt later.
             rights = values.get("rights_at_save")
             rights_dict = rights if isinstance(rights, dict) else {}
-            statement = rights_dict.get("statement")
-            decision = evaluate_rights(statement)
             excerpt = values.get("original_excerpt")
             if excerpt:
-                if not decision["excerpt_storage"]:
-                    omissions.append({"kind": "citation_excerpt",
-                                      "citation_id": cit["citation_id"],
-                                      "reason": "withheld on import: " + decision["reason"]})
-                    values["original_excerpt"] = None
-                    values["excerpt_omitted_reason"] = (
-                        "omitted on import: " + decision["reason"])
-                elif len(str(excerpt)) > MAX_EXCERPT_CHARS:
-                    omissions.append({"kind": "citation_excerpt",
-                                      "citation_id": cit["citation_id"],
-                                      "reason": f"excerpt exceeds the {MAX_EXCERPT_CHARS}-character storage limit"})
-                    values["original_excerpt"] = None
-                    values["excerpt_omitted_reason"] = (
-                        f"omitted on import: excerpt exceeds the {MAX_EXCERPT_CHARS}-character storage limit")
+                omissions.append({
+                    "kind": "citation_excerpt",
+                    "citation_id": cit["citation_id"],
+                    "reason": ("withheld on import: imported rights claims "
+                               "are not independently verified; reference "
+                               "information only until re-verification")})
+                values["original_excerpt"] = None
+                values["excerpt_omitted_reason"] = (
+                    "withheld on import: imported rights claims are not "
+                    "independently verified; reference information only "
+                    "until re-verification")
             values["rights_at_save"] = json.dumps(
                 {**rights_dict, "imported_claim": True,
+                 "trust": "imported_claim",
                  "claim_source": "imported_file"}, ensure_ascii=False)
             values["provenance"] = "imported"
             values["quotation_verification_status"] = "imported_unverified"
@@ -494,29 +508,20 @@ def import_project(store: WorkspaceStore, payload: Any) -> dict[str, Any]:
                     excerpts_out[new_id_] = value
                     continue
                 texts = value if isinstance(value, list) else []
-                decision = evaluate_rights(docs_rights.get(old_id))
-                kept = []
-                for entry in texts:
-                    text = entry.get("text") if isinstance(entry, dict) else entry
-                    if not isinstance(text, str):
-                        continue
-                    if not decision["excerpt_storage"]:
-                        continue
-                    if len(text) > MAX_EXCERPT_CHARS:
-                        continue
-                    if total_bytes + len(text.encode("utf-8")) > MAX_COMPARISON_EXCERPT_BYTES:
-                        continue
-                    total_bytes += len(text.encode("utf-8"))
-                    kept.append(entry)
-                if kept:
-                    excerpts_out[new_id_] = kept
-                elif texts:
+                if texts:
+                    # b8 section 2: comparison excerpts in an
+                    # imported file rest on unverified rights
+                    # claims; they are withheld on import exactly
+                    # like citation excerpts.
                     excerpts_out[new_id_] = {
-                        "omitted": "omitted on import: " + decision["reason"],
+                        "omitted": ("withheld on import: imported rights "
+                                    "claims are not independently verified"),
                         "count": len(texts)}
-                    omissions.append({"kind": "comparison_excerpt",
-                                      "saved_document_id": old_id,
-                                      "reason": decision["reason"]})
+                    omissions.append({
+                        "kind": "comparison_excerpt",
+                        "saved_document_id": old_id,
+                        "reason": ("withheld on import: imported rights "
+                                   "claims are not independently verified")})
             conn.execute(
                 "INSERT INTO saved_comparisons (comparison_id, project_id, title, saved_document_ids,"
                 " comparison_aspects, original_excerpts, lexical_overlap, dictionary_concept_overlap,"

@@ -183,17 +183,40 @@ def classify_rights(statement: str | dict | None) -> str:
     return "unknown"
 
 
+# Rights trust states (b8 section 2). A rights statement may
+# PERMIT excerpt storage only when this server observed it from
+# the upstream source itself. Statements that arrived inside an
+# imported project file or a restored backup database are claims:
+# they are preserved as history and can only ever restrict, never
+# permit, until a server-side observation (a fresh fetch or a
+# re-verification) confirms them.
+TRUST_SERVER_OBSERVED = "server_observed"
+TRUST_IMPORTED_CLAIM = "imported_claim"
+TRUST_RESTORED_CLAIM = "restored_claim"
+
+NC_CATEGORIES = {"cc_by_nc", "cc_by_nc_sa"}
+
+
+def is_server_source(source: Any) -> bool:
+    """True when a rights observation was made by this server
+    (live fetch / reverify), not carried in by an import file or
+    a restored backup."""
+    if not isinstance(source, str) or not source:
+        return False
+    return not source.startswith("imported") and source != "restored_backup"
+
+
 def evaluate(statement: str | dict | None) -> dict[str, Any]:
     """Policy decision for one rights statement."""
     if isinstance(statement, dict):
         statement = statement.get("statement") or statement.get("status") or ""
     category = classify_rights(statement)
     excerpt_ok = category in _EXCERPT_OK
-    if category in ("cc_by_nc", "cc_by_nc_sa"):
-        reason = ("excerpt storage allowed by default for non-commercial "
-                  "personal research under this licence; the system cannot "
-                  "verify the user's purpose, so commercial use is outside "
-                  "this default")
+    if category in NC_CATEGORIES:
+        reason = ("excerpt storage under a NonCommercial licence requires "
+                  "the user to confirm a non-commercial research purpose "
+                  "for each save; the system cannot verify the purpose "
+                  "itself (b8 section 2)")
     elif excerpt_ok:
         reason = "excerpt storage allowed for this rights category"
     else:
@@ -205,6 +228,7 @@ def evaluate(statement: str | dict | None) -> dict[str, Any]:
         "metadata_storage": True,
         "excerpt_storage": excerpt_ok,
         "excerpt_export": excerpt_ok,
+        "excerpt_requires_confirmation": category in NC_CATEGORIES,
         "fulltext_storage": False,
         "image_storage": False,
         "metadata_export": True,
@@ -235,17 +259,56 @@ def effective_decision(statement_at_save: str | None,
     return base
 
 
-def gate_excerpt(excerpt: str | None, statement: str | None) -> tuple[str | None, dict[str, Any]]:
+def trusted_decision(save_statement: str | None, save_trust: str | None,
+                     observations: list[dict[str, Any]]) -> dict[str, Any]:
+    """Effective decision under the trust model (b8 section 2).
+
+    ``observations`` are rights observations oldest to newest,
+    each with ``statement`` and ``source``. A claim-trust save
+    (imported file / restored backup) can permit excerpt use
+    only through a later server-side observation; every later
+    observation, whatever its source, can still restrict."""
+    latest = observations[-1].get("statement") if observations else None
+    if (save_trust or TRUST_SERVER_OBSERVED) == TRUST_SERVER_OBSERVED:
+        return effective_decision(save_statement, latest)
+    server_statements = [o.get("statement") for o in observations
+                         if is_server_source(o.get("source"))]
+    if not server_statements:
+        base = evaluate(save_statement)
+        return {**base, "excerpt_storage": False, "excerpt_export": False,
+                "trust": save_trust,
+                "reason": ("excerpt withheld: the rights information is an "
+                           "unverified claim (imported file or restored "
+                           "backup) and no server-side rights observation "
+                           "confirms it; reference information only until "
+                           "re-verification")}
+    decision = effective_decision(server_statements[-1], latest)
+    return {**decision, "trust": save_trust,
+            "reason": decision["reason"] + " (permitted via a server-side "
+                      "rights observation; the original claim itself "
+                      "grants nothing)"}
+
+
+def gate_excerpt(excerpt: str | None, statement: str | None,
+                 *, nc_confirmed: bool = False) -> tuple[str | None, dict[str, Any]]:
     """Apply the excerpt policy. Returns (stored_excerpt, decision).
     Oversize excerpts are WITHHELD, never silently truncated:
     stored text, offsets and hash must always agree (the save
     API rejects oversize selections outright; other paths
-    withhold and report)."""
+    withhold and report). NonCommercial categories additionally
+    require an explicit per-save purpose confirmation (b8)."""
     decision = evaluate(statement)
     if excerpt is None:
         return None, decision
     if not decision["excerpt_storage"]:
         return None, decision
+    if decision["excerpt_requires_confirmation"] and not nc_confirmed:
+        return None, {**decision, "excerpt_storage": False,
+                      "excerpt_export": False,
+                      "reason": ("excerpt withheld: this licence is "
+                                 "NonCommercial and no non-commercial "
+                                 "research purpose was confirmed for this "
+                                 "save")}
     if len(excerpt) > MAX_EXCERPT_CHARS:
         return None, {**decision,
                       "reason": (f"excerpt exceeds the {MAX_EXCERPT_CHARS}-character "
