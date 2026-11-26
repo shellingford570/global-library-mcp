@@ -1,4 +1,20 @@
-# Workspace rights policy (b7)
+# Workspace rights policy (b7; trust model added in b8)
+
+**b8 trust model (Stage 0).** A rights statement can permit
+excerpt storage only when THIS server observed it
+(`server_observed`). Statements arriving via project import
+(`imported_claim`) or inside a restored backup
+(`restored_claim`) can only restrict, never permit: imported
+projects store citation/comparison excerpts as references
+only (text is never stored on import), and restoring any
+backup downgrades every citation's verification state and
+every document's rights trust until a fresh server-side
+re-verification re-establishes them. A backup file's own
+checksum proves integrity of the copy, not the authenticity
+of the rights or verification claims inside it. CC BY-NC /
+CC BY-NC-SA excerpts additionally require an explicit
+non-commercial purpose confirmation at save time. See
+docs/b8-b7-regression-hardening.md.
 
 Persistence is different from retrieval: that a text can be
 fetched does not mean it may be stored, redistributed or

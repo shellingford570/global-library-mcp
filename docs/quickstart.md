@@ -135,10 +135,17 @@ MCPサーバーとして使えます。設定例は
 
 ## 10. 対応図書館
 
-- 対応済み（実地検証済み）：国立国会図書館（NDL）、Internet Archive
-- 調査段階：Gallica/BnF、Europeana、Library of Congress、DDB ほか。
-  対応済みと調査段階は別物です。各機関の利用条件は
-  [phase10-library-terms.md](phase10-library-terms.md) を参照。
+- 対応済み（実地検証済み）：国立国会図書館（NDL）、Internet Archive、
+  KB / Delpher（オランダ、検索・ページOCR）、Japan Search（検索・詳細）
+- 実装済み：Library of Congress、BSB/MDZ、e-rara、DDB、Europeana、
+  Finna、フィンランド国立図書館 Digi（後2者は当ネットワークから
+  実地未検証）、DPLA（APIキー必須・未発行のため認証待ち）
+- 調査段階：Gallica/BnF（上流403）、スペイン国立図書館、
+  オーストリア国立図書館 ANNO（公式APIなし）ほか。
+  対応済みと調査段階は別物です。新規機関はすべてオプトインで、
+  検索時に機関を明示選択した場合のみ使われます。各機関の
+  利用条件は [phase10-library-terms.md](phase10-library-terms.md) と
+  docs/b8-api-research.md を参照。
 
 ## 11. 利用条件
 

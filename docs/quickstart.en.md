@@ -104,11 +104,20 @@ The server command is `global-library-mcp mcp` (stdio).
 ## 10. Supported libraries
 
 - Supported (live-verified): National Diet Library (NDL),
-  Internet Archive
-- Research stage: Gallica/BnF, Europeana, Library of Congress,
-  DDB and others. Research-stage entries are not supported
-  libraries. Per-library terms: see
-  [phase10-library-terms.md](phase10-library-terms.md).
+  Internet Archive, KB / Delpher (Netherlands; search and
+  page OCR), Japan Search (search and detail)
+- Implemented: Library of Congress, BSB/MDZ, e-rara, DDB,
+  Europeana, Finna and the National Library of Finland's
+  Digi service (the last two are not live-verified from the
+  development network), DPLA (API key required; no key
+  issued, so it reports authentication_required)
+- Research stage: Gallica/BnF (upstream 403), the Spanish
+  National Library, Austria's ANNO (no official API), and
+  others. Research-stage entries are not supported
+  libraries. All new libraries are opt-in: they are queried
+  only when explicitly selected. Per-library terms: see
+  [phase10-library-terms.md](phase10-library-terms.md) and
+  docs/b8-api-research.md.
 
 ## 11. Terms of use
 

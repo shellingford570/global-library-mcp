@@ -1,5 +1,50 @@
 # Changelog
 
+## 1.0.0b8 — Global Coverage II
+
+- Stage 0 (b7 residual fixes): a rights trust model for the
+  workspace - only server-observed rights statements can
+  permit excerpt storage; imported project data never stores
+  excerpt text (references only) and restored backups are
+  downgraded until re-verified; the latest rights observation
+  gates new citation/comparison saves; CC BY-NC excerpts need
+  an explicit purpose confirmation; cross-library comparison
+  identity is the composite (library_id, record_id) everywhere;
+  workspace restore is quiesced and reports its trust
+  downgrade; schema v3 (pre-migration backups kept).
+- New opt-in adapters (default searches unchanged, zero new
+  traffic): Finna (Finland's discovery platform; provider vs
+  holding institution vs Finna record kept distinct; metadata
+  CC0 never confused with item rights), National Library of
+  Finland Digi (OAI-PMH identity, ALTO page OCR with
+  structural page identity, original-image verification,
+  bounded in-document search; reached via a validated
+  Finna -> Digi handoff), KB / Delpher (SRU newspaper search
+  + resolver OCR with title-correspondence page identity;
+  live-verified for search and page OCR), Japan Search
+  (fixed-template SPARQL search + JSON-LD detail; accessInfo
+  licence and access restrictions surfaced; NDL pid handoff
+  candidates; live-verified for search and detail), DPLA
+  (authentication-pending: no key issued, calls report
+  authentication_required).
+- Multilingual: Finnish and Swedish language normalisation;
+  fi/sv/nl labels for 18 dictionary concepts plus a new
+  independence concept (all unverified); concept translations
+  are diagonally interleaved so the new languages are not
+  starved by the variant cap; German compound splits rank
+  with the other same-language spelling variants.
+- Registry: 31 entries (BNE and ONB/ANNO added as
+  research-only; ANNO publishes no official API).
+- Evaluation: fixed fixture sets for the new libraries
+  (dev 20 / fixed 20 / negative 10, agent-assigned proxy
+  labels) - fixed-set Standard Recall@10 0.75, cross-language
+  discovery 0.67; performance A/B/C confirms zero new-host
+  traffic in default searches. Live verification is recorded
+  separately and honestly: Finna (bot challenge 403 from the
+  server network) and Digi (unreachable) are fixture-verified
+  only; Gallica remains 403. No paid API calls, no keys
+  issued, evidence-admission gates unchanged.
+
 ## 1.0.0b7 — Research Workspace & Citation Management
 
 - Local-first research workspace on SQLite (stdlib only):

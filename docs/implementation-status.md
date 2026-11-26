@@ -1,8 +1,23 @@
 # Implementation status
 
-Last updated: 2026-11-26 (branch `feat/research-workspace-b7`, b7 candidate).
+Last updated: 2026-11-26 (branch `feat/global-coverage-b8`, b8 candidate).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
+
+## Global Coverage II (b8)
+
+| Capability | Status | Notes |
+|---|---|---|
+| Stage 0 rights trust model | implemented, verified | Imported/restored claims never permit excerpts; restore quiescence + downgrade; schema v3; docs/b8-b7-regression-hardening.md |
+| Finna adapter | implemented, fixture-verified | Search/detail/rights; live blocked by a bot challenge (403) from the server network - NOT live-verified; docs/finna-integration.md |
+| NLF Digi adapter | implemented, fixture-verified | OAI identity, ALTO OCR, image verification, in-document search; host unreachable from this network - NOT live-verified; docs/finland-national-library-integration.md |
+| Finna -> Digi handoff | implemented, fixture-verified | Exact host + binding path grammar; ambiguity refused; docs/provider-handoff.md |
+| KB / Delpher adapter | implemented, live-verified (search, page OCR, page identity) | SRU + resolver; :image answered 404 live, so originals are fixture-only; docs/b8-api-research.md §4 |
+| Japan Search adapter | implemented, live-verified (search, detail) | SPARQL fixed template + JSON-LD; accessInfo licence/restrictions; NDL pid handoff candidate |
+| DPLA adapter | implemented, authentication-pending | No key issued (not approved); calls state authentication_required; docs/dpla-integration.md |
+| BNE / ONB-ANNO | research only | BNE: SPARQL + CC0 confirmed. ANNO: no official API exists |
+| fi/sv/nl multilingual | implemented, verified | Language normalisation fi/sv; 18 concepts gained fi/sv/nl labels + independence concept (all unverified); translation interleave fix |
+| Registry | 31 entries | 13 adapters; counts in docs/b8-global-coverage-ii.md - registry size is not a usable-library count |
 
 ## Research workspace (b7)
 
