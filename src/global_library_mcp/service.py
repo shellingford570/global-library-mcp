@@ -13,6 +13,7 @@ from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.adapters.gallica import GallicaAdapter
 from global_library_mcp.adapters.bsb import BsbAdapter
 from global_library_mcp.adapters.erara import EraraAdapter
+from global_library_mcp.adapters.digi import DigiAdapter
 from global_library_mcp.adapters.finna import FinnaAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
@@ -453,6 +454,7 @@ class LibraryService:
             "bsb": BsbAdapter(client),
             "e-rara": EraraAdapter(client),
             "finna": FinnaAdapter(client),
+            "finland-nl-digi": DigiAdapter(client),
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}

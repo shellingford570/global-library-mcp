@@ -1,5 +1,8 @@
-"""DDB -> BSB candidate extraction (b6, section 17; structural
-verification hardened in the b6 final review, section 8).
+"""Provider handoff candidate extraction.
+
+DDB -> BSB (b6, section 17; structural verification hardened
+in the b6 final review, section 8) and Finna -> NLF Digi
+(b8, section 6, at the end of this module).
 
 A DDB record may be handed to the BSB adapter ONLY when the
 DDB metadata itself carries the BSB digital object identifier
@@ -97,6 +100,70 @@ def extract_bsb_candidate(raw: dict[str, Any]) -> dict[str, Any]:
                 "basis": f"several different BSB identifiers in one DDB record: {sorted(ids)}"}
     return {"status": "candidate", "bsb_object_id": candidates[0][0],
             "basis": candidates[0][1] + "; provider is the Bayerische Staatsbibliothek (00005860)"}
+
+
+# --- Finna -> NLF Digi (b8, section 6) -------------------------------------
+
+_DIGI_HOSTS = {"digi.kansalliskirjasto.fi", "digi.nationallibrary.fi"}
+_DIGI_GENRES = {"sanomalehti", "aikakauslehti", "teos"}
+_DIGI_BINDING_RE = re.compile(r"^\d+$")
+
+
+def extract_digi_candidate(finndoc: dict[str, Any]) -> dict[str, Any]:
+    """{status, binding_id, genre, basis} for a Finna document
+    payload's provider links (b8, section 6).
+
+    A Digi binding is a candidate ONLY when a provider link in
+    the Finna record parses structurally as
+    ``https://digi.kansalliskirjasto.fi/<genre>/binding/<digits>...``
+    on the exact official host (the English alias host is
+    accepted as the same service). Links on any other host, with
+    a non-https scheme, or whose path does not match the binding
+    grammar are data, not candidates. Two DIFFERENT binding ids
+    make the handoff ambiguous and it is refused; repeated links
+    to the same binding are one candidate. Nothing here fetches
+    the URL: the candidate is handed to the Digi adapter, whose
+    OAI identity checks decide whether the binding is what the
+    Finna record says it is, and the caller must still check
+    bibliographic correspondence (titles_correspond / year)
+    before treating the handoff as established.
+    """
+    if not isinstance(finndoc, dict):
+        return {"status": "no_candidate", "binding_id": None, "genre": None, "basis": "no Finna document"}
+    found: dict[str, str] = {}
+    for link in finndoc.get("provider_links") or []:
+        if not isinstance(link, dict):
+            continue
+        url = str(link.get("url") or "")
+        try:
+            parsed = urlparse(url)
+        except ValueError:
+            continue
+        if parsed.scheme != "https" or (parsed.hostname or "").lower() not in _DIGI_HOSTS:
+            continue
+        segments = [seg for seg in (parsed.path or "").split("/") if seg]
+        if len(segments) < 3:
+            continue
+        genre, marker, binding = segments[0], segments[1], segments[2]
+        if genre not in _DIGI_GENRES or marker != "binding" or not _DIGI_BINDING_RE.match(binding):
+            continue
+        found[binding] = genre
+    if not found:
+        return {"status": "no_candidate", "binding_id": None, "genre": None, "basis": "no structurally valid Digi binding link in the Finna record"}
+    if len(found) > 1:
+        return {
+            "status": "refused_ambiguous",
+            "binding_id": None,
+            "genre": None,
+            "basis": f"Finna record links to {len(found)} different Digi bindings: {sorted(found)}",
+        }
+    binding_id, genre = next(iter(found.items()))
+    return {
+        "status": "candidate",
+        "binding_id": binding_id,
+        "genre": genre,
+        "basis": "Digi binding URL on the exact official host in the Finna record's provider links",
+    }
 
 
 def titles_correspond(ddb_title: str, bsb_title: str) -> bool:
