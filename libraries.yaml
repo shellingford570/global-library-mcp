@@ -46,20 +46,23 @@ libraries:
     verification: "adapter implemented on the NDL Lab Book/Page APIs; live-verified 2026-11-22: catalog search, in-document search, page OCR, and IIIF manifest/canvas/image checks all pass for reference pages 994120_50, 1018770_21, 1886468_121"
     last_verified: "2026-11-22"
   - id: japan-search
+    name: "Japan Search (National Diet Library)"
     region: Asia
     country: JP
     official_site: https://jpsearch.go.jp/
-    api_specs: [https://jpsearch.go.jp/api]
+    api_specs: ["https://jpsearch.go.jp/rdf/sparql", "https://jpsearch.go.jp/data/{id}.json"]
     languages: [ja, multi]
     material_types: [cultural_heritage, books, images, media]
-    capabilities: {bibliographic: true, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: true}
-    standards: [SPARQL, EasySPARQL, IIIF]
-    auth: unknown
-    terms_rights: "provider/item-specific"
+    capabilities: {bibliographic: true, document_by_id: true, fulltext: false, ocr: false, image: false, page: false, iiif: false}
+    standards: [SPARQL, JSON-LD, JPS-RDF]
+    auth: "public; no API key"
+    terms_rights: "provider/item-specific: the item's accessInfo carries the licence (typically a RightsStatements.org URI) and the provider's access restrictions, surfaced verbatim"
     rate_limits: unknown
     existing_mcp: unknown
-    verification: "official API and IIIF links reviewed"
-    last_verified: "2026-11-19"
+    implementation_status: implemented
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_catalog_verified, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: unsupported, page_mapping: unsupported, rights: fixture_verified}
+    verification: "b8 (2026-11-26): live through the adapter from this network - SPARQL search for a Japanese art term returned real items and the item JSON-LD parsed (title, provider); a manually probed NDL item carried an InC licence, NDL-only access restrictions and an info:ndljp/pid identifier (also pinned in fixtures). Japan Search is an aggregator: page OCR belongs to the providers (NDL handoff via the pid identifier)."
+    last_verified: "2026-11-26"
   - id: ndli
     region: Asia
     country: IN
@@ -401,3 +404,111 @@ libraries:
     existing_mcp: unknown
     verification: "official API page reviewed"
     last_verified: "2026-11-19"
+  - id: finna
+    name: "Finna (Finnish discovery service, National Library of Finland)"
+    region: Europe
+    country: FI
+    official_site: https://www.finna.fi/
+    api_specs: ["https://api.finna.fi/api/v1/search", "https://api.finna.fi/api/v1/record", "https://api.finna.fi/api/v1/?openapi"]
+    languages: [fi, sv, multi]
+    material_types: [books, newspapers, journals, images, audio, video]
+    capabilities: {bibliographic: true, document_by_id: true, fulltext: false, ocr: false, image: false, page: false, iiif: false}
+    standards: [REST, JSON, OpenAPI]
+    auth: "public; no API key"
+    terms_rights: "Finna metadata is CC0 1.0; item rights are per-record (usageRights labels); metadata CC0 does not extend to item OCR or images"
+    rate_limits: "no published limit confirmed (checked 2026-11-26); treated as unconfirmed"
+    existing_mcp: unknown
+    implementation_status: implemented
+    capability_status: {catalog_search: fixture_verified, document_by_id: fixture_verified, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: unsupported, page_mapping: unsupported, rights: fixture_verified}
+    verification: "b8 (2026-11-26): response shape confirmed against a real API response observed in the user's ordinary browser (status OK, resultCount 530965 for 'Suomen historia'); from this development network api.finna.fi answers a Cloudflare bot challenge (HTTP 403 via curl, the project HTTP client and a text fetch), so LibraryService live verification is NOT achieved and no evasion was attempted. Finna is a cross-search platform, not a holding library; holdings come from the record buildings hierarchy."
+    last_verified: "2026-11-26"
+  - id: finland-nl-digi
+    name: "National Library of Finland (Digi)"
+    region: Europe
+    country: FI
+    official_site: https://digi.kansalliskirjasto.fi/
+    api_specs: ["https://digi.kansalliskirjasto.fi/interfaces/OAI-PMH", "https://digi.kansalliskirjasto.fi/sanomalehti/binding/{binding_id}/page-{page}.xml", "https://digi.kansalliskirjasto.fi/sanomalehti/binding/{binding_id}/image/{page}"]
+    languages: [fi, sv, multi]
+    material_types: [newspapers, journals, books, sheet_music]
+    capabilities: {bibliographic: false, document_by_id: true, fulltext: true, ocr: true, image: true, page: true, iiif: false}
+    standards: [OAI-PMH, ALTO, METS]
+    auth: "public for material available online; in-copyright material is restricted at the source (e.g. Haka login) and is never fetched"
+    terms_rights: "per-binding dc:rights in the OAI record (kept verbatim, e.g. Finnish in-copyright statements); Digi terms of use apply; interface access covers online material (newspapers/journals to 1949 as digitisation progresses)"
+    rate_limits: unknown
+    existing_mcp: unknown
+    implementation_status: implemented
+    capability_status: {catalog_search: unsupported, document_by_id: fixture_verified, in_document_search: bounded, page_ocr: fixture_verified, original_image: fixture_verified, iiif: unsupported, page_mapping: fixture_verified, rights: fixture_verified}
+    verification: "b8 (2026-11-26): adapter implemented from the documented Digi interfaces (binding sub-components: ALTO page XML, page text, page image; OAI-PMH qdc_finna identity, genre recovered from the record's own file links). FINAL REVIEW (2026-11-26): page identity was hardened - PHYSICAL_IMG_NR alone no longer verifies anything; verified_mapping now requires a single-Page ALTO whose fileName carries the binding id as a full delimited token with no foreign binding token, a non-contradictory page signal, and membership in the OAI kk:checksum page set when present. Genre is never guessed (unknown/ambiguous leaves landing_url unset). digi.kansalliskirjasto.fi was unreachable from this development network (empty reply via the proxy), so live verification is NOT achieved; fixture-verified only. Discovery runs through Finna; this adapter is ID-addressed via the validated Finna -> Digi handoff."
+    last_verified: "2026-11-26"
+  - id: dpla
+    name: "Digital Public Library of America (DPLA)"
+    region: North America
+    country: US
+    official_site: https://dp.la/
+    api_specs: ["https://api.dp.la/v2/items", "https://api.dp.la/v2/items/{id}"]
+    languages: [en, multi]
+    material_types: [books, images, audio, video, texts]
+    capabilities: {bibliographic: true, document_by_id: true, fulltext: false, ocr: false, image: false, page: false, iiif: false}
+    standards: [REST, JSON-LD, MAP]
+    auth: "API key REQUIRED on every request (32-character api_key query parameter); free self-service issuance exists but was NOT performed in b8 (not approved)"
+    terms_rights: "metadata CC0-oriented; item rights per sourceResource.rights (RightsStatements.org URIs); provider (hub) and dataProvider (originating institution) are distinct"
+    rate_limits: "not confirmed in the b8 research (2026-11-26)"
+    existing_mcp: unknown
+    implementation_status: implemented
+    capability_status: {catalog_search: authentication_required, document_by_id: authentication_required, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: unsupported, page_mapping: unsupported, rights: fixture_verified}
+    verification: "b8 (2026-11-26): adapter implemented fixture-first from the official developer documentation (pro.dp.la); with DPLA_API_KEY unset every call reports authentication_required. No key was requested or issued."
+    last_verified: "2026-11-26"
+  - id: kb-delpher
+    name: "KB, National Library of the Netherlands / Delpher"
+    region: Europe
+    country: NL
+    official_site: https://www.delpher.nl/
+    api_specs: ["https://jsru.kb.nl/sru/sru", "https://resolver.kb.nl/resolve?urn={urn}:ocr"]
+    languages: [nl, multi]
+    material_types: [newspapers, books, journals, radio]
+    capabilities: {bibliographic: true, document_by_id: true, fulltext: true, ocr: true, image: true, page: true, iiif: false}
+    standards: [SRU 1.2, CQL, Dublin Core]
+    auth: "public; no API key for the public SRU collections"
+    terms_rights: "metadata CC0; images/full text per item (often CC BY-NC-ND); newspapers 1618-1879 are copyright-free per KB dataset notes; Delpher website itself is not scraped (robots), only the SRU API and resolver are used"
+    rate_limits: unknown
+    existing_mcp: unknown
+    implementation_status: implemented
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_catalog_verified, in_document_search: bounded, page_ocr: live_article_ocr_fetched, original_image: unverified, iiif: unsupported, page_mapping: unverified, rights: fixture_verified}
+    verification: "b8 (2026-11-26): live through the adapter from this network - SRU search returned real records (waterkracht, 32487 total) and the resolver OCR for article ddd:010286065:mpeg21:a0141 was fetched non-empty (711 chars). FINAL REVIEW RECLASSIFICATION (2026-11-26): the OCR payload carries no article identifier, so the only correspondence signal is that the OCR title equals the SRU record title selected by exact URN - title correspondence, NOT strict article or page identity. verified_mapping is therefore always false for KB, page_mapping is unverified, and KB pages never enter verified evidence. The OCR unit is the ARTICLE, not the physical page. The resolver :image suffix answered 404 for that article URN; original-image reachability and identity are unverified and no page-URN image route was guessed."
+    last_verified: "2026-11-26"
+  - id: bne
+    name: "Biblioteca Nacional de España (datos.bne.es)"
+    region: Europe
+    country: ES
+    official_site: https://datos.bne.es/
+    api_specs: ["http://datos.bne.es/sparql"]
+    languages: [es, multi]
+    material_types: [books, manuscripts, photographs, maps, music]
+    capabilities: {bibliographic: true, document_by_id: unknown, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: [SPARQL, Linked Data, JSON-LD]
+    auth: "public; no API key"
+    terms_rights: "linked data published under CC0; item rights vary"
+    rate_limits: unknown
+    existing_mcp: unknown
+    implementation_status: research_only
+    capability_status: {catalog_search: research_only, document_by_id: research_only, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: research_only, page_mapping: unsupported, rights: research_only}
+    verification: "b8 research only (2026-11-26): SPARQL endpoint and CC0 data publication confirmed from official sources; no per-page OCR API confirmed; not implemented in b8."
+    last_verified: "2026-11-26"
+  - id: onb-anno
+    name: "Österreichische Nationalbibliothek / ANNO"
+    region: Europe
+    country: AT
+    official_site: https://anno.onb.ac.at/
+    api_specs: []
+    languages: [de, multi]
+    material_types: [newspapers, journals]
+    capabilities: {bibliographic: unknown, document_by_id: unknown, fulltext: unknown, ocr: unknown, image: unknown, page: unknown, iiif: unknown}
+    standards: []
+    auth: "no official API published"
+    terms_rights: "ONB/item-specific"
+    rate_limits: unknown
+    existing_mcp: unknown
+    implementation_status: research_only
+    capability_status: {catalog_search: research_only, document_by_id: research_only, in_document_search: unsupported, page_ocr: unsupported, original_image: unsupported, iiif: research_only, page_mapping: unsupported, rights: research_only}
+    verification: "b8 research only (2026-11-26): ANNO publishes no official API (only the web application's undocumented internal REST backend and the annoshow CGI); an undocumented backend does not meet the b8 official-API condition, so nothing was implemented."
+    last_verified: "2026-11-26"

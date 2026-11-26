@@ -56,6 +56,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from global_library_mcp.rights_uri import parse_rights_uri as _parse_rights_uri_shared
+
 MAX_EXCERPT_CHARS = 2000
 
 CATEGORIES = (
@@ -183,17 +185,106 @@ def classify_rights(statement: str | dict | None) -> str:
     return "unknown"
 
 
+parse_rights_uri = _parse_rights_uri_shared
+
+
+# Rights trust states (b8 section 2). A rights statement may
+# PERMIT excerpt storage only when this server observed it from
+# the upstream source itself. Statements that arrived inside an
+# imported project file or a restored backup database are claims:
+# they are preserved as history and can only ever restrict, never
+# permit, until a server-side observation (a fresh fetch or a
+# re-verification) confirms them.
+TRUST_SERVER_OBSERVED = "server_observed"
+TRUST_IMPORTED_CLAIM = "imported_claim"
+TRUST_RESTORED_CLAIM = "restored_claim"
+TRUST_STATES = {TRUST_SERVER_OBSERVED, TRUST_IMPORTED_CLAIM, TRUST_RESTORED_CLAIM}
+
+NC_CATEGORIES = {"cc_by_nc", "cc_by_nc_sa"}
+
+# The ONLY observation sources this server itself writes when
+# it observes rights from an upstream source during a live
+# request (b8 final review section 8). Trust is established by
+# membership in this closed set, never by the absence of a
+# claim-looking prefix: an arbitrary string found inside an
+# imported file or a restored database (e.g. a forged
+# source="reverify" row whose trust column was never set by
+# this server) is a claim. Since schema v4, observations also
+# carry an explicit ``trust`` column written at insert time;
+# a row is server-trusted only when its trust column says
+# server_observed AND its source is in this set AND its
+# timestamp is not in the future.
+SERVER_SOURCES = {"live_fetch", "reverify", "document_save", "page_fetch"}
+CLAIM_SOURCES = {"imported_file", "imported_claim", "restored_backup",
+                 "restored_claim", "user_entered"}
+
+_FUTURE_SKEW_S = 300
+
+
+def is_server_source(source: Any) -> bool:
+    """True only for the closed set of sources this server
+    itself writes for live observations (b8 final review:
+    an arbitrary source string never establishes trust)."""
+    return isinstance(source, str) and source in SERVER_SOURCES
+
+
+def _observation_is_future(observed_at: Any) -> bool:
+    if not isinstance(observed_at, str) or not observed_at:
+        return False
+    try:
+        from datetime import datetime, timezone
+        ts = datetime.strptime(observed_at, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc).timestamp()
+        from datetime import datetime as _dt
+        now = _dt.now(timezone.utc).timestamp()
+    except (ValueError, OverflowError):
+        return True  # an unparseable timestamp cannot be trusted
+    return ts > now + _FUTURE_SKEW_S
+
+
+def observation_trust(observation: dict[str, Any]) -> str:
+    """Structured trust of ONE rights observation (b8 final
+    review section 8). Returns server_observed only when the
+    row carries this server's own markers; everything else -
+    imported rows, restored rows, unknown sources, future
+    timestamps, unknown trust values - is a claim, with
+    restored rows distinguished for display."""
+    if not isinstance(observation, dict):
+        return TRUST_IMPORTED_CLAIM
+    source = observation.get("source")
+    trust = observation.get("trust")
+    if trust in (TRUST_IMPORTED_CLAIM, TRUST_RESTORED_CLAIM):
+        return trust
+    if source in ("restored_backup", "restored_claim") or trust == TRUST_RESTORED_CLAIM:
+        return TRUST_RESTORED_CLAIM
+    if trust == TRUST_SERVER_OBSERVED and is_server_source(source) \
+            and not _observation_is_future(observation.get("observed_at")):
+        return TRUST_SERVER_OBSERVED
+    if trust is None and is_server_source(source) \
+            and not _observation_is_future(observation.get("observed_at")):
+        # Pre-v4 rows written by this server itself (the only
+        # writer of these sources before the trust column
+        # existed) - but ONLY in a database that was never
+        # restored; the restore path rewrites every pre-existing
+        # row's trust to restored_claim, so a restored database
+        # cannot reach this branch with a forged row.
+        return TRUST_SERVER_OBSERVED
+    return TRUST_IMPORTED_CLAIM
+
+
 def evaluate(statement: str | dict | None) -> dict[str, Any]:
     """Policy decision for one rights statement."""
     if isinstance(statement, dict):
         statement = statement.get("statement") or statement.get("status") or ""
     category = classify_rights(statement)
     excerpt_ok = category in _EXCERPT_OK
-    if category in ("cc_by_nc", "cc_by_nc_sa"):
-        reason = ("excerpt storage allowed by default for non-commercial "
-                  "personal research under this licence; the system cannot "
-                  "verify the user's purpose, so commercial use is outside "
-                  "this default")
+    if category in NC_CATEGORIES:
+        reason = ("excerpt storage under a NonCommercial licence requires "
+                  "the user to confirm a non-commercial research purpose "
+                  "for each save; the system cannot verify the purpose "
+                  "itself, and the user's confirmation is a declaration "
+                  "of purpose, not an independent legal verification "
+                  "(b8 section 2; final review section 14)")
     elif excerpt_ok:
         reason = "excerpt storage allowed for this rights category"
     else:
@@ -205,6 +296,7 @@ def evaluate(statement: str | dict | None) -> dict[str, Any]:
         "metadata_storage": True,
         "excerpt_storage": excerpt_ok,
         "excerpt_export": excerpt_ok,
+        "excerpt_requires_confirmation": category in NC_CATEGORIES,
         "fulltext_storage": False,
         "image_storage": False,
         "metadata_export": True,
@@ -235,17 +327,100 @@ def effective_decision(statement_at_save: str | None,
     return base
 
 
-def gate_excerpt(excerpt: str | None, statement: str | None) -> tuple[str | None, dict[str, Any]]:
+def trusted_decision(save_statement: str | None, save_trust: str | None,
+                     observations: list[dict[str, Any]]) -> dict[str, Any]:
+    """Effective decision under the trust model (b8 section 2;
+    final review sections 8 and 13).
+
+    Rules, applied in observation order (oldest to newest):
+    - an UNKNOWN save-trust value is fail-closed: it is
+      treated as a claim, never as server_observed;
+    - permission can be granted ONLY by a server-trusted basis:
+      a server_observed save statement, or a server-trusted
+      observation (see ``observation_trust``);
+    - a server-trusted observation REPLACES the current basis
+      (it can lift an older restriction, because it is a fresh
+      confirmation by this server);
+    - an untrusted claim can only RESTRICT, never lift: a
+      claim whose category does not permit excerpt use blocks
+      excerpt use until a LATER server-trusted observation
+      re-confirms permission;
+    - future-dated observations are untrusted claims.
+    """
+    trust = save_trust if save_trust in TRUST_STATES else TRUST_IMPORTED_CLAIM
+    basis_statement: str | None = None
+    basis_trusted = False
+    claim_restricted = False
+    if trust == TRUST_SERVER_OBSERVED:
+        basis_statement = save_statement
+        basis_trusted = True
+    for obs in observations or []:
+        stmt = obs.get("statement") if isinstance(obs, dict) else None
+        if observation_trust(obs) == TRUST_SERVER_OBSERVED:
+            basis_statement = stmt
+            basis_trusted = True
+            claim_restricted = False
+        else:
+            # A claim can only restrict.
+            if not evaluate(stmt)["excerpt_storage"]:
+                claim_restricted = True
+    if basis_trusted and trust == TRUST_SERVER_OBSERVED and save_statement \
+            and basis_statement != save_statement:
+        _save_decision = evaluate(save_statement)
+        _basis_decision = evaluate(basis_statement)
+        if _save_decision["excerpt_storage"] and not _basis_decision["excerpt_storage"]:
+            return {**_basis_decision, "trust": trust,
+                    "reason": ("excerpt withheld: the latest rights observation "
+                               f"({_basis_decision['category']}) is more restrictive than "
+                               "the rights at save time"),
+                    "rights_changed": True}
+    if not basis_trusted:
+        base = evaluate(save_statement)
+        return {**base, "excerpt_storage": False, "excerpt_export": False,
+                "trust": trust,
+                "reason": ("excerpt withheld: the rights information is an "
+                           "unverified claim (imported file, restored "
+                           "backup, or unknown trust state) and no "
+                           "server-side rights observation confirms it; "
+                           "reference information only until "
+                           "re-verification")}
+    decision = evaluate(basis_statement)
+    if claim_restricted:
+        return {**decision, "excerpt_storage": False, "excerpt_export": False,
+                "trust": trust,
+                "reason": ("excerpt withheld: an unverified rights claim "
+                           "more restrictive than the last server-confirmed "
+                           "statement is on record; only a fresh "
+                           "server-side confirmation can lift it"),
+                "rights_changed": True}
+    if trust != TRUST_SERVER_OBSERVED:
+        decision = {**decision, "trust": trust,
+                    "reason": decision["reason"] + " (permitted via a "
+                              "server-side rights observation; the "
+                              "original claim itself grants nothing)"}
+    return decision
+
+
+def gate_excerpt(excerpt: str | None, statement: str | None,
+                 *, nc_confirmed: bool = False) -> tuple[str | None, dict[str, Any]]:
     """Apply the excerpt policy. Returns (stored_excerpt, decision).
     Oversize excerpts are WITHHELD, never silently truncated:
     stored text, offsets and hash must always agree (the save
     API rejects oversize selections outright; other paths
-    withhold and report)."""
+    withhold and report). NonCommercial categories additionally
+    require an explicit per-save purpose confirmation (b8)."""
     decision = evaluate(statement)
     if excerpt is None:
         return None, decision
     if not decision["excerpt_storage"]:
         return None, decision
+    if decision["excerpt_requires_confirmation"] and not nc_confirmed:
+        return None, {**decision, "excerpt_storage": False,
+                      "excerpt_export": False,
+                      "reason": ("excerpt withheld: this licence is "
+                                 "NonCommercial and no non-commercial "
+                                 "research purpose was confirmed for this "
+                                 "save")}
     if len(excerpt) > MAX_EXCERPT_CHARS:
         return None, {**decision,
                       "reason": (f"excerpt exceeds the {MAX_EXCERPT_CHARS}-character "

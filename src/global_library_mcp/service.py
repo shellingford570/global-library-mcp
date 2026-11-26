@@ -13,6 +13,11 @@ from global_library_mcp.adapters.base import AdapterError, LibraryAdapter
 from global_library_mcp.adapters.gallica import GallicaAdapter
 from global_library_mcp.adapters.bsb import BsbAdapter
 from global_library_mcp.adapters.erara import EraraAdapter
+from global_library_mcp.adapters.digi import DigiAdapter
+from global_library_mcp.adapters.dpla import DplaAdapter
+from global_library_mcp.adapters.finna import FinnaAdapter
+from global_library_mcp.adapters.japan_search import JapanSearchAdapter
+from global_library_mcp.adapters.kb import KbDelpherAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
 from global_library_mcp.adapters.ndl import NdlAdapter
@@ -451,6 +456,11 @@ class LibraryService:
             "europeana": EuropeanaAdapter(client),
             "bsb": BsbAdapter(client),
             "e-rara": EraraAdapter(client),
+            "finna": FinnaAdapter(client),
+            "finland-nl-digi": DigiAdapter(client),
+            "dpla": DplaAdapter(client),
+            "kb-delpher": KbDelpherAdapter(client),
+            "japan-search": JapanSearchAdapter(client),
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
@@ -2414,7 +2424,8 @@ class LibraryService:
                             "image_url": page.get("image_url"),
                             "excerpt": excerpt.strip(),
                         })
-                        per_aspect_texts[aspect][record_id] = per_aspect_texts[aspect].get(record_id, "") + "\n" + text
+                        doc_key = f"{library_id}|{record_id}"
+                        per_aspect_texts[aspect][doc_key] = per_aspect_texts[aspect].get(doc_key, "") + "\n" + text
             except Exception as exc:  # noqa: BLE001 - per-document failure is reported, not raised
                 entry["error"] = str(exc) if isinstance(exc, AdapterError) else sanitize_error(exc)
             doc_results.append(entry)
@@ -2435,7 +2446,7 @@ class LibraryService:
                 "possible_related_concepts": _overlap["possible_related_concepts"],
                 "semantic_comparison": "not_checked",
                 "documents": {
-                    entry["record_id"]: {
+                    f"{entry['library_id']}|{entry['record_id']}": {
                         "found": any(p["aspect"] == aspect for p in entry["pages"]),
                         "excerpts": [p for p in entry["pages"] if p["aspect"] == aspect],
                     } for entry in doc_results

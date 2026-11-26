@@ -34,7 +34,12 @@ and [docs/implementation-status.md](docs/implementation-status.md).
 | Gallica / BnF | unverified (upstream 403 from this network) | yes | yes | yes (IIIF) |
 | DDB | implemented | yes (aggregator) | no | links |
 | Europeana | implemented | yes (aggregator) | no | links |
-| 17 further institutions | research | - | - | - |
+| KB / Delpher (Netherlands) | verified (search + article OCR fetch, live 2026-11-26; page identity unverified - OCR is article-level, title correspondence only) | yes (SRU) | article OCR (resolver) | unverified (resolver :image answered 404 live) |
+| Japan Search (NDL, Japan) | verified (search + detail, live 2026-11-26) | yes (SPARQL) | no (aggregator) | no |
+| Finna (Finland) | implemented, unverified from this network (upstream bot challenge 403) | yes | no (platform) | no |
+| National Library of Finland (Digi) | implemented, live verification not achieved (OAI endpoint answered at protocol level in the final-review re-check; real-binding verification outstanding) | by ID (via Finna handoff) | yes (ALTO) | yes |
+| DPLA (USA) | implemented, authentication required (no key issued) | yes (with API key) | no (aggregator) | no |
+| 16 further institutions | research | - | - | - |
 
 This project does **not** cover every library in the
 world; the table above is the whole supported set.
@@ -80,6 +85,32 @@ have no access to the workspace. See
 docs/b7-research-workspace.md and
 docs/workspace-user-guide.md.
 The final review hardened citation-to-document binding, the fail-closed rights policy, import/restore safety and session security; see docs/b7-final-review.md.
+
+### Global Coverage II (1.0.0b8)
+
+Five more adapters, all opt-in (default searches are
+unchanged and never touch the new hosts): Finna (Finland's
+discovery platform - provider, holding institution and the
+Finna record itself are kept distinct, and its CC0 metadata
+licence is never confused with item rights), the National
+Library of Finland's Digi service (OAI-PMH identity, ALTO
+page OCR with structural page identity, reached through a
+validated Finna -> Digi handoff), KB / Delpher (Dutch
+historical newspapers via SRU + resolver OCR - search and
+article-OCR fetching live-verified; the OCR unit is the
+article, and page identity is not strictly verified),
+Japan Search (SPARQL search and
+JSON-LD detail, with access restrictions surfaced verbatim
+and NDL handoff candidates), and DPLA in an
+authentication-pending state (no API key was issued; calls
+report `authentication_required`). Finnish, Swedish and
+Dutch join the multilingual expansion dictionary. The b7
+workspace also gained a rights trust model: imported or
+restored rights claims can restrict but never permit excerpt
+storage. Live-verification status per library is recorded
+honestly in docs/b8-live-verification.md - Finna and Digi
+could not be reached from the development network and are
+fixture-verified only. See docs/b8-global-coverage-ii.md.
 
 ## Quick start (local)
 

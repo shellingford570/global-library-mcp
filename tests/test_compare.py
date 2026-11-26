@@ -32,9 +32,9 @@ async def test_compare_two_documents():
     assert {d["title"] for d in result["documents"]} == {"發電水力の開發", "水力電気 上巻"}
     row = result["rows"][0]
     assert row["aspect"] == "送電"
-    assert row["documents"]["994120"]["found"] is True
-    assert row["documents"]["1018770"]["found"] is True
-    excerpt = row["documents"]["994120"]["excerpts"][0]
+    assert row["documents"]["ndl|994120"]["found"] is True
+    assert row["documents"]["ndl|1018770"]["found"] is True
+    excerpt = row["documents"]["ndl|994120"]["excerpts"][0]
     assert excerpt["citation_key"] == "ndl:994120:994120_10"
     assert "送電" in row["shared_terms"] or "送電" in excerpt["excerpt"]
     assert any("刊行年" in note for note in result["notes"])
@@ -53,7 +53,7 @@ async def test_compare_insufficient_when_no_pages():
             [{"library_id": "ndl", "record_id": "994120"}, {"library_id": "ndl", "record_id": "1018770"}],
             aspects=["送電"])
     assert result["status"] == "insufficient_evidence"
-    assert result["rows"][0]["documents"]["994120"]["found"] is False
+    assert result["rows"][0]["documents"]["ndl|994120"]["found"] is False
 
 
 @pytest.mark.asyncio

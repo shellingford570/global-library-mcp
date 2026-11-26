@@ -333,7 +333,7 @@ function renderSearch(data) {
   const retrieved = data.retrieved_at ? new Date(data.retrieved_at) : null;
   const retrievedLabel = retrieved && !Number.isNaN(retrieved.valueOf()) ? retrieved.toLocaleString(lang === 'ja' ? 'ja-JP' : 'en-GB') : t().retrievedUnknown;
   meta.textContent = `${items.length}${t().countSuffix} · ${retrievedLabel}`;
-  let html = items.map(item => `<article class="card" data-save-token="${esc(item.save_token || '')}"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${item.author ? esc(item.author) + ' · ' : ''}${item.date ? esc(item.date) : t().publishedUnknown}</p><p>${esc(item.description || t().noDescription)}</p><p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`).join('');
+  let html = items.map(item => `<article class="card" data-save-token="${esc(item.save_token || '')}"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${item.author ? esc(item.author) + ' · ' : ''}${item.date ? esc(item.date) : t().publishedUnknown}${item.language ? ' · ' + esc(item.language) : ''}</p><p>${esc(item.description || t().noDescription)}</p><p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`).join('');
   if (data.errors?.length) html += data.errors.map(e => `<div class="error" role="alert">${esc(e.library_id)}: ${esc(e.error)}</div>`).join('');
   results.innerHTML = html || `<div class="empty"><span class="empty-mark">∅</span><p>${t().noMatches}</p></div>`;
 }
@@ -772,13 +772,13 @@ function renderCompare(data) {
   for (const row of data.rows || []) {
     html += `<div class="compare-row"><h3>${esc(row.aspect)}</h3><div class="compare-sides">`;
     for (const d of docs) {
-      const side = (row.documents || {})[d.record_id] || {found: false, excerpts: []};
+      const side = (row.documents || {})[`${d.library_id}|${d.record_id}`] || (row.documents || {})[d.record_id] || {found: false, excerpts: []};
       html += `<div class="compare-side"><h4>${esc(d.title)}</h4>`;
       if (!side.found) html += `<p class="rights">${t().compareNotFound}</p>`;
       for (const ex of side.excerpts || []) {
         html += `<blockquote class="compare-excerpt">${esc(ex.excerpt)}<footer>${esc(ex.citation_key)}${safeHref(ex.image_url) ? ` · <a href="${esc(safeHref(ex.image_url))}" target="_blank" rel="noreferrer noopener">${t().viewImage}</a>` : ''}</footer></blockquote>`;
       }
-      const unique = (row.unique_terms || {})[d.record_id] || [];
+      const unique = (row.unique_terms || {})[`${d.library_id}|${d.record_id}`] || (row.unique_terms || {})[d.record_id] || [];
       if (unique.length) html += `<p class="rights">${t().uniqueTerms}: ${unique.map(esc).join('、')}</p>`;
       html += `</div>`;
     }
@@ -830,7 +830,7 @@ function renderLibraries() {
   librariesList.innerHTML = items.map(item => {
     const caps = Object.entries(item.capability_status || {}).map(([k, v]) => `<span class="tag">${esc(k)}: ${esc(v)}</span>`).join(' ');
     const status = item.implementation_status === 'implemented' ? t().implementedLabel : t().researchOnlyLabel;
-    return `<article class="card"><div><span class="tag">${esc(status)}</span><h3>${esc(item.name || item.id)}</h3><p>${esc(item.region || '')} · ${esc(item.country || '')} · ${(item.languages || []).map(esc).join(', ')}</p><p>${caps}</p><p class="rights">${esc(item.verification || '')}</p></div><div>${safeHref(item.official_site) ? `<a class="source-link" href="${esc(safeHref(item.official_site))}" target="_blank" rel="noreferrer noopener">${esc(t().officialSiteLabel)} ↗</a>` : ''}</div></article>`;
+    return `<article class="card"><div><span class="tag">${esc(status)}</span><h3>${esc(item.name || item.id)}</h3><p>${esc(item.region || '')} · ${esc(item.country || '')} · ${(item.languages || []).map(esc).join(', ')}</p><p>${caps}</p>${item.auth ? `<p class="meta-line">${esc(item.auth)}</p>` : ''}<p class="rights">${esc(item.verification || '')}</p></div><div>${safeHref(item.official_site) ? `<a class="source-link" href="${esc(safeHref(item.official_site))}" target="_blank" rel="noreferrer noopener">${esc(t().officialSiteLabel)} ↗</a>` : ''}</div></article>`;
   }).join('') || '<div class="empty"><p>—</p></div>';
 }
 
@@ -849,9 +849,21 @@ function renderLookup(data, kind) {
   }
   if (kind === 'document') {
     const rights = data.rights || {};
+    const orgLines = [
+      data.holding_institution ? `所蔵: ${data.holding_institution}` : '',
+      data.provider ? `提供: ${data.provider}` : '',
+      data.data_provider ? `提供: ${data.data_provider}` : '',
+      data.aggregation_provider ? `集約: ${data.aggregation_provider}` : '',
+      data.platform ? `プラットフォーム: ${data.platform}` : '',
+    ].filter(Boolean).map(esc).join(' · ');
+    const restrictions = (data.access_restrictions || []).map(esc).join(' / ');
+    const handoffs = (data.handoff_candidates || []).length;
     lookupResults.innerHTML = `<article class="card" data-save-token="${esc(data.save_token || '')}"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.title || data.record_id || '')}</h3>`
       + `<p>${esc(data.author || '')} ${esc(data.date || '')}</p>`
+      + (orgLines ? `<p class="meta-line">${orgLines}</p>` : '')
       + `<p class="rights">${t().rightsLabel}: ${esc(rights.statement || 'unknown')}${rights.classification ? ` · ${t().rightsClassLabel}: ${esc(rights.classification)}` : ''}</p>`
+      + (restrictions ? `<p class="rights">${esc(restrictions)}</p>` : '')
+      + (handoffs ? `<p class="meta-line">提供元への引き継ぎ候補: ${handoffs}件</p>` : '')
       + `<p>${data.page_count ? `${data.page_count} pages` : ''}</p></div><div>${sourceLink(data.landing_url)}</div></article>`;
     return;
   }

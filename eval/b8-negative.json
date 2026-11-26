@@ -1,0 +1,106 @@
+{
+ "note": "b8 fixed evaluation set (proxy evaluation: agent-assigned relevance labels, fixed fixture corpus in eval/b8-corpus.json). Relevant ids are corpus ids; the runner maps them to adapter record ids.",
+ "cases": [
+  {
+   "id": "n01",
+   "query": "フィンランドの宇宙開発史",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "no such records in the corpus"
+  },
+  {
+   "id": "n02",
+   "query": "中世フィンランドの騎士道",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "no such records"
+  },
+  {
+   "id": "n03",
+   "query": "オランダの火星探査",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "no such records"
+  },
+  {
+   "id": "n04",
+   "query": "Finnish nuclear power in 1850",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "false premise (anachronism)"
+  },
+  {
+   "id": "n05",
+   "query": "1900年のフィンランドのインターネット",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "false premise (anachronism)"
+  },
+  {
+   "id": "n06",
+   "query": "実在しない著者タナカタロウの水力発電論",
+   "libraries": [
+    "finna",
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "nonexistent author; topical hydro records may still be returned bibliographically"
+  },
+  {
+   "id": "n07",
+   "query": "オランダ東インド会社の月面基地",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "false premise"
+  },
+  {
+   "id": "n08",
+   "query": "江戸時代のフィンランド大使館",
+   "libraries": [
+    "japan-search"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "false premise; Finland-related records may still be returned bibliographically"
+  },
+  {
+   "id": "n09",
+   "query": "権利不明のまま全文保存できる資料",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "rights trap phrasing; bibliographic search only, storage policy is separate"
+  },
+  {
+   "id": "n10",
+   "query": "スウェーデン王立宇宙軍の歴史",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [],
+   "cross_language": false,
+   "note": "no such records"
+  }
+ ]
+}

@@ -776,6 +776,8 @@ def test_registry_capabilities_match_the_adapters():
         "research_only", "implemented", "fixture_verified", "live_catalog_verified",
         "live_page_verified", "live_end_to_end_verified", "unavailable",
         "authentication_required", "unsupported", "bounded",
+        # b8 final review additions (see test_b5_coverage.py).
+        "live_article_ocr_fetched", "unverified",
     }
     service = LibraryService(httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(404))))
     for library_id, adapter in service.adapters.items():

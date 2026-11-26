@@ -293,14 +293,62 @@ def _shared_semaphore(limit: int = 8) -> asyncio.Semaphore:
     return semaphore
 
 
+class FixtureTransport(httpx.AsyncBaseTransport):
+    """Fixed upstream HTTP fixtures (b8 final review section
+    18): serves recorded responses from a directory holding a
+    manifest.json of routes {host, path, query_contains?,
+    file, content_type?, status?}. Every other request is a
+    404 - fixture mode NEVER falls through to the live
+    network. Used by the mandatory CI configuration: real web
+    server, real WorkspaceApi, real LibraryService, real
+    adapters, real BudgetedTransport (this transport sits
+    under it), real SQLite - only the upstream HTTP is fixed.
+    """
+
+    def __init__(self, fixture_dir: str):
+        import json as _json
+        from pathlib import Path as _Path
+        self._dir = _Path(fixture_dir)
+        manifest = _json.loads((self._dir / "manifest.json").read_text(encoding="utf-8"))
+        self._routes = manifest.get("routes") or []
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        host = request.url.host
+        path = request.url.path
+        query = str(request.url.query or "")
+        for route in self._routes:
+            if route.get("host") != host or route.get("path") != path:
+                continue
+            needle = route.get("query_contains")
+            if needle and needle not in query:
+                continue
+            body = (self._dir / route["file"]).read_bytes()
+            return httpx.Response(
+                int(route.get("status", 200)), content=body,
+                headers={"content-type": route.get("content_type", "application/octet-stream")},
+                request=request)
+        return httpx.Response(404, content=b"no upstream fixture for this request",
+                              headers={"content-type": "text/plain"}, request=request)
+
+
 class BudgetedTransport(httpx.AsyncHTTPTransport):
     """AsyncHTTPTransport enforcing the context's HttpBudget:
     atomic pre-send reservation, a process-wide (per-loop)
     concurrency cap shared across proxy/direct transports, and
     streaming response-size enforcement. With no budget in context
-    it behaves like the plain transport (plus the shared cap)."""
+    it behaves like the plain transport (plus the shared cap).
+
+    ``inner`` optionally replaces the wire transport (the
+    fixed-fixture configuration): budget accounting, gates and
+    size enforcement above it are unchanged."""
+
+    def __init__(self, *args: Any, inner: Any = None, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self._inner = inner
 
     async def _send(self, request: httpx.Request) -> httpx.Response:
+        if self._inner is not None:
+            return await self._inner.handle_async_request(request)
         return await super().handle_async_request(request)
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
@@ -482,6 +530,22 @@ def make_client(timeout: float = 30, **kwargs: Any) -> httpx.AsyncClient:
     proxy mounts (an earlier build without this failed every live
     call in proxied environments with SSL errors)."""
     import os
+
+    fixture_dir = os.getenv("GLM_UPSTREAM_FIXTURE_DIR")
+    if fixture_dir:
+        # Fixed-fixture mode (CI, b8 final review section 18):
+        # no proxy mounts, no live network - the budgeted
+        # transport serves recorded upstream responses only.
+        return httpx.AsyncClient(
+            timeout=timeout,
+            follow_redirects=False,
+            headers={
+                "User-Agent": "global-library-mcp/1.0 (+https://github.com/shellingford570/global-library-mcp)",
+                "Accept-Encoding": "gzip, deflate",
+            },
+            transport=BudgetedTransport(inner=FixtureTransport(fixture_dir)),
+            **kwargs,
+        )
 
     mounts: dict[str, httpx.AsyncHTTPTransport] = {}
     https_proxy = os.getenv("HTTPS_PROXY") or os.getenv("https_proxy")

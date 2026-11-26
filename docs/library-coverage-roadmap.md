@@ -1,11 +1,26 @@
-# Library coverage roadmap (b5, section 14)
+# Library coverage roadmap (b5, section 14; updated for b8)
 
 How to read this: "registry" counts institutions with a research
-entry in libraries.yaml (25 after b5). It is NOT a count of
-usable libraries. Usable today: 8 adapters (loc, ndl, gallica,
-internet-archive, ddb, europeana, bsb, e-rara), of which page
+entry in libraries.yaml (31 after b8). It is NOT a count of
+usable libraries. Usable today: 13 adapters (loc, ndl, gallica,
+internet-archive, ddb, europeana, bsb, e-rara, finna,
+finland-nl-digi, dpla, kb-delpher, japan-search), of which page
 OCR + original verification are live-verified for NDL, Internet
 Archive, BSB/MDZ, and LoC (Chronicling America newspapers only).
+
+b8 outcomes for the candidates below: Finna implemented
+(fixture-verified; the API answers a bot challenge from the
+development network), NLF Digi implemented (fixture-verified;
+host unreachable from this network), KB/Delpher implemented
+and live-verified for search and page OCR (the resolver :image
+suffix answered 404, so images are fixture-only), Japan Search
+implemented and live-verified for search and detail, DPLA
+implemented in an authentication-pending state (no key
+issued). BNE was researched (SPARQL, CC0 data) but not
+implemented; ANNO publishes no official API and stays
+research-only; HathiTrust's page access needs an issued OAuth
+keyset and Trove needs an issued API key - both remain
+research entries until key issuance is approved.
 
 ## Priority candidates for the next phase
 
@@ -52,3 +67,17 @@ live verifications.
 - Bulk harvesting (OAI sets, IIIF collections) - discovery is
   query-driven and budgeted by design.
 - Any provider whose terms prohibit the intended use.
+
+## b8 final review update (2026-11-26)
+
+KB / Delpher is implemented and live-verified for bibliographic
+search and article-OCR fetching. Under the strict identity
+criteria adopted in the final review, its page mapping and
+original image are **unverified** (the OCR payload carries no
+article identifier; title correspondence is not identity), and
+its OCR unit is the article, not the physical page. Finna and
+NLF Digi remain fixture-verified with live verification
+unachieved from the development network (Finna 403; Digi OAI
+reachable at protocol level, real-binding verification not
+achieved). DPLA remains authentication_required. Next
+milestone: b9 External MCP Readiness (design only in b8).

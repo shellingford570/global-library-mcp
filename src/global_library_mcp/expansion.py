@@ -21,7 +21,7 @@ from global_library_mcp.discovery import DiscoveryQueryAnalysis
 from global_library_mcp.question import latin_variants, script_variants
 
 _MODE_CAPS = {"quick": 3, "standard": 8, "deep": 14}
-_ALL_LANGS = ("ja", "en", "de", "fr")
+_ALL_LANGS = ("ja", "en", "de", "fr", "fi", "sv", "nl")
 
 # Historical kana orthography (search-only): wi/we kana and the
 # iteration mark. Word-level old-kana spellings live in the
@@ -175,7 +175,15 @@ class QueryExpansionEngine:
                  "ambiguous author (shared surname); not expanded into a specific person's works")
         # 3) Concepts: labels in other languages (3), historical
         #    forms (2), related concepts (5, standard/deep only).
-        for concept in analysis.concepts:
+        #    b8: translations are added in a diagonal interleave
+        #    across (concept, language) so that, under the variant
+        #    cap, later languages in the lexicon order (fi/sv/nl)
+        #    are not structurally starved by earlier ones
+        #    (en/de/fr) whenever a query matches several concepts.
+        _translations: list[tuple[int, int, int, str, str, dict]] = []
+        _lang_order = {lang: index for index, lang in enumerate(lexicon_mod._LANGUAGES)}
+        for concept_index, concept in enumerate(analysis.concepts):
+            _label_counts: dict[str, int] = {}
             for lang, label, kind in lexicon_mod.labels_for(concept):
                 if kind == "historical":
                     add(label, lang, "historical", "spelling_variant",
@@ -184,9 +192,30 @@ class QueryExpansionEngine:
                     continue
                 if lang == query_lang:
                     continue
-                add(label, lang, "concept_translation", "translation",
-                    f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3,
-                    status=concept.get("verification_status"))
+                label_index = _label_counts.get(lang, 0)
+                _label_counts[lang] = label_index + 1
+                _translations.append((concept_index, _lang_order.get(lang, 99),
+                                      label_index, lang, label, concept))
+        # First labels of every (concept, language) pair come
+        # before second labels of any pair: a whole language is
+        # worth more than a spelling doublet in a language that
+        # is already represented.
+        # Final review (section 19): the diagonal can still
+        # starve the last languages (sv/nl) when three or more
+        # concepts match. A primary-concept-per-language
+        # guarantee was evaluated in this round: it improved
+        # the b8 fixed set (Standard Recall@10 0.75 -> 0.8583)
+        # but regressed the b6 fixed simulation (Recall@10
+        # 0.8819 -> 0.8542), so per the brief it was NOT
+        # adopted. The languages that miss out under the cap
+        # are reported in languages_not_represented below
+        # instead of being silently dropped.
+        _translations.sort(key=lambda item: (item[2], item[0] + item[1], item[1], item[0]))
+        for _ci, _li, _bi, lang, label, concept in _translations:
+            add(label, lang, "concept_translation", "translation",
+                f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3,
+                status=concept.get("verification_status"))
+        for concept in analysis.concepts:
             if mode in ("standard", "deep"):
                 for ref in concept.get("related", []):
                     related = next((c for c in lexicon_mod.load_lexicon()["concepts"]
@@ -217,8 +246,15 @@ class QueryExpansionEngine:
                 add(ev, "en", "spelling_variant", "spelling_variant", why, "expansion:english", 4)
             split = _german_compound_split(base)
             if split:
+                # b8: a compound split is a same-language
+                # orthographic decomposition of the query itself,
+                # so it sits with the historical spelling variants
+                # (priority 2), not below the cross-language
+                # concept translations (3). With fi/sv/nl labels
+                # added, the translation fan-out otherwise crowded
+                # it out of the deep-mode cap entirely.
                 add(split, "de", "compound_split", "spelling_variant",
-                    "German compound split (search-only)", "expansion:german", 4)
+                    "German compound split (search-only)", "expansion:german", 2)
         # The cap applies AFTER priority ordering, so a flood of
         # low-priority candidates can never crowd out exact
         # titles, author forms or historical spellings.
@@ -227,12 +263,23 @@ class QueryExpansionEngine:
         variants = variants[:cap]
         for extra in overflow:
             skip(extra["text"], "variant cap reached")
+        # Section 19 reporting: which languages had candidates
+        # but received no selected variant, and why. Surfaced in
+        # the plan so a dropped language is explicit, never
+        # silent.
+        represented = {v["language"] for v in variants if v.get("language")}
+        candidate_languages = represented | {
+            v["language"] for v in overflow if v.get("language")}
+        not_represented = sorted(candidate_languages - represented)
         return {
             "original_query": query,
             "normalized_query": norm(query),
             "query_language": analysis.query_language,
             "variants": variants,
             "skipped": skipped,
+            "languages_represented": sorted(represented),
+            "languages_not_represented": not_represented,
+            "cap_reason": ("variant cap reached" if overflow else None),
             "budget": {"variant_cap": cap, "variants_used": len(variants),
                        "mode": mode},
             "multilingual_enabled": expand_multilingual,

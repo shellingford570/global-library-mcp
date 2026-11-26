@@ -1,0 +1,78 @@
+{
+ "kind": "fixture-environment performance comparison (no network latency)",
+ "A_defaults": {
+  "elapsed_s": 6.009,
+  "first_result_s": 0.005,
+  "results": 0,
+  "attempts_by_host": {
+   "www.loc.gov": 3,
+   "lab.ndl.go.jp": 3,
+   "gallica.bnf.fr": 3,
+   "archive.org": 3
+  },
+  "new_library_attempts": 0,
+  "bytes_by_host": {
+   "www.loc.gov": 117,
+   "lab.ndl.go.jp": 30,
+   "gallica.bnf.fr": 429,
+   "archive.org": 111
+  }
+ },
+ "B_new_libraries_explicit": {
+  "elapsed_s": 0.011,
+  "first_result_s": 0.006,
+  "results": 8,
+  "errors": [
+   {
+    "library_id": "dpla",
+    "error": "authentication_required: the DPLA API requires an API key on every request; no key is configured (DPLA_API_KEY is unset) and no key was issued for this project"
+   },
+   {
+    "library_id": "dpla",
+    "error": "authentication_required: the DPLA API requires an API key on every request; no key is configured (DPLA_API_KEY is unset) and no key was issued for this project"
+   },
+   {
+    "library_id": "dpla",
+    "error": "authentication_required: the DPLA API requires an API key on every request; no key is configured (DPLA_API_KEY is unset) and no key was issued for this project"
+   }
+  ],
+  "attempts_by_host": {
+   "api.finna.fi": 3,
+   "jsru.kb.nl": 3,
+   "jpsearch.go.jp": 3
+  },
+  "bytes_by_host": {
+   "api.finna.fi": 1479,
+   "jsru.kb.nl": 1274,
+   "jpsearch.go.jp": 303
+  }
+ },
+ "C_language_routing": {
+  "elapsed_s": 0.113,
+  "first_result_s": 0.077,
+  "cases": [
+   {
+    "query": "水力発電の歴史",
+    "materials": 10,
+    "http_requests": 35,
+    "bytes_received": 7797,
+    "bytes_on_wire": 7797,
+    "executed_variants": 8
+   },
+   {
+    "query": "鉄道の歴史",
+    "materials": 10,
+    "http_requests": 22,
+    "bytes_received": 3778,
+    "bytes_on_wire": 3778,
+    "executed_variants": 8
+   }
+  ],
+  "attempts_by_host": {
+   "api.finna.fi": 18,
+   "jsru.kb.nl": 23,
+   "jpsearch.go.jp": 18
+  },
+  "warm_rerun_cache_hits": 11
+ }
+}

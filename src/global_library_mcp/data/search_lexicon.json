@@ -1,5 +1,5 @@
 {
- "version": "1.0.0b6-draft",
+ "version": "1.0.0b8-draft",
  "licence_note": "Original compilation for this project; labels are bibliographic facts (titles and names), which are not copyrightable expression. No copyrighted dictionary data was copied.",
  "concepts": [
   {
@@ -17,6 +17,15 @@
     ],
     "fr": [
      "machine à vapeur"
+    ],
+    "fi": [
+     "höyrykone"
+    ],
+    "sv": [
+     "ångmaskin"
+    ],
+    "nl": [
+     "stoommachine"
     ]
    },
    "historical_variants": {
@@ -34,7 +43,7 @@
     "concept:railway"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -53,6 +62,15 @@
     ],
     "fr": [
      "révolution industrielle"
+    ],
+    "fi": [
+     "teollinen vallankumous"
+    ],
+    "sv": [
+     "industriella revolutionen"
+    ],
+    "nl": [
+     "industriële revolutie"
     ]
    },
    "historical_variants": {},
@@ -61,7 +79,7 @@
     "concept:capitalism"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -81,6 +99,15 @@
     ],
     "fr": [
      "hydroélectricité"
+    ],
+    "fi": [
+     "vesivoima"
+    ],
+    "sv": [
+     "vattenkraft"
+    ],
+    "nl": [
+     "waterkracht"
     ]
    },
    "historical_variants": {
@@ -95,7 +122,7 @@
    "excluded_confusions": [
     "concept:water-power"
    ],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -115,6 +142,15 @@
     "fr": [
      "force hydraulique",
      "énergie hydraulique"
+    ],
+    "fi": [
+     "vesivoima"
+    ],
+    "sv": [
+     "vattenkraft"
+    ],
+    "nl": [
+     "waterkracht"
     ]
    },
    "historical_variants": {},
@@ -124,7 +160,7 @@
    "excluded_confusions": [
     "concept:hydroelectric-power"
    ],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -142,6 +178,15 @@
     ],
     "fr": [
      "électricité"
+    ],
+    "fi": [
+     "sähkö"
+    ],
+    "sv": [
+     "elektricitet"
+    ],
+    "nl": [
+     "elektriciteit"
     ]
    },
    "historical_variants": {
@@ -154,7 +199,7 @@
     "concept:electrical-engineering"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -202,6 +247,15 @@
     ],
     "fr": [
      "chemin de fer"
+    ],
+    "fi": [
+     "rautatie"
+    ],
+    "sv": [
+     "järnväg"
+    ],
+    "nl": [
+     "spoorweg"
     ]
    },
    "historical_variants": {
@@ -216,7 +270,7 @@
    "excluded_confusions": [
     "concept:locomotive"
    ],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -234,6 +288,15 @@
     ],
     "fr": [
      "locomotive"
+    ],
+    "fi": [
+     "veturi"
+    ],
+    "sv": [
+     "lokomotiv"
+    ],
+    "nl": [
+     "locomotief"
     ]
    },
    "historical_variants": {},
@@ -244,7 +307,7 @@
    "excluded_confusions": [
     "concept:railway"
    ],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -744,6 +807,16 @@
     "fr": [
      "journal",
      "presse"
+    ],
+    "fi": [
+     "sanomalehti"
+    ],
+    "sv": [
+     "tidning"
+    ],
+    "nl": [
+     "krant",
+     "dagblad"
     ]
    },
    "historical_variants": {},
@@ -751,7 +824,7 @@
     "concept:french-revolution"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -933,6 +1006,16 @@
     ],
     "fr": [
      "industrie"
+    ],
+    "fi": [
+     "teollisuus"
+    ],
+    "sv": [
+     "industri"
+    ],
+    "nl": [
+     "industrie",
+     "nijverheid"
     ]
    },
    "historical_variants": {
@@ -944,7 +1027,7 @@
     "concept:industrial-revolution"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -963,6 +1046,15 @@
     ],
     "fr": [
      "barrage"
+    ],
+    "fi": [
+     "pato"
+    ],
+    "sv": [
+     "damm"
+    ],
+    "nl": [
+     "dam"
     ]
    },
    "historical_variants": {},
@@ -970,7 +1062,7 @@
     "concept:hydroelectric-power"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1243,6 +1335,16 @@
     ],
     "fr": [
      "éducation"
+    ],
+    "fi": [
+     "koulutus",
+     "kasvatus"
+    ],
+    "sv": [
+     "utbildning"
+    ],
+    "nl": [
+     "onderwijs"
     ]
    },
    "historical_variants": {
@@ -1254,7 +1356,7 @@
     "concept:enlightenment"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1425,6 +1527,15 @@
     ],
     "fr": [
      "histoire"
+    ],
+    "fi": [
+     "historia"
+    ],
+    "sv": [
+     "historia"
+    ],
+    "nl": [
+     "geschiedenis"
     ]
    },
    "historical_variants": {
@@ -1434,7 +1545,7 @@
    },
    "related": [],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1455,6 +1566,15 @@
     ],
     "fr": [
      "transport"
+    ],
+    "fi": [
+     "liikenne"
+    ],
+    "sv": [
+     "transport"
+    ],
+    "nl": [
+     "vervoer"
     ]
    },
    "historical_variants": {},
@@ -1462,7 +1582,7 @@
     "concept:railway"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1484,6 +1604,15 @@
     "fr": [
      "textile",
      "filature"
+    ],
+    "fi": [
+     "tekstiili"
+    ],
+    "sv": [
+     "textil"
+    ],
+    "nl": [
+     "textiel"
     ]
    },
    "historical_variants": {},
@@ -1492,7 +1621,7 @@
     "concept:mill"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1512,6 +1641,15 @@
     "fr": [
      "mines",
      "industrie minière"
+    ],
+    "fi": [
+     "kaivostoiminta"
+    ],
+    "sv": [
+     "gruvdrift"
+    ],
+    "nl": [
+     "mijnbouw"
     ]
    },
    "historical_variants": {
@@ -1523,7 +1661,7 @@
     "concept:industry"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1542,6 +1680,15 @@
     ],
     "fr": [
      "navire à vapeur"
+    ],
+    "fi": [
+     "höyrylaiva"
+    ],
+    "sv": [
+     "ångfartyg"
+    ],
+    "nl": [
+     "stoomschip"
     ]
    },
    "historical_variants": {
@@ -1553,7 +1700,7 @@
     "concept:steam-engine"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1571,6 +1718,15 @@
     ],
     "fr": [
      "télégraphe"
+    ],
+    "fi": [
+     "lennätin"
+    ],
+    "sv": [
+     "telegraf"
+    ],
+    "nl": [
+     "telegraaf"
     ]
    },
    "historical_variants": {
@@ -1582,7 +1738,7 @@
     "concept:electricity"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1627,6 +1783,15 @@
     ],
     "fr": [
      "imprimerie"
+    ],
+    "fi": [
+     "kirjapaino"
+    ],
+    "sv": [
+     "boktryckeri"
+    ],
+    "nl": [
+     "boekdrukkunst"
     ]
    },
    "historical_variants": {},
@@ -1634,7 +1799,7 @@
     "concept:newspaper"
    ],
    "excluded_confusions": [],
-   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary. (fi/sv/nl labels added in b8 from standard public bibliographic usage; nl 'waterkracht' observed in live KB/Delpher records 2026-11-26; status remains unverified - not authority-checked.)",
    "verification_status": "unverified"
   },
   {
@@ -1744,6 +1909,41 @@
    ],
    "excluded_confusions": [],
    "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:independence",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "独立"
+    ],
+    "en": [
+     "independence"
+    ],
+    "de": [
+     "Unabhängigkeit"
+    ],
+    "fr": [
+     "indépendance"
+    ],
+    "fi": [
+     "itsenäisyys"
+    ],
+    "sv": [
+     "självständighet"
+    ],
+    "nl": [
+     "onafhankelijkheid"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:state",
+    "concept:history"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project (b8) from standard public bibliographic knowledge. Not copied from any copyrighted dictionary.",
    "verification_status": "unverified"
   }
  ],

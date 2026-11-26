@@ -8,6 +8,15 @@ Rights differ per holding library and per item. This tool shows rights
 statements verbatim and never infers "free to use".
 **Unknown rights do not mean free to use.**
 
+b8 note: keep the layers separate - API terms, the metadata
+licence, the item's rights, OCR text rights, image rights and
+access restrictions are different things. Two aggregator
+examples: Finna and KB metadata are CC0, but that says
+nothing about the items, their OCR or their images; Japan
+Search items carry the provider's own licence and access
+restrictions (e.g. NDL-only) in their accessInfo, surfaced
+verbatim. See docs/library-rights-normalization.md.
+
 ## ライセンス別の目安 / Guide by licence
 
 | 表示 / Statement | 抜粋表示・引用 | 画像表示 | 再配布 | 翻訳 | 外部LLMへの送信 |

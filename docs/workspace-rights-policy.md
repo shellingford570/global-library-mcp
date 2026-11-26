@@ -1,4 +1,20 @@
-# Workspace rights policy (b7)
+# Workspace rights policy (b7; trust model added in b8)
+
+**b8 trust model (Stage 0).** A rights statement can permit
+excerpt storage only when THIS server observed it
+(`server_observed`). Statements arriving via project import
+(`imported_claim`) or inside a restored backup
+(`restored_claim`) can only restrict, never permit: imported
+projects store citation/comparison excerpts as references
+only (text is never stored on import), and restoring any
+backup downgrades every citation's verification state and
+every document's rights trust until a fresh server-side
+re-verification re-establishes them. A backup file's own
+checksum proves integrity of the copy, not the authenticity
+of the rights or verification claims inside it. CC BY-NC /
+CC BY-NC-SA excerpts additionally require an explicit
+non-commercial purpose confirmation at save time. See
+docs/b8-b7-regression-hardening.md.
 
 Persistence is different from retrieval: that a text can be
 fetched does not mean it may be stored, redistributed or
@@ -70,3 +86,29 @@ authoritative where this document and the code disagree.
   record identity.
 - The 2,000-character excerpt cap is a system limit, not a
   legal quotation allowance.
+
+## Final review addendum (2026-11-26)
+
+- The set of trusted observation sources is now a CLOSED set
+  (`live_fetch`, `reverify`, `document_save`, `page_fetch`).
+  A source string alone never establishes trust: schema v4
+  stores an explicit `trust` column per observation, future-
+  dated observations and unknown trust states fail closed,
+  and a claim can only restrict - only a later server-trusted
+  observation lifts a restriction.
+- Restores downgrade EVERY pre-existing observation to
+  `restored_claim` (the original source is kept as history).
+  Only verifications run after the restore can widen what
+  may be stored or shown.
+- One decision function (`trusted_decision()`) now governs
+  saving, display, local search, Markdown, JSON and
+  comparisons. Local search does not leak a withheld
+  excerpt's text or its existence via text hits.
+- Citation re-verification requires the CURRENT rights
+  statement and a re-confirmed document/page identity, and
+  re-applies the 2,000-character limit; a hash match alone
+  never re-stores text.
+- Non-commercial (NC) confirmation is the user's own
+  declaration of purpose, not an independent legal
+  verification; the shared policy blocks saving/re-saving
+  while unconfirmed.

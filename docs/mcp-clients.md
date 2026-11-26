@@ -157,6 +157,18 @@ live only on `research_materials`, in all modes including
 Quick. The discovery block distinguishes planned variants
 from executed ones (`variant_execution`).
 
+## b8: new libraries through the same tools
+
+Tool counts and profiles are unchanged in b8 (15 full / 14
+research). The new adapters are reachable through the
+existing tools by `library_id`: `finna`, `finland-nl-digi`
+(ID-addressed, via the Finna handoff), `kb-delpher`,
+`japan-search`, and `dpla` (which reports
+`authentication_required` until an operator configures a
+key - none was issued for this project). `list_libraries`
+now returns 31 registry entries, including research-only
+records (e.g. `bne`, `onb-anno`) that have no adapter.
+
 ## b7: MCP and the research workspace
 
 The b7 research workspace (projects, saved documents,

@@ -26,6 +26,8 @@ _ALIASES: dict[str, set[str]] = {
     "ru": {"ru", "rus", "russian", "русский", "ロシア語"},
     "la": {"la", "lat", "latin", "ラテン語"},
     "nl": {"nl", "nld", "dut", "dutch", "nederlands", "オランダ語"},
+    "fi": {"fi", "fin", "finnish", "suomi", "suomen kieli", "フィンランド語"},
+    "sv": {"sv", "swe", "swedish", "svenska", "スウェーデン語"},
     "pt": {"pt", "por", "portuguese", "português", "ポルトガル語"},
 }
 

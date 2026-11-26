@@ -1,0 +1,12 @@
+{
+  "comment": "Fixed upstream fixtures for the mandatory workspace CI (b8 final review section 18). Only upstream HTTP is fixed; the web server, WorkspaceApi, LibraryService, adapters, BudgetedTransport and SQLite are all real. Bodies are small synthetic records in the providers' real response shapes - fixture success is not live verification.",
+  "routes": [
+    {"host": "archive.org", "path": "/advancedsearch.php", "file": "ia-search.json", "content_type": "application/json"},
+    {"host": "archive.org", "path": "/metadata/onoriginofspecie1859darw", "file": "ia-metadata.json", "content_type": "application/json"},
+    {"host": "archive.org", "path": "/download/onoriginofspecie1859darw/onoriginofspecie1859darw_djvu.xml", "file": "ia-djvu.xml", "content_type": "text/xml"},
+    {"host": "archive.org", "path": "/download/onoriginofspecie1859darw/onoriginofspecie1859darw_djvu.txt", "file": "ia-djvu.txt", "content_type": "text/plain"},
+    {"host": "jsru.kb.nl", "path": "/sru/sru", "file": "kb-sru.xml", "content_type": "text/xml"},
+    {"host": "resolver.kb.nl", "path": "/resolve", "query_contains": ":ocr", "file": "kb-ocr.xml", "content_type": "text/xml"},
+    {"host": "resolver.kb.nl", "path": "/resolve", "query_contains": ":image", "file": "kb-image-404.txt", "content_type": "text/plain", "status": 404}
+  ]
+}

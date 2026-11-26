@@ -16,10 +16,16 @@ jobs:
       - run: pytest
 
   workspace:
-    # b7 final review section 29 (Job B): the workspace-enabled
-    # regression. A run where the workspace tests all skip does
-    # NOT count as success: the pytest suites are not skippable,
-    # and the Playwright step asserts the non-token journeys ran.
+    # b7 final review section 29 (Job B) + b8 final review
+    # section 18: the workspace-enabled regression. The server
+    # runs the REAL stack (web server, WorkspaceApi,
+    # LibraryService, adapters, BudgetedTransport, SQLite)
+    # with only the upstream library HTTP fixed by recorded
+    # fixtures (GLM_UPSTREAM_FIXTURE_DIR). A run where any
+    # mandatory journey skips does NOT count as success: the
+    # Playwright step asserts passed == 6 and skipped == 0.
+    # Live-upstream browser checks are the separate,
+    # non-blocking workspace-live job below.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,14 +35,16 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: pip install '.[test]'
       - name: Workspace pytest (storage, web API, final review, real-HTTP integration)
-        run: pytest tests/test_b7_workspace.py tests/test_b7_web_api.py tests/test_b7_final_review.py tests/test_b7_http_integration.py -q
+        run: pytest tests/test_b7_workspace.py tests/test_b7_web_api.py tests/test_b7_final_review.py tests/test_b7_http_integration.py tests/test_b8_workspace.py tests/test_b8_stage0.py tests/test_b8_final_review.py -q
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Start workspace-enabled server (temp SQLite)
+      - name: Start workspace-enabled server (temp SQLite, fixed upstream fixtures)
+        env:
+          GLM_UPSTREAM_FIXTURE_DIR: ${{ github.workspace }}/tests/e2e/fixtures/upstream
         run: |
           mkdir -p /tmp/glm-ws-ci
           nohup global-library-mcp web --host 127.0.0.1 --port 8128 --workspace --workspace-path /tmp/glm-ws-ci/ws.db > /tmp/glm-ws-ci/server.log 2>&1 &
@@ -50,7 +58,7 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8128
         run: npx playwright test tests/e2e/workspace.spec.js --reporter=json > /tmp/glm-ws-ci/pw.json
-      - name: Assert workspace journeys actually ran (not all skipped)
+      - name: Assert ALL mandatory workspace journeys ran (no skips)
         if: always()
         run: |
           python3 - <<'EOF'
@@ -62,9 +70,12 @@ jobs:
           skipped = stats.get('skipped', 0)
           print(f"workspace journeys: passed={passed} skipped={skipped} unexpected={stats.get('unexpected', 0)}")
           assert stats.get('unexpected', 0) == 0, "workspace journeys failed"
-          assert passed >= 3, "too many workspace journeys skipped - not a workspace CI success"
+          assert skipped == 0, "a mandatory workspace journey skipped - not a CI success (section 18)"
+          assert passed == 6, f"expected all 6 mandatory journeys to pass, got {passed}"
           EOF
       - name: Restart persistence check
+        env:
+          GLM_UPSTREAM_FIXTURE_DIR: ${{ github.workspace }}/tests/e2e/fixtures/upstream
         run: |
           pkill -f "global-library-mcp web" || true
           sleep 1
@@ -116,7 +127,7 @@ jobs:
       - name: Run Playwright E2E against Docker
         env:
           BASE_URL: http://127.0.0.1:8000
-        run: npm run test:e2e
+        run: npx playwright test tests/e2e/search.spec.js
       - name: Run live API smoke against Docker
         env:
           BASE_URL: http://127.0.0.1:8000
@@ -136,3 +147,39 @@ jobs:
       - name: Stop Docker container
         if: always()
         run: docker rm --force global-library-mcp || true
+
+  workspace-live:
+    # b8 final review section 18: LIVE upstream browser checks,
+    # separated from the mandatory fixture regression. This job
+    # is informational only (continue-on-error): a live failure
+    # or skip here never counts as fixed-regression success or
+    # failure.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: pip install '.[test]'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start workspace-enabled server (temp SQLite, LIVE upstreams)
+        run: |
+          mkdir -p /tmp/glm-ws-live
+          nohup global-library-mcp web --host 127.0.0.1 --port 8129 --workspace --workspace-path /tmp/glm-ws-live/ws.db > /tmp/glm-ws-live/server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8129/health | grep -q '"ok": true'; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/glm-ws-live/server.log
+          exit 1
+      - name: Run live workspace journeys (informational)
+        env:
+          BASE_URL: http://127.0.0.1:8129
+        run: npx playwright test tests/e2e/workspace-live.spec.js --reporter=list
