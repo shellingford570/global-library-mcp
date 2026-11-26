@@ -36,12 +36,12 @@ order, HTTP budget, early stop, filters and ranking.
 | Mode | Recall@10 | Avg HTTP requests | Avg bytes (decoded) | Warm-cache hits |
 |---|---|---|---|---|
 | quick | 0.500 | 12.6 | 624 | 0 (Quick does not use the bibliographic cache) |
-| standard | 0.7667 | 24.6 | 1,386 | 5 |
+| standard | 0.7667 | 22.8 | 1,310 | 7 |
 
 Author-filter check through the real pipeline: F03 with
 `author="Immanuel Kant"` keeps exactly the 3 Kant-authored
 records (candidates 4 → 3 at the bibliographic stage).
-Fixture elapsed times (≈11.7s quick / ≈19.8s standard per
+Fixture elapsed times (≈11.7s quick / ≈16.2s standard per
 case) are dominated by per-library deadline waits against
 fixtures and are NOT live timings. Differences from live
 behaviour: fixture responses are instantaneous and complete;

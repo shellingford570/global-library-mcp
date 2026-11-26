@@ -160,14 +160,14 @@ docs/b6-evaluation.md for full tables, denominators and hashes):
   from `eval/b6_engine_configs.py`.
 - **Evaluation B** (the real `LibraryService` over fixed HTTP
   fixtures, 10 fixed-set cases): Quick Recall@10 0.500 at 12.6 real
-  HTTP requests per case; Standard Recall@10 0.7667 at 24.6
-  requests; warm-cache rerun produced 5 bibliographic cache hits in
+  HTTP requests per case; Standard Recall@10 0.7667 at 22.8
+  requests; warm-cache rerun produced 7 bibliographic cache hits in
   Standard (Quick does not use the bibliographic cache). The
   author-filter check passes under production filter semantics
   (an earlier naive substring check in the harness itself was the
   §15-class defect; it was fixed to read the production
   `filter_match` record). Fixture elapsed times (≈11.7s Quick /
-  ≈19.8s Standard per case) are dominated by per-library deadline
+  ≈16.2s Standard per case) are dominated by per-library deadline
   waits against fixtures and are not live timings.
 - **Challenge set** (20 cases fixed before the fixes, including
   same-surname authors, original vs commentary, same-year different

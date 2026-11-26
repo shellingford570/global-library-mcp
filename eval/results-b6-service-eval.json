@@ -14,7 +14,7 @@
      "bytes_received": 361,
      "bytes_on_wire": 361,
      "executed_variants": 4,
-     "elapsed_s": 9.027,
+     "elapsed_s": 9.046,
      "answerable": false
     },
     {
@@ -26,7 +26,7 @@
      "bytes_received": 592,
      "bytes_on_wire": 592,
      "executed_variants": 4,
-     "elapsed_s": 12.009,
+     "elapsed_s": 12.013,
      "answerable": false
     },
     {
@@ -38,7 +38,7 @@
      "bytes_received": 472,
      "bytes_on_wire": 472,
      "executed_variants": 4,
-     "elapsed_s": 12.013,
+     "elapsed_s": 12.012,
      "answerable": false
     },
     {
@@ -50,7 +50,7 @@
      "bytes_received": 467,
      "bytes_on_wire": 467,
      "executed_variants": 4,
-     "elapsed_s": 12.011,
+     "elapsed_s": 12.014,
      "answerable": false
     },
     {
@@ -62,7 +62,7 @@
      "bytes_received": 744,
      "bytes_on_wire": 744,
      "executed_variants": 4,
-     "elapsed_s": 12.013,
+     "elapsed_s": 12.016,
      "answerable": false
     },
     {
@@ -74,7 +74,7 @@
      "bytes_received": 660,
      "bytes_on_wire": 660,
      "executed_variants": 4,
-     "elapsed_s": 12.015,
+     "elapsed_s": 12.012,
      "answerable": false
     },
     {
@@ -98,7 +98,7 @@
      "bytes_received": 1444,
      "bytes_on_wire": 1444,
      "executed_variants": 4,
-     "elapsed_s": 12.016,
+     "elapsed_s": 12.015,
      "answerable": false
     },
     {
@@ -110,7 +110,7 @@
      "bytes_received": 472,
      "bytes_on_wire": 472,
      "executed_variants": 4,
-     "elapsed_s": 12.011,
+     "elapsed_s": 12.01,
      "answerable": false
     },
     {
@@ -122,14 +122,14 @@
      "bytes_received": 589,
      "bytes_on_wire": 589,
      "executed_variants": 4,
-     "elapsed_s": 12.012,
+     "elapsed_s": 12.013,
      "answerable": false
     }
    ],
    "recall@10": 0.5,
    "avg_http_requests": 12.6,
    "avg_bytes_received": 624,
-   "avg_elapsed_s": 11.714,
+   "avg_elapsed_s": 11.716,
    "warm_rerun_cache_hits": 0
   },
   "standard": {
@@ -139,11 +139,11 @@
      "query": "明治時代の水力発電技術",
      "recall@10": 0.5,
      "materials": 2,
-     "http_requests": 29,
-     "bytes_received": 803,
-     "bytes_on_wire": 803,
+     "http_requests": 27,
+     "bytes_received": 775,
+     "bytes_on_wire": 775,
      "executed_variants": 11,
-     "elapsed_s": 18.057,
+     "elapsed_s": 12.047,
      "answerable": false
     },
     {
@@ -151,11 +151,11 @@
      "query": "カントの認識論",
      "recall@10": 1.0,
      "materials": 4,
-     "http_requests": 22,
-     "bytes_received": 1334,
-     "bytes_on_wire": 1334,
+     "http_requests": 21,
+     "bytes_received": 1320,
+     "bytes_on_wire": 1320,
      "executed_variants": 10,
-     "elapsed_s": 21.016,
+     "elapsed_s": 18.003,
      "answerable": false
     },
     {
@@ -163,11 +163,11 @@
      "query": "純粋理性批判",
      "recall@10": 1.0,
      "materials": 4,
-     "http_requests": 8,
-     "bytes_received": 664,
-     "bytes_on_wire": 664,
+     "http_requests": 6,
+     "bytes_received": 387,
+     "bytes_on_wire": 387,
      "executed_variants": 9,
-     "elapsed_s": 6.01,
+     "elapsed_s": 6.008,
      "answerable": false
     },
     {
@@ -175,11 +175,11 @@
      "query": "蒸氣機關の歴史",
      "recall@10": 1.0,
      "materials": 4,
-     "http_requests": 27,
-     "bytes_received": 1320,
-     "bytes_on_wire": 1320,
+     "http_requests": 22,
+     "bytes_received": 1255,
+     "bytes_on_wire": 1255,
      "executed_variants": 10,
-     "elapsed_s": 24.025,
+     "elapsed_s": 12.012,
      "answerable": false
     },
     {
@@ -187,11 +187,11 @@
      "query": "マックス・ウェーバーの宗教社会学",
      "recall@10": 1.0,
      "materials": 3,
-     "http_requests": 39,
-     "bytes_received": 1884,
-     "bytes_on_wire": 1884,
+     "http_requests": 36,
+     "bytes_received": 1842,
+     "bytes_on_wire": 1842,
      "executed_variants": 14,
-     "elapsed_s": 33.038,
+     "elapsed_s": 24.027,
      "answerable": false
     },
     {
@@ -199,11 +199,11 @@
      "query": "資本論",
      "recall@10": 1.0,
      "materials": 4,
-     "http_requests": 16,
-     "bytes_received": 1281,
-     "bytes_on_wire": 1281,
+     "http_requests": 17,
+     "bytes_received": 1290,
+     "bytes_on_wire": 1290,
      "executed_variants": 8,
-     "elapsed_s": 12.009,
+     "elapsed_s": 12.014,
      "answerable": false
     },
     {
@@ -211,11 +211,11 @@
      "query": "ヨーロッパの天文学史",
      "recall@10": 1.0,
      "materials": 4,
-     "http_requests": 38,
-     "bytes_received": 1365,
-     "bytes_on_wire": 1365,
+     "http_requests": 34,
+     "bytes_received": 1319,
+     "bytes_on_wire": 1319,
      "executed_variants": 14,
-     "elapsed_s": 30.033,
+     "elapsed_s": 24.028,
      "answerable": false
     },
     {
@@ -223,11 +223,11 @@
      "query": "Charles Darwin",
      "recall@10": 0.6666666666666666,
      "materials": 5,
-     "http_requests": 22,
-     "bytes_received": 3470,
-     "bytes_on_wire": 3470,
+     "http_requests": 21,
+     "bytes_received": 3461,
+     "bytes_on_wire": 3461,
      "executed_variants": 9,
-     "elapsed_s": 21.023,
+     "elapsed_s": 21.026,
      "answerable": false
     },
     {
@@ -235,11 +235,11 @@
      "query": "Kritik der reinen Vernunft",
      "recall@10": 0.5,
      "materials": 3,
-     "http_requests": 19,
-     "bytes_received": 450,
-     "bytes_on_wire": 450,
+     "http_requests": 22,
+     "bytes_received": 477,
+     "bytes_on_wire": 477,
      "executed_variants": 13,
-     "elapsed_s": 15.012,
+     "elapsed_s": 15.015,
      "answerable": false
     },
     {
@@ -247,21 +247,24 @@
      "query": "Dampfmaschine Industrie Deutschland 19. Jahrhundert",
      "recall@10": 0.0,
      "materials": 5,
-     "http_requests": 26,
-     "bytes_received": 1291,
-     "bytes_on_wire": 1291,
+     "http_requests": 22,
+     "bytes_received": 977,
+     "bytes_on_wire": 977,
      "executed_variants": 13,
-     "elapsed_s": 18.021,
+     "elapsed_s": 18.019,
      "answerable": false
     }
    ],
    "recall@10": 0.7667,
-   "avg_http_requests": 24.6,
-   "avg_bytes_received": 1386,
-   "avg_elapsed_s": 19.824,
-   "warm_rerun_cache_hits": 5
+   "avg_http_requests": 22.8,
+   "avg_bytes_received": 1310,
+   "avg_elapsed_s": 16.22,
+   "warm_rerun_cache_hits": 7
   }
  },
+ "commit": "760b6c79b26d25a66a607fc83ea0d71b06e19dbf",
+ "corpus_sha256": "63cf8cd8af63ebb2",
+ "dataset_sha256": "969d84e4e4bab733",
  "filter_check": {
   "case": "F03",
   "author_filter": "Immanuel Kant",
