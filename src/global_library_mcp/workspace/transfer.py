@@ -88,6 +88,9 @@ def export_project(store: WorkspaceStore, project_id: str) -> dict[str, Any]:
         # b8 trust model: only citations this server fetched
         # itself carry server-observed rights; everything else
         # inherits the document's trust state.
+        if cit.get("quotation_verification_status") == "restored_unverified" \
+                or cit.get("page_mapping_status") == "restored_unverified":
+            return "restored_claim"
         if cit.get("provenance") == "system_fetched":
             return "server_observed"
         if cit.get("provenance") == "imported":
@@ -555,7 +558,8 @@ def import_project(store: WorkspaceStore, payload: Any) -> dict[str, Any]:
                 source = str(obs.get("source") or "")
                 conn.execute(
                     "INSERT INTO rights_observations (observation_id, saved_document_id, statement,"
-                    " category, source, observed_at, change_status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    " category, source, observed_at, change_status, trust)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, 'imported_claim')",
                     (new_id(), doc_map[old_doc_id], obs.get("statement"),
                      obs.get("category"),
                      f"imported:{source}"[:200] if source else "imported",

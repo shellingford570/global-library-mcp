@@ -15,7 +15,7 @@ import re
 import unicodedata
 from typing import Any
 
-from .policy import effective_decision
+from .policy import effective_decision, trusted_decision
 from .policy import evaluate as evaluate_rights
 
 def parse_date_parts(publication_date: str | None) -> tuple[int, int | None, int | None] | None:
@@ -383,16 +383,36 @@ def project_markdown(project: dict[str, Any], documents: list[dict[str, Any]],
                       citations: list[dict[str, Any]], notes: list[dict[str, Any]],
                       comparisons: list[dict[str, Any]],
                       history: list[dict[str, Any]],
-                      latest_rights: dict[str, str | None] | None = None
+                      latest_rights: dict[str, str | None] | None = None,
+                      citation_decisions: dict[str, Any] | None = None,
+                      document_decisions: dict[str, Any] | None = None
                       ) -> tuple[str, list[dict[str, Any]]]:
     """Deterministic project report. Sections keep the five
     kinds of content separate (researcher's writing / fetched
     quotations / system bibliographic data / verification
     results / unverified candidates). Excerpts are re-gated at
-    export time against BOTH the save-time rights and the
-    latest observed rights; omissions are listed. Every
+    export time through the SAME trusted rights decision used
+    by the views, JSON export, comparisons and local search
+    (b8 final review section 9): when the caller supplies
+    trust-aware decisions they govern; a document dict that
+    itself carries rights_trust / rights_observations is also
+    decided trust-aware. The legacy save-time+latest
+    comparison is only a fallback for plain dicts with no
+    trust information at all. Omissions are listed. Every
     citation carries its full original-source provenance."""
     latest_rights = latest_rights or {}
+    citation_decisions = citation_decisions or {}
+    document_decisions = document_decisions or {}
+
+    def _decide(doc: dict[str, Any], statement: Any) -> dict[str, Any]:
+        doc_id = doc.get("saved_document_id")
+        if doc_id in document_decisions:
+            return document_decisions[doc_id]
+        if "rights_trust" in doc or "rights_observations" in doc:
+            return trusted_decision(
+                statement, doc.get("rights_trust"),
+                doc.get("rights_observations") or [])
+        return effective_decision(statement, latest_rights.get(doc_id))
     keys = assign_keys(documents)
     docs_by_id = {d["saved_document_id"]: d for d in documents}
     omissions: list[dict[str, Any]] = []
@@ -419,7 +439,7 @@ def project_markdown(project: dict[str, Any], documents: list[dict[str, Any]],
         for cit in citations:
             doc = docs_by_id.get(cit["saved_document_id"], {})
             statement = (cit.get("rights_at_save") or {}).get("statement")
-            decision = effective_decision(statement, latest_rights.get(cit["saved_document_id"]))
+            decision = citation_decisions.get(cit["citation_id"]) or _decide(doc, statement)
             header = (f"### [{keys.get(cit['saved_document_id'], '?')}] "
                       f"p. {_md(cit.get('page_id'))}")
             out.append(header)
@@ -466,7 +486,7 @@ def project_markdown(project: dict[str, Any], documents: list[dict[str, Any]],
                     out.append(f"- [{keys.get(doc_id, '?')}] 抜粋省略: {_md(value.get('omitted'))}")
                 elif isinstance(value, list):
                     statement = (doc.get("rights_snapshot") or {}).get("statement")
-                    decision = effective_decision(statement, latest_rights.get(doc_id))
+                    decision = _decide(doc, statement)
                     if decision["excerpt_export"]:
                         for entry in value[:3]:
                             text = entry.get("text") if isinstance(entry, dict) else entry
@@ -492,7 +512,7 @@ def project_markdown(project: dict[str, Any], documents: list[dict[str, Any]],
                 f"（区分: {_md(evaluate_rights(rights.get('statement'))['category'])}）")
         latest = latest_rights.get(doc["saved_document_id"])
         if latest and latest != rights.get("statement"):
-            decision = effective_decision(rights.get("statement"), latest)
+            decision = _decide(doc, rights.get("statement"))
             line += (f" / 最新の観測: {_md(latest)}（区分: {_md(evaluate_rights(latest)['category'])}、"
                      f"現在の出力可否: {'可' if decision['excerpt_export'] else '不可'}）")
         out.append(line)

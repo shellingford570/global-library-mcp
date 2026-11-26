@@ -115,12 +115,37 @@ class WorkspaceWebRuntime:
 
     def quiesce(self, timeout: float = 30.0) -> bool:
         """Stop new operations and wait for in-flight ones to
-        finish. Returns False on timeout (the caller aborts the
-        restore and clears the flag)."""
+        finish. Ownership is ATOMIC (b8 final review section
+        12): if another restore already owns the quiesced
+        state, this call returns False immediately instead of
+        racing it, and the caller must NOT call unquiesce for
+        a quiesce it did not acquire. Returns False also on
+        timeout (the caller aborts and clears its own flag)."""
         with self._ops_cond:
+            if self.restoring:
+                return False
             self.restoring = True
             return self._ops_cond.wait_for(
                 lambda: self._ops_inflight == 0, timeout=timeout)
+
+    def acquire_restore(self, timeout: float = 30.0) -> bool:
+        """Atomic restore ownership (b8 final review section
+        12): returns True only when THIS caller set the
+        quiesced flag AND in-flight operations drained. A
+        concurrent restore sees the flag already set and is
+        refused without touching it; on timeout the caller's
+        own flag is released again. Only a caller that got
+        True may call unquiesce."""
+        with self._ops_cond:
+            if self.restoring:
+                return False
+            self.restoring = True
+            ok = self._ops_cond.wait_for(
+                lambda: self._ops_inflight == 0, timeout=timeout)
+            if not ok:
+                self.restoring = False
+                self._ops_cond.notify_all()
+            return ok
 
     def unquiesce(self) -> None:
         with self._ops_cond:
@@ -675,8 +700,23 @@ class WorkspaceApi:
         if parts == ["search"] and method == "GET":
             result = store.local_search(qs.get("project_id", [""])[0],
                                         qs.get("q", [""])[0])
-            result["citations"] = [self._citation_view(store, c)
-                                   for c in result["citations"]]
+            # Trust boundary for search itself (b8 final review
+            # section 9): a citation whose excerpt is currently
+            # withheld must not leak through the search index -
+            # neither its text, nor the mere existence of a hit
+            # that only the withheld text could produce. Such a
+            # citation stays findable only via its non-excerpt
+            # fields (page id).
+            from ..workspace.store import search_text as _norm
+            needle = _norm(qs.get("q", [""])[0]).strip()
+            kept = []
+            for cit in result["citations"]:
+                view = self._citation_view(store, cit)
+                if view.get("excerpt_stored"):
+                    kept.append(view)
+                elif needle and needle in _norm(cit.get("page_id")):
+                    kept.append(view)
+            result["citations"] = kept
             send(result)
             return
         if parts == ["export", "documents"] and method == "GET":
@@ -697,13 +737,28 @@ class WorkspaceApi:
                     raise ApiError(404, "project not found")
                 bundle = store.export_bundle(pid)
                 latest = {}
+                document_decisions = {}
                 for doc in bundle["documents"]:
                     obs = bundle["rights_observations"].get(doc["saved_document_id"]) or []
                     latest[doc["saved_document_id"]] = obs[-1]["statement"] if obs else None
+                    document_decisions[doc["saved_document_id"]] = (
+                        rights_policy.trusted_decision(
+                            (doc.get("rights_snapshot") or {}).get("statement"),
+                            doc.get("rights_trust") or rights_policy.TRUST_SERVER_OBSERVED,
+                            obs))
+                citation_decisions = {}
+                for cit in bundle["citations"]:
+                    obs = bundle["rights_observations"].get(cit["saved_document_id"]) or []
+                    citation_decisions[cit["citation_id"]] = (
+                        rights_policy.trusted_decision(
+                            (cit.get("rights_at_save") or {}).get("statement"),
+                            self._citation_trust(store, cit), obs))
                 text, _omissions = project_markdown(
                     project, bundle["documents"], bundle["citations"],
                     bundle["notes"], bundle["comparisons"], bundle["history"],
-                    latest_rights=latest)
+                    latest_rights=latest,
+                    citation_decisions=citation_decisions,
+                    document_decisions=document_decisions)
                 handler._send(text.encode("utf-8"), "text/markdown; charset=utf-8")
             else:
                 raise ApiError(400, f"unsupported project export format: {fmt}")
@@ -751,6 +806,14 @@ class WorkspaceApi:
         section 2): server-fetched citations carry this server's
         own observation; imported ones are claims; user-entered
         ones inherit their document's trust."""
+        # A citation whose verification state was downgraded
+        # by a restore is a restored claim FIRST (b8 final
+        # review section 8): its pre-restore provenance does
+        # not re-establish trust. Only a fresh re-verification
+        # (which replaces the status) restores server trust.
+        if cit.get("quotation_verification_status") == "restored_unverified" \
+                or cit.get("page_mapping_status") == "restored_unverified":
+            return rights_policy.TRUST_RESTORED_CLAIM
         if cit.get("provenance") == "system_fetched":
             return rights_policy.TRUST_SERVER_OBSERVED
         if cit.get("provenance") == "imported":
@@ -925,9 +988,17 @@ class WorkspaceApi:
         this server in this request, "stored" when it comes from
         saved data."""
         observations = store.list_rights_observations(doc["saved_document_id"])
-        latest_statement = observations[-1].get("statement") if observations else None
         if basis == "live":
-            decision = rights_policy.effective_decision(statement, latest_statement)
+            # The statement carried by this request's snapshot
+            # is the SAVE basis (server-observed when the
+            # snapshot was fetched); every observation already
+            # on record applies AFTER it in order, so a newer
+            # restrictive observation - trusted or claim - can
+            # never be bypassed by an older permissive token
+            # (b8 sections 2/13, final review section 13).
+            decision = rights_policy.trusted_decision(
+                statement, rights_policy.TRUST_SERVER_OBSERVED,
+                observations)
         else:
             decision = rights_policy.trusted_decision(
                 statement,
@@ -1104,6 +1175,20 @@ class WorkspaceApi:
         state = page.get("ocr_state") or {}
         identity = bool(state.get("page_identity_verified") or page.get("verified_mapping"))
         checks["page_identity"] = identity
+        # Document identity of the freshly fetched page (b8
+        # final review section 11): the payload must name the
+        # SAME (library_id, record_id) as the saved document.
+        # A page from another document - even with a matching
+        # excerpt hash - proves nothing about this citation.
+        page_record = page.get("record_id") or page.get("book_pid")
+        page_library = page.get("library_id") or library_id
+        document_identity = bool(
+            page_record and doc.get("record_id")
+            and str(page_record) == str(doc.get("record_id"))
+            and str(page_library) == str(library_id))
+        checks["document_identity"] = document_identity
+        if not document_identity:
+            identity = False
         checks["ocr_present"] = bool(text.strip())
         # Original-image reachability through the service's own
         # verification path; not performed -> recorded as such.
@@ -1133,28 +1218,52 @@ class WorkspaceApi:
             excerpt_state = "present" if present and hash_ok else "not_found"
         elif (cit.get("excerpt_hash") and cit.get("excerpt_start") is not None
                 and cit.get("excerpt_end") is not None):
-            # b8 section 2 re-admission: a reference-only citation
-            # (imported / restored / rights-withheld) can regain
-            # its excerpt ONLY from this fresh server-side fetch:
-            # the slice at the stored offsets must hash to the
-            # stored reference hash, and the CURRENT rights -
-            # observed by this server just now - must permit
-            # storage. NonCommercial categories cannot re-admit
-            # here (no purpose-confirmation channel).
+            # Re-admission (b8 section 2; final review section
+            # 11): a reference-only citation can regain its
+            # excerpt ONLY from this fresh server-side fetch,
+            # and only when ALL of these hold: the fetched page
+            # belongs to the saved document (library + record
+            # identity above), its page mapping is verified,
+            # the slice at the stored offsets hashes to the
+            # stored reference hash, the slice is within the
+            # storage cap, and the CURRENT rights - observed by
+            # this server just now, never the saved statement as
+            # a fallback - permit storage under the trust model
+            # including every later observation. NonCommercial
+            # categories cannot re-admit here (no
+            # purpose-confirmation channel). A hash match proves
+            # string equality only, never provenance or
+            # permission by itself.
             start = int(cit["excerpt_start"])
             end = int(cit["excerpt_end"])
             readmitted = False
+            checks["readmission_blockers"] = []
+            if not identity:
+                checks["readmission_blockers"].append("page_identity_unverified")
+            if not current_statement:
+                checks["readmission_blockers"].append("current_rights_unavailable")
             if 0 <= start < end <= len(text):
                 candidate = text[start:end]
-                if hashlib.sha256(candidate.encode("utf-8")).hexdigest() == cit["excerpt_hash"]:
-                    latest = store.latest_rights_observation(cit["saved_document_id"])
-                    decision = rights_policy.effective_decision(
-                        current_statement or saved_statement,
-                        latest.get("statement") if latest else None)
+                if len(candidate) > rights_policy.MAX_EXCERPT_CHARS:
+                    checks["readmission_blockers"].append("excerpt_over_limit")
+                elif hashlib.sha256(candidate.encode("utf-8")).hexdigest() != cit["excerpt_hash"]:
+                    checks["readmission_blockers"].append("hash_mismatch")
+                elif identity and current_statement:
+                    observations = store.list_rights_observations(
+                        cit["saved_document_id"])
+                    decision = rights_policy.trusted_decision(
+                        current_statement, rights_policy.TRUST_SERVER_OBSERVED,
+                        observations + [{"statement": current_statement,
+                                          "source": "reverify",
+                                          "trust": "server_observed",
+                                          "observed_at": now_iso()}])
                     if decision["excerpt_storage"] and not decision.get(
                             "excerpt_requires_confirmation"):
                         store.update_citation_excerpt(citation_id, candidate)
                         readmitted = True
+                    else:
+                        checks["readmission_blockers"].append(
+                            "current_rights_do_not_permit")
             checks["excerpt_readmitted"] = readmitted
             excerpt_state = "present" if readmitted else "reference_only"
             if not readmitted:
@@ -1332,17 +1441,21 @@ class WorkspaceApi:
 
     # -- restore ------------------------------------------------------------------------
     def _restore(self, data: bytes) -> dict[str, Any]:
-        """Restore with deep candidate validation, full
-        quiescence, a pre-restore backup taken AFTER in-flight
-        operations finish, a post-swap open check, automatic
-        rollback, and a trust downgrade of the restored data
-        (final review sections 7, 8; b8 section 2). Structural
-        validation cannot prove a backup file is authentic, so
-        restored verification states and rights are claims until
-        re-verified against the live sources."""
+        """Restore as ONE managed operation (final review
+        sections 7, 8 and 12): candidate validation, atomic
+        quiesce ownership, in-flight drain, pre-restore backup
+        taken AFTER quiescence, swap, new-store open +
+        migration, trust downgrade, integrity check - and a
+        rollback to the pre-restore backup on ANY failure
+        after the swap, including a failing trust downgrade.
+        Structural validation cannot prove a backup file is
+        authentic, so restored verification states and rights
+        are claims until re-verified against the live sources.
+        A concurrent restore is refused atomically (409)."""
         store = self.ws.store
         db_path = store.db_path
-        tmp = db_path.parent / f"restore-candidate-{secrets.token_urlsafe(6)}.db"
+        token = secrets.token_urlsafe(6)
+        tmp = db_path.parent / f"restore-candidate-{token}.db"
         tmp.write_bytes(data)
         try:
             os.chmod(tmp, 0o600)
@@ -1352,36 +1465,61 @@ class WorkspaceApi:
         if not info["ok"]:
             tmp.unlink(missing_ok=True)
             raise ApiError(400, "backup rejected: " + "; ".join(info["problems"][:5]))
-        if not self.ws.quiesce(timeout=30.0):
+        if not self.ws.acquire_restore(timeout=30.0):
             tmp.unlink(missing_ok=True)
-            self.ws.unquiesce()
-            raise ApiError(409, "restore aborted: workspace operations "
-                                "did not finish in time; nothing was changed")
+            raise ApiError(409, "restore aborted: another restore owns the "
+                                "workspace, or operations did not finish in "
+                                "time; nothing was changed")
+        # From here this call OWNS the quiesced state; only it
+        # may unquiesce.
+        swapped = False
+        pre: dict[str, Any] | None = None
+        new_store: WorkspaceStore | None = None
         try:
             pre = store.backup(db_path.parent / "backups" /
-                               f"pre-restore-{now_iso().replace(':', '')}.db")
-            try:
-                store.close()
-                for suffix in ("-wal", "-shm"):
-                    Path(str(db_path) + suffix).unlink(missing_ok=True)
-                os.replace(tmp, db_path)
-                new_store = WorkspaceStore(db_path)
-                if new_store.integrity_check() != "ok":
-                    raise RuntimeError("restored database failed its integrity check")
-            except Exception:
-                # Roll back to the pre-restore backup.
-                for suffix in ("-wal", "-shm"):
-                    Path(str(db_path) + suffix).unlink(missing_ok=True)
-                restored = db_path.parent / "rollback-copy.db"
-                restored.write_bytes(Path(pre["path"]).read_bytes())
-                os.replace(restored, db_path)
-                self.ws.store = WorkspaceStore(db_path)
-                raise ApiError(500, "restore failed after replacement; the previous "
-                                    "database was rolled back from the pre-restore backup")
+                               f"pre-restore-{now_iso().replace(':', '')}-{token}.db")
+            store.close()
+            for suffix in ("-wal", "-shm"):
+                Path(str(db_path) + suffix).unlink(missing_ok=True)
+            os.replace(tmp, db_path)
+            swapped = True
+            new_store = WorkspaceStore(db_path)
             downgrade = new_store.apply_restore_trust_downgrade()
-            self.ws.store = new_store
+            if new_store.integrity_check() != "ok":
+                raise RuntimeError("restored database failed its integrity check")
+            # Smoke check: the new store must actually serve reads.
+            new_store.list_projects()
+        except Exception as exc:
+            if new_store is not None:
+                try:
+                    new_store.close()
+                except Exception:
+                    pass
+            if swapped and pre is not None:
+                # Roll back to the pre-restore backup, itself
+                # verified by opening it before publishing.
+                for suffix in ("-wal", "-shm"):
+                    Path(str(db_path) + suffix).unlink(missing_ok=True)
+                rollback_tmp = db_path.parent / f"rollback-copy-{token}.db"
+                try:
+                    rollback_tmp.write_bytes(Path(pre["path"]).read_bytes())
+                    try:
+                        os.chmod(rollback_tmp, 0o600)
+                    except OSError:
+                        pass
+                    os.replace(rollback_tmp, db_path)
+                    self.ws.store = WorkspaceStore(db_path)
+                finally:
+                    rollback_tmp.unlink(missing_ok=True)
+                raise ApiError(500, "restore failed; the previous database "
+                                    "was rolled back from the pre-restore "
+                                    f"backup ({type(exc).__name__})")
+            raise ApiError(500, f"restore failed before replacement; "
+                                f"nothing was changed ({type(exc).__name__})")
         finally:
+            tmp.unlink(missing_ok=True)
             self.ws.unquiesce()
+        self.ws.store = new_store
         return {"restored": True, "schema_version": self.ws.store.schema_version,
                 "candidate_sha256": info["sha256"],
                 "pre_restore_backup": pre["path"],
@@ -1389,8 +1527,12 @@ class WorkspaceApi:
                 "note": "the previous database was backed up before replacement; "
                         "a checksum of an uploaded file does not prove the file "
                         "is authentic, so restored verification states were "
-                        "downgraded to restored_unverified and restored rights "
-                        "are treated as claims until re-verification"}
+                        "downgraded to restored_unverified, every restored "
+                        "rights observation was downgraded to a restored claim, "
+                        "and restored rights are treated as claims until "
+                        "re-verification. NOTE: a workspace backup file contains "
+                        "the stored research data itself and is more sensitive "
+                        "than a rights-filtered export - keep it private"}
 
 
 def _json(value: object) -> bytes:
