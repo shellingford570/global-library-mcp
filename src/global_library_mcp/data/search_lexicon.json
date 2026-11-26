@@ -1,0 +1,2794 @@
+{
+ "version": "1.0.0b6-draft",
+ "licence_note": "Original compilation for this project; labels are bibliographic facts (titles and names), which are not copyrightable expression. No copyrighted dictionary data was copied.",
+ "concepts": [
+  {
+   "concept_id": "concept:steam-engine",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "蒸気機関"
+    ],
+    "en": [
+     "steam engine"
+    ],
+    "de": [
+     "Dampfmaschine"
+    ],
+    "fr": [
+     "machine à vapeur"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "蒸氣機關"
+    ],
+    "en": [
+     "steam-engine"
+    ],
+    "de": [],
+    "fr": []
+   },
+   "related": [
+    "concept:industrial-revolution",
+    "concept:railway"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:industrial-revolution",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "産業革命"
+    ],
+    "en": [
+     "industrial revolution"
+    ],
+    "de": [
+     "industrielle Revolution",
+     "Industrialisierung"
+    ],
+    "fr": [
+     "révolution industrielle"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:steam-engine",
+    "concept:capitalism"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:hydroelectric-power",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "水力発電"
+    ],
+    "en": [
+     "hydroelectric power",
+     "hydro-electric power"
+    ],
+    "de": [
+     "Wasserkraftwerk",
+     "Hydroelektrizität"
+    ],
+    "fr": [
+     "hydroélectricité"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "水力發電"
+    ]
+   },
+   "related": [
+    "concept:water-power",
+    "concept:electricity"
+   ],
+   "excluded_confusions": [
+    "concept:water-power"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:water-power",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "水力"
+    ],
+    "en": [
+     "water power",
+     "hydraulic power"
+    ],
+    "de": [
+     "Wasserkraft"
+    ],
+    "fr": [
+     "force hydraulique",
+     "énergie hydraulique"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:hydroelectric-power"
+   ],
+   "excluded_confusions": [
+    "concept:hydroelectric-power"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:electricity",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "電気"
+    ],
+    "en": [
+     "electricity"
+    ],
+    "de": [
+     "Elektrizität"
+    ],
+    "fr": [
+     "électricité"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "電氣"
+    ]
+   },
+   "related": [
+    "concept:hydroelectric-power",
+    "concept:electrical-engineering"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:electrical-engineering",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "電気工学"
+    ],
+    "en": [
+     "electrical engineering"
+    ],
+    "de": [
+     "Elektrotechnik"
+    ],
+    "fr": [
+     "génie électrique"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "電氣工學"
+    ]
+   },
+   "related": [
+    "concept:electricity"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:railway",
+   "domain": "railway history",
+   "labels": {
+    "ja": [
+     "鉄道"
+    ],
+    "en": [
+     "railway",
+     "railroad"
+    ],
+    "de": [
+     "Eisenbahn"
+    ],
+    "fr": [
+     "chemin de fer"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "鐵道"
+    ]
+   },
+   "related": [
+    "concept:steam-engine",
+    "concept:locomotive"
+   ],
+   "excluded_confusions": [
+    "concept:locomotive"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:locomotive",
+   "domain": "railway history",
+   "labels": {
+    "ja": [
+     "機関車"
+    ],
+    "en": [
+     "locomotive"
+    ],
+    "de": [
+     "Lokomotive"
+    ],
+    "fr": [
+     "locomotive"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:railway",
+    "concept:steam-engine"
+   ],
+   "excluded_confusions": [
+    "concept:railway"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:evolution",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "進化論",
+     "進化"
+    ],
+    "en": [
+     "evolution",
+     "theory of evolution"
+    ],
+    "de": [
+     "Evolution",
+     "Abstammungslehre",
+     "Entwicklungslehre"
+    ],
+    "fr": [
+     "évolution",
+     "théorie de l'évolution"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:natural-selection",
+    "concept:darwinism"
+   ],
+   "excluded_confusions": [
+    "concept:social-evolution"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:natural-selection",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "自然選択",
+     "自然淘汰"
+    ],
+    "en": [
+     "natural selection"
+    ],
+    "de": [
+     "natürliche Auslese",
+     "natürliche Zuchtwahl"
+    ],
+    "fr": [
+     "sélection naturelle"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:evolution"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:darwinism",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "ダーウィニズム"
+    ],
+    "en": [
+     "Darwinism"
+    ],
+    "de": [
+     "Darwinismus"
+    ],
+    "fr": [
+     "darwinisme"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:evolution",
+    "concept:natural-selection"
+   ],
+   "excluded_confusions": [
+    "concept:social-evolution"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:social-evolution",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "社会進化"
+    ],
+    "en": [
+     "social evolution"
+    ],
+    "de": [
+     "soziale Evolution"
+    ],
+    "fr": [
+     "évolution sociale"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:evolution"
+   ],
+   "excluded_confusions": [
+    "concept:darwinism",
+    "concept:evolution"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:epistemology",
+   "domain": "philosophy",
+   "labels": {
+    "ja": [
+     "認識論"
+    ],
+    "en": [
+     "epistemology",
+     "theory of knowledge"
+    ],
+    "de": [
+     "Erkenntnistheorie"
+    ],
+    "fr": [
+     "épistémologie",
+     "théorie de la connaissance"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:philosophy",
+   "domain": "philosophy",
+   "labels": {
+    "ja": [
+     "哲学"
+    ],
+    "en": [
+     "philosophy"
+    ],
+    "de": [
+     "Philosophie"
+    ],
+    "fr": [
+     "philosophie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "哲學"
+    ]
+   },
+   "related": [
+    "concept:epistemology",
+    "concept:political-philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:political-philosophy",
+   "domain": "political thought",
+   "labels": {
+    "ja": [
+     "政治哲学",
+     "政治思想"
+    ],
+    "en": [
+     "political philosophy",
+     "political thought"
+    ],
+    "de": [
+     "politische Philosophie",
+     "Staatsphilosophie"
+    ],
+    "fr": [
+     "philosophie politique"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:philosophy",
+    "concept:social-contract"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:social-contract",
+   "domain": "political thought",
+   "labels": {
+    "ja": [
+     "社会契約"
+    ],
+    "en": [
+     "social contract"
+    ],
+    "de": [
+     "Gesellschaftsvertrag"
+    ],
+    "fr": [
+     "contrat social"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:political-philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:capitalism",
+   "domain": "economics",
+   "labels": {
+    "ja": [
+     "資本主義"
+    ],
+    "en": [
+     "capitalism"
+    ],
+    "de": [
+     "Kapitalismus"
+    ],
+    "fr": [
+     "capitalisme"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:industrial-revolution",
+    "concept:sociology-of-religion"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:sociology-of-religion",
+   "domain": "religion",
+   "labels": {
+    "ja": [
+     "宗教社会学"
+    ],
+    "en": [
+     "sociology of religion"
+    ],
+    "de": [
+     "Religionssoziologie"
+    ],
+    "fr": [
+     "sociologie des religions"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:capitalism"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:astronomy",
+   "domain": "astronomy",
+   "labels": {
+    "ja": [
+     "天文学"
+    ],
+    "en": [
+     "astronomy"
+    ],
+    "de": [
+     "Astronomie"
+    ],
+    "fr": [
+     "astronomie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "天文學"
+    ]
+   },
+   "related": [
+    "concept:mechanics"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:mechanics",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "力学"
+    ],
+    "en": [
+     "mechanics"
+    ],
+    "de": [
+     "Mechanik"
+    ],
+    "fr": [
+     "mécanique"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:astronomy",
+    "concept:physics"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:physics",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "物理学"
+    ],
+    "en": [
+     "physics",
+     "natural philosophy"
+    ],
+    "de": [
+     "Physik",
+     "Naturphilosophie"
+    ],
+    "fr": [
+     "physique",
+     "philosophie naturelle"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:mechanics"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:natural-history",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "博物学"
+    ],
+    "en": [
+     "natural history"
+    ],
+    "de": [
+     "Naturgeschichte"
+    ],
+    "fr": [
+     "histoire naturelle"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "博物學"
+    ]
+   },
+   "related": [
+    "concept:evolution",
+    "concept:biology"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:biology",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "生物学"
+    ],
+    "en": [
+     "biology"
+    ],
+    "de": [
+     "Biologie"
+    ],
+    "fr": [
+     "biologie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "生物學"
+    ]
+   },
+   "related": [
+    "concept:natural-history",
+    "concept:evolution"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:medicine-history",
+   "domain": "medicine",
+   "labels": {
+    "ja": [
+     "医学史"
+    ],
+    "en": [
+     "history of medicine"
+    ],
+    "de": [
+     "Medizingeschichte"
+    ],
+    "fr": [
+     "histoire de la médecine"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "醫學史"
+    ]
+   },
+   "related": [
+    "concept:biology"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:linguistics",
+   "domain": "literature",
+   "labels": {
+    "ja": [
+     "言語学",
+     "言語学"
+    ],
+    "en": [
+     "linguistics",
+     "science of language"
+    ],
+    "de": [
+     "Sprachwissenschaft"
+    ],
+    "fr": [
+     "linguistique",
+     "science du langage"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "言語學"
+    ]
+   },
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:newspaper",
+   "domain": "newspaper history",
+   "labels": {
+    "ja": [
+     "新聞"
+    ],
+    "en": [
+     "newspaper",
+     "press"
+    ],
+    "de": [
+     "Zeitung",
+     "Presse"
+    ],
+    "fr": [
+     "journal",
+     "presse"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:french-revolution"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:french-revolution",
+   "domain": "political thought",
+   "labels": {
+    "ja": [
+     "フランス革命"
+    ],
+    "en": [
+     "French Revolution"
+    ],
+    "de": [
+     "Französische Revolution"
+    ],
+    "fr": [
+     "Révolution française"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:newspaper",
+    "concept:political-philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:enlightenment",
+   "domain": "philosophy",
+   "labels": {
+    "ja": [
+     "啓蒙"
+    ],
+    "en": [
+     "Enlightenment"
+    ],
+    "de": [
+     "Aufklärung"
+    ],
+    "fr": [
+     "Lumières"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:modernization",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "近代化"
+    ],
+    "en": [
+     "modernization",
+     "modernisation"
+    ],
+    "de": [
+     "Modernisierung"
+    ],
+    "fr": [
+     "modernisation"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:industrial-revolution"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:science-history",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "科学史"
+    ],
+    "en": [
+     "history of science"
+    ],
+    "de": [
+     "Wissenschaftsgeschichte"
+    ],
+    "fr": [
+     "histoire des sciences"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "科學史"
+    ]
+   },
+   "related": [
+    "concept:philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:technology-history",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "技術史"
+    ],
+    "en": [
+     "history of technology"
+    ],
+    "de": [
+     "Technikgeschichte"
+    ],
+    "fr": [
+     "histoire des techniques"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:science-history"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:economics",
+   "domain": "economics",
+   "labels": {
+    "ja": [
+     "経済学"
+    ],
+    "en": [
+     "economics",
+     "political economy"
+    ],
+    "de": [
+     "Ökonomie",
+     "Nationalökonomie",
+     "politische Ökonomie"
+    ],
+    "fr": [
+     "économie politique"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "經濟學"
+    ]
+   },
+   "related": [
+    "concept:capitalism"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:industry",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "産業",
+     "工業"
+    ],
+    "en": [
+     "industry"
+    ],
+    "de": [
+     "Industrie"
+    ],
+    "fr": [
+     "industrie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "工業"
+    ]
+   },
+   "related": [
+    "concept:industrial-revolution"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:dam",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "ダム"
+    ],
+    "en": [
+     "dam"
+    ],
+    "de": [
+     "Talsperre",
+     "Staudamm"
+    ],
+    "fr": [
+     "barrage"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:hydroelectric-power"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:mill",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "水車",
+     "工場"
+    ],
+    "en": [
+     "mill",
+     "water mill"
+    ],
+    "de": [
+     "Mühle",
+     "Wassermühle"
+    ],
+    "fr": [
+     "moulin"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:water-power"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:religion",
+   "domain": "religion",
+   "labels": {
+    "ja": [
+     "宗教"
+    ],
+    "en": [
+     "religion"
+    ],
+    "de": [
+     "Religion"
+    ],
+    "fr": [
+     "religion"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:sociology-of-religion"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:ethics",
+   "domain": "philosophy",
+   "labels": {
+    "ja": [
+     "倫理学"
+    ],
+    "en": [
+     "ethics"
+    ],
+    "de": [
+     "Ethik"
+    ],
+    "fr": [
+     "éthique",
+     "morale"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "倫理學"
+    ]
+   },
+   "related": [
+    "concept:philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:metaphysics",
+   "domain": "philosophy",
+   "labels": {
+    "ja": [
+     "形而上学"
+    ],
+    "en": [
+     "metaphysics"
+    ],
+    "de": [
+     "Metaphysik"
+    ],
+    "fr": [
+     "métaphysique"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "形而上學"
+    ]
+   },
+   "related": [
+    "concept:philosophy",
+    "concept:epistemology"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:geology",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "地質学"
+    ],
+    "en": [
+     "geology"
+    ],
+    "de": [
+     "Geologie"
+    ],
+    "fr": [
+     "géologie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "地質學"
+    ]
+   },
+   "related": [
+    "concept:evolution"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:botany",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "植物学"
+    ],
+    "en": [
+     "botany"
+    ],
+    "de": [
+     "Botanik"
+    ],
+    "fr": [
+     "botanique"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "植物學"
+    ]
+   },
+   "related": [
+    "concept:natural-history"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:zoology",
+   "domain": "biology",
+   "labels": {
+    "ja": [
+     "動物学"
+    ],
+    "en": [
+     "zoology"
+    ],
+    "de": [
+     "Zoologie"
+    ],
+    "fr": [
+     "zoologie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "動物學"
+    ]
+   },
+   "related": [
+    "concept:natural-history"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:chemistry",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "化学"
+    ],
+    "en": [
+     "chemistry"
+    ],
+    "de": [
+     "Chemie"
+    ],
+    "fr": [
+     "chimie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "化學"
+    ]
+   },
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:mathematics",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "数学"
+    ],
+    "en": [
+     "mathematics"
+    ],
+    "de": [
+     "Mathematik"
+    ],
+    "fr": [
+     "mathématiques"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "數學"
+    ]
+   },
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:education",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "教育"
+    ],
+    "en": [
+     "education"
+    ],
+    "de": [
+     "Bildung",
+     "Erziehung"
+    ],
+    "fr": [
+     "éducation"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "教育"
+    ]
+   },
+   "related": [
+    "concept:enlightenment"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:learning",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "学問"
+    ],
+    "en": [
+     "learning",
+     "scholarship"
+    ],
+    "de": [
+     "Gelehrsamkeit",
+     "Wissenschaft"
+    ],
+    "fr": [
+     "érudition"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "學問"
+    ]
+   },
+   "related": [
+    "concept:education",
+    "concept:science-history"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:state",
+   "domain": "political thought",
+   "labels": {
+    "ja": [
+     "国家"
+    ],
+    "en": [
+     "state",
+     "nation"
+    ],
+    "de": [
+     "Staat",
+     "Nation"
+    ],
+    "fr": [
+     "État",
+     "nation"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "國家"
+    ]
+   },
+   "related": [
+    "concept:political-philosophy"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:law",
+   "domain": "political thought",
+   "labels": {
+    "ja": [
+     "法学",
+     "法律"
+    ],
+    "en": [
+     "law",
+     "jurisprudence"
+    ],
+    "de": [
+     "Rechtswissenschaft",
+     "Jurisprudenz"
+    ],
+    "fr": [
+     "droit",
+     "jurisprudence"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "法學"
+    ]
+   },
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:literature",
+   "domain": "literature",
+   "labels": {
+    "ja": [
+     "文学"
+    ],
+    "en": [
+     "literature"
+    ],
+    "de": [
+     "Literatur"
+    ],
+    "fr": [
+     "littérature"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "文學"
+    ]
+   },
+   "related": [
+    "concept:linguistics"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:sociology",
+   "domain": "religion",
+   "labels": {
+    "ja": [
+     "社会学"
+    ],
+    "en": [
+     "sociology"
+    ],
+    "de": [
+     "Soziologie"
+    ],
+    "fr": [
+     "sociologie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "社會學"
+    ]
+   },
+   "related": [
+    "concept:sociology-of-religion"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:history",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "歴史"
+    ],
+    "en": [
+     "history"
+    ],
+    "de": [
+     "Geschichte"
+    ],
+    "fr": [
+     "histoire"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "歷史"
+    ]
+   },
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:transport",
+   "domain": "railway history",
+   "labels": {
+    "ja": [
+     "交通",
+     "運輸"
+    ],
+    "en": [
+     "transport",
+     "transportation"
+    ],
+    "de": [
+     "Verkehr",
+     "Transport"
+    ],
+    "fr": [
+     "transport"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:railway"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:textile",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "繊維",
+     "紡績"
+    ],
+    "en": [
+     "textile",
+     "spinning"
+    ],
+    "de": [
+     "Textilindustrie",
+     "Spinnerei"
+    ],
+    "fr": [
+     "textile",
+     "filature"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:industrial-revolution",
+    "concept:mill"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:mining",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "鉱業",
+     "鉱山"
+    ],
+    "en": [
+     "mining"
+    ],
+    "de": [
+     "Bergbau"
+    ],
+    "fr": [
+     "mines",
+     "industrie minière"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "鑛業"
+    ]
+   },
+   "related": [
+    "concept:industry"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:steamship",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "蒸気船"
+    ],
+    "en": [
+     "steamship",
+     "steamer"
+    ],
+    "de": [
+     "Dampfschiff"
+    ],
+    "fr": [
+     "navire à vapeur"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "蒸氣船"
+    ]
+   },
+   "related": [
+    "concept:steam-engine"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:telegraph",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "電信"
+    ],
+    "en": [
+     "telegraph"
+    ],
+    "de": [
+     "Telegraph"
+    ],
+    "fr": [
+     "télégraphe"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "電信"
+    ]
+   },
+   "related": [
+    "concept:electricity"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:photography",
+   "domain": "technology",
+   "labels": {
+    "ja": [
+     "写真"
+    ],
+    "en": [
+     "photography"
+    ],
+    "de": [
+     "Photographie"
+    ],
+    "fr": [
+     "photographie"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "寫眞"
+    ]
+   },
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:printing",
+   "domain": "newspaper history",
+   "labels": {
+    "ja": [
+     "印刷"
+    ],
+    "en": [
+     "printing"
+    ],
+    "de": [
+     "Buchdruck"
+    ],
+    "fr": [
+     "imprimerie"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:newspaper"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:earthquake",
+   "domain": "science",
+   "labels": {
+    "ja": [
+     "地震"
+    ],
+    "en": [
+     "earthquake"
+    ],
+    "de": [
+     "Erdbeben"
+    ],
+    "fr": [
+     "tremblement de terre"
+    ]
+   },
+   "historical_variants": {},
+   "related": [],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:western-learning",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "西洋学問",
+     "洋学"
+    ],
+    "en": [
+     "Western learning"
+    ],
+    "de": [
+     "westliche Wissenschaft"
+    ],
+    "fr": [
+     "science occidentale"
+    ]
+   },
+   "historical_variants": {
+    "ja": [
+     "洋學"
+    ]
+   },
+   "related": [
+    "concept:enlightenment",
+    "concept:modernization"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:civilization",
+   "domain": "history",
+   "labels": {
+    "ja": [
+     "文明"
+    ],
+    "en": [
+     "civilization",
+     "civilisation"
+    ],
+    "de": [
+     "Zivilisation",
+     "Kultur"
+    ],
+    "fr": [
+     "civilisation"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:modernization",
+    "concept:enlightenment"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "concept_id": "concept:industrial-location",
+   "domain": "economics",
+   "labels": {
+    "ja": [
+     "産業立地"
+    ],
+    "en": [
+     "location of industries",
+     "industrial location"
+    ],
+    "de": [
+     "Industriestandort",
+     "Standort der Industrie"
+    ],
+    "fr": [
+     "localisation industrielle"
+    ]
+   },
+   "historical_variants": {},
+   "related": [
+    "concept:industry"
+   ],
+   "excluded_confusions": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  }
+ ],
+ "authors": [
+  {
+   "author_id": "author:darwin",
+   "surname": "Darwin",
+   "given_names": "Charles",
+   "birth_year": 1809,
+   "death_year": 1882,
+   "names": {
+    "ja": [
+     "ダーウィン",
+     "チャールズ・ダーウィン"
+    ],
+    "en": [
+     "Charles Darwin",
+     "Darwin, Charles"
+    ],
+    "de": [
+     "Charles Darwin"
+    ],
+    "fr": [
+     "Charles Darwin"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:origin-of-species",
+    "work:descent-of-man"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:darwin-erasmus",
+   "surname": "Darwin",
+   "given_names": "Erasmus",
+   "birth_year": 1731,
+   "death_year": 1802,
+   "names": {
+    "ja": [
+     "エラズマス・ダーウィン"
+    ],
+    "en": [
+     "Erasmus Darwin"
+    ],
+    "de": [
+     "Erasmus Darwin"
+    ],
+    "fr": [
+     "Erasmus Darwin"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:zoonomia"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:kant",
+   "surname": "Kant",
+   "given_names": "Immanuel",
+   "birth_year": 1724,
+   "death_year": 1804,
+   "names": {
+    "ja": [
+     "カント",
+     "イマヌエル・カント"
+    ],
+    "en": [
+     "Immanuel Kant",
+     "Kant, Immanuel"
+    ],
+    "de": [
+     "Immanuel Kant"
+    ],
+    "fr": [
+     "Immanuel Kant",
+     "Emmanuel Kant"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:hegel",
+   "surname": "Hegel",
+   "given_names": "Georg Wilhelm Friedrich",
+   "birth_year": 1770,
+   "death_year": 1831,
+   "names": {
+    "ja": [
+     "ヘーゲル"
+    ],
+    "en": [
+     "Georg Wilhelm Friedrich Hegel",
+     "Hegel"
+    ],
+    "de": [
+     "Georg Wilhelm Friedrich Hegel"
+    ],
+    "fr": [
+     "Georg Wilhelm Friedrich Hegel"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:marx",
+   "surname": "Marx",
+   "given_names": "Karl",
+   "birth_year": 1818,
+   "death_year": 1883,
+   "names": {
+    "ja": [
+     "マルクス",
+     "カール・マルクス"
+    ],
+    "en": [
+     "Karl Marx",
+     "Marx, Karl"
+    ],
+    "de": [
+     "Karl Marx"
+    ],
+    "fr": [
+     "Karl Marx"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:das-kapital"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:weber-max",
+   "surname": "Weber",
+   "given_names": "Max",
+   "birth_year": 1864,
+   "death_year": 1920,
+   "names": {
+    "ja": [
+     "マックス・ウェーバー",
+     "ウェーバー"
+    ],
+    "en": [
+     "Max Weber",
+     "Weber, Max"
+    ],
+    "de": [
+     "Max Weber"
+    ],
+    "fr": [
+     "Max Weber"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:protestant-ethic"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:weber-alfred",
+   "surname": "Weber",
+   "given_names": "Alfred",
+   "birth_year": 1868,
+   "death_year": 1958,
+   "names": {
+    "ja": [
+     "アルフレート・ウェーバー"
+    ],
+    "en": [
+     "Alfred Weber"
+    ],
+    "de": [
+     "Alfred Weber"
+    ],
+    "fr": [
+     "Alfred Weber"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:location-weber-alfred"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:nietzsche",
+   "surname": "Nietzsche",
+   "given_names": "Friedrich",
+   "birth_year": 1844,
+   "death_year": 1900,
+   "names": {
+    "ja": [
+     "ニーチェ",
+     "フリードリヒ・ニーチェ"
+    ],
+    "en": [
+     "Friedrich Nietzsche"
+    ],
+    "de": [
+     "Friedrich Nietzsche"
+    ],
+    "fr": [
+     "Friedrich Nietzsche"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:descartes",
+   "surname": "Descartes",
+   "given_names": "René",
+   "birth_year": 1596,
+   "death_year": 1650,
+   "names": {
+    "ja": [
+     "デカルト",
+     "ルネ・デカルト"
+    ],
+    "en": [
+     "René Descartes",
+     "Descartes, René"
+    ],
+    "de": [
+     "René Descartes"
+    ],
+    "fr": [
+     "René Descartes"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:discours-methode"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:rousseau",
+   "surname": "Rousseau",
+   "given_names": "Jean-Jacques",
+   "birth_year": 1712,
+   "death_year": 1778,
+   "names": {
+    "ja": [
+     "ルソー",
+     "ジャン＝ジャック・ルソー"
+    ],
+    "en": [
+     "Jean-Jacques Rousseau",
+     "Rousseau, Jean-Jacques"
+    ],
+    "de": [
+     "Jean-Jacques Rousseau"
+    ],
+    "fr": [
+     "Jean-Jacques Rousseau"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:contrat-social"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:newton",
+   "surname": "Newton",
+   "given_names": "Isaac",
+   "birth_year": 1642,
+   "death_year": 1727,
+   "names": {
+    "ja": [
+     "ニュートン",
+     "アイザック・ニュートン"
+    ],
+    "en": [
+     "Isaac Newton",
+     "Newton, Isaac"
+    ],
+    "de": [
+     "Isaac Newton"
+    ],
+    "fr": [
+     "Isaac Newton"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:principia"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:einstein",
+   "surname": "Einstein",
+   "given_names": "Albert",
+   "birth_year": 1879,
+   "death_year": 1955,
+   "names": {
+    "ja": [
+     "アインシュタイン",
+     "アルベルト・アインシュタイン"
+    ],
+    "en": [
+     "Albert Einstein"
+    ],
+    "de": [
+     "Albert Einstein"
+    ],
+    "fr": [
+     "Albert Einstein"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:soseki",
+   "surname": "Natsume",
+   "given_names": "Sōseki",
+   "birth_year": 1867,
+   "death_year": 1916,
+   "names": {
+    "ja": [
+     "夏目漱石",
+     "ナツメソセキ"
+    ],
+    "en": [
+     "Natsume Sōseki",
+     "Natsume Soseki",
+     "Soseki Natsume"
+    ],
+    "de": [
+     "Natsume Sōseki"
+    ],
+    "fr": [
+     "Natsume Sōseki"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:wagahai",
+    "work:kokoro"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:fukuzawa",
+   "surname": "Fukuzawa",
+   "given_names": "Yukichi",
+   "birth_year": 1835,
+   "death_year": 1901,
+   "names": {
+    "ja": [
+     "福沢諭吉",
+     "福澤諭吉",
+     "フクザワユキチ"
+    ],
+    "en": [
+     "Fukuzawa Yukichi",
+     "Yukichi Fukuzawa"
+    ],
+    "de": [
+     "Fukuzawa Yukichi"
+    ],
+    "fr": [
+     "Fukuzawa Yukichi"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:gakumon-no-susume"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:mueller-max",
+   "surname": "Müller",
+   "given_names": "Friedrich Max",
+   "birth_year": 1823,
+   "death_year": 1900,
+   "names": {
+    "ja": [
+     "マックス・ミュラー"
+    ],
+    "en": [
+     "Friedrich Max Müller",
+     "Max Müller",
+     "F. Max Müller"
+    ],
+    "de": [
+     "Friedrich Max Müller",
+     "Max Müller"
+    ],
+    "fr": [
+     "Max Müller"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:sprache-mueller"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:mueller-friedrich",
+   "surname": "Müller",
+   "given_names": "Friedrich",
+   "birth_year": null,
+   "death_year": null,
+   "names": {
+    "ja": [
+     "ミュラー"
+    ],
+    "en": [
+     "Friedrich Müller"
+    ],
+    "de": [
+     "Friedrich Müller"
+    ],
+    "fr": [
+     "Friedrich Müller"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:dampfmaschine-mueller"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:mueller-ernst",
+   "surname": "Müller",
+   "given_names": "Ernst",
+   "birth_year": null,
+   "death_year": null,
+   "names": {
+    "ja": [
+     "ミュラー"
+    ],
+    "en": [
+     "Ernst Müller"
+    ],
+    "de": [
+     "Ernst Müller"
+    ],
+    "fr": [
+     "Ernst Müller"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:wasserkraft-mueller"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:mueller-karl",
+   "surname": "Müller",
+   "given_names": "Karl",
+   "birth_year": null,
+   "death_year": null,
+   "names": {
+    "ja": [
+     "ミュラー"
+    ],
+    "en": [
+     "Karl Müller"
+    ],
+    "de": [
+     "Karl Müller"
+    ],
+    "fr": [
+     "Karl Müller"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:eisenbahn-geschichte"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:herschel",
+   "surname": "Herschel",
+   "given_names": "John Frederick William",
+   "birth_year": 1792,
+   "death_year": 1871,
+   "names": {
+    "ja": [
+     "ハーシェル"
+    ],
+    "en": [
+     "John F. W. Herschel",
+     "John Herschel"
+    ],
+    "de": [
+     "John Herschel"
+    ],
+    "fr": [
+     "John Herschel"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:outlines-astronomy"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:spencer",
+   "surname": "Spencer",
+   "given_names": "Herbert",
+   "birth_year": 1820,
+   "death_year": 1903,
+   "names": {
+    "ja": [
+     "スペンサー",
+     "ハーバート・スペンサー"
+    ],
+    "en": [
+     "Herbert Spencer",
+     "Spencer, Herbert"
+    ],
+    "de": [
+     "Herbert Spencer"
+    ],
+    "fr": [
+     "Herbert Spencer"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:evolution-spencer"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:nishida",
+   "surname": "Nishida",
+   "given_names": "Kitarō",
+   "birth_year": 1870,
+   "death_year": 1945,
+   "names": {
+    "ja": [
+     "西田幾多郎"
+    ],
+    "en": [
+     "Nishida Kitarō",
+     "Kitaro Nishida"
+    ],
+    "de": [
+     "Nishida Kitarō"
+    ],
+    "fr": [
+     "Nishida Kitarō"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:kant-studies-nishida"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:ishikawa",
+   "surname": "Ishikawa",
+   "given_names": "Chiyomatsu",
+   "birth_year": 1861,
+   "death_year": 1935,
+   "names": {
+    "ja": [
+     "石川千代松"
+    ],
+    "en": [
+     "Ishikawa Chiyomatsu"
+    ],
+    "de": [
+     "Ishikawa Chiyomatsu"
+    ],
+    "fr": [
+     "Ishikawa Chiyomatsu"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:animal-evolution-ishikawa"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  }
+ ],
+ "works": [
+  {
+   "work_id": "work:origin-of-species",
+   "original_title": "On the Origin of Species",
+   "original_language": "en",
+   "author_id": "author:darwin",
+   "year_first": 1859,
+   "translated_titles": {
+    "ja": [
+     "種の起源"
+    ],
+    "de": [
+     "Über die Entstehung der Arten",
+     "Die Entstehung der Arten"
+    ],
+    "fr": [
+     "De l'origine des espèces",
+     "L'Origine des espèces"
+    ]
+   },
+   "editions_note": "Six editions 1859-1872 in the author's lifetime; wording differs between editions.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:descent-of-man",
+   "original_title": "The Descent of Man, and Selection in Relation to Sex",
+   "original_language": "en",
+   "author_id": "author:darwin",
+   "year_first": 1871,
+   "translated_titles": {
+    "ja": [
+     "人類の起源"
+    ],
+    "de": [
+     "Die Abstammung des Menschen"
+    ],
+    "fr": [
+     "La Descendance de l'homme"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:kritik-reinen-vernunft",
+   "original_title": "Kritik der reinen Vernunft",
+   "original_language": "de",
+   "author_id": "author:kant",
+   "year_first": 1781,
+   "translated_titles": {
+    "ja": [
+     "純粋理性批判"
+    ],
+    "en": [
+     "Critique of Pure Reason"
+    ],
+    "fr": [
+     "Critique de la raison pure"
+    ]
+   },
+   "editions_note": "A edition 1781 and substantially revised B edition 1787 are distinct editions.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:das-kapital",
+   "original_title": "Das Kapital",
+   "original_language": "de",
+   "author_id": "author:marx",
+   "year_first": 1867,
+   "translated_titles": {
+    "ja": [
+     "資本論"
+    ],
+    "en": [
+     "Capital"
+    ],
+    "fr": [
+     "Le Capital"
+    ]
+   },
+   "editions_note": "Volume 1 first 1867; later volumes edited by Engels.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:protestant-ethic",
+   "original_title": "Die protestantische Ethik und der Geist des Kapitalismus",
+   "original_language": "de",
+   "author_id": "author:weber-max",
+   "year_first": 1905,
+   "translated_titles": {
+    "ja": [
+     "プロテスタンティズムの倫理と資本主義の精神"
+    ],
+    "en": [
+     "The Protestant Ethic and the Spirit of Capitalism"
+    ],
+    "fr": [
+     "L'Éthique protestante et l'esprit du capitalisme"
+    ]
+   },
+   "editions_note": "First published as journal articles 1904-1905; revised for the 1920 collected works.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:discours-methode",
+   "original_title": "Discours de la méthode",
+   "original_language": "fr",
+   "author_id": "author:descartes",
+   "year_first": 1637,
+   "translated_titles": {
+    "ja": [
+     "方法序説"
+    ],
+    "en": [
+     "Discourse on the Method"
+    ],
+    "de": [
+     "Abhandlung über die Methode"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:contrat-social",
+   "original_title": "Du contrat social",
+   "original_language": "fr",
+   "author_id": "author:rousseau",
+   "year_first": 1762,
+   "translated_titles": {
+    "ja": [
+     "社会契約論"
+    ],
+    "en": [
+     "The Social Contract",
+     "Of the Social Contract"
+    ],
+    "de": [
+     "Vom Gesellschaftsvertrag"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:principia",
+   "original_title": "Philosophiæ Naturalis Principia Mathematica",
+   "original_language": "la",
+   "author_id": "author:newton",
+   "year_first": 1687,
+   "translated_titles": {
+    "ja": [
+     "プリンキピア"
+    ],
+    "en": [
+     "Mathematical Principles of Natural Philosophy"
+    ],
+    "de": [
+     "Mathematische Prinzipien der Naturlehre"
+    ],
+    "fr": [
+     "Principes mathématiques de la philosophie naturelle"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:gakumon-no-susume",
+   "original_title": "學問のすゝめ",
+   "original_language": "ja",
+   "author_id": "author:fukuzawa",
+   "year_first": 1872,
+   "translated_titles": {
+    "en": [
+     "The Encouragement of Learning",
+     "An Encouragement of Learning"
+    ]
+   },
+   "editions_note": "Published in instalments 1872-1876.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:wagahai",
+   "original_title": "吾輩は猫である",
+   "original_language": "ja",
+   "author_id": "author:soseki",
+   "year_first": 1905,
+   "translated_titles": {
+    "en": [
+     "I Am a Cat"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:kokoro",
+   "original_title": "こころ",
+   "original_language": "ja",
+   "author_id": "author:soseki",
+   "year_first": 1914,
+   "translated_titles": {
+    "en": [
+     "Kokoro"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:zoonomia",
+   "original_title": "Zoonomia",
+   "original_language": "en",
+   "author_id": "author:darwin-erasmus",
+   "year_first": 1794,
+   "translated_titles": {
+    "de": [
+     "Zoonomie"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:sprache-mueller",
+   "original_title": "Lectures on the Science of Language",
+   "original_language": "en",
+   "author_id": "author:mueller-max",
+   "year_first": 1861,
+   "translated_titles": {
+    "de": [
+     "Vorlesungen über die Wissenschaft der Sprache"
+    ],
+    "ja": [
+     "言語学講義"
+    ]
+   },
+   "editions_note": "",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:evolution-spencer",
+   "original_title": "A System of Synthetic Philosophy",
+   "original_language": "en",
+   "author_id": "author:spencer",
+   "year_first": 1862,
+   "translated_titles": {
+    "ja": [
+     "進化原論"
+    ]
+   },
+   "editions_note": "The Japanese 進化原論 renders Spencer's evolution writings; not a work by Darwin.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:location-weber-alfred",
+   "original_title": "Theory of the Location of Industries",
+   "original_language": "en",
+   "author_id": "author:weber-alfred",
+   "year_first": 1909,
+   "translated_titles": {
+    "ja": [
+     "産業立地論"
+    ],
+    "de": [
+     "Über den Standort der Industrien"
+    ]
+   },
+   "editions_note": "English translation (1929) of the 1909 German original.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  }
+ ]
+}

@@ -95,8 +95,9 @@ def run_case(case: dict, corpus: list[dict], config: str) -> dict:
     variants, plan = get_variants(config, case["query"])
     hits: dict[str, int] = {}
     attempts = 0
+    routing = plan.get("routing", {}) if isinstance(plan, dict) else {}
     for variant in variants:
-        for lib in SEARCHABLE_LIBRARIES:
+        for lib in routing.get(variant, SEARCHABLE_LIBRARIES):
             attempts += 1
             for rec in corpus:
                 if rec["library_id"] != lib:
