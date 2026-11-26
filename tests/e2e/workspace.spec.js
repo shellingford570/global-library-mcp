@@ -8,6 +8,14 @@
 // hit the real server.
 const { test, expect } = require('@playwright/test');
 
+// The beforeAll hook performs several LIVE upstream calls
+// (IA search + IA page + KB search) to obtain genuine save
+// tokens; on a slow runner that exceeds the 30s default hook
+// timeout (observed in CI 2026-11-26, run 45816029731: two
+// journeys timed out in beforeAll while the identical push
+// run passed). Give the whole file real headroom.
+test.setTimeout(180_000);
+
 let workspaceEnabled = false;
 let realToken = null;
 let realFirstTitle = null;
