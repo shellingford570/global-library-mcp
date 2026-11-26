@@ -776,6 +776,17 @@ class WorkspaceApi:
         if not isinstance(query, str) or not query.strip() or len(query) > 2000:
             raise ApiError(400, "original_query is required (max 2000 chars)")
         entry["original_query"] = query
+        secret_keys = {"api_key", "apikey", "token", "password", "secret",
+                       "session", "authorization", "cookie"}
+
+        def no_secrets(node: Any) -> bool:
+            if isinstance(node, dict):
+                return all(k.lower() not in secret_keys and no_secrets(v)
+                           for k, v in node.items())
+            if isinstance(node, list):
+                return all(no_secrets(v) for v in node)
+            return True
+
         for key in ("search_parameters", "planned_variants", "executed_variants",
                     "searched_libraries", "skipped_libraries", "result_summary",
                     "http_stats"):
@@ -784,6 +795,8 @@ class WorkspaceApi:
                 continue
             if len(json.dumps(value, ensure_ascii=False)) > HISTORY_FIELD_CAP:
                 raise ApiError(413, f"{key} is too large for a history record")
+            if not no_secrets(value):
+                raise ApiError(400, f"{key} contains a secret-like field")
             entry[key] = value
         status = str(body.get("search_status") or "user_recorded")
         if status not in ("completed", "partial", "failed", "cancelled", "user_recorded"):

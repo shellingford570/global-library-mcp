@@ -761,7 +761,7 @@ class WorkspaceStore:
             return _row(self._conn.execute(
                 "SELECT * FROM rights_observations WHERE saved_document_id = ?"
                 " ORDER BY observed_at DESC, observation_id DESC LIMIT 1",
-                (saved_document_id,)))
+                (saved_document_id,)).fetchone())
 
     # -- delete previews -----------------------------------------------------
     def document_related_counts(self, saved_document_id: str) -> dict[str, int]:
@@ -1144,6 +1144,16 @@ class WorkspaceStore:
                 version = int(row["v"] or 0)
             if version < 1 or version > SCHEMA_VERSION:
                 problems.append(f"schema version {version} outside supported range")
+            if version >= 2:
+                # A database claiming v2 must actually carry
+                # the v2 columns; a v1-shaped file labelled v2
+                # would break after the swap.
+                for table, columns in (("saved_documents", {"citation_key"}),
+                                       ("search_history", {"provenance"})):
+                    if table in tables:
+                        actual = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+                        if not columns <= actual:
+                            problems.append(f"schema claims v{version} but {table} lacks v2 columns")
             if not problems:
                 for row in conn.execute(
                         "SELECT quotation_verification_status AS s, provenance AS p,"
