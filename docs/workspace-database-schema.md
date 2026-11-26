@@ -83,3 +83,19 @@ A trigram FTS5 index remains a future option.
 - `search_text` columns — the local-search index above.
 - `rights_observations.change_status` — separates the
   observation itself from its change classification.
+
+## Schema v2 (v1.0.0b7 final review)
+
+- `saved_documents.citation_key`: the document's stored,
+  stable citation key (backfilled on migration).
+- `search_history.provenance`: `server_recorded` or
+  `user_entered`.
+- `research_notes.saved_document_id` / `citation_id` now
+  use `ON DELETE SET NULL`: deleting a document or
+  citation unlinks the researcher's notes instead of
+  deleting them.
+- `synchronous = FULL` (durability over write latency).
+- Migration from v1 takes a `0600` pre-migration backup
+  (`<db>.pre-migration-v1.bak`) before changing anything;
+  databases from a future schema are refused, never
+  reinitialised.

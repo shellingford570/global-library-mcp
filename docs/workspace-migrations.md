@@ -29,3 +29,14 @@
 - The database file is created with mode 0600 and its
   directory with 0700.
 - Table-by-table detail: docs/workspace-database-schema.md.
+
+## v1 → v2 (v1.0.0b7 final review)
+
+Adds `saved_documents.citation_key` (with backfill),
+`search_history.provenance`, and rebuilds `research_notes`
+with `ON DELETE SET NULL` links. A 0600 pre-migration
+backup (`<db>.pre-migration-v1.bak`) is written before any
+change; a failed migration leaves the original database
+and its backup in place. Verified by the migration tests
+in `tests/test_b7_final_review.py` and the store smoke
+checks recorded in `docs/b7-final-review.md`.

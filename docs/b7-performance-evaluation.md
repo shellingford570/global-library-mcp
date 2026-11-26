@@ -32,3 +32,17 @@ budget machinery, not by the workspace store.
 Concurrency: the store serialises writes through one
 locked connection; a 12-thread concurrent-save test passes
 with no errors (tests/test_b7_workspace.py).
+
+## Final review re-measurement (2026-11-26)
+
+Re-measured with the extended `eval/b7_perf.py`
+(`eval/results-b7-perf-final.json`): record counts,
+excerpt sizes, DB+WAL+SHM disk usage, RSS, cold vs warm
+search, concurrent writes/exports, and a measured
+store-level restore (validate + swap + reopen). Large
+scale (20 projects / 10,000 documents / 30,000 citations /
+10,000 notes): DB 23,027,712 bytes, WAL 4,169,472 bytes,
+local search 6.41 ms warm / 10.52 ms cold, backup 89.6 ms,
+restore 337.2 ms, max RSS 154,720 KB. `synchronous = FULL`
+is now in effect; write costs remain ~1-2 ms. Details:
+`docs/b7-final-review.md` §5.

@@ -60,3 +60,21 @@ the CSRF token is readable by any script running on the
 legitimate page itself (same-origin trust); the database is
 not encrypted at rest — the backup/restore doc says so
 plainly.
+
+## Final review corrections (v1.0.0b7 release)
+
+- CSRF protection is session-bound, not a single
+  per-process token: each page load issues an HttpOnly
+  session cookie (SameSite=Strict, 12 h) and that session's
+  own CSRF token. Reads require the session; mutations
+  require the session token.
+- Host is parsed strictly and its port must equal the
+  server port; Origin is checked on all requests including
+  reads; `Origin: null` is rejected.
+- Threat model: a local single-user application. Defended:
+  cross-site request forgery and DNS rebinding against the
+  user's browser, malformed requests. NOT provided:
+  authentication/authorisation for public deployment.
+  Another process running as the same OS user can read the
+  database file; 0600 file permissions are the boundary.
+  The database is not encrypted.

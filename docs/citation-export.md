@@ -65,3 +65,22 @@ scope). The BibTeX parse check above used bibtexparser, an
 independent parser, not Zotero itself. Treat "Zotero
 compatible" as "standards-conformant export, parser-checked"
 until an isolated local Zotero import test is run.
+
+## Final review corrections (v1.0.0b7 release)
+
+- Citation keys are stored per document at save time and
+  never change when other documents are added or removed;
+  they survive JSON migration.
+- Unknown material types stay generic (BibTeX `@misc`,
+  RIS `GEN`, CSL `document`) instead of being forced to
+  book; newspapers use BibTeX misc / RIS NEWS / CSL
+  article-newspaper. Full dates are kept, pre-1500 years
+  are kept, and BCE/unparseable dates are never fabricated
+  into years. Organisation authors remain CSL literal.
+- BibTeX is parse-checked with an independent parser
+  (bibtexparser); RIS and CSL JSON are validated
+  structurally in tests. Zotero real-application import
+  has NOT been performed.
+- Markdown reports escape all stored text (headings,
+  links, images, fences, HTML) and re-gate excerpts
+  against current rights at export time.

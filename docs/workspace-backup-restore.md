@@ -35,3 +35,20 @@ is left untouched.
 - Restoring an older-schema backup migrates it forward on
   open; restoring is one-way (keep the pre-restore backup
   if you may need to go back).
+
+## Final review corrections (v1.0.0b7 release)
+
+- Backup creation is an explicit POST returning a backup
+  ID; GET download serves only an existing backup and never
+  creates one. At most 10 backups are kept; files are 0600.
+- Restore requires explicit confirmation and deep candidate
+  validation (schema, columns, foreign keys, vocabularies —
+  not `integrity_check` alone), quiesces the API during the
+  swap, takes a pre-restore backup, and rolls back
+  automatically on failure.
+- Trust boundary: a checksum computed from an uploaded file
+  does not prove authenticity. An uploaded database is
+  never auto-certified as one of your own backups, and
+  verification states inside a restored database are
+  historical records, still subject to current-rights
+  gating. See `docs/b7-final-review.md` §2.

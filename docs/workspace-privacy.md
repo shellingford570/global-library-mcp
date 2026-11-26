@@ -39,3 +39,16 @@ stays on the user's machine:
 - **Git safety.** Database files, WAL/SHM sidecars,
   backups and local exports are covered by `.gitignore`
   patterns so research data is not committed by accident.
+
+## Final review additions (v1.0.0b7 release)
+
+- Imported verification and rights information is stored as
+  historical claims (`imported_unverified`,
+  `imported_claim`), never as current verification.
+- Search history distinguishes `server_recorded` (from a
+  server-issued token) from `user_entered` entries;
+  secret-looking keys in manual history entries are
+  rejected, but the system cannot detect secrets a user
+  types into free-text note bodies and does not claim to.
+- Session and CSRF tokens never appear in exports,
+  backups or logs.

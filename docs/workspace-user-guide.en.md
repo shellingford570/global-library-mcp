@@ -59,3 +59,23 @@ otherwise the citation keeps its reference and hash
 without the text. The system does not guarantee that a
 quotation is legally permissible. MCP tools cannot access
 the workspace.
+
+## Final review changes (v1.0.0b7 release)
+
+- Backups are created explicitly with the create button
+  and downloaded or deleted from the list; merely opening
+  the tab never creates one.
+- Restore asks for confirmation, rejects malformed files,
+  and rolls back automatically if anything fails.
+- Deletes show how many citations/notes are affected.
+  Deleting a document or citation never deletes your
+  notes; their links are cleared instead.
+- Excerpts over 2,000 characters cannot be saved (they
+  are rejected, never silently truncated) - shorten the
+  selection.
+- If a document's rights later become more restrictive,
+  its excerpt text is withheld from views, local search
+  and exports automatically (the stored data is not
+  rewritten).
+- Project rename/description and archive toggling live in
+  the export tab.

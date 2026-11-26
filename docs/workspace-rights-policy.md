@@ -46,3 +46,27 @@ is reported as `rights_changed` and recorded in
 If access to an item is later restricted, stored data is
 not used to circumvent that restriction; exports re-apply
 the policy at export time and list omissions with reasons.
+
+## Final review corrections (v1.0.0b7 release)
+
+The external final review found the original classification
+fail-open and corrected it; `docs/b7-final-review.md` §2 is
+authoritative where this document and the code disagree.
+
+- Classification is structural and fail-closed: exact CC
+  URI/name combinations only; negation vetoes a grant;
+  unknown combinations are `unknown`, never CC BY.
+- NoC-NC does NOT permit excerpt storage (it is a
+  restriction statement, not a grant). CC BY-NC / BY-NC-SA
+  permit storage with a recorded non-commercial purpose
+  caveat; the system cannot verify the user's purpose and
+  does not guarantee legal compliance.
+- Metadata licences never license OCR text.
+- Display, local search and export re-gate excerpts against
+  the save-time AND the latest observed rights
+  (`effective_decision`); the stored row is never rewritten.
+- Another document's rights information can never be reused:
+  the document-token fallback requires identical library and
+  record identity.
+- The 2,000-character excerpt cap is a system limit, not a
+  legal quotation allowance.

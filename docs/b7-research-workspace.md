@@ -194,3 +194,18 @@ Recommendation: b8 starts with Gallica re-verification and
 Finna, then DPLA (its standardised rights statements also
 strengthen the workspace policy), keeping the
 one-adapter-at-a-time, live-verified discipline of b5.
+
+## Final review addendum (v1.0.0b7 release)
+
+The external final review of this candidate found and the
+release round fixed: cross-document citation binding,
+rights-token reuse, fail-open rights classification,
+import/restore policy bypasses, cross-project references,
+session binding, and honest re-verification states. One
+further real bug was found by the new regression suite
+(`latest_rights_observation` cursor misuse). The full
+record is `docs/b7-final-review.md`; where the candidate
+report above and the final review disagree, the final
+review is authoritative. Workspace Playwright journeys are
+now 5 (backup and project-edit journeys added), and CI has
+a dedicated workspace job.

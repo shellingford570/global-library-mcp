@@ -72,6 +72,7 @@ CSL JSON、Markdownレポート、移行用JSONプロジェクト形式、
 ワークスペースにはアクセスしません。詳細は
 docs/b7-research-workspace.md と
 docs/workspace-user-guide.md を参照してください。
+最終レビューで引用と資料の同一性検証、fail-closedな権利ポリシー、インポート・復元の安全性、セッション安全性を強化しました。詳細は docs/b7-final-review.md を参照してください。
 
 ## クイックスタート（ローカル）
 

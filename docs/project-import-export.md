@@ -54,3 +54,25 @@ between machines or environments. It is JSON:
   environment.
 - Import performs no network access: no URL in the file is
   fetched automatically.
+
+## Final review corrections (v1.0.0b7 release)
+
+- Import applies the storage policy and the 2,000-character
+  cap to citation AND comparison excerpts; omissions are
+  counted and reported.
+- All verification fields are downgraded on import
+  (status, page mapping, image status, `verified_at`);
+  claimed values and rights/verification observation
+  histories are preserved as history. Original timestamps
+  are kept; migration time is separate.
+- References are fully pre-validated with per-type ID maps:
+  an unknown reference rejects the whole file (single
+  transaction, nothing partially imported). Comparison
+  excerpts are remapped to the new document IDs.
+- Strict JSON: duplicate keys and non-finite numbers are
+  rejected. Limits: 64 MB, 250,000 JSON objects, 60,000
+  research records; oversized exports carry a warning
+  pointing to SQLite backup migration. Imported excerpts
+  are kept only when the file's stated rights pass the
+  same storage policy, and are recorded as unverified
+  claims (see `docs/b7-final-review.md` §2).

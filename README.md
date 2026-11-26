@@ -79,6 +79,7 @@ the rights category permits. MCP tools are unchanged and
 have no access to the workspace. See
 docs/b7-research-workspace.md and
 docs/workspace-user-guide.md.
+The final review hardened citation-to-document binding, the fail-closed rights policy, import/restore safety and session security; see docs/b7-final-review.md.
 
 ## Quick start (local)
 

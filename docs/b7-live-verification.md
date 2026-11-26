@@ -59,3 +59,16 @@ VM (1.5 shared vCPU, ~6 GB RAM), server bound to
 - Docker workspace mode was not verified; in Docker the
   workspace stays off by default and the search-only mode
   is unchanged.
+
+## Final review round (2026-11-26)
+
+Small live re-checks for the workspace save path (few
+calls): IA page `onoriginofspecie1859darw@20` returned
+library/record/page IDs with non-empty OCR and a verified
+mapping. NDL page `992954_10` returned `book_pid=992954`
+with NO `record_id` field, non-empty OCR and a verified
+mapping; its rights statement is the per-item Japanese
+notice, which classifies `unknown` (reference-only
+excerpts). The NDL payload shape is pinned in
+`tests/test_b7_scenarios.py` scenario D. BSB/LoC shapes
+were re-verified against fixtures only this round.

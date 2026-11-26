@@ -22,9 +22,33 @@
   (strict validation, id remapping, single-transaction
   rollback), online backup/restore with integrity checks.
 - Web security for the stateful mode: loopback-only bind
-  (non-loopback refused at startup), Host/Origin checks,
-  per-process CSRF token, body caps, no-store. MCP is
-  unchanged and has no workspace access.
+  (non-loopback refused at startup), strict Host parsing
+  with port match, Origin checks on reads and writes,
+  session-bound CSRF tokens (per-page-load session cookie),
+  body caps, no-store. MCP is unchanged and has no
+  workspace access.
+- Final review hardening (see docs/b7-final-review.md):
+  citations bind to the exact document of their OCR
+  snapshot (cross-document/cross-library/edition reuse
+  rejected; identity from payload fields, never page-id
+  splitting); rights classification is fail-closed
+  (structural CC parsing, negation veto, no CC BY
+  fallback, NoC-NC no longer excerpt-permitted) and the
+  latest rights observation re-gates views, search and
+  exports; oversize excerpts are rejected instead of
+  truncated so text, offsets and SHA-256 always agree;
+  re-verification reports an honest per-check ledger;
+  JSON import applies the storage policy, downgrades all
+  verification fields and preserves rights/verification
+  histories as claims; restore requires confirmation,
+  deep candidate validation, quiesce and automatic
+  rollback; backups are POST-created by ID (GET never
+  creates); cross-project references are rejected;
+  notes survive document/citation deletion (SET NULL);
+  synchronous=FULL; stored stable citation keys; per-format
+  material types and full dates in exports; hardened
+  Markdown reports; server-vouched search history;
+  real-HTTP integration tests and a workspace CI job.
 - Fixes: /api/search's structured options were parsed and
   never used — stage-1 now applies them via the Quick path
   and the UI shares one parameter builder; /api/materials
@@ -33,8 +57,9 @@
   NameError masked as a 502 (hidden by the mocked
   Playwright route) — fixed with a shared parser and
   verified live.
-- Suites: pytest 404, Playwright 17 + 3 workspace journeys.
-  Paid API calls: 0.
+- Suites: pytest 442, Playwright 17 (search-only) + 5
+  workspace journeys (workspace-enabled). Paid API
+  calls: 0.
 
 ## 1.0.0b6 — Multilingual Research & Intelligent Discovery
 
