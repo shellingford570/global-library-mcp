@@ -934,6 +934,7 @@ class LibraryService:
         pages_per_document: int = 3,
         terms: list[str] | None = None,
         mode: str = "standard",
+        discovery_plan: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         # b3.1: the HTTP budget context is held by use_budget's
         # try/finally, so it is restored even when the pipeline
@@ -948,7 +949,8 @@ class LibraryService:
         )
         with use_budget(_budget):
             return await self._collect_evidence_impl(
-                query, libraries, limit, max_documents, pages_per_document, terms, _mode, _budget
+                query, libraries, limit, max_documents, pages_per_document, terms, _mode, _budget,
+                discovery_plan=discovery_plan,
             )
 
     async def _collect_evidence_impl(
@@ -961,6 +963,7 @@ class LibraryService:
         terms: list[str] | None = None,
         mode: str = "standard",
         _budget: Any = None,
+        discovery_plan: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Collect page-level OCR evidence for a question.
 
@@ -1031,12 +1034,39 @@ class LibraryService:
                 if _lv not in variants and _lv not in _latin_extra:
                     _latin_extra.append(_lv)
         variants = variants + _latin_extra[:3]
+        # b6 (sections 15-16): multilingual discovery variants
+        # from the QueryExpansionEngine, merged and deduplicated.
+        # Discovery only: admission logic never sees these. When
+        # the user did not pin the library set, variants are
+        # routed by language; user-specified libraries are always
+        # respected in full. ID-only libraries (bsb, e-rara) are
+        # never keyword-searched by routing either - they are not
+        # in the routing table.
+        _variant_libraries: dict[str, list[str]] = {}
+        _matched_variants: dict[tuple[str, str], str] = {}
+        if discovery_plan:
+            _routing = {
+                "ja": ["ndl", "internet-archive"],
+                "en": ["loc", "internet-archive", "europeana"],
+                "de": ["ddb", "internet-archive", "europeana"],
+                "fr": ["gallica", "internet-archive", "europeana"],
+            }
+            _ceiling = 20 if _mode == "deep" else 14
+            for _v in discovery_plan.get("variants", []):
+                _text = _v.get("text") or ""
+                if _text and _text not in variants and len(variants) < _ceiling:
+                    variants.append(_text)
+                    if not libraries:
+                        _routed = _routing.get(_v.get("language") or "")
+                        if _routed:
+                            _variant_libraries[_text] = _routed
         library_error_counts: dict[str, int] = {}
         active_libraries: list[str] | None = list(libraries) if libraries else None
         _early_stop_note: dict[str, Any] | None = None
         _search_timings: dict[str, Any] = {}
         for candidate_query in variants:
-            cache_key = (candidate_query, tuple(sorted(active_libraries or ())), limit)
+            _dispatch = _variant_libraries.get(candidate_query, active_libraries)
+            cache_key = (candidate_query, tuple(sorted(_dispatch or ())), limit)
             # b3 (Section 10): the bibliographic cache now has a TTL
             # (300s) — bibliographic records and their rights/access
             # status can change; the page/OCR cache stays separate.
@@ -1049,7 +1079,7 @@ class LibraryService:
                 self.cache_stats["search_hits"] += 1
             else:
                 self.cache_stats["search_misses"] += 1
-                resp = await self.search(candidate_query, active_libraries, limit)
+                resp = await self.search(candidate_query, _dispatch, limit)
                 if resp.timings:
                     _search_timings.update(resp.timings)
                 # b3.1: partial failures are cached only briefly
@@ -1075,6 +1105,8 @@ class LibraryService:
             for item in resp.results:
                 key = (item.library_id, item.record_id)
                 query_hits[key] = query_hits.get(key, 0) + 1
+                if discovery_plan and key not in _matched_variants:
+                    _matched_variants[key] = candidate_query
                 if key not in seen_records:
                     seen_records.add(key)
                     merged.append(item)
@@ -1265,6 +1297,10 @@ class LibraryService:
             "timings": _timings,
             "http_stats": _budget.stats() if _budget is not None else {},
             "data_notice": DATA_NOTICE,
+            "discovery": ({"variants_used": variants,
+                           "matched_variants": {f"{k[0]}|{k[1]}": v for k, v in _matched_variants.items()},
+                           "routed_variants": {k: v for k, v in _variant_libraries.items()}}
+                          if discovery_plan else None),
         }
 
     def _union_promote(self, doc_states: dict[int, dict[str, Any]], analysis: Any) -> tuple[list[Any], set[str]]:
@@ -1517,9 +1553,31 @@ class LibraryService:
                         state.setdefault("partial_objects", []).append(evidence)
         return out
 
+    async def newspaper_issues(self, lccn: str) -> dict[str, Any]:
+        """Chronicling America issue discovery for a newspaper
+        LCCN (b6, section 18): title -> issues, each issue id
+        ready for the strict get_document/page pipeline."""
+        from global_library_mcp.http import HttpBudget, use_budget
+
+        adapter = self.adapters.get("loc")
+        if adapter is None or not hasattr(adapter, "find_ca_issues"):
+            return {"lccn": lccn, "error": "LoC adapter unavailable", "issues": []}
+        with use_budget(HttpBudget(max_requests=10, per_host_max=10)):
+            return await adapter.find_ca_issues(lccn)
+
     async def research_materials(
         self, query: str, libraries: list[str] | None = None, limit: int = 10,
         mode: str = "standard",
+        languages: list[str] | None = None,
+        expand_multilingual: bool = True,
+        expand_historical: bool = True,
+        author: str | None = None,
+        title: str | None = None,
+        year_from: int | None = None,
+        year_to: int | None = None,
+        material_types: list[str] | None = None,
+        ocr_required: bool = False,
+        include_unknown_year: bool = True,
     ) -> dict[str, Any]:
         """Research-materials mode (Phase 8-D).
 
@@ -1543,7 +1601,25 @@ class LibraryService:
             with use_budget(_quick_budget):
                 return await self._research_materials_quick(query, libraries, limit, analyze_question, _quick_budget)
 
-        collected = await self.collect_evidence(query, libraries, limit, mode=mode)
+        # b6 (sections 5/15/16): build the discovery plan. The
+        # plan widens bibliographic discovery only; the evidence
+        # pipeline and its admission rules are untouched.
+        _discovery_plan: dict[str, Any] | None = None
+        _discovery_analysis = None
+        if expand_multilingual or expand_historical:
+            from global_library_mcp.discovery import analyze_discovery_query
+            from global_library_mcp.expansion import QueryExpansionEngine
+
+            _hint = " ".join(part for part in (query, author or "", title or "") if part)
+            _discovery_analysis = analyze_discovery_query(
+                _hint, requested_document_languages=languages)
+            _discovery_plan = QueryExpansionEngine().expand(
+                _discovery_analysis, mode=mode,
+                expand_multilingual=expand_multilingual,
+                expand_historical=expand_historical,
+                target_languages=languages)
+        collected = await self.collect_evidence(query, libraries, limit, mode=mode,
+                                                 discovery_plan=_discovery_plan)
         biblio: dict[tuple[str, str], dict[str, Any]] = {}
         for item in collected["search"]["results"]:
             biblio[(item["library_id"], item["record_id"])] = item
@@ -1623,8 +1699,116 @@ class LibraryService:
                 "not_admitted_reasons": ["検索予算内でページを取得しなかった"],
                 "relevance": None,
             })
+        # b6 post-processing (sections 12/13/17/19/20/21):
+        # work/author candidate links with refusals, DDB->BSB
+        # handoff candidates, discovery reasons, local filters
+        # and duplicate grouping. None of this merges records or
+        # touches admission states.
+        _filters_report: dict[str, Any] = {"applied_local": [], "metadata_missing": {}, "unsupported": []}
+        if _discovery_plan is not None:
+            from types import SimpleNamespace as _NS
+
+            from global_library_mcp import resolution as _resolution
+            from global_library_mcp.handoff import extract_bsb_candidate as _bsb_extract
+            from global_library_mcp.ranking import score_item as _score_item
+
+            _matched = (collected.get("discovery") or {}).get("matched_variants", {})
+            for _m in materials:
+                _key = (_m["library_id"], _m["record_id"])
+                _b = biblio.get(_key, {})
+                _wl = _resolution.resolve_work(_m.get("title") or "", _m.get("author") or "")
+                if _wl["status"] != "no_match":
+                    _m["work_link"] = _wl
+                _al = _resolution.resolve_author(_m.get("author") or "")
+                if _al["status"] != "no_match":
+                    _m["author_link"] = _al
+                _mv = _matched.get(f"{_key[0]}|{_key[1]}")
+                if _mv:
+                    _m["matched_variant"] = _mv
+                _ns = _NS(title=_m.get("title"), author=_m.get("author"), subjects=[],
+                          year=int(_b["date"][:4]) if str(_b.get("date") or "")[:4].isdigit() else None,
+                          language=_b.get("language"), ocr=_m["access_state"]["ocr_fetched"],
+                          material_type=None, library_id=_key[0], record_id=_key[1])
+                _score, _reasons = _score_item(_discovery_analysis, _ns, {})
+                if _reasons:
+                    _m["discovery_reasons"] = _reasons
+                if _key[0] == "ddb":
+                    _cand = _bsb_extract(_b.get("raw") or {})
+                    if _cand["status"] != "no_candidate":
+                        _m["bsb_handoff"] = {**_cand, "verified": False,
+                                             "note": "candidate only; open the BSB document to run the strict identity checks"}
+        # Local filters over the fetched candidates only -
+        # never represented as a library-wide search.
+        def _year_of(_m: dict[str, Any]) -> int | None:
+            _d = str(_m.get("date") or "")
+            return int(_d[:4]) if _d[:4].isdigit() else None
+
+        _before = len(materials)
+        if year_from is not None or year_to is not None:
+            _filters_report["applied_local"].append("publication_year_range")
+            _kept = []
+            _missing = 0
+            for _m in materials:
+                _y = _year_of(_m)
+                if _y is None:
+                    _missing += 1
+                    if include_unknown_year:
+                        _kept.append(_m)
+                elif (year_from is None or _y >= year_from) and (year_to is None or _y <= year_to):
+                    _kept.append(_m)
+            materials = _kept
+            _filters_report["metadata_missing"]["publication_year"] = _missing
+        if languages:
+            _filters_report["applied_local"].append("document_language")
+            _kept = []
+            _missing = 0
+            for _m in materials:
+                _lang = biblio.get((_m["library_id"], _m["record_id"]), {}).get("language")
+                if not _lang:
+                    _missing += 1
+                    _kept.append(_m)
+                elif _lang in languages:
+                    _kept.append(_m)
+            materials = _kept
+            _filters_report["metadata_missing"]["document_language"] = _missing
+        if ocr_required:
+            _filters_report["applied_local"].append("ocr_required")
+            _capable = {"ndl", "internet-archive", "bsb", "loc", "gallica"}
+            materials = [_m for _m in materials
+                         if _m["library_id"] in _capable or _m["access_state"]["ocr_fetched"]]
+        if material_types:
+            _filters_report["unsupported"].append(
+                "material_types: upstream metadata has no consistent type field across libraries; not applied")
+        _filters_report["candidates_before"] = _before
+        _filters_report["candidates_after"] = len(materials)
+        # Duplicate grouping by linked work: presentation
+        # only, records are never merged.
+        _groups: dict[str, list[dict[str, Any]]] = {}
+        for _m in materials:
+            _wid = (_m.get("work_link") or {}).get("work_id")
+            if _wid:
+                _groups.setdefault(_wid, []).append(_m)
+        for _wid, _members in _groups.items():
+            if len(_members) < 2:
+                continue
+            _sigs = {(str(_x.get("date") or "")[:4],
+                      biblio.get((_x["library_id"], _x["record_id"]), {}).get("language")) for _x in _members}
+            _relation = ("same_edition_candidate" if len(_sigs) == 1
+                         else "same_work_different_edition_or_translation")
+            for _x in _members:
+                _x["duplicate_group"] = {
+                    "group_id": f"work:{_wid}", "relation": _relation,
+                    "members": [f"{_y['library_id']}|{_y['record_id']}" for _y in _members],
+                }
         return {
             "mode": mode,
+            "discovery": ({"query_language": _discovery_plan["query_language"],
+                           "variants": _discovery_plan["variants"],
+                           "skipped": _discovery_plan["skipped"],
+                           "ambiguous_authors": [a["surname"] for a in _discovery_analysis.ambiguous_authors],
+                           "budget": _discovery_plan["budget"]}
+                          if _discovery_plan is not None else None),
+            "filters": _filters_report,
             "note": "関連候補は質問への答えを証明する資料ではありません。抜粋と原本画像を確認し、ご自身で判断してください。",
             "query": query,
             "analysis": collected["analysis"],
@@ -1776,8 +1960,17 @@ class LibraryService:
         for aspect in aspect_list:
             texts = per_aspect_texts[aspect]
             comparison = compare_aspect(aspect, texts) if len(texts) >= 2 else {"aspect": aspect, "shared_terms": [], "unique_terms": {}}
+            from global_library_mcp.compare import concept_overlap as _concept_overlap
+
+            _overlap = _concept_overlap(texts) if len(texts) >= 2 else {
+                "dictionary_concept_overlap": [], "per_document_concepts": {},
+                "possible_related_concepts": [], "semantic_comparison": "not_checked",
+                "note": "fewer than two documents with text"}
             rows.append({
                 "aspect": aspect,
+                "dictionary_concept_overlap": _overlap["dictionary_concept_overlap"],
+                "possible_related_concepts": _overlap["possible_related_concepts"],
+                "semantic_comparison": "not_checked",
                 "documents": {
                     entry["record_id"]: {
                         "found": any(p["aspect"] == aspect for p in entry["pages"]),

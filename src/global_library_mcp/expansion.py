@@ -107,9 +107,6 @@ class QueryExpansionEngine:
             key = norm(text)
             if not text or key == norm(query) or key in seen:
                 return
-            if len(variants) >= cap:
-                skipped.append({"candidate": text, "reason": "variant cap reached"})
-                return
             seen.add(key)
             variants.append({"text": text, "language": language, "kind": kind,
                              "relation": relation, "reason": reason, "source": source,
@@ -195,7 +192,14 @@ class QueryExpansionEngine:
             if split:
                 add(split, "de", "compound_split", "spelling_variant",
                     "German compound split (search-only)", "expansion:german", 4)
+        # The cap applies AFTER priority ordering, so a flood of
+        # low-priority candidates can never crowd out exact
+        # titles, author forms or historical spellings.
         variants.sort(key=lambda v: v["priority"])
+        overflow = variants[cap:]
+        variants = variants[:cap]
+        for extra in overflow:
+            skipped.append({"candidate": extra["text"], "reason": "variant cap reached"})
         return {
             "original_query": query,
             "normalized_query": norm(query),
