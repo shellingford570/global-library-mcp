@@ -12,9 +12,12 @@
 実Webサーバー＋実WorkspaceApi＋実LibraryService＋実アダプター
 ＋実SQLite、上流のみフィクスチャ）で新規機関ジャーニーを固定：
 
-- KB/Delpher検索→資料保存→ページ取得（verified_mapping=true）
-  →引用保存。KBレコードに権利表明がないため、抜粋本文は保存
-  されず参照（ハッシュ＋オフセット）のみが残ることを、画面表示
+- KB/Delpher検索→資料保存→ページ取得→引用保存。
+  **最終レビューで変化**：KBの `verified_mapping` は常時
+  false（タイトル対応のみでは同一性を認定しない）ため、
+  引用は原典未検証の参照として保存される。KBレコードに
+  権利表明がないため、抜粋本文は保存されず参照
+  （ハッシュ＋オフセット）のみが残ることを、画面表示
   とDB行の両方で確認。
 - Finna資料保存（横断プラットフォームのレコードも版を混同せず
   そのまま保存）。
@@ -58,6 +61,25 @@ KBジャーニーはCIでも実トークンが得られれば実行され、得�
   （search_catalog で Finna を引くテストで確認）。
 - レジストリは31件。`list_libraries`／`get_library_capabilities`
   で新規機関とその検証状態（DPLAは authentication_required、
-  KBのページOCRは live_page_verified 等）が返る。
+  KBのページOCRは live_article_ocr_fetched、ページ対応と
+  原本画像は unverified）が返る。
 - 研究ノートや保存データは外部MCPへ公開していない（従来どおり
   MCPはワークスペースへアクセスしない）。
+
+## 最終レビュー：シナリオA〜Hの対応（2026-11-26、§24）
+
+実HTTP統合（上流のみフィクスチャ）での対応付け：
+
+| シナリオ | 実施場所 | 結果 |
+|---|---|---|
+| A Finna | シナリオ1（`eval/b8_scenarios.py`） | 検索・詳細・提供機関・保存・BibTeX 全段階成功（フィクスチャ） |
+| B Digi | シナリオ2 | 厳格化後の基準でも整形式ALTOは検証成功。引用は権利のため参照のみ |
+| C KB | 必須Playwright KBジャーニー＋`tests/test_b8_workspace.py` | 記事検索・記事OCR・記事単位の引用（参照のみ）。原本画像は未確認と表示 |
+| D Japan Search | `tests/test_b8_stage4.py`＋候補段階の実地確認 | 検索・詳細・提供機関・権利・NDL引き継ぎ候補（候補は同一性確認と分離） |
+| E 同一record_id | シナリオ8＋Stage 0回帰 | 混同なし |
+| F 権利変更 | `tests/test_b7_final_review.py`／`test_b8_final_review.py` 実HTTP | 保存・再保存・表示・検索・出力を拒否 |
+| G 未確認バックアップ | `tests/test_b8_final_review.py` 実HTTP | 復元後は全観測が restored_claim、再検証まで原文差し止め |
+| H 復元失敗 | 同上（降格失敗の注入）＋検証失敗テスト | 元データを回復し読み書き継続 |
+
+フィクスチャ結果と実地結果は混同しない。実地の範囲は
+`docs/b8-live-verification.md` のとおり。

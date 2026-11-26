@@ -52,3 +52,18 @@ is left untouched.
   verification states inside a restored database are
   historical records, still subject to current-rights
   gating. See `docs/b7-final-review.md` §2.
+
+## 最終レビュー追記（2026-11-26）
+
+- 復元開始は原子的な所有権確保（`acquire_restore()`）で
+  排他化され、同時復元は 409 で拒否される。
+- 信頼状態の降格は DB 置換後のロールバック範囲**内**で
+  実行される。降格・初期化・整合性検査のいずれが失敗
+  しても、回復用バックアップから元DBへ自動復帰する。
+- 復元された DB 内の過去の権利観測・検証結果は真正性を
+  証明できないため、全件 `restored_claim` に降格される
+  （元の source は履歴として保持）。
+- **バックアップファイル自体は保存済み研究データを含む
+  機密性の高いファイル**であり、権利フィルター済み
+  エクスポートとは異なる。共有・保管は利用者の責任で
+  慎重に行うこと。

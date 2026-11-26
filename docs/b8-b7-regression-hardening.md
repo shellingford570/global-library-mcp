@@ -137,3 +137,19 @@ restorable and are migrated on open.
 Evidence admission and the other frozen conditions (b8 brief
 section 22) are untouched. MCP tool profiles are unchanged.
 The b7 tag and Release are unchanged.
+
+## 最終レビューでの追加硬化（2026-11-26）
+
+詳細は `docs/b8-final-review.md` §3・§4。Stage 0 時点の
+信頼モデルには次の迂回が残っていたため追加で修正した。
+
+- 観測源の信頼を閉集合に限定（任意の source 文字列では
+  信頼を確立できない）。未来時刻・未知状態は fail-closed。
+- 復元時は権利観測を**全件** `restored_claim` に降格
+  （スキーマ v4 で trust 列を導入）。
+- Markdown を含む全出力経路を共通の `trusted_decision()`
+  に統一。ローカル検索からも差し止め本文は漏れない。
+- b7（v3未満）DB の資料は由来を証明できないため全件
+  `imported_claim`（データは保持、再検証で回復）。
+- 復元は `acquire_restore()` で原子的に排他化し、信頼
+  降格を含む全段階をロールバック範囲内に入れた。

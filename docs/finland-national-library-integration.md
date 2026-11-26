@@ -33,13 +33,23 @@ digi.kansalliskirjasto.fi」、Digi利用条件へのリンク付き）に基づ
   ページアクセスを拒否する。
 - `get_page_text(<binding>@<page>)`：ALTOを取得し、共有モジュールで
   テキスト化。ページ同一性はALTO内部信号でのみ認定する
-  （§10：URL構築可能性やHTTP 200では認定しない）：
-  - ALTO Page の `PHYSICAL_IMG_NR` が要求ページと一致、または
-  - ALTOのソース画像 fileName がバインディングIDとページを
-    区切りトークンとして含む。
+  （§10：URL構築可能性やHTTP 200では認定しない）。
+  **最終レビューで厳格化**：候補段階の「`PHYSICAL_IMG_NR` の
+  一致、または fileName への含有」という OR 条件は、別資料の
+  同じページ番号のALTOを誤認し得たため廃止した。現在は
+  単一Pageであること、fileName にバインディングIDが完全な
+  区切りトークンとして含まれ外国のバインディングトークンが
+  無いこと、ページ信号に矛盾が無いこと、kk:checksum の
+  ページ集合があればその集合に属すること、の全てを要求する。
+  資料同一性とページ同一性は別々に保持する
+  （`document_identity_confirmed`／`page_identity_confirmed`）。
   信号が無い／矛盾する場合は本文は研究材料として返すが
   `verified_mapping=false` とする。範囲外ページにエラー画像を返す
   Digiの挙動への対策でもある。
+  ページ数は kk:checksum のページ**集合の要素数**であり、
+  最大ページ番号からの連番推定はしない。ジャンル信号が
+  無い／矛盾する場合は landing_url を作らない（新聞への
+  推測フォールバックは削除した）。
 - `verify_original`：同じページ結果を再利用し、画像URLの応答が
   実画像（マジックバイト／Content-Type）であることを確認する。
   HTMLのアクセスページは原本ではない。

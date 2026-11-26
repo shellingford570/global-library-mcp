@@ -46,3 +46,16 @@
   到達できず、フィクスチャ上の引き継ぎ連結（Finna詳細→候補抽出→
   Digi書誌→ページ検証）のみ確認済。実地の引き継ぎ成功は未達成として
   `docs/b8-live-verification.md` に記録する。
+
+## 最終レビュー追記（2026-11-26、§7）
+
+- Finna→Digi：候補の成立には構造化されたNLF提供機関証拠
+  （`data_source="kansalliskirjasto"` 等）を必須とした。
+  証拠が無ければ候補表示のみ
+  （`candidate_provider_unverified`）で、厳密な引き継ぎ
+  成功とはしない。同一 binding へのジャンル矛盾は拒否
+  （`refused_ambiguous`）。URL資格情報・異常ポート・
+  異常パスは拒否する。
+- Japan Search→NDL：構造的な識別子抽出と資料同一性の
+  確認を分離し、候補は `identity_confirmed: False` を
+  明示する。候補抽出は同一性確認ではない。

@@ -67,3 +67,17 @@ live verifications.
 - Bulk harvesting (OAI sets, IIIF collections) - discovery is
   query-driven and budgeted by design.
 - Any provider whose terms prohibit the intended use.
+
+## b8 final review update (2026-11-26)
+
+KB / Delpher is implemented and live-verified for bibliographic
+search and article-OCR fetching. Under the strict identity
+criteria adopted in the final review, its page mapping and
+original image are **unverified** (the OCR payload carries no
+article identifier; title correspondence is not identity), and
+its OCR unit is the article, not the physical page. Finna and
+NLF Digi remain fixture-verified with live verification
+unachieved from the development network (Finna 403; Digi OAI
+reachable at protocol level, real-binding verification not
+achieved). DPLA remains authentication_required. Next
+milestone: b9 External MCP Readiness (design only in b8).

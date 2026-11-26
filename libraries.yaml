@@ -438,7 +438,7 @@ libraries:
     existing_mcp: unknown
     implementation_status: implemented
     capability_status: {catalog_search: unsupported, document_by_id: fixture_verified, in_document_search: bounded, page_ocr: fixture_verified, original_image: fixture_verified, iiif: unsupported, page_mapping: fixture_verified, rights: fixture_verified}
-    verification: "b8 (2026-11-26): adapter implemented from the documented Digi interfaces (binding sub-components: ALTO page XML, page text, page image; OAI-PMH qdc_finna identity, genre recovered from the record's own file links, page identity from ALTO PHYSICAL_IMG_NR / source fileName). digi.kansalliskirjasto.fi was unreachable from this development network (empty reply via the proxy), so live verification is NOT achieved; fixture-verified only. Discovery runs through Finna; this adapter is ID-addressed via the validated Finna -> Digi handoff."
+    verification: "b8 (2026-11-26): adapter implemented from the documented Digi interfaces (binding sub-components: ALTO page XML, page text, page image; OAI-PMH qdc_finna identity, genre recovered from the record's own file links). FINAL REVIEW (2026-11-26): page identity was hardened - PHYSICAL_IMG_NR alone no longer verifies anything; verified_mapping now requires a single-Page ALTO whose fileName carries the binding id as a full delimited token with no foreign binding token, a non-contradictory page signal, and membership in the OAI kk:checksum page set when present. Genre is never guessed (unknown/ambiguous leaves landing_url unset). digi.kansalliskirjasto.fi was unreachable from this development network (empty reply via the proxy), so live verification is NOT achieved; fixture-verified only. Discovery runs through Finna; this adapter is ID-addressed via the validated Finna -> Digi handoff."
     last_verified: "2026-11-26"
   - id: dpla
     name: "Digital Public Library of America (DPLA)"
@@ -473,8 +473,8 @@ libraries:
     rate_limits: unknown
     existing_mcp: unknown
     implementation_status: implemented
-    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_catalog_verified, in_document_search: bounded, page_ocr: live_page_verified, original_image: fixture_verified, iiif: unsupported, page_mapping: live_page_verified, rights: fixture_verified}
-    verification: "b8 (2026-11-26): live through the adapter from this network - SRU search returned real records (waterkracht, 32487 total), the resolver OCR for ddd:010286065:mpeg21:a0141 was fetched non-empty (711 chars) with verified_mapping true (OCR title equals the SRU record title selected by exact identifier). The resolver :image suffix answered 404 for that article URN, so original-image verification is fixture-only; no page-URN image route was guessed."
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_catalog_verified, in_document_search: bounded, page_ocr: live_article_ocr_fetched, original_image: unverified, iiif: unsupported, page_mapping: unverified, rights: fixture_verified}
+    verification: "b8 (2026-11-26): live through the adapter from this network - SRU search returned real records (waterkracht, 32487 total) and the resolver OCR for article ddd:010286065:mpeg21:a0141 was fetched non-empty (711 chars). FINAL REVIEW RECLASSIFICATION (2026-11-26): the OCR payload carries no article identifier, so the only correspondence signal is that the OCR title equals the SRU record title selected by exact URN - title correspondence, NOT strict article or page identity. verified_mapping is therefore always false for KB, page_mapping is unverified, and KB pages never enter verified evidence. The OCR unit is the ARTICLE, not the physical page. The resolver :image suffix answered 404 for that article URN; original-image reachability and identity are unverified and no page-URN image route was guessed."
     last_verified: "2026-11-26"
   - id: bne
     name: "Biblioteca Nacional de España (datos.bne.es)"

@@ -34,10 +34,10 @@ and [docs/implementation-status.md](docs/implementation-status.md).
 | Gallica / BnF | unverified (upstream 403 from this network) | yes | yes | yes (IIIF) |
 | DDB | implemented | yes (aggregator) | no | links |
 | Europeana | implemented | yes (aggregator) | no | links |
-| KB / Delpher (Netherlands) | verified (search + page OCR, live 2026-11-26) | yes (SRU) | yes (resolver OCR) | unverified (resolver :image answered 404 live) |
+| KB / Delpher (Netherlands) | verified (search + article OCR fetch, live 2026-11-26; page identity unverified - OCR is article-level, title correspondence only) | yes (SRU) | article OCR (resolver) | unverified (resolver :image answered 404 live) |
 | Japan Search (NDL, Japan) | verified (search + detail, live 2026-11-26) | yes (SPARQL) | no (aggregator) | no |
 | Finna (Finland) | implemented, unverified from this network (upstream bot challenge 403) | yes | no (platform) | no |
-| National Library of Finland (Digi) | implemented, unverified (host unreachable from this network) | by ID (via Finna handoff) | yes (ALTO) | yes |
+| National Library of Finland (Digi) | implemented, live verification not achieved (OAI endpoint answered at protocol level in the final-review re-check; real-binding verification outstanding) | by ID (via Finna handoff) | yes (ALTO) | yes |
 | DPLA (USA) | implemented, authentication required (no key issued) | yes (with API key) | no (aggregator) | no |
 | 16 further institutions | research | - | - | - |
 
@@ -97,7 +97,9 @@ Library of Finland's Digi service (OAI-PMH identity, ALTO
 page OCR with structural page identity, reached through a
 validated Finna -> Digi handoff), KB / Delpher (Dutch
 historical newspapers via SRU + resolver OCR - search and
-page OCR live-verified), Japan Search (SPARQL search and
+article-OCR fetching live-verified; the OCR unit is the
+article, and page identity is not strictly verified),
+Japan Search (SPARQL search and
 JSON-LD detail, with access restrictions surfaced verbatim
 and NDL handoff candidates), and DPLA in an
 authentication-pending state (no API key was issued; calls

@@ -11,7 +11,8 @@
   an explicit purpose confirmation; cross-library comparison
   identity is the composite (library_id, record_id) everywhere;
   workspace restore is quiesced and reports its trust
-  downgrade; schema v3 (pre-migration backups kept).
+  downgrade; schema v3 (pre-migration backups kept). The
+  final review hardened this further (schema v4, below).
 - New opt-in adapters (default searches unchanged, zero new
   traffic): Finna (Finland's discovery platform; provider vs
   holding institution vs Finna record kept distinct; metadata
@@ -20,8 +21,11 @@
   structural page identity, original-image verification,
   bounded in-document search; reached via a validated
   Finna -> Digi handoff), KB / Delpher (SRU newspaper search
-  + resolver OCR with title-correspondence page identity;
-  live-verified for search and page OCR), Japan Search
+  + resolver ARTICLE OCR; live-verified for search and
+  article-OCR fetching - the final review reclassified the
+  earlier "page identity" claim: the OCR payload carries no
+  article identifier, so title correspondence is not
+  identity and verified_mapping is always false), Japan Search
   (fixed-template SPARQL search + JSON-LD detail; accessInfo
   licence and access restrictions surfaced; NDL pid handoff
   candidates; live-verified for search and detail), DPLA
@@ -44,6 +48,35 @@
   server network) and Digi (unreachable) are fixture-verified
   only; Gallica remains 403. No paid API calls, no keys
   issued, evidence-admission gates unchanged.
+- Final review (release-blocking fixes, docs/b8-final-review.md):
+  Digi page identity hardened (a matching PHYSICAL_IMG_NR alone
+  no longer verifies; binding identity and page identity are
+  checked independently, genre is never guessed, page sets are
+  never extrapolated); KB article/page identity separated with
+  verified_mapping always false and image reachability kept
+  distinct from image identity; Finna -> Digi handoff requires
+  structured NLF provider evidence and refuses ambiguous genre
+  signals; the rights trust model was closed (trusted sources
+  are a closed set, restored observations are ALL downgraded
+  to restored_claim in schema v4, unknown/future-dated trust
+  fails closed, one trusted decision now governs saving,
+  display, local search, Markdown, JSON and comparisons);
+  pre-v3 (b7) workspace data is conservatively marked
+  imported_claim without deleting anything; citation
+  re-verification requires current rights and re-confirmed
+  identity and re-applies the 2,000-character limit; restore
+  is atomically exclusive and its trust downgrade runs inside
+  the rollback scope; strict rights-URI parsing is shared
+  (rights_uri.py); KB CQL/URN parsing hardened; DPLA errors
+  can no longer leak an API key; mandatory CI is now
+  fixture-based (real server/service/adapters/SQLite, fixed
+  upstream fixtures) and fails on any skipped mandatory
+  journey, with live checks split into an informational job;
+  unselected expansion languages are reported explicitly
+  (a fairer allocation was evaluated and NOT adopted because
+  it regressed the b6 fixed simulation). Re-run evaluations
+  are recorded in docs/b8-evaluation.md, including the b6
+  simulation regression caused by the b8 lexicon additions.
 
 ## 1.0.0b7 — Research Workspace & Citation Management
 

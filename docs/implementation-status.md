@@ -12,7 +12,7 @@ service or a full local test; **not implemented** = absent by design or pending.
 | Finna adapter | implemented, fixture-verified | Search/detail/rights; live blocked by a bot challenge (403) from the server network - NOT live-verified; docs/finna-integration.md |
 | NLF Digi adapter | implemented, fixture-verified | OAI identity, ALTO OCR, image verification, in-document search; host unreachable from this network - NOT live-verified; docs/finland-national-library-integration.md |
 | Finna -> Digi handoff | implemented, fixture-verified | Exact host + binding path grammar; ambiguity refused; docs/provider-handoff.md |
-| KB / Delpher adapter | implemented, live-verified (search, page OCR, page identity) | SRU + resolver; :image answered 404 live, so originals are fixture-only; docs/b8-api-research.md §4 |
+| KB / Delpher adapter | implemented, live-verified for search and ARTICLE OCR fetch (title correspondence only) | SRU + resolver; final review: verified_mapping is always false (the OCR payload carries no article identifier), page identity and original image unverified; :image answered 404 live; docs/b8-final-review.md §2 |
 | Japan Search adapter | implemented, live-verified (search, detail) | SPARQL fixed template + JSON-LD; accessInfo licence/restrictions; NDL pid handoff candidate |
 | DPLA adapter | implemented, authentication-pending | No key issued (not approved); calls state authentication_required; docs/dpla-integration.md |
 | BNE / ONB-ANNO | research only | BNE: SPARQL + CC0 confirmed. ANNO: no official API exists |
