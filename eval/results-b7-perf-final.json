@@ -1,0 +1,153 @@
+{
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-7.0.0-44-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64"
+  },
+  "scales": [
+    {
+      "scale": "small",
+      "spec": {
+        "projects": 1,
+        "docs_per_project": 100,
+        "citations_per_doc": 3,
+        "notes": 100
+      },
+      "db_init_s": 0.0052,
+      "records": {
+        "projects_total": 1,
+        "documents_total": 100,
+        "citations_total": 300,
+        "notes_total": 100,
+        "documents_in_measured_project": 100,
+        "citations_in_measured_project": 300,
+        "notes_in_measured_project": 100,
+        "exported_records": 500,
+        "excerpt_chars_avg": 29,
+        "excerpt_chars_max": 29,
+        "imported_documents": 100,
+        "imported_citations": 300,
+        "imported_notes": 100
+      },
+      "list_projects_ms": 0.1,
+      "save_document_ms": 0.4,
+      "save_note_ms": 0.17,
+      "local_search_ms": 0.33,
+      "local_search_cjk_ms": 1.57,
+      "bibtex_1000_ms": 11.31,
+      "ris_1000_ms": 11.2,
+      "csl_1000_ms": 7.75,
+      "json_export_ms": 18.14,
+      "concurrent_write_100_notes_ms": 18.9,
+      "concurrent_export_x4_ms": 86.92,
+      "json_import_ms": 22.36,
+      "backup_ms": 1.7,
+      "restore_ms": 5.54,
+      "disk_bytes": {
+        "db": 393216,
+        "wal": 4124152,
+        "shm": 32768
+      },
+      "db_bytes": 393216,
+      "process_max_rss_kb": 33164,
+      "local_search_cold_ms": 0.59,
+      "local_search_warm_ms": 0.33
+    },
+    {
+      "scale": "medium",
+      "spec": {
+        "projects": 5,
+        "docs_per_project": 200,
+        "citations_per_doc": 3,
+        "notes": 1000
+      },
+      "db_init_s": 0.0046,
+      "records": {
+        "projects_total": 5,
+        "documents_total": 1000,
+        "citations_total": 3000,
+        "notes_total": 1000,
+        "documents_in_measured_project": 200,
+        "citations_in_measured_project": 600,
+        "notes_in_measured_project": 1000,
+        "exported_records": 1800,
+        "excerpt_chars_avg": 29,
+        "excerpt_chars_max": 29,
+        "imported_documents": 200,
+        "imported_citations": 600,
+        "imported_notes": 1000
+      },
+      "list_projects_ms": 0.96,
+      "save_document_ms": 0.7,
+      "save_note_ms": 0.27,
+      "local_search_ms": 0.84,
+      "local_search_cjk_ms": 2.2,
+      "bibtex_1000_ms": 11.67,
+      "ris_1000_ms": 11.37,
+      "csl_1000_ms": 7.59,
+      "json_export_ms": 46.49,
+      "concurrent_write_100_notes_ms": 34.86,
+      "concurrent_export_x4_ms": 226.87,
+      "json_import_ms": 57.41,
+      "backup_ms": 11.82,
+      "restore_ms": 33.25,
+      "disk_bytes": {
+        "db": 2408448,
+        "wal": 4148872,
+        "shm": 32768
+      },
+      "db_bytes": 2408448,
+      "process_max_rss_kb": 54056,
+      "local_search_cold_ms": 1.74,
+      "local_search_warm_ms": 1.01
+    },
+    {
+      "scale": "large",
+      "spec": {
+        "projects": 20,
+        "docs_per_project": 500,
+        "citations_per_doc": 3,
+        "notes": 10000
+      },
+      "db_init_s": 0.0049,
+      "records": {
+        "projects_total": 20,
+        "documents_total": 10000,
+        "citations_total": 30000,
+        "notes_total": 10000,
+        "documents_in_measured_project": 500,
+        "citations_in_measured_project": 1500,
+        "notes_in_measured_project": 10000,
+        "exported_records": 12000,
+        "excerpt_chars_avg": 29,
+        "excerpt_chars_max": 29,
+        "imported_documents": 500,
+        "imported_citations": 1500,
+        "imported_notes": 10000
+      },
+      "list_projects_ms": 12.82,
+      "save_document_ms": 1.76,
+      "save_note_ms": 1.04,
+      "local_search_ms": 6.13,
+      "local_search_cjk_ms": 7.8,
+      "bibtex_1000_ms": 12.74,
+      "ris_1000_ms": 11.41,
+      "csl_1000_ms": 7.73,
+      "json_export_ms": 189.15,
+      "concurrent_write_100_notes_ms": 108.03,
+      "concurrent_export_x4_ms": 829.09,
+      "json_import_ms": 300.05,
+      "backup_ms": 89.6,
+      "restore_ms": 337.21,
+      "disk_bytes": {
+        "db": 23027712,
+        "wal": 4169472,
+        "shm": 32768
+      },
+      "db_bytes": 23027712,
+      "process_max_rss_kb": 147064,
+      "local_search_cold_ms": 6.85,
+      "local_search_warm_ms": 6.15
+    }
+  ]
+}

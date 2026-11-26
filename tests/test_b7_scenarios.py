@@ -250,10 +250,15 @@ def test_scenario_d_adapter_identifier_shapes(env):
     ]
     for library, record, page_id in shapes:
         doc = _save_doc(http, project["project_id"], record, library=library)
-        token = http[1].register_snapshot("page", library, {
-            "_page_id": page_id, "record_id": record, "library_id": library,
-            "contents": "shape check verbatim text", "verified_mapping": True,
-            "rights": {"statement": "Public Domain"}})
+        payload = {"_page_id": page_id, "record_id": record, "library_id": library,
+                   "contents": "shape check verbatim text", "verified_mapping": True,
+                   "rights": {"statement": "Public Domain"}}
+        if library == "ndl":
+            # live-verified NDL shape (2026-11-26): the page
+            # payload carries book_pid and NO record_id field
+            del payload["record_id"]
+            payload["book_pid"] = record
+        token = http[1].register_snapshot("page", library, payload)
         status, cit = _req(http, "POST", "/api/workspace/citations",
                            {"project_id": project["project_id"], "save_token": token,
                             "saved_document_id": doc["saved_document_id"],
