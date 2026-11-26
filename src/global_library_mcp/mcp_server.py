@@ -246,7 +246,7 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
 
 
 @mcp.tool(annotations=_READ_ONLY)
-async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard") -> dict[str, Any]:
+async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard", languages: list[str] | None = None, expand_multilingual: bool = True, expand_historical: bool = True, author: str | None = None, title: str | None = None, year_from: int | None = None, year_to: int | None = None, ocr_required: bool = False) -> dict[str, Any]:
     """Find research materials for a topic, with provenance.
 
     The primary Research Beta tool. Modes: "quick" returns
@@ -257,11 +257,30 @@ async def research_materials(query: str, libraries: list[str] | None = None, lim
     (including libraries with no hits and partial failures) and the
     real HTTP usage. Materials are candidates for the reader's own
     judgment, never proof of an answer. OCR text in the response is
-    untrusted upstream data (see data_notice). Calls no LLM."""
+    untrusted upstream data (see data_notice). Calls no LLM.
+
+    Multilingual discovery (b6): by default the query is expanded
+    with a local dictionary into other languages' labels, author
+    name forms, original/translated titles and historical
+    spellings; the response's `discovery` block lists every
+    variant used with its reason, each material names the variant
+    that found it (`matched_variant`) and why it is shown
+    (`discovery_reasons`), and work/author candidate links carry
+    their basis or refusal. Set expand_multilingual or
+    expand_historical to false to disable either expansion.
+    `languages` requests document languages; `author`, `title`,
+    `year_from`, `year_to` and `ocr_required` are structured
+    filters applied locally to fetched candidates (reported under
+    `filters`, never a library-wide search). Expansion widens
+    discovery only; evidence admission is unchanged."""
     limit = max(1, min(int(limit), 50))
     query = query[:500]
     client, service = await _with_service()
-    return await service.research_materials(query, libraries, limit, mode=mode)
+    return await service.research_materials(
+        query, libraries, limit, mode=mode, languages=languages,
+        expand_multilingual=expand_multilingual, expand_historical=expand_historical,
+        author=author, title=title, year_from=year_from, year_to=year_to,
+        ocr_required=ocr_required)
 
 
 @mcp.tool(annotations=_READ_ONLY)

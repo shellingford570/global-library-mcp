@@ -430,3 +430,52 @@ test('ID lookup shows page mapping state and in-document coverage', async ({ pag
   await expect(page.locator('#lookup-results').getByText(/20\/172 pages \(partial\)/)).toBeVisible();
   await expect(page.locator('#lookup-results').getByText('...Wasserwerk...')).toBeVisible();
 });
+
+test('b6 multilingual discovery: panel, matched variant, reasons, BSB handoff, expansion toggle', async ({ page }) => {
+  let lastUrl = '';
+  await page.route('**/api/materials**', async route => {
+    lastUrl = route.request().url();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        mode: 'standard',
+        note: '関連候補は質問への答えを証明する資料ではありません。',
+        query: '蒸気機関の歴史',
+        discovery: {
+          query_language: { language: 'ja', confidence: 1.0 },
+          variants: [{ text: 'Dampfmaschine', language: 'de', kind: 'concept_translation', relation: 'translation', reason: 'de label of concept:steam-engine' }],
+          skipped: [], ambiguous_authors: [], budget: { variant_cap: 8, variants_used: 1, mode: 'standard' },
+        },
+        materials: [{
+          citation_key: null, library_id: 'ddb', record_id: 'DDB1', page_id: null,
+          title: 'Kurzgefaßte Geschichte der Dampfmaschine', author: 'Reuleaux, Franz', date: '1891',
+          image_url: null, landing_url: 'https://example.org/ddb1', rights: {},
+          admitted_as_evidence: false,
+          access_state: { bibliographic: true, ocr_fetched: false, mapping_confirmed: false, passage_found: false, assessed_as_evidence: false },
+          states: { discovered: true, accessible: false, source_verified: false, relevant_candidate: false, supporting_passage: false, assessed_evidence: false, rejected_for_answer: true },
+          excerpts: [], not_admitted_reasons: [],
+          matched_variant: 'Dampfmaschine',
+          discovery_reasons: ['title matches concept:steam-engine'],
+          bsb_handoff: { status: 'candidate', bsb_object_id: 'bsb11650472', verified: false, basis: 'official URN' },
+        }],
+      }),
+    });
+  });
+  await page.goto('/');
+  // Advanced fields exist.
+  await expect(page.locator('#author-input')).toBeVisible();
+  await expect(page.locator('#expand-multi')).toBeChecked();
+  await page.locator('#query').fill('蒸気機関の歴史');
+  await page.locator('#materials-button').click();
+  await expect(page.locator('#discovery-panel')).toBeVisible();
+  await expect(page.locator('#discovery-panel')).toContainText('Dampfmaschine');
+  await expect(page.locator('#materials-results')).toContainText('発見した検索語: Dampfmaschine');
+  await expect(page.locator('#materials-results')).toContainText('表示理由');
+  await expect(page.locator('.bsb-open')).toContainText('bsb11650472');
+  // Turning multilingual expansion off sends expand=0.
+  await page.locator('#expand-multi').uncheck();
+  await page.locator('#materials-button').click();
+  await expect(page.locator('#discovery-panel')).toBeVisible();
+  expect(lastUrl).toContain('expand=0');
+});

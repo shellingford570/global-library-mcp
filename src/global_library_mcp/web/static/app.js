@@ -68,6 +68,12 @@ const I18N = {
     accessAssessed: '根拠評価',
     materialsTitle: '研究資料（関連候補）',
     copyCitation: '引用をコピー', copied: 'コピーしました', admittedOnly: '根拠として採用された資料のみ', sourcePage: '資料ページ',
+    authorPlaceholder: '著者名（例：カント）', titlePlaceholder: '原題・翻訳題（例：純粋理性批判）',
+    expandMulti: '多言語展開', expandHist: '歴史的表記展開',
+    discoveryTitle: '検索の展開（資料発見のみ・根拠判定には使いません）',
+    queryLanguageLabel: '質問の言語', matchedVariantLabel: '発見した検索語', discoveryReasonsLabel: '表示理由',
+    workLinkLabel: '作品候補', ambiguousAuthorLabel: '同名の著者が複数いるため特定していません',
+    bsbHandoffLabel: 'BSB/MDZで原本を確認', dupGroupLabel: '同一作品の候補グループ',
     materialsNote: '関連候補は質問への答えを証明する資料ではありません。抜粋と原本を確認し、ご自身で判断してください。',
     stateDiscovered: '資料発見', stateAccessible: 'ページ取得', stateVerified: '原本対応確認',
     stateCandidate: '関連候補', stateAssessed: '根拠として採用', stateRejected: '回答には不採用',
@@ -199,6 +205,12 @@ const I18N = {
     accessAssessed: 'Assessed as evidence',
     materialsTitle: 'Research materials (candidates)',
     copyCitation: 'Copy citation', copied: 'Copied', admittedOnly: 'Admitted as evidence only', sourcePage: 'Record page',
+    authorPlaceholder: 'Author (e.g. Kant)', titlePlaceholder: 'Original / translated title',
+    expandMulti: 'Multilingual expansion', expandHist: 'Historical spellings',
+    discoveryTitle: 'Search expansion (discovery only; never used for evidence admission)',
+    queryLanguageLabel: 'Query language', matchedVariantLabel: 'Found by search term', discoveryReasonsLabel: 'Why shown',
+    workLinkLabel: 'Work candidate', ambiguousAuthorLabel: 'Several authors share this name; not identified',
+    bsbHandoffLabel: 'Check the original at BSB/MDZ', dupGroupLabel: 'Same-work candidate group',
     materialsNote: 'Candidates do not prove an answer. Read the excerpts and originals and judge for yourself.',
     stateDiscovered: 'Discovered', stateAccessible: 'Page fetched', stateVerified: 'Source verified',
     stateCandidate: 'Relevant candidate', stateAssessed: 'Admitted as evidence', stateRejected: 'Not admitted for answers',
@@ -592,6 +604,14 @@ function renderMaterials(data) {
   meta.textContent = `${items.length}${t().countSuffix}`;
   let html = `<div class="notice">${esc(data.note || t().materialsNote)}</div>`
     + `<label class="filter-toggle"><input type="checkbox" id="materials-admitted-only" ${materialsAdmittedOnly ? 'checked' : ''}> ${t().admittedOnly}</label>`;
+  if (data.discovery) {
+    const d = data.discovery;
+    const variantLines = (d.variants || []).map(v => `<li>${esc(v.text)} <span class="meta-line">[${esc(v.language)} · ${esc(v.kind)}] ${esc(v.reason || '')}</span></li>`).join('');
+    const ambiguous = (d.ambiguous_authors || []).length ? `<p class="rights">${t().ambiguousAuthorLabel}: ${esc(d.ambiguous_authors.join(', '))}</p>` : '';
+    html += `<div class="notice" id="discovery-panel"><strong>${t().discoveryTitle}</strong>`
+      + `<p class="meta-line">${t().queryLanguageLabel}: ${esc((d.query_language || {}).language || 'unknown')}</p>`
+      + (variantLines ? `<ul>${variantLines}</ul>` : '') + ambiguous + `</div>`;
+  }
   for (const item of items) {
     const excerpts = (item.excerpts || []).map(p => `<blockquote class="correction-quote">${esc(p.text)}</blockquote>`).join('');
     const reasons = (item.not_admitted_reasons || []).length
@@ -601,16 +621,39 @@ function renderMaterials(data) {
     const copyBtn = `<p><button type="button" class="copy-citation" data-citation="${esc(citationText(item))}">${t().copyCitation}</button></p>`;
     const rights = item.rights && (item.rights.status || item.rights.label)
       ? `<p class="rights">${t().rightsLabel}: ${esc(item.rights.status || item.rights.label)}</p>` : '';
+    const discoveryBits = [];
+    if (item.matched_variant) discoveryBits.push(`${t().matchedVariantLabel}: ${esc(item.matched_variant)}`);
+    if (item.work_link && item.work_link.work_id) discoveryBits.push(`${t().workLinkLabel}: ${esc(item.work_link.work_id)}`);
+    if (item.duplicate_group) discoveryBits.push(`${t().dupGroupLabel}: ${esc(item.duplicate_group.relation)}`);
+    const discoveryLine = discoveryBits.length ? `<p class="meta-line">${discoveryBits.join(' · ')}</p>` : '';
+    const discoveryReasons = (item.discovery_reasons || []).length
+      ? `<p class="rights">${t().discoveryReasonsLabel}: ${esc(item.discovery_reasons.join(' / '))}</p>` : '';
+    const bsbBtn = item.bsb_handoff && item.bsb_handoff.bsb_object_id
+      ? `<p><button type="button" class="bsb-open" data-bsb-id="${esc(item.bsb_handoff.bsb_object_id)}">${t().bsbHandoffLabel} (${esc(item.bsb_handoff.bsb_object_id)})</button></p>` : '';
     html += `<article class="card"><div><h3>${esc(item.title || item.record_id)}</h3>`
       + `<p class="meta-line">${esc(item.author || '')} ${esc(item.date || '')} · ${esc(item.library_id)}:${esc(item.record_id)}${item.page_id ? ' · ' + esc(item.page_id) : ''}</p>`
       + `<div class="chips">${stateChips(item.states)}</div>`
       + accessChips(item)
       + (excerpts ? `<p class="citations-label">${t().excerptsLabel}</p>${excerpts}` : '')
+      + discoveryLine + discoveryReasons + bsbBtn
       + reasons + rights + image + landing + copyBtn
       + `</div></article>`;
   }
   (materialsResults || results).innerHTML = html || `<div class="empty"><p>${t().noMatches}</p></div>`;
 }
+
+[results, materialsResults].forEach((el) => { if (el) el.addEventListener('click', (event) => {
+  const btn = event.target && event.target.closest ? event.target.closest('.bsb-open') : null;
+  if (!btn) return;
+  const libSel = document.querySelector('#lookup-library');
+  const recInput = document.querySelector('#lookup-record');
+  const docBtn = document.querySelector('#lookup-document-button');
+  if (libSel && recInput && docBtn) {
+    libSel.value = 'bsb';
+    recInput.value = btn.dataset.bsbId || '';
+    docBtn.click();
+  }
+}); });
 
 [results, materialsResults].forEach((el) => { if (el) el.addEventListener('change', (event) => {
   if (event.target && event.target.id === 'materials-admitted-only') {
@@ -641,7 +684,23 @@ materialsButton.addEventListener('click', async () => {
   activeController = new AbortController();
   try {
     const mode = modeSelect ? modeSelect.value : 'standard';
-    const data = await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}&mode=${encodeURIComponent(mode)}&op=${encodeURIComponent(currentOpId)}`, activeController.signal);
+    const extra = new URLSearchParams();
+    const authorVal = document.querySelector('#author-input');
+    const titleVal = document.querySelector('#title-input');
+    const yearFrom = document.querySelector('#year-from');
+    const yearTo = document.querySelector('#year-to');
+    if (authorVal && authorVal.value.trim()) extra.set('author', authorVal.value.trim());
+    if (titleVal && titleVal.value.trim()) extra.set('title', titleVal.value.trim());
+    if (yearFrom && yearFrom.value) extra.set('year_from', yearFrom.value);
+    if (yearTo && yearTo.value) extra.set('year_to', yearTo.value);
+    const doclangs = [...document.querySelectorAll('input[name="doclang"]:checked')].map(el => el.value);
+    if (doclangs.length) extra.set('languages', doclangs.join(','));
+    const expandMulti = document.querySelector('#expand-multi');
+    const expandHist = document.querySelector('#expand-hist');
+    if (expandMulti && !expandMulti.checked) extra.set('expand', '0');
+    if (expandHist && !expandHist.checked) extra.set('historical', '0');
+    const extraQs = extra.toString() ? `&${extra.toString()}` : '';
+    const data = await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}&mode=${encodeURIComponent(mode)}&op=${encodeURIComponent(currentOpId)}${extraQs}`, activeController.signal);
     if (data.op_state === 'cancelled') {
       if (stageStatus) stageStatus.textContent = t().statusCancelled;
       (materialsResults || results).innerHTML = `<div class="empty"><p>${t().statusCancelled}</p></div>`;
