@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 _DATA = Path(__file__).parent / "data" / "search_lexicon.json"
-_LANGUAGES = ("ja", "en", "de", "fr")
+_LANGUAGES = ("ja", "en", "de", "fr", "fi", "sv", "nl")
 
 
 def _norm(text: str) -> str:

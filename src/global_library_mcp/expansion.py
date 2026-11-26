@@ -21,7 +21,7 @@ from global_library_mcp.discovery import DiscoveryQueryAnalysis
 from global_library_mcp.question import latin_variants, script_variants
 
 _MODE_CAPS = {"quick": 3, "standard": 8, "deep": 14}
-_ALL_LANGS = ("ja", "en", "de", "fr")
+_ALL_LANGS = ("ja", "en", "de", "fr", "fi", "sv", "nl")
 
 # Historical kana orthography (search-only): wi/we kana and the
 # iteration mark. Word-level old-kana spellings live in the
@@ -217,8 +217,15 @@ class QueryExpansionEngine:
                 add(ev, "en", "spelling_variant", "spelling_variant", why, "expansion:english", 4)
             split = _german_compound_split(base)
             if split:
+                # b8: a compound split is a same-language
+                # orthographic decomposition of the query itself,
+                # so it sits with the historical spelling variants
+                # (priority 2), not below the cross-language
+                # concept translations (3). With fi/sv/nl labels
+                # added, the translation fan-out otherwise crowded
+                # it out of the deep-mode cap entirely.
                 add(split, "de", "compound_split", "spelling_variant",
-                    "German compound split (search-only)", "expansion:german", 4)
+                    "German compound split (search-only)", "expansion:german", 2)
         # The cap applies AFTER priority ordering, so a flood of
         # low-priority candidates can never crowd out exact
         # titles, author forms or historical spellings.

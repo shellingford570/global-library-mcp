@@ -14,7 +14,10 @@ from global_library_mcp.adapters.gallica import GallicaAdapter
 from global_library_mcp.adapters.bsb import BsbAdapter
 from global_library_mcp.adapters.erara import EraraAdapter
 from global_library_mcp.adapters.digi import DigiAdapter
+from global_library_mcp.adapters.dpla import DplaAdapter
 from global_library_mcp.adapters.finna import FinnaAdapter
+from global_library_mcp.adapters.japan_search import JapanSearchAdapter
+from global_library_mcp.adapters.kb import KbDelpherAdapter
 from global_library_mcp.adapters.internet_archive import InternetArchiveAdapter
 from global_library_mcp.adapters.loc import LocAdapter
 from global_library_mcp.adapters.ndl import NdlAdapter
@@ -455,6 +458,9 @@ class LibraryService:
             "e-rara": EraraAdapter(client),
             "finna": FinnaAdapter(client),
             "finland-nl-digi": DigiAdapter(client),
+            "dpla": DplaAdapter(client),
+            "kb-delpher": KbDelpherAdapter(client),
+            "japan-search": JapanSearchAdapter(client),
         }
         self.client = client
         self._page_cache: dict[tuple[str, str], dict[str, Any]] = {}
