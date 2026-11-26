@@ -39,8 +39,11 @@ _PERMISSIVE = {"public_domain", "cc_by", "cc_by_sa"}
 _NONCOMMERCIAL_OK = {"cc_by_nc", "cc_by_nc_sa", "noc_nc"}
 
 
-def classify_rights(statement: str | None) -> str:
-    """Map a free-text rights statement to a policy category."""
+def classify_rights(statement: str | dict | None) -> str:
+    """Map a free-text rights statement to a policy category.
+    Accepts the service's Rights dict shape as well as a string."""
+    if isinstance(statement, dict):
+        statement = statement.get("statement") or statement.get("status") or ""
     text = (statement or "").strip().lower()
     if not text or text in ("unknown", "不明", "rights unknown"):
         return "unknown"
@@ -68,8 +71,10 @@ def classify_rights(statement: str | None) -> str:
     return "unknown"
 
 
-def evaluate(statement: str | None) -> dict[str, Any]:
+def evaluate(statement: str | dict | None) -> dict[str, Any]:
     """Policy decision for one rights statement."""
+    if isinstance(statement, dict):
+        statement = statement.get("statement") or statement.get("status") or ""
     category = classify_rights(statement)
     excerpt_ok = category in _PERMISSIVE or category in _NONCOMMERCIAL_OK
     return {

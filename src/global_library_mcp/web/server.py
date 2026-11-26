@@ -20,6 +20,33 @@ def json_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False).encode("utf-8")
 
 
+def structured_kwargs(qs: dict) -> dict:
+    """The structured research options shared by /api/search and
+    /api/materials. (b7 final-review catch: /api/materials used
+    to reference a variable that only existed inside the
+    /api/search branch, so every real HTTP materials call failed
+    with a NameError masked as an upstream 502 - the mocked
+    Playwright route never exercised the real handler.)"""
+    kwargs: dict = {}
+    if qs.get("author"):
+        kwargs["author"] = qs["author"][0][:200]
+    if qs.get("title"):
+        kwargs["title"] = qs["title"][0][:200]
+    if qs.get("languages"):
+        kwargs["languages"] = [x for x in qs["languages"][0].split(",")
+                               if x in ("ja", "en", "de", "fr")][:4] or None
+    if qs.get("expand") is not None:
+        kwargs["expand_multilingual"] = qs["expand"][0] != "0"
+    if qs.get("historical") is not None:
+        kwargs["expand_historical"] = qs["historical"][0] != "0"
+    for key in ("year_from", "year_to"):
+        if qs.get(key) and qs[key][0].isdigit():
+            kwargs[key] = int(qs[key][0])
+    if qs.get("ocr", [""])[0] == "1":
+        kwargs["ocr_required"] = True
+    return kwargs
+
+
 class RateLimiter:
     """Per-client sliding-window limiter for the API routes.
 
@@ -85,6 +112,10 @@ class ServiceRuntime:
 
         self.service = asyncio.run_coroutine_threadsafe(_make_service(), self._loop).result(timeout=30)
         self._ops: dict[str, dict] = {}
+        # b7: workspace runtime (WorkspaceWebRuntime) when the
+        # research workspace is enabled; None in the stateless
+        # search-only mode, which behaves exactly as before.
+        self.ws = None
 
     def run(self, coro, timeout: float = 600):
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
@@ -161,11 +192,45 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _workspace_dispatch(self, method: str) -> bool:
+        if RUNTIME.ws is None:
+            return False
+        from global_library_mcp.web.workspace_api import WorkspaceApi
+
+        return WorkspaceApi(RUNTIME.ws, RUNTIME).handle(self, method)
+
+    def do_POST(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/") and not RATE_LIMITER.allow(self.client_address[0]):
+            self._send(json_bytes({"error": "rate limit exceeded; slow down and retry shortly"}), status=429)
+            return
+        if parsed.path.startswith("/api/workspace") and self._workspace_dispatch("POST"):
+            return
+        self._send(json_bytes({"error": "not found"}), status=404)
+
+    def do_PUT(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/workspace") and self._workspace_dispatch("PUT"):
+            return
+        self._send(json_bytes({"error": "not found"}), status=404)
+
+    def do_DELETE(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/workspace") and self._workspace_dispatch("DELETE"):
+            return
+        self._send(json_bytes({"error": "not found"}), status=404)
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path.startswith("/api/") and not RATE_LIMITER.allow(self.client_address[0]):
             self._send(json_bytes({"error": "rate limit exceeded; slow down and retry shortly"}), status=429)
             return
+        if parsed.path.startswith("/api/workspace"):
+            if RUNTIME.ws is None:
+                self._send(json_bytes({"error": "workspace is not enabled"}), status=404)
+                return
+            if self._workspace_dispatch("GET"):
+                return
         if parsed.path == "/health":
             self._send(json_bytes({"ok": True, "service": "global-library-mcp"}))
             return
@@ -194,23 +259,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
-            _qs = parse_qs(parsed.query)
-            _mat_kwargs: dict = {}
-            if _qs.get("author"):
-                _mat_kwargs["author"] = _qs["author"][0][:200]
-            if _qs.get("title"):
-                _mat_kwargs["title"] = _qs["title"][0][:200]
-            if _qs.get("languages"):
-                _mat_kwargs["languages"] = [x for x in _qs["languages"][0].split(",") if x in ("ja", "en", "de", "fr")][:4] or None
-            if _qs.get("expand") is not None:
-                _mat_kwargs["expand_multilingual"] = _qs["expand"][0] != "0"
-            if _qs.get("historical") is not None:
-                _mat_kwargs["expand_historical"] = _qs["historical"][0] != "0"
-            for _key in ("year_from", "year_to"):
-                if _qs.get(_key) and _qs[_key][0].isdigit():
-                    _mat_kwargs[_key] = int(_qs[_key][0])
-            if _qs.get("ocr", [""])[0] == "1":
-                _mat_kwargs["ocr_required"] = True
+            _mat_kwargs = structured_kwargs(parse_qs(parsed.query))
             try:
                 if _mat_kwargs:
                     # b7 (brief section 35): the structured options
@@ -224,6 +273,8 @@ class Handler(BaseHTTPRequestHandler):
                     # and maps its materials into the search shape.
                     result = RUNTIME.run(RUNTIME.service.research_materials(
                         query, libraries, 10, mode="quick", **_mat_kwargs))
+                    if RUNTIME.ws is not None:
+                        RUNTIME.ws.annotate_search_results(result.get("materials", []))
                     self._send(json_bytes({
                         "query": query,
                         "results": result.get("materials", []),
@@ -240,6 +291,8 @@ class Handler(BaseHTTPRequestHandler):
                     payload = response.to_dict()
                     payload["search_kind"] = "plain_bibliographic"
                     payload["options_applied"] = False
+                    if RUNTIME.ws is not None:
+                        RUNTIME.ws.annotate_search_results(payload.get("results", []))
                     self._send(json_bytes(payload))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
@@ -307,6 +360,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
+            _mat_kwargs = structured_kwargs(parse_qs(parsed.query))
             try:
                 mode = parse_qs(parsed.query).get("mode", ["standard"])[0]
                 op_id = parse_qs(parsed.query).get("op", [""])[0]
@@ -315,13 +369,18 @@ class Handler(BaseHTTPRequestHandler):
 
                     try:
                         result = RUNTIME.run_op(op_id, RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))
+                        if RUNTIME.ws is not None:
+                            RUNTIME.ws.annotate_search_results(result.get("materials", []))
                         self._send(json_bytes({**result, "op_state": RUNTIME.op_state(op_id)}))
                     except (_cf.CancelledError, asyncio.CancelledError):
                         self._send(json_bytes({"op_state": "cancelled", "op_id": op_id, "materials": []}))
                     except (TimeoutError, asyncio.TimeoutError):
                         self._send(json_bytes({"op_state": "timeout", "op_id": op_id, "materials": []}))
                 else:
-                    self._send(json_bytes(RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))))
+                    result = RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))
+                    if RUNTIME.ws is not None:
+                        RUNTIME.ws.annotate_search_results(result.get("materials", []))
+                    self._send(json_bytes(result))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
@@ -389,14 +448,28 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 if parsed.path == "/api/document":
                     detail = RUNTIME.run(RUNTIME.service.get_document(library_id, identifier))
+                    if RUNTIME.ws is not None and isinstance(detail, dict):
+                        RUNTIME.ws.annotate_search_results([detail])
+                        for page in detail.get("pages") or []:
+                            if isinstance(page, dict) and page.get("page_id"):
+                                RUNTIME.ws.annotate_page(library_id, page["page_id"], page)
                 else:
                     detail = RUNTIME.run(RUNTIME.service.get_page_text(library_id, identifier))
+                    if RUNTIME.ws is not None and isinstance(detail, dict):
+                        RUNTIME.ws.annotate_page(library_id, identifier, detail)
                 self._send(json_bytes(detail))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
         if parsed.path == "/" or parsed.path == "/index.html":
-            self._send((STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
+            html = (STATIC / "index.html").read_bytes()
+            # b7: the CSRF token reaches the page only through
+            # this meta tag (never a URL, log or export).
+            token = RUNTIME.ws.csrf_token if RUNTIME.ws is not None else ""
+            html = html.replace(b"__GLM_CSRF_TOKEN__", token.encode("utf-8"))
+            html = html.replace(b"__GLM_WORKSPACE_ENABLED__",
+                                b"1" if RUNTIME.ws is not None else b"0")
+            self._send(html, "text/html; charset=utf-8")
             return
         if parsed.path == "/app.css":
             self._send((STATIC / "app.css").read_bytes(), "text/css; charset=utf-8")
@@ -404,13 +477,42 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/app.js":
             self._send((STATIC / "app.js").read_bytes(), "text/javascript; charset=utf-8")
             return
+        if parsed.path == "/workspace.js":
+            self._send((STATIC / "workspace.js").read_bytes(), "text/javascript; charset=utf-8")
+            return
         self._send(json_bytes({"error": "not found"}), status=404)
 
     def log_message(self, format: str, *args: object) -> None:
         print(f"[web] {format % args}")
 
 
-def run(host: str = "127.0.0.1", port: int = 8000) -> None:
+def run(host: str = "127.0.0.1", port: int = 8000,
+        workspace: bool = False, workspace_path: str | None = None) -> None:
+    import os
+
+    if workspace or workspace_path or os.environ.get("GLM_WORKSPACE_PATH"):
+        # b7 (brief sections 6, 29, 30): the workspace holds
+        # persistent research data, so it is loopback-only. The
+        # stateless search-only mode keeps its previous bind
+        # behaviour (e.g. Docker CI on 0.0.0.0).
+        import ipaddress
+
+        try:
+            addr = ipaddress.ip_address(host)
+            loopback = addr.is_loopback
+        except ValueError:
+            loopback = host in ("localhost",)
+        if not loopback:
+            raise SystemExit(
+                "workspace mode refuses to bind a non-loopback address: "
+                f"{host}. Use 127.0.0.1 (or disable the workspace).")
+        from global_library_mcp.workspace.paths import ensure_parent, resolve_db_path
+        from global_library_mcp.workspace.store import WorkspaceStore
+        from global_library_mcp.web.workspace_api import WorkspaceWebRuntime
+
+        db_path = ensure_parent(resolve_db_path(workspace_path))
+        RUNTIME.ws = WorkspaceWebRuntime(WorkspaceStore(db_path))
+        print(f"Research workspace enabled: {db_path}")
     server = ThreadingHTTPServer((host, port), Handler)
     print(f"Global Library MCP Web UI: http://{host}:{port}")
     server.serve_forever()

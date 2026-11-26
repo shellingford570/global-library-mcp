@@ -17,11 +17,17 @@ def main() -> None:
     web = sub.add_parser("web", help="Run the API and Web UI")
     web.add_argument("--host", default="127.0.0.1")
     web.add_argument("--port", type=int, default=8000)
+    web.add_argument("--workspace", action="store_true",
+                     help="Enable the local research workspace (SQLite, loopback-only)")
+    web.add_argument("--workspace-path", default=None,
+                     help="Workspace database file or directory "
+                          "(default: GLM_WORKSPACE_PATH or the OS data directory)")
     args = parser.parse_args()
     if args.command == "mcp":
         run_mcp(transport=args.transport, host=args.host, port=args.port, profile=args.profile)
     else:
-        run_web(args.host, args.port)
+        run_web(args.host, args.port, workspace=args.workspace,
+                workspace_path=args.workspace_path)
 
 
 if __name__ == "__main__":

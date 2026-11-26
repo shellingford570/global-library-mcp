@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="glm-csrf" content="__GLM_CSRF_TOKEN__">
+  <meta name="glm-workspace" content="__GLM_WORKSPACE_ENABLED__">
   <title>Global Library MCP</title>
   <link rel="stylesheet" href="/app.css">
 </head>
@@ -23,8 +25,29 @@
         <div><h3 data-i18n="scopeNoResultTitle">見つからなかった場合</h3><p data-i18n="scopeNoResult">検索予算（初期設定 Standard 25 リクエスト）の範囲で根拠が見つからなかったことは、その事実が歴史上存在しないことを意味しません。対象機関・取得範囲・図書館側の制限により結果は変わります。</p></div>
       </div>
     </section>
+    <section id="workspace-section" class="workspace" hidden>
+      <div class="section-head"><div><p class="eyebrow">RESEARCH WORKSPACE</p><h2 id="ws-title">研究ワークスペース</h2></div><span id="ws-db-path" class="meta-line"></span></div>
+      <div class="ws-bar">
+        <label>プロジェクト <select id="ws-project-select"></select></label>
+        <input id="ws-new-project-title" type="text" placeholder="新規プロジェクト名" maxlength="200">
+        <button type="button" id="ws-create-project">作成</button>
+        <label><input type="checkbox" id="ws-save-history"> 検索履歴を保存</label>
+        <span id="ws-status" class="meta-line" role="status"></span>
+      </div>
+      <nav class="ws-tabs">
+        <button type="button" data-ws-tab="documents">保存資料</button>
+        <button type="button" data-ws-tab="citations">保存引用</button>
+        <button type="button" data-ws-tab="notes">研究ノート</button>
+        <button type="button" data-ws-tab="comparisons">文献比較</button>
+        <button type="button" data-ws-tab="history">検索履歴</button>
+        <button type="button" data-ws-tab="cite">引用を作成</button>
+        <button type="button" data-ws-tab="export">エクスポート</button>
+      </nav>
+      <div id="ws-panel"></div>
+    </section>
   </main>
   <footer>Global Library MCP · <a href="https://github.com/shellingford570/global-library-mcp" target="_blank" rel="noreferrer">source on GitHub</a> · <span data-i18n="footerNote">未確認事項は unknown</span></footer>
   <script src="/app.js"></script>
+  <script src="/workspace.js"></script>
 </body>
 </html>
