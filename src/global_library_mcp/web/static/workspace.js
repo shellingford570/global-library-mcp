@@ -31,8 +31,31 @@
     const text = await res.text();
     let data = null;
     try { data = JSON.parse(text); } catch { data = null; }
-    if (!res.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = new Error((data && data.error) || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
     return options.raw ? text : data;
+  }
+
+  // Delete with the server's related-record preview: a first
+  // DELETE returns 409 + counts when related records exist;
+  // only after the user confirms those exact counts do we
+  // retry with confirm=1.
+  async function deleteWithPreview(path, label) {
+    try {
+      await wsFetch(path, { method: 'DELETE' });
+      return true;
+    } catch (e) {
+      if (e.status !== 409 || !e.data?.related_counts) throw e;
+      const c = e.data.related_counts;
+      const summary = Object.entries(c).map(([k, v]) => `${k}: ${v}`).join(' / ');
+      if (!confirm(`${label}\n関連レコード: ${summary}\n${e.data.note || ''}\n続行しますか？`)) return false;
+      await wsFetch(`${path}?confirm=1`, { method: 'DELETE' });
+      return true;
+    }
   }
 
   function el(tag, text, className) {
@@ -158,13 +181,23 @@
       await wsFetch('/api/workspace/collections', { method: 'POST', body: { project_id: projectId, name: collName.value.trim() } });
       renderTab();
     }));
-    for (const c of colls.collections) collRow.appendChild(el('span', ` [${c.name}: ${c.document_count}件] `, 'meta-line'));
+    for (const c of colls.collections) {
+      collRow.appendChild(el('span', ` [${c.name}: ${c.document_count}件] `, 'meta-line'));
+      collRow.appendChild(button(`「${c.name}」を削除`, async () => {
+        if (!confirm(`コレクション「${c.name}」を削除しますか？（資料自体は削除されません）`)) return;
+        await wsFetch(`/api/workspace/collections/${c.collection_id}`, { method: 'DELETE' });
+        renderTab();
+      }));
+    }
     panel.appendChild(collRow);
     for (const doc of data.documents) {
       const card = el('article', undefined, 'card');
       card.appendChild(el('h3', doc.title || doc.record_id));
       card.appendChild(el('p', `${doc.author || ''} ${doc.publication_date || ''} · ${doc.library_id}:${doc.record_id}`, 'meta-line'));
       card.appendChild(el('p', `権利: ${(doc.rights_snapshot || {}).statement || 'unknown'}`, 'rights'));
+      if (doc.rights_current) {
+        card.appendChild(el('p', `最新の権利観測: ${doc.rights_current.latest_statement || ''}（区分: ${doc.rights_current.latest_category}、現在の抜粋保存: ${doc.rights_current.excerpt_storage_now ? '可' : '不可'}）`, 'rights'));
+      }
       card.appendChild(el('p', `タグ: ${(doc.tags || []).join(', ') || 'なし'}`, 'meta-line'));
       const check = document.createElement('input');
       check.type = 'checkbox'; check.checked = compareSelection.has(doc.saved_document_id);
@@ -195,9 +228,9 @@
         }));
       }
       card.appendChild(button('削除', async () => {
-        if (!confirm('この資料と関連する引用を削除しますか？')) return;
-        await wsFetch(`/api/workspace/documents/${doc.saved_document_id}`, { method: 'DELETE' });
-        renderTab();
+        try {
+          if (await deleteWithPreview(`/api/workspace/documents/${doc.saved_document_id}`, 'この資料を削除しますか？')) renderTab();
+        } catch (e) { say(e.message); }
       }));
       panel.appendChild(card);
     }
@@ -208,7 +241,7 @@
     for (const cit of data.citations) {
       const card = el('article', undefined, 'card');
       card.appendChild(el('h3', cit.citation_key));
-      card.appendChild(el('p', `ページ: ${cit.page_id} · 状態: ${cit.quotation_verification_status || 'not_checked'} · ページ対応: ${cit.page_mapping_status || 'unknown'} · 出所: ${cit.provenance}`, 'meta-line'));
+      card.appendChild(el('p', `ページ: ${cit.page_id} · 状態: ${cit.quotation_verification_status || 'not_checked'} · ページ対応: ${cit.page_mapping_status || 'unknown'} · 出所: ${cit.provenance} · 本文: ${cit.excerpt_stored ? '保存あり' : '参照のみ（本文なし）'}`, 'meta-line'));
       if (cit.original_excerpt) card.appendChild(el('blockquote', cit.original_excerpt, 'correction-quote'));
       else card.appendChild(el('p', `原文抜粋は保存されていません（${cit.excerpt_omitted_reason || '権利ポリシー'}）`, 'rights'));
       card.appendChild(button('再検証', async () => {
@@ -217,30 +250,54 @@
         renderTab();
       }));
       card.appendChild(button('削除', async () => {
-        await wsFetch(`/api/workspace/citations/${cit.citation_id}`, { method: 'DELETE' });
-        renderTab();
+        try {
+          if (await deleteWithPreview(`/api/workspace/citations/${cit.citation_id}`, 'この引用を削除しますか？')) renderTab();
+        } catch (e) { say(e.message); }
       }));
       panel.appendChild(card);
     }
   }
 
   async function renderNotes() {
+    const docsData = await wsFetch(`/api/workspace/documents?project_id=${encodeURIComponent(projectId)}`);
     const form = el('div');
     const title = document.createElement('input');
     title.type = 'text'; title.placeholder = 'ノートの題';
     const content = document.createElement('textarea');
     content.rows = 4; content.placeholder = '研究ノート（あなた自身の考察）';
-    form.append(title, content, button('ノートを保存', async () => {
-      await wsFetch('/api/workspace/notes', { method: 'POST', body: { project_id: projectId, title: title.value, content: content.value } });
+    const docSel = document.createElement('select');
+    const none = document.createElement('option');
+    none.value = ''; none.textContent = '関連付ける資料（任意）';
+    docSel.appendChild(none);
+    for (const d of docsData.documents) {
+      const opt = document.createElement('option');
+      opt.value = d.saved_document_id; opt.textContent = d.title || d.record_id;
+      docSel.appendChild(opt);
+    }
+    let editingId = null;
+    const saveBtn = button('ノートを保存', async () => {
+      const body = { project_id: projectId, title: title.value, content: content.value,
+                     saved_document_id: docSel.value || null };
+      if (editingId) await wsFetch(`/api/workspace/notes/${editingId}`, { method: 'PUT', body });
+      else await wsFetch('/api/workspace/notes', { method: 'POST', body });
       renderTab();
-    }));
+    });
+    form.append(title, content, docSel, saveBtn);
     panel.appendChild(form);
     const data = await wsFetch(`/api/workspace/notes?project_id=${encodeURIComponent(projectId)}`);
     for (const note of data.notes) {
       const card = el('article', undefined, 'card');
       card.appendChild(el('h3', note.title || '（無題）'));
       card.appendChild(el('p', note.content));
-      card.appendChild(el('p', `更新: ${note.updated_at}`, 'meta-line'));
+      card.appendChild(el('p', `更新: ${note.updated_at}${note.saved_document_id ? ' · 資料にリンク' : ''}`, 'meta-line'));
+      card.appendChild(button('編集', () => {
+        title.value = note.title || '';
+        content.value = note.content || '';
+        docSel.value = note.saved_document_id || '';
+        editingId = note.note_id;
+        saveBtn.textContent = 'ノートを更新';
+        title.focus();
+      }));
       card.appendChild(button('削除', async () => {
         await wsFetch(`/api/workspace/notes/${note.note_id}`, { method: 'DELETE' });
         renderTab();
@@ -263,9 +320,23 @@
     for (const comp of data.comparisons) {
       const card = el('article', undefined, 'card');
       card.appendChild(el('h3', comp.title || '比較'));
-      card.appendChild(el('p', `資料 ${ (comp.saved_document_ids || []).length }件 · 意味比較: ${comp.semantic_status}（未検証）`, 'meta-line'));
-      const shared = (comp.dictionary_concept_overlap || {}).shared_concepts || [];
-      if (shared.length) card.appendChild(el('p', `共通概念候補: ${shared.join(', ')}`));
+      card.appendChild(el('p', `資料 ${ (comp.saved_document_ids || []).length }件 · 意味比較: ${comp.semantic_status}（未実施）`, 'meta-line'));
+      const concepts = comp.dictionary_concept_overlap || {};
+      const flat = [...new Set(Object.values(concepts).flat())];
+      if (flat.length) card.appendChild(el('p', `共通概念候補: ${flat.slice(0, 20).join(', ')}`));
+      for (const [docId, value] of Object.entries(comp.original_excerpts || {})) {
+        if (Array.isArray(value)) {
+          for (const entry of value.slice(0, 3)) {
+            const text = typeof entry === 'object' ? entry.text : entry;
+            if (text) card.appendChild(el('blockquote', text, 'correction-quote'));
+          }
+        } else if (value && value.omitted) {
+          card.appendChild(el('p', `抜粋省略: ${value.omitted}`, 'rights'));
+        }
+      }
+      for (const gap of comp.insufficient_evidence || []) {
+        card.appendChild(el('p', `情報不足: ${gap.library_id || ''}:${gap.record_id || ''} — ${gap.reason || ''}`, 'rights'));
+      }
       panel.appendChild(card);
     }
   }
@@ -275,7 +346,7 @@
     for (const h of data.history) {
       const card = el('article', undefined, 'card');
       card.appendChild(el('h3', h.original_query));
-      card.appendChild(el('p', `${h.created_at} · ${(h.search_parameters || {}).mode || ''} · ${h.search_status}`, 'meta-line'));
+      card.appendChild(el('p', `${h.created_at} · ${(h.search_parameters || {}).mode || ''} · ${h.search_status} · 出所: ${h.provenance || 'server_recorded'}`, 'meta-line'));
       card.appendChild(button('再実行', () => {
         const params = h.search_parameters || {};
         document.getElementById('query').value = h.original_query;
@@ -359,9 +430,24 @@
     }));
     panel.appendChild(button('バックアップ作成', async () => {
       const info = await wsFetch('/api/workspace/backup', { method: 'POST', body: {} });
-      say(`バックアップ: ${info.path} (${info.bytes} bytes, sha256 ${String(info.sha256).slice(0, 12)}…)`);
+      say(`バックアップを作成しました: ${info.id} (${info.bytes} bytes, sha256 ${String(info.sha256).slice(0, 12)}…)`);
+      renderTab();
     }));
-    panel.appendChild(button('バックアップをダウンロード', () => download('/api/workspace/backup/download', 'workspace-backup.db')));
+    const backupBox = el('div');
+    panel.appendChild(backupBox);
+    (async () => {
+      const data = await wsFetch('/api/workspace/backup');
+      for (const b of data.backups) {
+        const line = el('div');
+        line.appendChild(el('span', `${b.created_at} · ${b.bytes} bytes · `, 'meta-line'));
+        line.appendChild(button('ダウンロード', () => download(`/api/workspace/backup/download?id=${encodeURIComponent(b.id)}`, 'workspace-backup.db')));
+        line.appendChild(button('削除', async () => {
+          await wsFetch(`/api/workspace/backup/${b.id}`, { method: 'DELETE' });
+          renderTab();
+        }));
+        backupBox.appendChild(line);
+      }
+    })().catch(() => {});
     const restoreFile = document.createElement('input');
     restoreFile.type = 'file';
     panel.appendChild(restoreFile);
@@ -369,8 +455,23 @@
       const f = restoreFile.files[0];
       if (!f || !confirm('現在のDBは復元前に自動バックアップされます。復元しますか？')) return;
       const buf = await f.arrayBuffer();
-      const result = await wsFetch('/api/workspace/restore', { method: 'POST', body: buf, headers: { 'Content-Type': 'application/octet-stream' } });
+      const result = await wsFetch('/api/workspace/restore?confirm=1', { method: 'POST', body: buf, headers: { 'Content-Type': 'application/octet-stream' } });
       say(`復元しました（復元前バックアップ: ${result.pre_restore_backup}）`);
+      await loadProjects();
+    }));
+    panel.appendChild(button('プロジェクト名・説明を編集', async () => {
+      const current = await wsFetch(`/api/workspace/projects/${projectId}`);
+      const title = prompt('プロジェクト名', current.title);
+      if (title === null) return;
+      const description = prompt('説明', current.description || '');
+      if (description === null) return;
+      await wsFetch(`/api/workspace/projects/${projectId}`, { method: 'PUT', body: { title, description } });
+      await loadProjects();
+    }));
+    panel.appendChild(button('アーカイブ / 解除', async () => {
+      const current = await wsFetch(`/api/workspace/projects/${projectId}`);
+      await wsFetch(`/api/workspace/projects/${projectId}`, { method: 'PUT', body: { archived: !current.archived_at } });
+      say(current.archived_at ? 'アーカイブを解除しました' : 'アーカイブしました');
       await loadProjects();
     }));
     panel.appendChild(button('プロジェクトを削除', async () => {
@@ -390,24 +491,24 @@
     recordHistory(data, q, mode, searchStatus) {
       const toggle = document.getElementById('ws-save-history');
       if (!toggle?.checked || !projectId) return;
-      const params = { mode, kind: 'materials' };
-      const author = document.querySelector('#author-input')?.value.trim();
-      if (author) params.author = author;
-      const titleValue = document.querySelector('#title-input')?.value.trim();
-      if (titleValue) params.title = titleValue;
-      const scope = data.search_scope || {};
+      // Preferred path: the server vouches for what it ran via
+      // a history token bound to its own response snapshot.
+      if (data.history_token) {
+        wsFetch('/api/workspace/history', {
+          method: 'POST',
+          body: { project_id: projectId, history_token: data.history_token },
+        }).catch(() => {});
+        return;
+      }
+      // Fallback (older responses): a manual entry, which the
+      // server stores marked as user-entered, never as proof.
       wsFetch('/api/workspace/history', {
         method: 'POST',
         body: {
           project_id: projectId,
           original_query: q,
-          search_parameters: params,
-          planned_variants: (data.discovery?.planned_variants || []).map(v => v.text),
-          executed_variants: data.discovery?.executed_variants || [],
-          searched_libraries: scope,
-          skipped_libraries: data.discovery?.routing_skipped || {},
+          search_parameters: { mode, kind: 'materials' },
           result_summary: { materials: (data.materials || []).length },
-          http_stats: data.http_stats || {},
           search_status: searchStatus,
         },
       }).catch(() => {});

@@ -537,6 +537,15 @@ class WorkspaceStore:
                     "UPDATE projects SET updated_at = ? WHERE project_id = ?", (ts, project_id))
             return self.get_document(doc_id)  # type: ignore[return-value]
 
+    def find_document(self, project_id: str, library_id: str,
+                      record_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT saved_document_id FROM saved_documents"
+                " WHERE project_id = ? AND library_id = ? AND record_id = ?",
+                (project_id, library_id, record_id)).fetchone()
+            return self.get_document(row["saved_document_id"]) if row else None
+
     def get_document(self, saved_document_id: str) -> dict[str, Any] | None:
         with self._lock:
             doc = _row(self._conn.execute(
@@ -855,9 +864,11 @@ class WorkspaceStore:
             with self._conn:
                 if note_id:
                     self._conn.execute(
-                        "UPDATE research_notes SET title = ?, content = ?, updated_at = ?, search_text = ?"
+                        "UPDATE research_notes SET title = ?, content = ?, updated_at = ?,"
+                        " search_text = ?, saved_document_id = ?, citation_id = ?"
                         " WHERE note_id = ? AND project_id = ?",
-                        (title, content, ts, search_text(title, content), note_id, project_id))
+                        (title, content, ts, search_text(title, content),
+                         saved_document_id, citation_id, note_id, project_id))
                     nid = note_id
                 else:
                     nid = new_id()

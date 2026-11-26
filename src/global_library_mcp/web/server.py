@@ -177,10 +177,26 @@ class ServiceRuntime:
 RUNTIME = ServiceRuntime()
 
 
+def _history_token(query: str, params: dict, result: dict, kind: str):
+    """Register a server-side search snapshot so the client can
+    save a history entry the server itself vouches for (b7
+    final review section 20). Returns None when the workspace
+    is disabled or the response is too large to snapshot."""
+    if RUNTIME.ws is None:
+        return None
+    from global_library_mcp.web.workspace_api import build_history_entry
+
+    try:
+        return RUNTIME.ws.annotate_search_response(
+            build_history_entry(query, params, result, kind=kind))
+    except ValueError:
+        return None
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "GlobalLibrary/0.1"
 
-    def _send(self, body: bytes, content_type: str = "application/json; charset=utf-8", status: int = 200) -> None:
+    def _send(self, body: bytes, content_type: str = "application/json; charset=utf-8", status: int = 200, extra_headers: dict | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
@@ -189,6 +205,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Security-Policy", "default-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("X-Frame-Options", "DENY")
+        for name, value in (extra_headers or {}).items():
+            self.send_header(name, value)
         self.end_headers()
         self.wfile.write(body)
 
@@ -285,6 +303,9 @@ class Handler(BaseHTTPRequestHandler):
                         "filters": result.get("filters"),
                         "discovery": result.get("discovery"),
                         "search_scope": result.get("search_scope"),
+                        "history_token": _history_token(
+                            query, {"mode": "quick", "libraries": libraries,
+                                    **_mat_kwargs}, result, "search"),
                     }))
                 else:
                     response = RUNTIME.run(RUNTIME.service.search(query, libraries, 10))
@@ -293,6 +314,9 @@ class Handler(BaseHTTPRequestHandler):
                     payload["options_applied"] = False
                     if RUNTIME.ws is not None:
                         RUNTIME.ws.annotate_search_results(payload.get("results", []))
+                    payload["history_token"] = _history_token(
+                        query, {"mode": "search", "libraries": libraries},
+                        payload, "search")
                     self._send(json_bytes(payload))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
@@ -371,7 +395,10 @@ class Handler(BaseHTTPRequestHandler):
                         result = RUNTIME.run_op(op_id, RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))
                         if RUNTIME.ws is not None:
                             RUNTIME.ws.annotate_search_results(result.get("materials", []))
-                        self._send(json_bytes({**result, "op_state": RUNTIME.op_state(op_id)}))
+                        self._send(json_bytes({**result, "op_state": RUNTIME.op_state(op_id),
+                                               "history_token": _history_token(
+                                                   query, {"mode": mode, "libraries": libraries,
+                                                           **_mat_kwargs}, result, "materials")}))
                     except (_cf.CancelledError, asyncio.CancelledError):
                         self._send(json_bytes({"op_state": "cancelled", "op_id": op_id, "materials": []}))
                     except (TimeoutError, asyncio.TimeoutError):
@@ -380,6 +407,9 @@ class Handler(BaseHTTPRequestHandler):
                     result = RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))
                     if RUNTIME.ws is not None:
                         RUNTIME.ws.annotate_search_results(result.get("materials", []))
+                    result["history_token"] = _history_token(
+                        query, {"mode": mode, "libraries": libraries, **_mat_kwargs},
+                        result, "materials")
                     self._send(json_bytes(result))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
@@ -463,13 +493,20 @@ class Handler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/" or parsed.path == "/index.html":
             html = (STATIC / "index.html").read_bytes()
-            # b7: the CSRF token reaches the page only through
-            # this meta tag (never a URL, log or export).
-            token = RUNTIME.ws.csrf_token if RUNTIME.ws is not None else ""
+            # b7 (final review section 10): each page load
+            # issues a workspace SESSION - an HttpOnly cookie
+            # plus that session's own CSRF token in this meta
+            # tag (never a URL, log or export).
+            headers = None
+            token = ""
+            if RUNTIME.ws is not None:
+                sid, token = RUNTIME.ws.issue_session()
+                headers = {"Set-Cookie": f"glm_ws_session={sid}; HttpOnly; "
+                                         "SameSite=Strict; Path=/"}
             html = html.replace(b"__GLM_CSRF_TOKEN__", token.encode("utf-8"))
             html = html.replace(b"__GLM_WORKSPACE_ENABLED__",
                                 b"1" if RUNTIME.ws is not None else b"0")
-            self._send(html, "text/html; charset=utf-8")
+            self._send(html, "text/html; charset=utf-8", extra_headers=headers)
             return
         if parsed.path == "/app.css":
             self._send((STATIC / "app.css").read_bytes(), "text/css; charset=utf-8")

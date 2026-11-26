@@ -17,32 +17,61 @@ from global_library_mcp.workspace.store import WorkspaceStore
 
 
 class _StubService:
+    """Stub with the REAL payload shapes (final review section
+    28): page payloads carry record_id/library_id/page_id, and
+    compare_documents returns documents + rows, not the old
+    invented sample_excerpts shape."""
+
     def __init__(self):
         self.page_text = "alpha verbatim passage omega"
 
     async def get_page_text(self, library_id, page_id):
         return {"contents": self.page_text, "verified_mapping": True,
+                "library_id": library_id, "record_id": "rec",
+                "page_id": page_id,
                 "image_url": "https://example.org/p.jpg",
+                "rights": {"statement": "Public Domain"},
                 "ocr_state": {"page_identity_verified": True}}
+
+    async def verify_page(self, library_id, page_id):
+        return {"status": "verified",
+                "checks": {"image_reachable": {"ok": True}}}
 
     async def get_document(self, library_id, record_id):
         return {"title": "On the Origin of Species"}
 
     async def compare_documents(self, documents, aspects=None, question=None,
                                 pages_per_aspect=2):
-        return {"documents": [{"sample_excerpts": [{"text": "shared passage"}]}
-                              for _ in documents],
-                "aspects": ["content"], "question": question,
-                "concept_overlap": {
-                    "lexical": {"shared": ["passage"]},
-                    "dictionary_concept_overlap": {"shared_concepts": ["concept:evolution"]},
-                    "shared_by_all_documents": ["passage"],
-                    "shared_by_some_documents": []},
-                "insufficient_evidence": []}
+        rows = [{
+            "aspect": "content",
+            "shared_terms": ["passage"], "partial_terms": [],
+            "unique_terms": {},
+            "dictionary_concept_overlap": ["concept:evolution"],
+            "documents": {d["record_id"]: {
+                "found": True,
+                "excerpts": [{"aspect": "content", "page_id": f"{d['record_id']}@1",
+                              "citation_key": f"{d['library_id']}:{d['record_id']}:p1",
+                              "image_url": None,
+                              "excerpt": "shared passage"}]}
+                for d in documents},
+        }]
+        return {"status": "compared",
+                "documents": [{"library_id": d["library_id"],
+                               "record_id": d["record_id"], "title": d["record_id"],
+                               "date": None, "landing_url": None, "error": None,
+                               "verified_pages": 1} for d in documents],
+                "aspects": ["content"], "question": question, "rows": rows}
+
+
+_OPENER = None
+_TOKEN = None
 
 
 @pytest.fixture()
 def http(tmp_path):
+    global _OPENER, _TOKEN
+    import http.cookiejar
+    import re as _re
     store = WorkspaceStore(tmp_path / "w.db")
     ws = WorkspaceWebRuntime(store)
     old_ws = server_mod.RUNTIME.ws
@@ -53,11 +82,18 @@ def http(tmp_path):
     thread = threading.Thread(target=httpd.serve_forever, daemon=True)
     thread.start()
     base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    jar = http.cookiejar.CookieJar()
+    _OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    with _OPENER.open(base + "/", timeout=30) as res:
+        html = res.read().decode()
+    _TOKEN = _re.search(r'name="glm-csrf" content="([^"]+)"', html).group(1)
     yield base, ws, store
     httpd.shutdown()
     server_mod.RUNTIME.ws = old_ws
     server_mod.RUNTIME.service = old_service
     store.close()
+    _OPENER = None
+    _TOKEN = None
 
 
 def _req(base, method, path, body=None, headers=None, raw=None):
@@ -65,7 +101,7 @@ def _req(base, method, path, body=None, headers=None, raw=None):
     req = urllib.request.Request(base + path, data=data, method=method,
                                  headers=headers or {})
     try:
-        with urllib.request.urlopen(req, timeout=30) as res:
+        with _OPENER.open(req, timeout=30) as res:
             return res.status, json.loads(res.read().decode() or "{}")
     except urllib.error.HTTPError as exc:
         payload = exc.read().decode()
@@ -76,7 +112,7 @@ def _req(base, method, path, body=None, headers=None, raw=None):
 
 
 def _csrf(http):
-    return http[1].csrf_token
+    return _TOKEN
 
 
 def _project(http):
@@ -143,7 +179,8 @@ def test_forged_verified_flag_is_ignored(http):
     project = _project(http)
     token = ws.register_snapshot("page", "internet-archive", {
         "contents": "alpha verbatim passage omega", "verified_mapping": False,
-        "_page_id": "rec@1", "rights": {"statement": "Public Domain"}})
+        "_page_id": "rec@1", "record_id": "rec", "library_id": "internet-archive",
+        "rights": {"statement": "Public Domain"}})
     status, cit = _req(base, "POST", "/api/workspace/citations",
                        {"project_id": project["project_id"], "save_token": token,
                         "excerpt": "verbatim passage", "verified": True,
@@ -162,7 +199,8 @@ def test_excerpt_must_be_verbatim_and_token_must_exist(http):
     project = _project(http)
     token = ws.register_snapshot("page", "internet-archive", {
         "contents": "alpha verbatim passage omega", "verified_mapping": True,
-        "_page_id": "rec@1", "rights": {"statement": "Public Domain"}})
+        "_page_id": "rec@1", "record_id": "rec", "library_id": "internet-archive",
+        "rights": {"statement": "Public Domain"}})
     status, body = _req(base, "POST", "/api/workspace/citations",
                         {"project_id": project["project_id"], "save_token": token,
                          "excerpt": "passage that was never fetched"},
@@ -198,7 +236,8 @@ def test_reverify_uses_fresh_fetch(http):
     project = _project(http)
     token = ws.register_snapshot("page", "internet-archive", {
         "contents": "alpha verbatim passage omega", "verified_mapping": True,
-        "_page_id": "rec@1", "rights": {"statement": "Public Domain"}})
+        "_page_id": "rec@1", "record_id": "rec", "library_id": "internet-archive",
+        "rights": {"statement": "Public Domain"}})
     status, cit = _req(base, "POST", "/api/workspace/citations",
                        {"project_id": project["project_id"], "save_token": token,
                         "excerpt": "verbatim passage"},
@@ -256,7 +295,7 @@ def test_comparison_save_and_history(http):
 def test_restore_rejects_corrupt_and_accepts_backup(http, tmp_path):
     base, ws, store = http
     _project(http)
-    status, body = _req(base, "POST", "/api/workspace/restore", raw=b"not a database",
+    status, body = _req(base, "POST", "/api/workspace/restore?confirm=1", raw=b"not a database",
                         headers={"X-GLM-CSRF": _csrf(http),
                                  "Content-Type": "application/octet-stream"})
     assert status == 400
@@ -264,6 +303,10 @@ def test_restore_rejects_corrupt_and_accepts_backup(http, tmp_path):
     backup = store.backup(tmp_path / "good.db")
     data = (tmp_path / "good.db").read_bytes()
     status, body = _req(base, "POST", "/api/workspace/restore", raw=data,
+                        headers={"X-GLM-CSRF": _csrf(http),
+                                 "Content-Type": "application/octet-stream"})
+    assert status == 409  # explicit confirmation is required
+    status, body = _req(base, "POST", "/api/workspace/restore?confirm=1", raw=data,
                         headers={"X-GLM-CSRF": _csrf(http),
                                  "Content-Type": "application/octet-stream"})
     assert status == 200 and body["restored"] is True

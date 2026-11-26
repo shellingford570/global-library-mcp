@@ -161,7 +161,10 @@ def test_excerpt_gate_withholds_unknown_and_copyrighted():
     assert excerpt == "some text"
     long_text = "x" * (policy.MAX_EXCERPT_CHARS + 10)
     excerpt, decision = policy.gate_excerpt(long_text, "CC BY 4.0")
-    assert len(excerpt) == policy.MAX_EXCERPT_CHARS and decision["truncated"]
+    # Final review section 13: oversize excerpts are withheld,
+    # never silently truncated (stored text, offsets and hash
+    # must always agree).
+    assert excerpt is None and "storage limit" in decision["reason"]
 
 
 def test_fulltext_and_images_never_stored():
@@ -189,7 +192,11 @@ def test_bibtex_stable_keys_and_escaping(store):
     assert (chr(92) + "{with" + chr(92) + "}") in out
     assert (chr(92) + "textbackslash{}") in out
     keys = assign_keys(docs)
-    assert keys[docs[0]["saved_document_id"]] == "darwin1859origin"
+    # Final review section 21: the key is the one stored at
+    # save time (from the original title "On the origin of
+    # species"), stable even if the title is later edited.
+    assert keys[docs[0]["saved_document_id"]] == "darwin1859the"
+    assert keys[docs[0]["saved_document_id"]] == docs[0]["citation_key"]
     assert to_bibtex(docs) == out  # deterministic
 
 
