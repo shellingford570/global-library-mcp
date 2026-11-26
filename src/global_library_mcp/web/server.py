@@ -194,6 +194,23 @@ class Handler(BaseHTTPRequestHandler):
                 return
             raw_libraries = parse_qs(parsed.query).get("libraries", [""])[0]
             libraries = [item for item in raw_libraries.split(",") if item][:10] or None
+            _qs = parse_qs(parsed.query)
+            _mat_kwargs: dict = {}
+            if _qs.get("author"):
+                _mat_kwargs["author"] = _qs["author"][0][:200]
+            if _qs.get("title"):
+                _mat_kwargs["title"] = _qs["title"][0][:200]
+            if _qs.get("languages"):
+                _mat_kwargs["languages"] = [x for x in _qs["languages"][0].split(",") if x in ("ja", "en", "de", "fr")][:4] or None
+            if _qs.get("expand") is not None:
+                _mat_kwargs["expand_multilingual"] = _qs["expand"][0] != "0"
+            if _qs.get("historical") is not None:
+                _mat_kwargs["expand_historical"] = _qs["historical"][0] != "0"
+            for _key in ("year_from", "year_to"):
+                if _qs.get(_key) and _qs[_key][0].isdigit():
+                    _mat_kwargs[_key] = int(_qs[_key][0])
+            if _qs.get("ocr", [""])[0] == "1":
+                _mat_kwargs["ocr_required"] = True
             try:
                 response = RUNTIME.run(RUNTIME.service.search(query, libraries, 10))
                 self._send(json_bytes(response.to_dict()))
@@ -243,6 +260,16 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
+        if parsed.path == "/api/newspaper-issues":
+            lccn = parse_qs(parsed.query).get("lccn", [""])[0].strip()
+            if not lccn:
+                self._send(json_bytes({"error": "lccn is required"}), status=400)
+                return
+            try:
+                self._send(json_bytes(RUNTIME.run(RUNTIME.service.newspaper_issues(lccn))))
+            except Exception as exc:
+                self._send(json_bytes({"lccn": lccn, "error": str(exc)[:200], "issues": []}), status=200)
+            return
         if parsed.path == "/api/materials":
             query = parse_qs(parsed.query).get("q", [""])[0].strip()
             if not query:
@@ -260,14 +287,14 @@ class Handler(BaseHTTPRequestHandler):
                     import concurrent.futures as _cf
 
                     try:
-                        result = RUNTIME.run_op(op_id, RUNTIME.service.research_materials(query, libraries, 10, mode=mode))
+                        result = RUNTIME.run_op(op_id, RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))
                         self._send(json_bytes({**result, "op_state": RUNTIME.op_state(op_id)}))
                     except (_cf.CancelledError, asyncio.CancelledError):
                         self._send(json_bytes({"op_state": "cancelled", "op_id": op_id, "materials": []}))
                     except (TimeoutError, asyncio.TimeoutError):
                         self._send(json_bytes({"op_state": "timeout", "op_id": op_id, "materials": []}))
                 else:
-                    self._send(json_bytes(RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode))))
+                    self._send(json_bytes(RUNTIME.run(RUNTIME.service.research_materials(query, libraries, 10, mode=mode, **_mat_kwargs))))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return

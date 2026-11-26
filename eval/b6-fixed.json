@@ -1,0 +1,941 @@
+[
+ {
+  "id": "F01",
+  "query": "明治時代の水力発電技術",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja",
+   "cross_language"
+  ],
+  "expect": {
+   "works": [
+    "work:suiryoku-report-1912",
+    "work:denki-kogaku-asano"
+   ],
+   "authors": [
+    "逓信省",
+    "浅野応輔"
+   ],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:suiryoku-hatsuden-1912",
+   "ndl:denki-kogaku-1898"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "旧字体發電を含む資料が対象"
+ },
+ {
+  "id": "F02",
+  "query": "ダーウィンの進化論が日本に与えた影響",
+  "query_language": "ja",
+  "tags": [
+   "author_variant",
+   "cross_language"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species",
+    "work:animal-evolution-ishikawa"
+   ],
+   "authors": [
+    "author:darwin",
+    "石川千代松"
+   ],
+   "languages": [
+    "en",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:origin-species-1859",
+   "ndl:dobutsu-shinkaron",
+   "gallica:evolution-fr",
+   "ddb:abstammung-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F03",
+  "query": "カントの認識論",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "de",
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:kritik-rv-1781",
+   "ndl:junsui-risei-hihan",
+   "ia:critique-pure-reason"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F04",
+  "query": "純粋理性批判",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "ja",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:junsui-risei-hihan",
+   "ddb:kritik-rv-1781",
+   "ia:critique-pure-reason"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F05",
+  "query": "19世紀ドイツの蒸気機関",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:dampfmaschine-1850",
+   "ia:steam-engine-watt",
+   "gallica:machine-vapeur"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F06",
+  "query": "蒸氣機關の歴史",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:jokikikan-meiji",
+   "ddb:dampfmaschine-1850",
+   "ia:steam-engine-watt"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "旧字体クエリ"
+ },
+ {
+  "id": "F07",
+  "query": "フランス革命期の新聞",
+  "query_language": "ja",
+  "tags": [
+   "cross_language",
+   "material_type"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:moniteur-1789"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F08",
+  "query": "マックス・ウェーバーの宗教社会学",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:protestant-ethic"
+   ],
+   "authors": [
+    "author:weber-max"
+   ],
+   "languages": [
+    "ja",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:weber-shukyo",
+   "ddb:protestantische-ethik",
+   "ia:protestant-ethic-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F09",
+  "query": "資本論",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:das-kapital"
+   ],
+   "authors": [
+    "author:marx"
+   ],
+   "languages": [
+    "ja",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:shihonron",
+   "ddb:kapital-1867",
+   "ia:capital-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F10",
+  "query": "ヨーロッパの天文学史",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en",
+    "de",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:astronomy-herschel",
+   "ddb:astronomie-de",
+   "ndl:tenmongaku-meiji"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F11",
+  "query": "steam engine history",
+  "query_language": "en",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en",
+    "de",
+    "fr",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:steam-engine-watt",
+   "ddb:dampfmaschine-1850",
+   "gallica:machine-vapeur",
+   "ndl:jokikikan-meiji"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F12",
+  "query": "Charles Darwin",
+  "query_language": "en",
+  "tags": [
+   "author_short"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:origin-species-1859",
+   "ia:origin-species-1872",
+   "loc:descent-of-man"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "短い著者名のみ。同姓のErasmus Darwinは別人"
+ },
+ {
+  "id": "F13",
+  "query": "Kritik der reinen Vernunft",
+  "query_language": "de",
+  "tags": [
+   "original_title"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "de",
+    "en",
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:kritik-rv-1781",
+   "ia:critique-pure-reason"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F14",
+  "query": "Dampfmaschine Industrie Deutschland 19. Jahrhundert",
+  "query_language": "de",
+  "tags": [
+   "de_compound"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:dampfmaschine-1850"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F15",
+  "query": "Müller",
+  "query_language": "de",
+  "tags": [
+   "author_ambiguous"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": "曖昧な著者名。特定人物への統合は不可"
+ },
+ {
+  "id": "F16",
+  "query": "machine à vapeur",
+  "query_language": "fr",
+  "tags": [
+   "fr_accent"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr",
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:machine-vapeur",
+   "ia:steam-engine-watt",
+   "ddb:dampfmaschine-1850"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F17",
+  "query": "Révolution française journaux",
+  "query_language": "fr",
+  "tags": [
+   "fr_accent",
+   "material_type"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:moniteur-1789",
+   "gallica:revolution-hist-fr"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F18",
+  "query": "chemin de fer histoire",
+  "query_language": "fr",
+  "tags": [
+   "fr_term"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "fr",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:chemin-de-fer",
+   "ddb:eisenbahn-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F19",
+  "query": "hydroelectric power development",
+  "query_language": "en",
+  "tags": [
+   "near_synonym"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:hydroelectric-1905",
+   "ddb:wasserkraft-1908"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "water power一般とは区別"
+ },
+ {
+  "id": "F20",
+  "query": "water power manufacturing mills",
+  "query_language": "en",
+  "tags": [
+   "near_synonym"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:water-power-1885"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "水力利用一般（発電に限定しない）"
+ },
+ {
+  "id": "F21",
+  "query": "水力發電",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:suiryoku-hatsuden-1912"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "旧字体の短いクエリ"
+ },
+ {
+  "id": "F22",
+  "query": "鐵道史 日本",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:tetsudo-shi"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F23",
+  "query": "夏目漱石",
+  "query_language": "ja",
+  "tags": [
+   "author_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:soseki"
+   ],
+   "languages": [
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:soseki-wagahai",
+   "ia:soseki-kokoro-en"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F24",
+  "query": "福澤諭吉 學問のすゝめ",
+  "query_language": "ja",
+  "tags": [
+   "historical_ja",
+   "original_title"
+  ],
+  "expect": {
+   "works": [
+    "work:gakumon-no-susume"
+   ],
+   "authors": [
+    "author:fukuzawa"
+   ],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:fukuzawa-gakumon"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "旧字体＋歴史的仮名遣い"
+ },
+ {
+  "id": "F25",
+  "query": "方法序説",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:discours-methode"
+   ],
+   "authors": [
+    "author:descartes"
+   ],
+   "languages": [
+    "ja",
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:hoho-josetsu",
+   "gallica:discours-methode"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F26",
+  "query": "社会契約論",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:contrat-social"
+   ],
+   "authors": [
+    "author:rousseau"
+   ],
+   "languages": [
+    "ja",
+    "fr"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:shakai-keiyakuron",
+   "gallica:contrat-social"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F27",
+  "query": "プロテスタンティズムの倫理と資本主義の精神",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:protestant-ethic"
+   ],
+   "authors": [
+    "author:weber-max"
+   ],
+   "languages": [
+    "ja",
+    "de",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:weber-shukyo",
+   "ddb:protestantische-ethik"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F28",
+  "query": "種の起源",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "ja",
+    "en",
+    "fr",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:origin-species-1859",
+   "gallica:evolution-fr",
+   "ddb:abstammung-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F29",
+  "query": "1900年代初頭のアメリカの鉄道事情",
+  "query_language": "ja",
+  "tags": [
+   "newspaper",
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "loc:ca-tribune-1907",
+   "ia:railroad-history-us"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F30",
+  "query": "近代日本における西洋哲学の受容",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ndl:kanto-kenkyu",
+   "ndl:junsui-risei-hihan"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F31",
+  "query": "日本とドイツの近代化の比較",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": "比較テーマ。単独の正解資料は設定しない"
+ },
+ {
+  "id": "F32",
+  "query": "Erkenntnistheorie Kant",
+  "query_language": "de",
+  "tags": [
+   "de_term"
+  ],
+  "expect": {
+   "works": [
+    "work:kritik-reinen-vernunft"
+   ],
+   "authors": [
+    "author:kant"
+   ],
+   "languages": [
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ddb:kritik-rv-1781"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F33",
+  "query": "évolution Darwin",
+  "query_language": "fr",
+  "tags": [
+   "fr_accent",
+   "author_variant"
+  ],
+  "expect": {
+   "works": [
+    "work:origin-of-species"
+   ],
+   "authors": [
+    "author:darwin"
+   ],
+   "languages": [
+    "fr",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "gallica:evolution-fr",
+   "ia:origin-species-1859"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F34",
+  "query": "railroad history America",
+  "query_language": "en",
+  "tags": [
+   "en_variant"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:railroad-history-us",
+   "ia:railway-steam"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "railway/railroad表記差"
+ },
+ {
+  "id": "F35",
+  "query": "steam-engine inventors",
+  "query_language": "en",
+  "tags": [
+   "en_hyphen"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:steam-engine-watt"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "ハイフン表記"
+ },
+ {
+  "id": "F36",
+  "query": "19th century astronomy Europe",
+  "query_language": "en",
+  "tags": [
+   "era"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "en",
+    "de"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:astronomy-herschel",
+   "ddb:astronomie-de"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F37",
+  "query": "存在しない資料：江戸時代の原子力発電",
+  "query_language": "ja",
+  "tags": [
+   "nonexistent",
+   "false_premise"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": []
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": "時代錯誤。資料が見つかっても前提を認定しない"
+ },
+ {
+  "id": "F38",
+  "query": "ダーウィンが書いた資本論",
+  "query_language": "ja",
+  "tags": [
+   "false_premise"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:marx"
+   ],
+   "languages": []
+  },
+  "relevant_record_ids": "誤った著者帰属。資本論の著者はマルクス",
+  "label_source": "agent_assigned",
+  "rationale": ""
+ },
+ {
+  "id": "F39",
+  "query": "ウェーバー 産業立地論",
+  "query_language": "ja",
+  "tags": [
+   "same_name"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [
+    "author:weber-alfred"
+   ],
+   "languages": [
+    "ja",
+    "en"
+   ]
+  },
+  "relevant_record_ids": [
+   "ia:weber-alfred"
+  ],
+  "label_source": "agent_assigned",
+  "rationale": "Max WeberではなくAlfred Weberの著作"
+ },
+ {
+  "id": "F40",
+  "query": "関東",
+  "query_language": "ja",
+  "tags": [
+   "short_ambiguous"
+  ],
+  "expect": {
+   "works": [],
+   "authors": [],
+   "languages": [
+    "ja"
+   ]
+  },
+  "relevant_record_ids": [],
+  "label_source": "agent_assigned",
+  "rationale": "短く曖昧。地名か震災記録か断定しない"
+ }
+]

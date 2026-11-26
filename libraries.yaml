@@ -1,3 +1,6 @@
+# b6 note: multilingual discovery (lexicon, expansion, routing)
+# changes how existing libraries are searched, not what each
+# library can do; per-library capabilities below are unchanged.
 schema_version: "0.1"
 phase: 5
 last_verified: "2026-11-25"

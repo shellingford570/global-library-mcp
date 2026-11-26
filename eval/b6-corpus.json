@@ -1,0 +1,751 @@
+[
+ {
+  "record_id": "ia:origin-species-1859",
+  "library_id": "internet-archive",
+  "title": "On the Origin of Species by Means of Natural Selection",
+  "author": "Charles Darwin",
+  "year": 1859,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "evolution",
+   "natural selection"
+  ],
+  "ocr": true,
+  "work_id": "work:origin-of-species"
+ },
+ {
+  "record_id": "ia:origin-species-1872",
+  "library_id": "internet-archive",
+  "title": "The Origin of Species by Means of Natural Selection, 6th edition",
+  "author": "Charles Darwin",
+  "year": 1872,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "evolution"
+  ],
+  "ocr": true,
+  "work_id": "work:origin-of-species"
+ },
+ {
+  "record_id": "ndl:shinka-ron-1882",
+  "library_id": "ndl",
+  "title": "進化原論",
+  "author": "スペンサー",
+  "year": 1882,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "進化論"
+  ],
+  "ocr": true,
+  "work_id": "work:evolution-spencer"
+ },
+ {
+  "record_id": "ndl:dobutsu-shinkaron",
+  "library_id": "ndl",
+  "title": "動物進化論",
+  "author": "石川千代松",
+  "year": 1883,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "進化論",
+   "ダーウィン"
+  ],
+  "ocr": true,
+  "work_id": "work:animal-evolution-ishikawa"
+ },
+ {
+  "record_id": "loc:descent-of-man",
+  "library_id": "loc",
+  "title": "The Descent of Man, and Selection in Relation to Sex",
+  "author": "Charles Darwin",
+  "year": 1871,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "evolution",
+   "human"
+  ],
+  "ocr": true,
+  "work_id": "work:descent-of-man"
+ },
+ {
+  "record_id": "gallica:evolution-fr",
+  "library_id": "gallica",
+  "title": "De l'origine des espèces",
+  "author": "Charles Darwin",
+  "year": 1862,
+  "language": "fr",
+  "material_type": "book",
+  "subjects": [
+   "évolution"
+  ],
+  "ocr": true,
+  "work_id": "work:origin-of-species"
+ },
+ {
+  "record_id": "ddb:abstammung-de",
+  "library_id": "ddb",
+  "title": "Über die Entstehung der Arten durch natürliche Zuchtwahl",
+  "author": "Charles Darwin",
+  "year": 1860,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Evolution",
+   "Abstammung"
+  ],
+  "ocr": false,
+  "work_id": "work:origin-of-species"
+ },
+ {
+  "record_id": "ddb:kritik-rv-1781",
+  "library_id": "ddb",
+  "title": "Kritik der reinen Vernunft",
+  "author": "Immanuel Kant",
+  "year": 1781,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Erkenntnistheorie",
+   "Philosophie"
+  ],
+  "ocr": true,
+  "work_id": "work:kritik-reinen-vernunft"
+ },
+ {
+  "record_id": "ia:critique-pure-reason",
+  "library_id": "internet-archive",
+  "title": "Critique of Pure Reason",
+  "author": "Immanuel Kant",
+  "year": 1881,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "epistemology",
+   "philosophy"
+  ],
+  "ocr": true,
+  "work_id": "work:kritik-reinen-vernunft"
+ },
+ {
+  "record_id": "ndl:junsui-risei-hihan",
+  "library_id": "ndl",
+  "title": "純粋理性批判",
+  "author": "カント",
+  "year": 1914,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "哲学",
+   "認識論"
+  ],
+  "ocr": true,
+  "work_id": "work:kritik-reinen-vernunft"
+ },
+ {
+  "record_id": "ndl:kanto-kenkyu",
+  "library_id": "ndl",
+  "title": "カント研究",
+  "author": "西田幾多郎",
+  "year": 1911,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "哲学",
+   "カント"
+  ],
+  "ocr": false,
+  "work_id": "work:kant-studies-nishida"
+ },
+ {
+  "record_id": "ia:steam-engine-watt",
+  "library_id": "internet-archive",
+  "title": "The Steam Engine and Its Inventors",
+  "author": "Robert L. Galloway",
+  "year": 1881,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "steam engine",
+   "industrial revolution"
+  ],
+  "ocr": true,
+  "work_id": "work:steam-engine-galloway"
+ },
+ {
+  "record_id": "ddb:dampfmaschine-1850",
+  "library_id": "ddb",
+  "title": "Die Dampfmaschine und ihre Anwendung in der Industrie",
+  "author": "Friedrich Müller",
+  "year": 1850,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Dampfmaschine",
+   "Industrie"
+  ],
+  "ocr": true,
+  "work_id": "work:dampfmaschine-mueller"
+ },
+ {
+  "record_id": "gallica:machine-vapeur",
+  "library_id": "gallica",
+  "title": "Traité de la machine à vapeur",
+  "author": "Édouard Sauvage",
+  "year": 1896,
+  "language": "fr",
+  "material_type": "book",
+  "subjects": [
+   "machine à vapeur",
+   "industrie"
+  ],
+  "ocr": true,
+  "work_id": "work:machine-vapeur-sauvage"
+ },
+ {
+  "record_id": "ndl:jokikikan-meiji",
+  "library_id": "ndl",
+  "title": "蒸氣機關説明書",
+  "author": "工部省",
+  "year": 1875,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "蒸気機関",
+   "工業"
+  ],
+  "ocr": true,
+  "work_id": "work:jokikikan-setsumei"
+ },
+ {
+  "record_id": "ia:railway-steam",
+  "library_id": "internet-archive",
+  "title": "Railways and the Steam-Engine",
+  "author": "John Bourne",
+  "year": 1846,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "railroad",
+   "steam-engine"
+  ],
+  "ocr": true,
+  "work_id": "work:railways-bourne"
+ },
+ {
+  "record_id": "ndl:suiryoku-hatsuden-1912",
+  "library_id": "ndl",
+  "title": "水力發電事業調査報告",
+  "author": "逓信省",
+  "year": 1912,
+  "language": "ja",
+  "material_type": "report",
+  "subjects": [
+   "水力発電",
+   "電気事業"
+  ],
+  "ocr": true,
+  "work_id": "work:suiryoku-report-1912"
+ },
+ {
+  "record_id": "ndl:denki-kogaku-1898",
+  "library_id": "ndl",
+  "title": "電氣工學",
+  "author": "浅野応輔",
+  "year": 1898,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "電気工学",
+   "発電"
+  ],
+  "ocr": true,
+  "work_id": "work:denki-kogaku-asano"
+ },
+ {
+  "record_id": "ia:hydroelectric-1905",
+  "library_id": "internet-archive",
+  "title": "Hydroelectric Power Plants",
+  "author": "Lamar Lyndon",
+  "year": 1911,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "hydroelectric power",
+   "water power"
+  ],
+  "ocr": true,
+  "work_id": "work:hydroelectric-lyndon"
+ },
+ {
+  "record_id": "ddb:wasserkraft-1908",
+  "library_id": "ddb",
+  "title": "Die Wasserkraft und ihre wirtschaftliche Bedeutung",
+  "author": "Ernst Müller",
+  "year": 1908,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Wasserkraft",
+   "Elektrizität"
+  ],
+  "ocr": false,
+  "work_id": "work:wasserkraft-mueller"
+ },
+ {
+  "record_id": "ia:water-power-1885",
+  "library_id": "internet-archive",
+  "title": "Water Power in Manufacturing",
+  "author": "James Emerson",
+  "year": 1885,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "water power",
+   "hydraulic power",
+   "mills"
+  ],
+  "ocr": true,
+  "work_id": "work:water-power-emerson"
+ },
+ {
+  "record_id": "ndl:tetsudo-shi",
+  "library_id": "ndl",
+  "title": "日本鐵道史",
+  "author": "鉄道省",
+  "year": 1921,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "鉄道史"
+  ],
+  "ocr": true,
+  "work_id": "work:nihon-tetsudoshi"
+ },
+ {
+  "record_id": "ia:railroad-history-us",
+  "library_id": "internet-archive",
+  "title": "History of American Railroads",
+  "author": "Edward Hungerford",
+  "year": 1928,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "railroad",
+   "transportation"
+  ],
+  "ocr": true,
+  "work_id": "work:railroad-history-hungerford"
+ },
+ {
+  "record_id": "ddb:eisenbahn-de",
+  "library_id": "ddb",
+  "title": "Geschichte der Eisenbahn in Deutschland",
+  "author": "Karl Müller",
+  "year": 1902,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Eisenbahn",
+   "Verkehr"
+  ],
+  "ocr": true,
+  "work_id": "work:eisenbahn-geschichte"
+ },
+ {
+  "record_id": "gallica:chemin-de-fer",
+  "library_id": "gallica",
+  "title": "Les chemins de fer en France",
+  "author": "Alfred Picard",
+  "year": 1884,
+  "language": "fr",
+  "material_type": "book",
+  "subjects": [
+   "chemin de fer",
+   "transport"
+  ],
+  "ocr": true,
+  "work_id": "work:chemins-picard"
+ },
+ {
+  "record_id": "loc:ca-tribune-1907",
+  "library_id": "loc",
+  "title": "New-York tribune, 1907-01-01",
+  "author": "",
+  "year": 1907,
+  "language": "en",
+  "material_type": "newspaper",
+  "subjects": [
+   "railroad rates",
+   "news"
+  ],
+  "ocr": true,
+  "work_id": "work:nytribune-1907"
+ },
+ {
+  "record_id": "ddb:protestantische-ethik",
+  "library_id": "ddb",
+  "title": "Die protestantische Ethik und der Geist des Kapitalismus",
+  "author": "Max Weber",
+  "year": 1905,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Religionssoziologie",
+   "Kapitalismus"
+  ],
+  "ocr": true,
+  "work_id": "work:protestant-ethic"
+ },
+ {
+  "record_id": "ia:protestant-ethic-en",
+  "library_id": "internet-archive",
+  "title": "The Protestant Ethic and the Spirit of Capitalism",
+  "author": "Max Weber",
+  "year": 1930,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "sociology of religion",
+   "capitalism"
+  ],
+  "ocr": true,
+  "work_id": "work:protestant-ethic"
+ },
+ {
+  "record_id": "ndl:weber-shukyo",
+  "library_id": "ndl",
+  "title": "プロテスタンティズムの倫理と資本主義の精神",
+  "author": "マックス・ウェーバー",
+  "year": 1955,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "宗教社会学"
+  ],
+  "ocr": true,
+  "work_id": "work:protestant-ethic"
+ },
+ {
+  "record_id": "ddb:kapital-1867",
+  "library_id": "ddb",
+  "title": "Das Kapital. Kritik der politischen Ökonomie",
+  "author": "Karl Marx",
+  "year": 1867,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Ökonomie",
+   "Kapitalismus"
+  ],
+  "ocr": true,
+  "work_id": "work:das-kapital"
+ },
+ {
+  "record_id": "ia:capital-en",
+  "library_id": "internet-archive",
+  "title": "Capital: A Critique of Political Economy",
+  "author": "Karl Marx",
+  "year": 1906,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "economics",
+   "capitalism"
+  ],
+  "ocr": true,
+  "work_id": "work:das-kapital"
+ },
+ {
+  "record_id": "ndl:shihonron",
+  "library_id": "ndl",
+  "title": "資本論",
+  "author": "マルクス",
+  "year": 1928,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "経済学"
+  ],
+  "ocr": true,
+  "work_id": "work:das-kapital"
+ },
+ {
+  "record_id": "gallica:moniteur-1789",
+  "library_id": "gallica",
+  "title": "Gazette nationale, ou le Moniteur universel, 1789",
+  "author": "",
+  "year": 1789,
+  "language": "fr",
+  "material_type": "newspaper",
+  "subjects": [
+   "Révolution française",
+   "presse"
+  ],
+  "ocr": true,
+  "work_id": "work:moniteur-1789"
+ },
+ {
+  "record_id": "gallica:revolution-hist-fr",
+  "library_id": "gallica",
+  "title": "Histoire de la Révolution française",
+  "author": "Jules Michelet",
+  "year": 1847,
+  "language": "fr",
+  "material_type": "book",
+  "subjects": [
+   "Révolution française",
+   "histoire"
+  ],
+  "ocr": true,
+  "work_id": "work:revolution-michelet"
+ },
+ {
+  "record_id": "ia:french-revolution-carlyle",
+  "library_id": "internet-archive",
+  "title": "The French Revolution: A History",
+  "author": "Thomas Carlyle",
+  "year": 1837,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "French Revolution",
+   "history"
+  ],
+  "ocr": true,
+  "work_id": "work:french-revolution-carlyle"
+ },
+ {
+  "record_id": "ia:astronomy-herschel",
+  "library_id": "internet-archive",
+  "title": "Outlines of Astronomy",
+  "author": "John F. W. Herschel",
+  "year": 1849,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "astronomy"
+  ],
+  "ocr": true,
+  "work_id": "work:outlines-astronomy"
+ },
+ {
+  "record_id": "ndl:tenmongaku-meiji",
+  "library_id": "ndl",
+  "title": "天文學通論",
+  "author": "寺尾寿",
+  "year": 1888,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "天文学"
+  ],
+  "ocr": true,
+  "work_id": "work:tenmon-tsuron"
+ },
+ {
+  "record_id": "ddb:astronomie-de",
+  "library_id": "ddb",
+  "title": "Populäre Astronomie",
+  "author": "Simon Newcomb",
+  "year": 1881,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Astronomie"
+  ],
+  "ocr": false,
+  "work_id": "work:populaere-astronomie"
+ },
+ {
+  "record_id": "ndl:soseki-wagahai",
+  "library_id": "ndl",
+  "title": "吾輩は猫である",
+  "author": "夏目漱石",
+  "year": 1905,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "文学"
+  ],
+  "ocr": true,
+  "work_id": "work:wagahai"
+ },
+ {
+  "record_id": "ia:soseki-kokoro-en",
+  "library_id": "internet-archive",
+  "title": "Kokoro",
+  "author": "Natsume Soseki",
+  "year": 1914,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "literature"
+  ],
+  "ocr": true,
+  "work_id": "work:kokoro"
+ },
+ {
+  "record_id": "ndl:fukuzawa-gakumon",
+  "library_id": "ndl",
+  "title": "學問のすゝめ",
+  "author": "福澤諭吉",
+  "year": 1872,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "啓蒙",
+   "学問"
+  ],
+  "ocr": true,
+  "work_id": "work:gakumon-no-susume"
+ },
+ {
+  "record_id": "ia:fukuzawa-en",
+  "library_id": "internet-archive",
+  "title": "The Encouragement of Learning",
+  "author": "Fukuzawa Yukichi",
+  "year": 1969,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "enlightenment"
+  ],
+  "ocr": true,
+  "work_id": "work:gakumon-no-susume"
+ },
+ {
+  "record_id": "ia:principia-newton",
+  "library_id": "internet-archive",
+  "title": "Mathematical Principles of Natural Philosophy",
+  "author": "Isaac Newton",
+  "year": 1729,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "physics",
+   "mechanics"
+  ],
+  "ocr": true,
+  "work_id": "work:principia"
+ },
+ {
+  "record_id": "gallica:discours-methode",
+  "library_id": "gallica",
+  "title": "Discours de la méthode",
+  "author": "René Descartes",
+  "year": 1637,
+  "language": "fr",
+  "material_type": "book",
+  "subjects": [
+   "philosophie",
+   "méthode"
+  ],
+  "ocr": true,
+  "work_id": "work:discours-methode"
+ },
+ {
+  "record_id": "ndl:hoho-josetsu",
+  "library_id": "ndl",
+  "title": "方法序説",
+  "author": "デカルト",
+  "year": 1935,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "哲学"
+  ],
+  "ocr": true,
+  "work_id": "work:discours-methode"
+ },
+ {
+  "record_id": "gallica:contrat-social",
+  "library_id": "gallica",
+  "title": "Du contrat social, ou Principes du droit politique",
+  "author": "Jean-Jacques Rousseau",
+  "year": 1762,
+  "language": "fr",
+  "material_type": "book",
+  "subjects": [
+   "philosophie politique"
+  ],
+  "ocr": true,
+  "work_id": "work:contrat-social"
+ },
+ {
+  "record_id": "ndl:shakai-keiyakuron",
+  "library_id": "ndl",
+  "title": "社会契約論",
+  "author": "ルソー",
+  "year": 1913,
+  "language": "ja",
+  "material_type": "book",
+  "subjects": [
+   "政治思想"
+  ],
+  "ocr": true,
+  "work_id": "work:contrat-social"
+ },
+ {
+  "record_id": "ia:darwin-erasmus",
+  "library_id": "internet-archive",
+  "title": "Zoonomia; or, The Laws of Organic Life",
+  "author": "Erasmus Darwin",
+  "year": 1794,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "biology",
+   "medicine"
+  ],
+  "ocr": true,
+  "work_id": "work:zoonomia"
+ },
+ {
+  "record_id": "ddb:mueller-max",
+  "library_id": "ddb",
+  "title": "Vorlesungen über die Wissenschaft der Sprache",
+  "author": "Friedrich Max Müller",
+  "year": 1863,
+  "language": "de",
+  "material_type": "book",
+  "subjects": [
+   "Sprachwissenschaft"
+  ],
+  "ocr": true,
+  "work_id": "work:sprache-mueller"
+ },
+ {
+  "record_id": "ia:weber-alfred",
+  "library_id": "internet-archive",
+  "title": "Theory of the Location of Industries",
+  "author": "Alfred Weber",
+  "year": 1929,
+  "language": "en",
+  "material_type": "book",
+  "subjects": [
+   "economics",
+   "industry location"
+  ],
+  "ocr": true,
+  "work_id": "work:location-weber-alfred"
+ },
+ {
+  "record_id": "ndl:kanto-jiken-1923",
+  "library_id": "ndl",
+  "title": "関東大震災記録",
+  "author": "",
+  "year": 1923,
+  "language": "ja",
+  "material_type": "report",
+  "subjects": [
+   "震災"
+  ],
+  "ocr": false,
+  "work_id": "work:kanto-quake-record"
+ }
+]

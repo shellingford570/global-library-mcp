@@ -317,6 +317,8 @@ class BsbAdapter(LibraryAdapter):
             "ocr_source": ocr_url,
             "ocr_format": "hOCR (MDZ OCR API)",
             "ocr_fetched": ocr_fetched,
+            "ocr_nonempty": bool(text and text.strip()),
+            "page_identity_verified": verified,
             "ocr_fetch_error": fetch_error,
             "image_url": canvas.image_url,
             "image_service_id": canvas.image_service_id,

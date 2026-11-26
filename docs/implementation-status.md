@@ -1,8 +1,23 @@
 # Implementation status
 
-Last updated: 2026-11-24 (branch `feat/global-library-research-engine-v8`, Phase 8).
+Last updated: 2026-11-26 (branch `feat/multilingual-research-b6`, b6 candidate).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
+
+## Multilingual discovery (b6)
+
+| Capability | Status | Notes |
+|---|---|---|
+| Discovery language model | implemented, verified | discovery.py; separate from admission analysis; unknown for short proper nouns |
+| Search lexicon | implemented | 98 entries (61 concepts / 22 authors / 15 works); validated loader; sources + verification status per entry |
+| Query expansion | implemented, verified | Typed/reasoned/capped variants; ambiguous authors skipped with reasons; user-disableable |
+| Language routing | implemented, verified | Only when libraries are not user-pinned; ID-only libraries never keyword-searched |
+| Work/author resolution | implemented, verified | Candidate links with basis; author-mismatch and shared-surname refusals; no merging |
+| DDB -> BSB handoff | implemented, live-verified | Official-URN extraction + provider check; strict BSB checks decide at fetch |
+| LoC newspaper issue discovery | implemented, live-verified | LoC search API, structural issue ids, title anchor required |
+| Structured filters | implemented | Local application to fetched candidates, reported with metadata-missing counts |
+| Multilingual comparison | implemented | dictionary_concept_overlap; semantic_comparison always not_checked |
+| Fixture evaluation | implemented | eval/b6_eval.py; agent-assigned proxy labels; ablation in docs/b6-evaluation.md |
 
 ## Core pipeline
 

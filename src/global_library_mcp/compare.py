@@ -87,3 +87,38 @@ def compare_aspect(aspect: str, per_doc_texts: dict[str, str], top: int = 8) -> 
         "unique_terms": unique,
         "documents_compared": len(labels),
     }
+
+
+def concept_overlap(per_doc_texts: dict[str, str]) -> dict[str, Any]:
+    """Dictionary-based concept correspondence across documents
+    (b6, section 25). A shared lexicon concept means the
+    documents' texts both contain a label of the same dictionary
+    concept - a lexical/dictionary signal only. It does NOT mean
+    the documents agree in meaning, and the result always
+    carries semantic_comparison: not_checked."""
+    from global_library_mcp import lexicon as _lexicon
+
+    per_doc: dict[str, list[str]] = {}
+    for label, text in per_doc_texts.items():
+        found = {entry["concept_id"] for entry in _lexicon.match_entries(text or "", "concepts")}
+        per_doc[label] = sorted(found)
+    counts: dict[str, int] = {}
+    for concepts in per_doc.values():
+        for concept_id in concepts:
+            counts[concept_id] = counts.get(concept_id, 0) + 1
+    shared = sorted(cid for cid, n in counts.items() if n >= 2)
+    # Final review (section 24): with 3-4 documents, a concept
+    # shared by ALL documents is a different signal from one
+    # shared by only some; report both instead of one lump.
+    shared_all = sorted(cid for cid, n in counts.items()
+                        if per_doc and n == len(per_doc))
+    shared_some = sorted(cid for cid in shared if cid not in shared_all)
+    return {
+        "dictionary_concept_overlap": shared,
+        "shared_by_all_documents": shared_all,
+        "shared_by_some_documents": shared_some,
+        "per_document_concepts": per_doc,
+        "possible_related_concepts": shared,
+        "semantic_comparison": "not_checked",
+        "note": "dictionary concept overlap is a lexical signal; it does not establish semantic agreement",
+    }

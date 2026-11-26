@@ -136,3 +136,23 @@ AI回答系ツールは Research Beta の初期設定では無効です。
   文書で確認できたが、トンネルの作成自体は未実施であり、
   **ChatGPT接続は引き続き未対応（準備のみ）**。
 - **Google Antigravity**: stdioの設定例のみ（未検証）。
+
+## b6: multilingual options on research_materials
+
+`research_materials` accepts optional `languages`,
+`expand_multilingual`, `expand_historical`, `author`,
+`title`, `year_from`, `year_to` and `ocr_required`. The
+response gains a `discovery` block (query language, every
+variant used with kind/relation/reason, skipped candidates
+with reasons, ambiguous authors) and per-material
+`matched_variant`, `discovery_reasons`, `work_link`,
+`author_link`, `duplicate_group` and, for DDB records,
+`bsb_handoff`. Tool counts are unchanged (15 full / 14
+research profile).
+
+Final-review clarification: `search_catalog` and
+`search_across_libraries` are plain bibliographic searches —
+no multilingual expansion and no structured filters. Those
+live only on `research_materials`, in all modes including
+Quick. The discovery block distinguishes planned variants
+from executed ones (`variant_execution`).

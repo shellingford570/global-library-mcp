@@ -1,0 +1,269 @@
+[
+ {
+  "id": "challenge-01",
+  "query": "ダーウィンの進化論",
+  "query_language": "ja",
+  "tags": [
+   "author",
+   "cross_language"
+  ],
+  "relevant_record_ids": [
+   "ch-charles"
+  ],
+  "rationale": "Charles Darwin's work only; Erasmus Darwin's Zoonomia is a different author and must not count as the target work",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-02",
+  "query": "Darwin evolution",
+  "query_language": "en",
+  "tags": [
+   "author"
+  ],
+  "relevant_record_ids": [
+   "ch-charles"
+  ],
+  "rationale": "surname shared: retrieval may surface both Darwins; the evolution work is Charles's",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-03",
+  "query": "純粋理性批判",
+  "query_language": "ja",
+  "tags": [
+   "original_title",
+   "translated_title"
+  ],
+  "relevant_record_ids": [
+   "ch-kant-orig",
+   "ch-kant-en"
+  ],
+  "rationale": "the work itself in original and translation; the commentary and the Japanese study are about it, not it",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-04",
+  "query": "Kritik der reinen Vernunft",
+  "query_language": "de",
+  "tags": [
+   "original_title"
+  ],
+  "relevant_record_ids": [
+   "ch-kant-orig"
+  ],
+  "rationale": "exact original title; commentary contains the title but is a different work",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-05",
+  "query": "カントの認識論",
+  "query_language": "ja",
+  "tags": [
+   "author",
+   "cross_language"
+  ],
+  "relevant_record_ids": [
+   "ch-kant-orig",
+   "ch-kant-en"
+  ],
+  "rationale": "Kant's own work; studies about Kant are secondary",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-06",
+  "query": "ウェーバーの宗教社会学",
+  "query_language": "ja",
+  "tags": [
+   "author"
+  ],
+  "relevant_record_ids": [
+   "ch-weber-max"
+  ],
+  "rationale": "Max Weber, not Alfred Weber",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-07",
+  "query": "産業立地論",
+  "query_language": "ja",
+  "tags": [
+   "translated_title",
+   "author"
+  ],
+  "relevant_record_ids": [
+   "ch-weber-alfred"
+  ],
+  "rationale": "Alfred Weber's work; must not resolve to Max Weber",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-08",
+  "query": "Faust Goethe 1808",
+  "query_language": "en",
+  "tags": [
+   "edition"
+  ],
+  "relevant_record_ids": [
+   "ch-faust-a",
+   "ch-faust-b"
+  ],
+  "rationale": "two same-year editions from different publishers; both are the work, neither is 'the' edition",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-09",
+  "query": "ドイツの蒸気機関",
+  "query_language": "ja",
+  "tags": [
+   "cross_language"
+  ],
+  "relevant_record_ids": [
+   "ch-steam-de"
+  ],
+  "rationale": "German steam-engine monograph",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-10",
+  "query": "蒸気機関の古い図説",
+  "query_language": "ja",
+  "tags": [
+   "historical",
+   "language_unknown"
+  ],
+  "relevant_record_ids": [
+   "ch-nolang"
+  ],
+  "rationale": "historical-script title, language metadata missing",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-11",
+  "query": "明治時代の水力発電",
+  "query_language": "ja",
+  "tags": [
+   "historical"
+  ],
+  "relevant_record_ids": [
+   "ch-hydro"
+  ],
+  "rationale": "old-kanji title 水力發電所設計",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-12",
+  "query": "19世紀の鉄道技術",
+  "query_language": "ja",
+  "tags": [
+   "cross_language",
+   "no_ocr"
+  ],
+  "relevant_record_ids": [
+   "ch-rail-en"
+  ],
+  "rationale": "relevant record has no OCR; discovery must still find it",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-13",
+  "query": "ダーウィンが書いた純粋理性批判",
+  "query_language": "ja",
+  "tags": [
+   "wrong_premise"
+  ],
+  "relevant_record_ids": [],
+  "rationale": "wrong premise: Darwin did not write the Critique; nothing is relevant",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-14",
+  "query": "火星の植物図鑑 22世紀",
+  "query_language": "ja",
+  "tags": [
+   "no_material"
+  ],
+  "relevant_record_ids": [],
+  "rationale": "no such material in the corpus",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-15",
+  "query": "Kant Kritik der reinen Vernunft 1781",
+  "query_language": "de",
+  "tags": [
+   "original_title",
+   "year"
+  ],
+  "relevant_record_ids": [
+   "ch-kant-orig"
+  ],
+  "rationale": "year-anchored original",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-16",
+  "query": "プロテスタンティズムの倫理と資本主義の精神",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "relevant_record_ids": [
+   "ch-weber-max"
+  ],
+  "rationale": "Japanese translated title of Max Weber's work",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-17",
+  "query": "種の起源",
+  "query_language": "ja",
+  "tags": [
+   "translated_title"
+  ],
+  "relevant_record_ids": [
+   "ch-charles"
+  ],
+  "rationale": "Japanese title of Origin of Species",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-18",
+  "query": "Zoonomia Erasmus Darwin",
+  "query_language": "en",
+  "tags": [
+   "author"
+  ],
+  "relevant_record_ids": [
+   "ch-erasmus"
+  ],
+  "rationale": "Erasmus Darwin's own work; must not be attributed to Charles",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-19",
+  "query": "Kant Kommentar",
+  "query_language": "de",
+  "tags": [
+   "commentary"
+  ],
+  "relevant_record_ids": [
+   "ch-kant-komm"
+  ],
+  "rationale": "asking for the commentary itself: Vaihinger's work is the target here",
+  "label_source": "agent_assigned"
+ },
+ {
+  "id": "challenge-20",
+  "query": "水力発電と蒸気機関の比較",
+  "query_language": "ja",
+  "tags": [
+   "multi_concept"
+  ],
+  "relevant_record_ids": [
+   "ch-hydro",
+   "ch-steam-de"
+  ],
+  "rationale": "two concepts across languages",
+  "label_source": "agent_assigned"
+ }
+]

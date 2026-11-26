@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.0.0b6 — Multilingual Research & Intelligent Discovery
+
+Final-review fixes (2026-11-26, docs/b6-final-review.md):
+Quick mode now applies the structured options (discovery
+plan cap 3, bibliographic filters, no OCR fetching, own
+HTTP budget); author/title filters are real bibliographic
+filters applied BEFORE OCR fetching; expansion toggles gate
+every generation path, and plan variants execute in plan
+order even when duplicating legacy script variants;
+author/work resolution is equality-based with an explicit
+status vocabulary (nothing is authority-verified);
+same-edition classification requires edition-level evidence;
+DDB→BSB identifiers are validated structurally (URN form,
+exact MDZ host, structured provider code); empty OCR is
+reported separately from verified page identity
+(`ocr_state`); language filters normalise ISO 639 codes and
+names; Europeana is not routed while its API key is pending;
+planned vs executed variants are distinguished in responses
+and the Web UI; the evaluation is split into simulation (A)
+and a real-LibraryService fixture evaluation (B), with a
+pre-fixed 20-case challenge set. Suites: pytest 362,
+Playwright 17. Paid API calls: 0.
+
+## 1.0.0b6 — Multilingual Research (candidate)
+
+Discovery from already-connected libraries, in the user's
+own language: a discovery language model separate from the
+admission analysis; a local search lexicon (61 concepts /
+22 authors / 15 works, sources + verification status); a
+QueryExpansionEngine emitting typed, reasoned, capped
+variants (titles, author forms, concept translations,
+historical spellings); language routing when libraries are
+not pinned; work/author candidate resolution with
+first-class refusals (author mismatch, shared surnames);
+DDB -> BSB handoff candidates from official URNs
+(live-verified); LoC newspaper issue discovery via the LoC
+search API (live-verified); local structured filters with
+metadata-missing reporting; work-based grouping without
+merging; multilingual comparison with dictionary-concept
+overlap and semantic_comparison not_checked. Fixture
+ablation (agent-assigned proxy labels): fixed-set Recall@10
+0.486 -> 0.910, cross-language discovery 0.028 -> 0.611.
+Evidence admission unchanged; the pre-b6 suite passes
+unmodified. Gallica still upstream-403 from the
+verification network (one re-check, no evasion). Paid LLM
+calls: 0. Docs: docs/b6-multilingual-research.md,
+docs/b6-evaluation.md, docs/b6-live-verification.md.
+
 ## 1.0.0b5 — Global Coverage
 
 Final-review fixes (2026-11-26, docs/b5-final-review.md):
