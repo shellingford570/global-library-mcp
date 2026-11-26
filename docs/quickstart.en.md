@@ -149,3 +149,15 @@ Report them privately, following [SECURITY.md](../SECURITY.md).
   shown only after the server confirms the stop. The overall
   investigation limit is 300 seconds.
 - AI answering remains experimental (disabled by default).
+
+## Multilingual discovery (b6)
+
+In research-materials mode the service also searches in
+other languages and historical spellings, using a local
+dictionary - author forms, original/translated titles,
+subject labels in Japanese, English, German and French.
+Advanced fields (author, title, year range, document
+languages, expansion toggles) are on the search form; every
+result shows which search term found it and why it is
+shown. Expansion widens discovery only; it is not
+translation, and evidence admission is unchanged.

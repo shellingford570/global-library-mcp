@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.0b6 — Multilingual Research (candidate)
+
+Discovery from already-connected libraries, in the user's
+own language: a discovery language model separate from the
+admission analysis; a local search lexicon (61 concepts /
+22 authors / 15 works, sources + verification status); a
+QueryExpansionEngine emitting typed, reasoned, capped
+variants (titles, author forms, concept translations,
+historical spellings); language routing when libraries are
+not pinned; work/author candidate resolution with
+first-class refusals (author mismatch, shared surnames);
+DDB -> BSB handoff candidates from official URNs
+(live-verified); LoC newspaper issue discovery via the LoC
+search API (live-verified); local structured filters with
+metadata-missing reporting; work-based grouping without
+merging; multilingual comparison with dictionary-concept
+overlap and semantic_comparison not_checked. Fixture
+ablation (agent-assigned proxy labels): fixed-set Recall@10
+0.486 -> 0.910, cross-language discovery 0.028 -> 0.611.
+Evidence admission unchanged; the pre-b6 suite passes
+unmodified. Gallica still upstream-403 from the
+verification network (one re-check, no evasion). Paid LLM
+calls: 0. Docs: docs/b6-multilingual-research.md,
+docs/b6-evaluation.md, docs/b6-live-verification.md.
+
 ## 1.0.0b5 — Global Coverage
 
 Final-review fixes (2026-11-26, docs/b5-final-review.md):

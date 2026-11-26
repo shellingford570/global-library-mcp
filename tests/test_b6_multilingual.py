@@ -212,11 +212,12 @@ async def test_find_ca_issues_builds_issue_ids(monkeypatch):
     import global_library_mcp.adapters.loc as loc_mod
 
     async def fake_get_json(client, url, **kwargs):
-        assert url.endswith("/lccn/sn83030214.json")
-        return {"lccn": "sn83030214", "name": "New-York tribune.",
-                "place_of_publication": "New York, N.Y.",
-                "issues": [{"date_issued": "1907-01-01",
-                            "url": "https://chroniclingamerica.loc.gov/lccn/sn83030214/1907-01-01/ed-1/"}]}
+        assert url == "https://www.loc.gov/search/"
+        return {"results": [
+            {"id": "http://www.loc.gov/item/sn83030214/", "title": "New-York Tribune (New York [N.Y.]) 1866-1924"},
+            {"id": "http://www.loc.gov/item/sn83030214/1907-01-01/ed-1/", "title": "New-York tribune, January 1, 1907"},
+            {"id": "http://www.loc.gov/item/sn99999999/1907-01-01/ed-1/", "title": "A different paper entirely"},
+        ]}
 
     monkeypatch.setattr(loc_mod, "get_json", fake_get_json)
     async with httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(404))) as client:

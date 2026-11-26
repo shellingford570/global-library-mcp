@@ -39,6 +39,22 @@ and [docs/implementation-status.md](docs/implementation-status.md).
 This project does **not** cover every library in the
 world; the table above is the whole supported set.
 
+### Multilingual discovery (1.0.0b6)
+
+Ask in your own language: a local dictionary expands the
+query into other languages' subject labels, author name
+forms, original and translated titles, and historical
+spellings (old kanji, historical kana, umlaut and accent
+forms), routes variants to the libraries that hold such
+materials, and reports every expansion with its reason.
+Records gain candidate work/author links (with refusals
+where identity is not established), DDB records can hand
+off to BSB originals via their official URN, and LoC
+newspaper issues are discoverable from a title's LCCN.
+Expansion is discovery only - evidence admission is
+unchanged, and no translation or LLM is involved. See
+docs/b6-multilingual-research.md and docs/b6-evaluation.md.
+
 ## Quick start (local)
 
 ```bash

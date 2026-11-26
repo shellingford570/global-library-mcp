@@ -1052,14 +1052,25 @@ class LibraryService:
                 "fr": ["gallica", "internet-archive", "europeana"],
             }
             _ceiling = 20 if _mode == "deep" else 14
+            _engine_texts: list[str] = []
             for _v in discovery_plan.get("variants", []):
                 _text = _v.get("text") or ""
                 if _text and _text not in variants and len(variants) < _ceiling:
                     variants.append(_text)
+                    _engine_texts.append(_text)
                     if not libraries:
                         _routed = _routing.get(_v.get("language") or "")
                         if _routed:
                             _variant_libraries[_text] = _routed
+            # Engine variants run immediately after the full
+            # query, before the extracted-term variants: appended
+            # last, the standard-mode early stop (pool of
+            # in-document candidates) starved them entirely in
+            # live use - the term variants filled the pool with
+            # same-language noise first (b6 live finding).
+            if _engine_texts:
+                variants = variants[:1] + _engine_texts + [
+                    v for v in variants[1:] if v not in _engine_texts]
         library_error_counts: dict[str, int] = {}
         active_libraries: list[str] | None = list(libraries) if libraries else None
         _early_stop_note: dict[str, Any] | None = None
@@ -1114,7 +1125,9 @@ class LibraryService:
             # the pool already holds enough in-document-capable
             # candidates; the full question always runs first. Deep
             # mode keeps the full sweep.
-            if _mode == "standard":
+            _engine_pending = bool(discovery_plan) and any(
+                v in variants and variants.index(v) > variants.index(candidate_query) for v in _engine_texts)
+            if _mode == "standard" and not _engine_pending:
                 _capable = sum(
                     1 for item in merged
                     if (self.adapters.get(item.library_id) and self.adapters[item.library_id].supports_in_document_search)

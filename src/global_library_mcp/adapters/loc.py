@@ -44,37 +44,51 @@ class LocAdapter(LibraryAdapter):
     # -- Chronicling America (b5, section 5) --------------------
 
     async def find_ca_issues(self, lccn: str) -> dict[str, Any]:
-        """List a newspaper's issues from the official
-        Chronicling America title record (b6, section 18). This
-        is the discovery bridge from a newspaper title (LCCN) to
-        issue ids the strict page pipeline accepts; it asserts
-        nothing about any page's content."""
+        """List a newspaper's issues (b6, section 18).
+
+        The retired Chronicling America title JSON now redirects
+        into loc.gov, so discovery goes through the official
+        loc.gov search API: results whose item id is exactly
+        <lccn>/<date>/ed-<n> are issues of this title. The title
+        item itself must be present as the identity anchor. Issue
+        ids produced here are exactly what the strict page
+        pipeline accepts; nothing about page content is asserted.
+        """
         import re as _re
 
         if not _re.fullmatch(r"[a-z]{2}\d{8,10}", lccn or ""):
             raise AdapterError(self.library_id, f"invalid LCCN: {lccn!r}", retryable=False)
         await self._wait_for_rate_limit()
         payload = await get_json(
-            self.client, f"https://chroniclingamerica.loc.gov/lccn/{lccn}.json",
-            cache=self.cache, attempts=1)
-        if not isinstance(payload, dict) or payload.get("lccn") != lccn:
+            self.client, "https://www.loc.gov/search/",
+            params={"q": lccn, "fo": "json", "c": 50}, cache=self.cache, attempts=1)
+        results = payload.get("results") if isinstance(payload, dict) else None
+        if not isinstance(results, list):
+            raise AdapterError(self.library_id, "LoC search response schema changed", retryable=False)
+        issue_re = _re.compile(rf"/item/({_re.escape(lccn)})/(\d{{4}}-\d{{2}}-\d{{2}})/(ed-\d+)/?$")
+        title_seen = False
+        title_text = None
+        issues: list[dict[str, Any]] = []
+        for item in results:
+            item_id = str(item.get("id") or "")
+            if item_id.rstrip("/").endswith(f"/item/{lccn}"):
+                title_seen = True
+                title_text = item.get("title")
+                continue
+            match = issue_re.search(item_id)
+            if match:
+                issues.append({"date_issued": match.group(2), "edition": match.group(3),
+                               "issue_id": f"{lccn}/{match.group(2)}/{match.group(3)}",
+                               "title": item.get("title")})
+        if not title_seen:
             raise AdapterError(self.library_id,
-                               "Chronicling America title record identity mismatch", retryable=False)
-        issues = []
-        for issue in payload.get("issues") or []:
-            date = issue.get("date_issued")
-            url = issue.get("url") or ""
-            if date and f"/lccn/{lccn}/{date}/" in url:
-                edition = "ed-1"
-                tail = url.rstrip("/").rsplit("/", 1)[-1]
-                if tail.startswith("ed-"):
-                    edition = tail
-                issues.append({"date_issued": date, "edition": edition,
-                               "issue_id": f"{lccn}/{date}/{edition}", "url": url})
-        return {"lccn": lccn, "title": payload.get("name"),
-                "place_of_publication": payload.get("place_of_publication"),
-                "issues": issues, "issue_count": len(issues),
-                "source": "Chronicling America title record (official API)"}
+                               f"LoC search did not return the title item for {lccn}; refusing to guess issues",
+                               retryable=False)
+        issues.sort(key=lambda i: i["date_issued"])
+        return {"lccn": lccn, "title": title_text, "issues": issues,
+                "issue_count": len(issues),
+                "note": "one search page (up to 50 results); not a complete issue list",
+                "source": "LoC search API (official), issue ids matched structurally"}
 
     async def get_document(self, record_id: str) -> dict[str, Any]:
         issue = _CA_ISSUE_ID.match(record_id or "")
