@@ -1,0 +1,75 @@
+{
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-7.0.0-44-generic-x86_64-with-glibc2.39",
+    "machine": "x86_64"
+  },
+  "scales": [
+    {
+      "scale": "small",
+      "spec": {
+        "projects": 1,
+        "docs_per_project": 100,
+        "citations_per_doc": 3,
+        "notes": 100
+      },
+      "db_init_s": 0.003,
+      "db_bytes": 266240,
+      "list_projects_ms": 0.1,
+      "save_document_ms": 0.21,
+      "save_note_ms": 0.14,
+      "local_search_ms": 0.52,
+      "local_search_cjk_ms": 1.7,
+      "bibtex_1000_ms": 20.69,
+      "ris_1000_ms": 9.41,
+      "csl_1000_ms": 14.91,
+      "json_export_ms": 13.15,
+      "json_import_ms": 18.02,
+      "backup_ms": 1.47
+    },
+    {
+      "scale": "medium",
+      "spec": {
+        "projects": 5,
+        "docs_per_project": 200,
+        "citations_per_doc": 3,
+        "notes": 1000
+      },
+      "db_init_s": 0.0021,
+      "db_bytes": 2252800,
+      "list_projects_ms": 1.02,
+      "save_document_ms": 0.36,
+      "save_note_ms": 0.26,
+      "local_search_ms": 0.83,
+      "local_search_cjk_ms": 2.08,
+      "bibtex_1000_ms": 19.98,
+      "ris_1000_ms": 8.78,
+      "csl_1000_ms": 14.7,
+      "json_export_ms": 30.51,
+      "json_import_ms": 48.1,
+      "backup_ms": 9.77
+    },
+    {
+      "scale": "large",
+      "spec": {
+        "projects": 20,
+        "docs_per_project": 500,
+        "citations_per_doc": 3,
+        "notes": 10000
+      },
+      "db_init_s": 0.0034,
+      "db_bytes": 21778432,
+      "list_projects_ms": 16.74,
+      "save_document_ms": 1.22,
+      "save_note_ms": 0.99,
+      "local_search_ms": 6.31,
+      "local_search_cjk_ms": 7.95,
+      "bibtex_1000_ms": 27.55,
+      "ris_1000_ms": 11.82,
+      "csl_1000_ms": 16.37,
+      "json_export_ms": 123.39,
+      "json_import_ms": 258.16,
+      "backup_ms": 79.53
+    }
+  ]
+}

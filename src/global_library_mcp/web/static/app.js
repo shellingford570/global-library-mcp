@@ -333,7 +333,7 @@ function renderSearch(data) {
   const retrieved = data.retrieved_at ? new Date(data.retrieved_at) : null;
   const retrievedLabel = retrieved && !Number.isNaN(retrieved.valueOf()) ? retrieved.toLocaleString(lang === 'ja' ? 'ja-JP' : 'en-GB') : t().retrievedUnknown;
   meta.textContent = `${items.length}${t().countSuffix} · ${retrievedLabel}`;
-  let html = items.map(item => `<article class="card"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${item.author ? esc(item.author) + ' · ' : ''}${item.date ? esc(item.date) : t().publishedUnknown}</p><p>${esc(item.description || t().noDescription)}</p><p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`).join('');
+  let html = items.map(item => `<article class="card" data-save-token="${esc(item.save_token || '')}"><div><span class="tag">${esc(item.library_name)}</span><h3>${esc(item.title)}</h3><p>${item.author ? esc(item.author) + ' · ' : ''}${item.date ? esc(item.date) : t().publishedUnknown}</p><p>${esc(item.description || t().noDescription)}</p><p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p></div><div>${sourceLink(item.landing_url)}</div></article>`).join('');
   if (data.errors?.length) html += data.errors.map(e => `<div class="error" role="alert">${esc(e.library_id)}: ${esc(e.error)}</div>`).join('');
   results.innerHTML = html || `<div class="empty"><span class="empty-mark">∅</span><p>${t().noMatches}</p></div>`;
 }
@@ -527,6 +527,30 @@ function setBusy(busy) {
   results.setAttribute('aria-busy', String(busy));
 }
 
+// b7 (section 35): the structured conditions are built once and
+// sent to BOTH the stage-1 bibliographic search and the materials
+// investigation, so the two stages can no longer diverge.
+function structuredParams() {
+  const extra = new URLSearchParams();
+  const authorVal = document.querySelector('#author-input');
+  const titleVal = document.querySelector('#title-input');
+  const yearFrom = document.querySelector('#year-from');
+  const yearTo = document.querySelector('#year-to');
+  if (authorVal && authorVal.value.trim()) extra.set('author', authorVal.value.trim());
+  if (titleVal && titleVal.value.trim()) extra.set('title', titleVal.value.trim());
+  if (yearFrom && yearFrom.value) extra.set('year_from', yearFrom.value);
+  if (yearTo && yearTo.value) extra.set('year_to', yearTo.value);
+  const doclangs = [...document.querySelectorAll('input[name="doclang"]:checked')].map(el => el.value);
+  if (doclangs.length) extra.set('languages', doclangs.join(','));
+  const expandMulti = document.querySelector('#expand-multi');
+  const expandHist = document.querySelector('#expand-hist');
+  if (expandMulti && !expandMulti.checked) extra.set('expand', '0');
+  if (expandHist && !expandHist.checked) extra.set('historical', '0');
+  const ocrReq = document.querySelector('#ocr-required');
+  if (ocrReq && ocrReq.checked) extra.set('ocr', '1');
+  return extra;
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const q = query.value.trim();
@@ -535,7 +559,8 @@ form.addEventListener('submit', async event => {
   results.innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
   notice.textContent = t().searchingNotice;
   try {
-    renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    const extraQs = structuredParams().toString();
+    renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}${extraQs ? `&${extraQs}` : ''}`));
     if (stageStatus) stageStatus.textContent = t().stageSearchDone;
   } catch (error) {
     results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
@@ -635,7 +660,7 @@ function renderMaterials(data) {
       ? `<p class="rights">${t().discoveryReasonsLabel}: ${esc(item.discovery_reasons.join(' / '))}</p>` : '';
     const bsbBtn = item.bsb_handoff && item.bsb_handoff.bsb_object_id
       ? `<p><button type="button" class="bsb-open" data-bsb-id="${esc(item.bsb_handoff.bsb_object_id)}">${t().bsbHandoffLabel} (${esc(item.bsb_handoff.bsb_object_id)})</button></p>` : '';
-    html += `<article class="card"><div><h3>${esc(item.title || item.record_id)}</h3>`
+    html += `<article class="card" data-save-token="${esc(item.save_token || '')}"><div><h3>${esc(item.title || item.record_id)}</h3>`
       + `<p class="meta-line">${esc(item.author || '')} ${esc(item.date || '')} · ${esc(item.library_id)}:${esc(item.record_id)}${item.page_id ? ' · ' + esc(item.page_id) : ''}</p>`
       + `<div class="chips">${stateChips(item.states)}</div>`
       + accessChips(item)
@@ -689,22 +714,7 @@ materialsButton.addEventListener('click', async () => {
   activeController = new AbortController();
   try {
     const mode = modeSelect ? modeSelect.value : 'standard';
-    const extra = new URLSearchParams();
-    const authorVal = document.querySelector('#author-input');
-    const titleVal = document.querySelector('#title-input');
-    const yearFrom = document.querySelector('#year-from');
-    const yearTo = document.querySelector('#year-to');
-    if (authorVal && authorVal.value.trim()) extra.set('author', authorVal.value.trim());
-    if (titleVal && titleVal.value.trim()) extra.set('title', titleVal.value.trim());
-    if (yearFrom && yearFrom.value) extra.set('year_from', yearFrom.value);
-    if (yearTo && yearTo.value) extra.set('year_to', yearTo.value);
-    const doclangs = [...document.querySelectorAll('input[name="doclang"]:checked')].map(el => el.value);
-    if (doclangs.length) extra.set('languages', doclangs.join(','));
-    const expandMulti = document.querySelector('#expand-multi');
-    const expandHist = document.querySelector('#expand-hist');
-    if (expandMulti && !expandMulti.checked) extra.set('expand', '0');
-    if (expandHist && !expandHist.checked) extra.set('historical', '0');
-    const extraQs = extra.toString() ? `&${extra.toString()}` : '';
+    const extraQs = structuredParams().toString() ? `&${structuredParams().toString()}` : '';
     const data = await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}&mode=${encodeURIComponent(mode)}&op=${encodeURIComponent(currentOpId)}${extraQs}`, activeController.signal);
     if (data.op_state === 'cancelled') {
       if (stageStatus) stageStatus.textContent = t().statusCancelled;
@@ -718,6 +728,7 @@ materialsButton.addEventListener('click', async () => {
     }
     renderMaterials(data);
     const partial = (data.errors && data.errors.length) || (data.stage_log || []).some(s => s.status === 'early_stop' || s.status === 'deadline' || s.status === 'failed');
+    if (window.glmWorkspace) window.glmWorkspace.recordHistory(data, q, mode, partial ? 'partial' : 'completed');
     if (stageStatus) {
       const perf = data.timings && data.http_stats ? ` ${t().perfSummary(data.timings.total_s ?? '?', data.http_stats.requests ?? '?')}` : '';
       stageStatus.textContent = (partial ? t().statusPartial : t().statusComplete) + perf;
@@ -838,7 +849,7 @@ function renderLookup(data, kind) {
   }
   if (kind === 'document') {
     const rights = data.rights || {};
-    lookupResults.innerHTML = `<article class="card"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.title || data.record_id || '')}</h3>`
+    lookupResults.innerHTML = `<article class="card" data-save-token="${esc(data.save_token || '')}"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.title || data.record_id || '')}</h3>`
       + `<p>${esc(data.author || '')} ${esc(data.date || '')}</p>`
       + `<p class="rights">${t().rightsLabel}: ${esc(rights.statement || 'unknown')}${rights.classification ? ` · ${t().rightsClassLabel}: ${esc(rights.classification)}` : ''}</p>`
       + `<p>${data.page_count ? `${data.page_count} pages` : ''}</p></div><div>${sourceLink(data.landing_url)}</div></article>`;
@@ -846,7 +857,7 @@ function renderLookup(data, kind) {
   }
   if (kind === 'page') {
     const text = data.contents || '';
-    lookupResults.innerHTML = `<article class="card"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.page_id || '')}</h3>`
+    lookupResults.innerHTML = `<article class="card" data-page-token="${esc(data.save_token || '')}" data-library="${esc(data.library_id || '')}" data-page-id="${esc(data.page_id || '')}"><div><span class="tag">${esc(data.library_id || '')}</span><h3>${esc(data.page_id || '')}</h3>`
       + `<p>${data.verified_mapping ? t().mappingVerified : t().mappingUnverified}</p>`
       + `<p>${esc(text.slice(0, 600))}</p></div><div>${sourceLink(data.image_url, t().viewImage)}${sourceLink(data.landing_url, t().viewRecord)}</div></article>`;
     return;

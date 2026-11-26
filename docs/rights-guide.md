@@ -60,3 +60,29 @@ a licence and not a finding that copyright has expired in
 every jurisdiction; NoC-NC is a non-commercial restriction
 statement. None of these classes, by itself, authorises
 sending a work to an external AI service.
+
+## b7: storage policy in the research workspace (2026-11-26)
+
+Being able to fetch a text is not the same as being allowed
+to store or redistribute it. In the b7 workspace:
+
+- Bibliographic metadata and links are always storable.
+- Short excerpts are stored and exported only for public
+  domain / CC0 and permissive CC categories (BY, BY-SA,
+  BY-NC, BY-NC-SA). For copyrighted, access-restricted,
+  unknown or unverified rights, the citation reference
+  (source, page, offsets, hash) is kept but the excerpt
+  text is withheld by default.
+- OCR full text and original image bytes are never stored.
+- A licence name alone does not decide every use; the
+  policy is a conservative default, and the system does not
+  guarantee that any particular quotation is legally
+  permissible — that depends on purpose, jurisdiction and
+  extent.
+- Rights are snapshotted at save time; later observations
+  are appended as history and never overwrite the snapshot.
+  If access is later restricted, stored excerpts are not
+  used to circumvent the restriction.
+
+See docs/b7-research-workspace.md for the full policy
+table.

@@ -156,3 +156,16 @@ no multilingual expansion and no structured filters. Those
 live only on `research_materials`, in all modes including
 Quick. The discovery block distinguishes planned variants
 from executed ones (`variant_execution`).
+
+## b7: MCP and the research workspace
+
+The b7 research workspace (projects, saved documents,
+citations, notes) is **not** exposed through MCP. Tool
+counts and profiles are unchanged (15 full / 14 research,
+all research tools read-only), the research profile still
+has no write tools, and no MCP call can read or modify
+workspace data. Workspace data is reachable only through
+the local web UI/API of a workspace-enabled server.
+Workspace MCP tools are a future candidate that would
+require separate approval plus an authentication and audit
+design (see docs/b7-research-workspace.md).

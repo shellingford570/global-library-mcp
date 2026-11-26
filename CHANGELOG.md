@@ -1,5 +1,66 @@
 # Changelog
 
+## 1.0.0b7 — Research Workspace & Citation Management
+
+- Local-first research workspace on SQLite (stdlib only):
+  projects, saved documents (server-side snapshot
+  provenance, per-project deduplication, editions kept
+  distinct), page-level citations with verbatim excerpt
+  verification, SHA-256 and re-verification history,
+  research notes, opt-in search history with rerun,
+  saved comparisons (semantic_status stays not_checked),
+  tags, collections, local substring search.
+- Rights policy for persistence: metadata always storable;
+  excerpts stored/exported only for public-domain and
+  permissive-CC categories by default; OCR full text and
+  image bytes never stored; imported verification claims
+  are downgraded to historical claims.
+- Exports: BibTeX (classic, single-pass escaping, stable
+  keys), RIS (injection-safe), CSL JSON (literal names when
+  the split is unsafe), plain text, deterministic Markdown
+  project reports, versioned JSON project export/import
+  (strict validation, id remapping, single-transaction
+  rollback), online backup/restore with integrity checks.
+- Web security for the stateful mode: loopback-only bind
+  (non-loopback refused at startup), strict Host parsing
+  with port match, Origin checks on reads and writes,
+  session-bound CSRF tokens (per-page-load session cookie),
+  body caps, no-store. MCP is unchanged and has no
+  workspace access.
+- Final review hardening (see docs/b7-final-review.md):
+  citations bind to the exact document of their OCR
+  snapshot (cross-document/cross-library/edition reuse
+  rejected; identity from payload fields, never page-id
+  splitting); rights classification is fail-closed
+  (structural CC parsing, negation veto, no CC BY
+  fallback, NoC-NC no longer excerpt-permitted) and the
+  latest rights observation re-gates views, search and
+  exports; oversize excerpts are rejected instead of
+  truncated so text, offsets and SHA-256 always agree;
+  re-verification reports an honest per-check ledger;
+  JSON import applies the storage policy, downgrades all
+  verification fields and preserves rights/verification
+  histories as claims; restore requires confirmation,
+  deep candidate validation, quiesce and automatic
+  rollback; backups are POST-created by ID (GET never
+  creates); cross-project references are rejected;
+  notes survive document/citation deletion (SET NULL);
+  synchronous=FULL; stored stable citation keys; per-format
+  material types and full dates in exports; hardened
+  Markdown reports; server-vouched search history;
+  real-HTTP integration tests and a workspace CI job.
+- Fixes: /api/search's structured options were parsed and
+  never used — stage-1 now applies them via the Quick path
+  and the UI shares one parameter builder; /api/materials
+  referenced a variable that only existed in the /api/search
+  branch, so every real HTTP materials call failed with a
+  NameError masked as a 502 (hidden by the mocked
+  Playwright route) — fixed with a shared parser and
+  verified live.
+- Suites: pytest 442, Playwright 17 (search-only) + 5
+  workspace journeys (workspace-enabled). Paid API
+  calls: 0.
+
 ## 1.0.0b6 — Multilingual Research & Intelligent Discovery
 
 Final-review fixes (2026-11-26, docs/b6-final-review.md):

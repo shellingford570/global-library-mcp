@@ -6,3 +6,12 @@ node_modules/
 .env
 playwright-report/
 test-results/
+
+# b7: research workspace data must never be committed
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+workspace-data/
+backups/

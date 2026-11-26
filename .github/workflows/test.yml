@@ -15,6 +15,82 @@ jobs:
       - run: pip install '.[test]'
       - run: pytest
 
+  workspace:
+    # b7 final review section 29 (Job B): the workspace-enabled
+    # regression. A run where the workspace tests all skip does
+    # NOT count as success: the pytest suites are not skippable,
+    # and the Playwright step asserts the non-token journeys ran.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: pip install '.[test]'
+      - name: Workspace pytest (storage, web API, final review, real-HTTP integration)
+        run: pytest tests/test_b7_workspace.py tests/test_b7_web_api.py tests/test_b7_final_review.py tests/test_b7_http_integration.py -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start workspace-enabled server (temp SQLite)
+        run: |
+          mkdir -p /tmp/glm-ws-ci
+          nohup global-library-mcp web --host 127.0.0.1 --port 8128 --workspace --workspace-path /tmp/glm-ws-ci/ws.db > /tmp/glm-ws-ci/server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8128/health | grep -q '"ok": true'; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/glm-ws-ci/server.log
+          exit 1
+      - name: Run workspace Playwright journeys
+        env:
+          BASE_URL: http://127.0.0.1:8128
+        run: npx playwright test tests/e2e/workspace.spec.js --reporter=json > /tmp/glm-ws-ci/pw.json
+      - name: Assert workspace journeys actually ran (not all skipped)
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import json
+          with open('/tmp/glm-ws-ci/pw.json') as fh:
+              report = json.load(fh)
+          stats = report.get('stats', {})
+          passed = stats.get('expected', 0)
+          skipped = stats.get('skipped', 0)
+          print(f"workspace journeys: passed={passed} skipped={skipped} unexpected={stats.get('unexpected', 0)}")
+          assert stats.get('unexpected', 0) == 0, "workspace journeys failed"
+          assert passed >= 3, "too many workspace journeys skipped - not a workspace CI success"
+          EOF
+      - name: Restart persistence check
+        run: |
+          pkill -f "global-library-mcp web" || true
+          sleep 1
+          test -f /tmp/glm-ws-ci/ws.db
+          nohup global-library-mcp web --host 127.0.0.1 --port 8128 --workspace --workspace-path /tmp/glm-ws-ci/ws.db > /tmp/glm-ws-ci/server2.log 2>&1 &
+          ok=""
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8128/health | grep -q '"ok": true'; then ok=1; break; fi
+            sleep 2
+          done
+          if [ -z "$ok" ]; then cat /tmp/glm-ws-ci/server2.log; exit 1; fi
+          curl --fail --silent http://127.0.0.1:8128/ | grep -q 'name="glm-workspace" content="1"'
+      - name: Upload workspace Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-playwright-report
+          path: |
+            /tmp/glm-ws-ci/pw.json
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+      - name: Show workspace server log
+        if: always()
+        run: cat /tmp/glm-ws-ci/server.log || true
+
   docker-playwright:
     runs-on: ubuntu-latest
     steps:
