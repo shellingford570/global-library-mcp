@@ -527,6 +527,30 @@ function setBusy(busy) {
   results.setAttribute('aria-busy', String(busy));
 }
 
+// b7 (section 35): the structured conditions are built once and
+// sent to BOTH the stage-1 bibliographic search and the materials
+// investigation, so the two stages can no longer diverge.
+function structuredParams() {
+  const extra = new URLSearchParams();
+  const authorVal = document.querySelector('#author-input');
+  const titleVal = document.querySelector('#title-input');
+  const yearFrom = document.querySelector('#year-from');
+  const yearTo = document.querySelector('#year-to');
+  if (authorVal && authorVal.value.trim()) extra.set('author', authorVal.value.trim());
+  if (titleVal && titleVal.value.trim()) extra.set('title', titleVal.value.trim());
+  if (yearFrom && yearFrom.value) extra.set('year_from', yearFrom.value);
+  if (yearTo && yearTo.value) extra.set('year_to', yearTo.value);
+  const doclangs = [...document.querySelectorAll('input[name="doclang"]:checked')].map(el => el.value);
+  if (doclangs.length) extra.set('languages', doclangs.join(','));
+  const expandMulti = document.querySelector('#expand-multi');
+  const expandHist = document.querySelector('#expand-hist');
+  if (expandMulti && !expandMulti.checked) extra.set('expand', '0');
+  if (expandHist && !expandHist.checked) extra.set('historical', '0');
+  const ocrReq = document.querySelector('#ocr-required');
+  if (ocrReq && ocrReq.checked) extra.set('ocr', '1');
+  return extra;
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const q = query.value.trim();
@@ -535,7 +559,8 @@ form.addEventListener('submit', async event => {
   results.innerHTML = `<div class="empty"><p>${t().searching}</p></div>`;
   notice.textContent = t().searchingNotice;
   try {
-    renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}`));
+    const extraQs = structuredParams().toString();
+    renderSearch(await fetchJson(`/api/search?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}${extraQs ? `&${extraQs}` : ''}`));
     if (stageStatus) stageStatus.textContent = t().stageSearchDone;
   } catch (error) {
     results.innerHTML = `<div class="error" role="alert">${esc(error.message)}</div>`;
@@ -689,22 +714,7 @@ materialsButton.addEventListener('click', async () => {
   activeController = new AbortController();
   try {
     const mode = modeSelect ? modeSelect.value : 'standard';
-    const extra = new URLSearchParams();
-    const authorVal = document.querySelector('#author-input');
-    const titleVal = document.querySelector('#title-input');
-    const yearFrom = document.querySelector('#year-from');
-    const yearTo = document.querySelector('#year-to');
-    if (authorVal && authorVal.value.trim()) extra.set('author', authorVal.value.trim());
-    if (titleVal && titleVal.value.trim()) extra.set('title', titleVal.value.trim());
-    if (yearFrom && yearFrom.value) extra.set('year_from', yearFrom.value);
-    if (yearTo && yearTo.value) extra.set('year_to', yearTo.value);
-    const doclangs = [...document.querySelectorAll('input[name="doclang"]:checked')].map(el => el.value);
-    if (doclangs.length) extra.set('languages', doclangs.join(','));
-    const expandMulti = document.querySelector('#expand-multi');
-    const expandHist = document.querySelector('#expand-hist');
-    if (expandMulti && !expandMulti.checked) extra.set('expand', '0');
-    if (expandHist && !expandHist.checked) extra.set('historical', '0');
-    const extraQs = extra.toString() ? `&${extra.toString()}` : '';
+    const extraQs = structuredParams().toString() ? `&${structuredParams().toString()}` : '';
     const data = await fetchJson(`/api/materials?q=${encodeURIComponent(q)}&libraries=${encodeURIComponent(selectedLibraries())}&mode=${encodeURIComponent(mode)}&op=${encodeURIComponent(currentOpId)}${extraQs}`, activeController.signal);
     if (data.op_state === 'cancelled') {
       if (stageStatus) stageStatus.textContent = t().statusCancelled;

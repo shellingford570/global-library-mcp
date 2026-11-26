@@ -212,8 +212,35 @@ class Handler(BaseHTTPRequestHandler):
             if _qs.get("ocr", [""])[0] == "1":
                 _mat_kwargs["ocr_required"] = True
             try:
-                response = RUNTIME.run(RUNTIME.service.search(query, libraries, 10))
-                self._send(json_bytes(response.to_dict()))
+                if _mat_kwargs:
+                    # b7 (brief section 35): the structured options
+                    # parsed above used to be dead code - the plain
+                    # search ignored them while /api/materials
+                    # applied them, so the staged UI's first
+                    # bibliographic results silently used different
+                    # conditions. With any structured option present,
+                    # stage-1 now runs the Quick research path (the
+                    # bibliographic stage with the same conditions)
+                    # and maps its materials into the search shape.
+                    result = RUNTIME.run(RUNTIME.service.research_materials(
+                        query, libraries, 10, mode="quick", **_mat_kwargs))
+                    self._send(json_bytes({
+                        "query": query,
+                        "results": result.get("materials", []),
+                        "errors": result.get("errors", []),
+                        "retrieved_at": result.get("retrieved_at"),
+                        "search_kind": "structured_bibliographic",
+                        "options_applied": True,
+                        "filters": result.get("filters"),
+                        "discovery": result.get("discovery"),
+                        "search_scope": result.get("search_scope"),
+                    }))
+                else:
+                    response = RUNTIME.run(RUNTIME.service.search(query, libraries, 10))
+                    payload = response.to_dict()
+                    payload["search_kind"] = "plain_bibliographic"
+                    payload["options_applied"] = False
+                    self._send(json_bytes(payload))
             except Exception as exc:
                 self._send(json_bytes({"error": "upstream request failed", "detail": sanitize_error(exc)}), status=502)
             return
