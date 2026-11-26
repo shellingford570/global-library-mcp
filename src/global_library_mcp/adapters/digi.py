@@ -415,6 +415,10 @@ class DigiAdapter(LibraryAdapter):
         }
 
     async def search_in_document(self, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+        """Bounded in-document search in the common result
+        schema (matches.list with id/page_id/snippet/
+        mapping_status), over the binding's ALTO pages.
+        Coverage is reported, never implied."""
         document = await self.get_document(record_id)
         page_count = document.get("page_count")
         if not page_count:
@@ -427,33 +431,42 @@ class DigiAdapter(LibraryAdapter):
         if not needle:
             raise AdapterError(self.library_id, "empty in-document query", retryable=False)
         cap = min(int(page_count), _IN_DOC_PAGE_CAP)
-        hits: list[dict[str, Any]] = []
-        failures = 0
+        matches: list[dict[str, Any]] = []
+        failures: list[dict[str, Any]] = []
+        searched = 0
         for page_num in range(1, cap + 1):
             try:
                 page = await self.get_page_text(f"{record_id}@{page_num}")
-            except AdapterError:
-                failures += 1
+            except AdapterError as exc:
+                failures.append({"page": page_num, "error": str(exc)[:200]})
                 continue
+            searched += 1
             contents = page.get("contents") or ""
-            if needle in contents.lower():
-                hits.append(
+            idx = contents.lower().find(needle)
+            if idx >= 0:
+                matches.append(
                     {
+                        "id": page["page_id"],
                         "page_id": page["page_id"],
-                        "page": page_num,
+                        "record_id": record_id,
+                        "snippet": contents[max(0, idx - 60): idx + len(needle) + 60],
+                        "digital_frame": page_num,
+                        "printed_page": page.get("printed_page"),
+                        "mapping_status": "verified" if page.get("verified_mapping") else "unverified",
                         "verified_mapping": page.get("verified_mapping"),
                     }
                 )
-                if len(hits) >= limit:
+                if len(matches) >= limit:
                     break
         return {
             "library_id": self.library_id,
             "record_id": record_id,
             "query": query,
-            "hits": hits,
-            "pages_examined": cap,
-            "page_count": page_count,
-            "complete": cap >= int(page_count),
+            "matches": {"list": matches},
+            "hits": matches,
+            "pages_searched": searched,
+            "total_pages": page_count,
+            "complete": cap >= int(page_count) and not failures,
             "partial_failures": failures,
             "note": "bounded in-document search over the binding's ALTO pages; coverage is reported, not implied",
         }

@@ -50,6 +50,7 @@ ALTO_PAGE1 = """<?xml version="1.0" encoding="UTF-8"?>
   <Page ID="Page1" PHYSICAL_IMG_NR="1">
    <PrintSpace>
     <TextBlock ID="b1"><TextLine ID="l1"><String CONTENT="Suomen" /><String CONTENT="historia" /></TextLine></TextBlock>
+    <TextBlock ID="b2"><TextLine ID="l2"><String CONTENT="vesivoima" /><String CONTENT="ja" /><String CONTENT="teollisuus" /></TextLine></TextBlock>
    </PrintSpace>
   </Page>
  </Layout>
@@ -169,10 +170,13 @@ async def test_verify_original_html_image_is_not_an_original():
 async def test_search_in_document_bounded_with_coverage():
     async with _client(_digi_handler()) as client:
         result = await DigiAdapter(client).search_in_document("123456", "historia")
-    assert result["page_count"] == 2
-    assert result["pages_examined"] == 2
+    assert result["total_pages"] == 2
+    assert result["pages_searched"] == 2
     assert result["complete"] is True
-    assert [hit["page"] for hit in result["hits"]] == [1]
+    matches = result["matches"]["list"]
+    assert [m["page_id"] for m in matches] == ["123456@1"]
+    assert matches[0]["mapping_status"] == "verified"
+    assert "historia" in matches[0]["snippet"]
 
 
 # -- Finna -> Digi handoff -------------------------------------------

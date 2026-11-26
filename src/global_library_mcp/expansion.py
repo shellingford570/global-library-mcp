@@ -175,7 +175,15 @@ class QueryExpansionEngine:
                  "ambiguous author (shared surname); not expanded into a specific person's works")
         # 3) Concepts: labels in other languages (3), historical
         #    forms (2), related concepts (5, standard/deep only).
-        for concept in analysis.concepts:
+        #    b8: translations are added in a diagonal interleave
+        #    across (concept, language) so that, under the variant
+        #    cap, later languages in the lexicon order (fi/sv/nl)
+        #    are not structurally starved by earlier ones
+        #    (en/de/fr) whenever a query matches several concepts.
+        _translations: list[tuple[int, int, int, str, str, dict]] = []
+        _lang_order = {lang: index for index, lang in enumerate(lexicon_mod._LANGUAGES)}
+        for concept_index, concept in enumerate(analysis.concepts):
+            _label_counts: dict[str, int] = {}
             for lang, label, kind in lexicon_mod.labels_for(concept):
                 if kind == "historical":
                     add(label, lang, "historical", "spelling_variant",
@@ -184,9 +192,20 @@ class QueryExpansionEngine:
                     continue
                 if lang == query_lang:
                     continue
-                add(label, lang, "concept_translation", "translation",
-                    f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3,
-                    status=concept.get("verification_status"))
+                label_index = _label_counts.get(lang, 0)
+                _label_counts[lang] = label_index + 1
+                _translations.append((concept_index, _lang_order.get(lang, 99),
+                                      label_index, lang, label, concept))
+        # First labels of every (concept, language) pair come
+        # before second labels of any pair: a whole language is
+        # worth more than a spelling doublet in a language that
+        # is already represented.
+        _translations.sort(key=lambda item: (item[2], item[0] + item[1], item[1], item[0]))
+        for _ci, _li, _bi, lang, label, concept in _translations:
+            add(label, lang, "concept_translation", "translation",
+                f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3,
+                status=concept.get("verification_status"))
+        for concept in analysis.concepts:
             if mode in ("standard", "deep"):
                 for ref in concept.get("related", []):
                     related = next((c for c in lexicon_mod.load_lexicon()["concepts"]

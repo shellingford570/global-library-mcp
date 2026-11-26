@@ -1,0 +1,255 @@
+{
+ "note": "b8 fixed evaluation set (proxy evaluation: agent-assigned relevance labels, fixed fixture corpus in eval/b8-corpus.json). Relevant ids are corpus ids; the runner maps them to adapter record ids.",
+ "cases": [
+  {
+   "id": "d01",
+   "query": "フィンランドの水力発電の歴史",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-hydro-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d02",
+   "query": "スウェーデン語の水力発電資料",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-hydro-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d03",
+   "query": "フィンランドの鉄道史",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-rail-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d04",
+   "query": "Finnish railway history",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-rail-1",
+    "finna-rail-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d05",
+   "query": "フィンランド独立の歴史",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-indep-1",
+    "finna-indep-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d06",
+   "query": "Suomen rautateiden historia",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-rail-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d07",
+   "query": "vattenkraft historia",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-hydro-2"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d08",
+   "query": "オランダの水力発電",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-hydro-1",
+    "kb-hydro-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d09",
+   "query": "waterkracht",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-hydro-1",
+    "kb-hydro-2"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d10",
+   "query": "オランダの鉄道史",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-rail-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d11",
+   "query": "日本と北欧の交流",
+   "libraries": [
+    "japan-search"
+   ],
+   "relevant_record_ids": [
+    "jps-nordic-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d12",
+   "query": "浮世絵",
+   "libraries": [
+    "japan-search"
+   ],
+   "relevant_record_ids": [
+    "jps-ukiyoe-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d13",
+   "query": "水力発電の歴史",
+   "libraries": [
+    "japan-search",
+    "finna",
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "jps-hydro-1",
+    "finna-hydro-1",
+    "kb-hydro-1",
+    "kb-hydro-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d14",
+   "query": "industrial revolution in the Netherlands",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-ind-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d15",
+   "query": "北欧の産業革命",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-ind-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d16",
+   "query": "フィンランド語の新聞",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-news-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d17",
+   "query": "スウェーデン語新聞",
+   "libraries": [
+    "japan-search"
+   ],
+   "relevant_record_ids": [
+    "jps-sweden-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d18",
+   "query": "onderwijs geschiedenis",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-edu-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "d19",
+   "query": "オランダの蒸気機関",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-steam-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "d20",
+   "query": "itsenäisyys",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-indep-1",
+    "finna-indep-2"
+   ],
+   "cross_language": false,
+   "note": ""
+  }
+ ]
+}

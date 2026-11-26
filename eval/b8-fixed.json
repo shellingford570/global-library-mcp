@@ -1,0 +1,265 @@
+{
+ "note": "b8 fixed evaluation set (proxy evaluation: agent-assigned relevance labels, fixed fixture corpus in eval/b8-corpus.json). Relevant ids are corpus ids; the runner maps them to adapter record ids.",
+ "cases": [
+  {
+   "id": "f01",
+   "query": "北欧の水力発電史",
+   "libraries": [
+    "finna",
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "finna-hydro-1",
+    "finna-hydro-2",
+    "kb-hydro-1",
+    "kb-hydro-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f02",
+   "query": "フィンランドの教育史",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-edu-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f03",
+   "query": "järnväg Finland",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-rail-2"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f04",
+   "query": "スウェーデン語の鉄道資料",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-rail-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f05",
+   "query": "spoorweg geschiedenis",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-rail-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f06",
+   "query": "オランダ産業史",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-ind-1",
+    "kb-steam-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f07",
+   "query": "明治の新聞",
+   "libraries": [
+    "japan-search"
+   ],
+   "relevant_record_ids": [
+    "jps-news-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f08",
+   "query": "history of hydroelectric power",
+   "libraries": [
+    "finna",
+    "kb-delpher",
+    "japan-search"
+   ],
+   "relevant_record_ids": [
+    "finna-hydro-1",
+    "kb-hydro-1",
+    "jps-hydro-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f09",
+   "query": "蒸気機関の歴史",
+   "libraries": [
+    "japan-search",
+    "finna",
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "jps-steam-1",
+    "finna-steam-1",
+    "kb-steam-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f10",
+   "query": "vesivoima",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-hydro-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f11",
+   "query": "フィンランド史",
+   "libraries": [
+    "japan-search"
+   ],
+   "relevant_record_ids": [
+    "jps-nordic-2"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f12",
+   "query": "locomotief",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-loco-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f13",
+   "query": "オランダのダム",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-dam-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f14",
+   "query": "オランダの鉱業",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-mine-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f15",
+   "query": "tidning",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-news-2"
+   ],
+   "cross_language": false,
+   "note": ""
+  },
+  {
+   "id": "f16",
+   "query": "蒸気船の歴史",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-ship-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f17",
+   "query": "独立の歴史",
+   "libraries": [
+    "japan-search",
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "jps-indep-1",
+    "finna-indep-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f18",
+   "query": "Finnish independence",
+   "libraries": [
+    "finna"
+   ],
+   "relevant_record_ids": [
+    "finna-indep-1",
+    "finna-indep-2"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f19",
+   "query": "教育の歴史",
+   "libraries": [
+    "japan-search",
+    "finna",
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "jps-edu-1",
+    "finna-edu-1",
+    "kb-edu-1"
+   ],
+   "cross_language": true,
+   "note": ""
+  },
+  {
+   "id": "f20",
+   "query": "stoommachine textiel",
+   "libraries": [
+    "kb-delpher"
+   ],
+   "relevant_record_ids": [
+    "kb-steam-1"
+   ],
+   "cross_language": false,
+   "note": ""
+  }
+ ]
+}

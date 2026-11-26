@@ -116,7 +116,10 @@ def _date_from_dc(raw: str | None) -> str | None:
 class KbDelpherAdapter(LibraryAdapter):
     library_id = "kb-delpher"
     library_name = "KB / Delpher (National Library of the Netherlands)"
-    supports_in_document_search = False
+    # Bounded by construction: the article is a single
+    # page-level unit, so in-document search examines exactly
+    # that one text and reports coverage of 1/1.
+    supports_in_document_search = True
 
     async def _sru(self, query: str, maximum: int, start: int = 1) -> ET.Element:
         params = {
@@ -331,6 +334,45 @@ class KbDelpherAdapter(LibraryAdapter):
             "image_url": f"{RESOLVER_BASE}?urn={urn}:image",
             "landing_url": f"{RESOLVER_BASE}?urn={urn}",
             "rights": asdict(self._result(record).rights),
+        }
+
+    async def search_in_document(self, record_id: str, query: str, limit: int = 20) -> dict[str, Any]:
+        """In-document search over the article's own OCR text
+        (the article is the single page-level unit in Delpher),
+        in the common result schema."""
+        urn = (record_id or "").strip()
+        if not _URN_RE.match(urn):
+            raise AdapterError(self.library_id, f"invalid KB article URN: {record_id!r}", retryable=False)
+        needle = (query or "").strip().lower()
+        if not needle:
+            raise AdapterError(self.library_id, "empty in-document query", retryable=False)
+        page = await self.get_page_text(urn)
+        contents = page.get("contents") or ""
+        matches: list[dict[str, Any]] = []
+        idx = contents.lower().find(needle)
+        if idx >= 0:
+            matches.append(
+                {
+                    "id": urn,
+                    "page_id": urn,
+                    "record_id": urn,
+                    "snippet": contents[max(0, idx - 60): idx + len(needle) + 60],
+                    "printed_page": page.get("printed_page"),
+                    "mapping_status": "verified" if page.get("verified_mapping") else "unverified",
+                    "verified_mapping": page.get("verified_mapping"),
+                }
+            )
+        return {
+            "library_id": self.library_id,
+            "record_id": urn,
+            "query": query,
+            "matches": {"list": matches},
+            "hits": matches,
+            "pages_searched": 1,
+            "total_pages": 1,
+            "complete": True,
+            "partial_failures": [],
+            "note": "the Delpher article is a single page-level unit; its full OCR text was searched",
         }
 
     async def verify_original(self, page_id: str) -> dict[str, Any]:

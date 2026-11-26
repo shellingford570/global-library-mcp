@@ -1,0 +1,100 @@
+{
+ "scenario1_finna_save_bibtex": {
+  "search": true,
+  "save": true,
+  "bibtex_contains": true,
+  "basis": "fixture (Finna live blocked by a bot challenge from the server network)"
+ },
+ "scenario2_digi_newspaper": {
+  "document": true,
+  "page_verified_mapping": true,
+  "verify_status": "verified",
+  "citation_saved": true,
+  "excerpt_stored": false,
+  "note": "rights are in-copyright (dc:rights verbatim), so the citation is stored as a reference; the excerpt text is withheld by policy",
+  "basis": "fixture (Digi unreachable from the development network)"
+ },
+ "scenario4_hydro_comparison": {
+  "compare_status": "compared",
+  "documents": [
+   {
+    "library_id": "kb-delpher",
+    "record_id": "ddd:010286065:mpeg21:a0141",
+    "title": "Waterkracht-centrale.",
+    "date": "1937-08-28",
+    "landing_url": "https://resolver.kb.nl/resolve?urn=ddd:010286065:mpeg21:a0141",
+    "error": null,
+    "verified_pages": 1
+   },
+   {
+    "library_id": "finland-nl-digi",
+    "record_id": "123456",
+    "title": "Uusi Suometar 1900-01-02",
+    "date": "1900-01-02",
+    "landing_url": "https://digi.kansalliskirjasto.fi/sanomalehti/binding/123456",
+    "error": null,
+    "verified_pages": 1
+   }
+  ],
+  "rows": [
+   {
+    "aspect": "waterkracht",
+    "found": {
+     "kb-delpher|ddd:010286065:mpeg21:a0141": true,
+     "finland-nl-digi|123456": false
+    },
+    "shared_terms": [],
+    "semantic_comparison": "not_checked"
+   },
+   {
+    "aspect": "vesivoima",
+    "found": {
+     "kb-delpher|ddd:010286065:mpeg21:a0141": false,
+     "finland-nl-digi|123456": true
+    },
+    "shared_terms": [],
+    "semantic_comparison": "not_checked"
+   }
+  ],
+  "comparison_saved": true,
+  "semantic_status": "not_checked",
+  "note": "cross-language comparison: each document is found under its own language's aspect term; no shared surface terms exist between the Dutch and Finnish texts and none are invented. NDL/IA adapters are unchanged in b8 and their comparison participation is covered by the existing compare regression suites; the b8 run adds the Digi (Nordic) and KB documents",
+  "basis": "fixture upstreams; KB search/OCR separately live-verified"
+ },
+ "scenario6_unknown_rights_reference_only": {
+  "page_verified_mapping": true,
+  "citation_saved": true,
+  "excerpt_stored": false,
+  "excerpt_hash_kept": true,
+  "basis": "fixture upstream; KB search/OCR separately live-verified"
+ },
+ "scenario7_permitted_excerpt_reverify": {
+  "excerpt_stored": true,
+  "excerpt_verbatim": true,
+  "reverify_status": "unchanged",
+  "basis": "labelled stub adapter with a Public Domain statement (the mechanism is source-agnostic; the same flow ran live for IA in b7)"
+ },
+ "scenario8_same_record_id_two_institutions": {
+  "distinct_documents": true,
+  "both_record_id_rec": true,
+  "excerpts_not_mixed": true,
+  "basis": "labelled stub adapters sharing record_id 'rec' (the Stage 0 regression tests cover the same collision for real IA/LoC-shaped data)"
+ },
+ "scenario9_partial_failures": {
+  "finna_results_despite_dpla": true,
+  "dpla_authentication_required": true,
+  "gallica_403": "recorded live 2026-11-26 (docs/b8-live-verification.md); not re-run here",
+  "finna_live_403": "recorded live 2026-11-26 (docs/b8-live-verification.md); not re-run here"
+ },
+ "scenario3_expansion": {
+  "fi_variant_for_newspaper_query": true,
+  "sv_variant_for_railway_query": true,
+  "nl_variant_for_railway_query": true
+ },
+ "scenario5_handoff": {
+  "candidate_status": "candidate",
+  "binding_id": "123456",
+  "titles_correspond": true,
+  "genre_matches": true
+ }
+}

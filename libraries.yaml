@@ -473,7 +473,7 @@ libraries:
     rate_limits: unknown
     existing_mcp: unknown
     implementation_status: implemented
-    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_catalog_verified, in_document_search: unsupported, page_ocr: live_page_verified, original_image: fixture_verified, iiif: unsupported, page_mapping: live_page_verified, rights: fixture_verified}
+    capability_status: {catalog_search: live_catalog_verified, document_by_id: live_catalog_verified, in_document_search: bounded, page_ocr: live_page_verified, original_image: fixture_verified, iiif: unsupported, page_mapping: live_page_verified, rights: fixture_verified}
     verification: "b8 (2026-11-26): live through the adapter from this network - SRU search returned real records (waterkracht, 32487 total), the resolver OCR for ddd:010286065:mpeg21:a0141 was fetched non-empty (711 chars) with verified_mapping true (OCR title equals the SRU record title selected by exact identifier). The resolver :image suffix answered 404 for that article URN, so original-image verification is fixture-only; no page-URN image route was guessed."
     last_verified: "2026-11-26"
   - id: bne

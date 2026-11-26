@@ -1,0 +1,441 @@
+{
+ "note": "Fixed fixture corpus for the b8 evaluation (proxy evaluation: relevance labels are agent-assigned, the corpus is a fixed fixture, and fixture results are never presented as live verification). Records carry the fields the fixture transport needs to serve the REAL Finna / KB SRU / Japan Search adapters.",
+ "records": [
+  {
+   "author": "Virtanen, Matti",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-hydro-1",
+   "subjects": [
+    "vesivoima",
+    "historia"
+   ],
+   "title": "Vesivoiman historia Suomessa",
+   "year": 1955
+  },
+  {
+   "author": "Lindqvist, Anna",
+   "language": "sv",
+   "library_id": "finna",
+   "record_id": "finna-hydro-2",
+   "subjects": [
+    "vattenkraft",
+    "historia"
+   ],
+   "title": "Vattenkraftens historia i Finland",
+   "year": 1962
+  },
+  {
+   "author": "Korhonen, Juho",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-rail-1",
+   "subjects": [
+    "rautatie",
+    "historia"
+   ],
+   "title": "Suomen rautateiden historia",
+   "year": 1978
+  },
+  {
+   "author": "Berg, Erik",
+   "language": "sv",
+   "library_id": "finna",
+   "record_id": "finna-rail-2",
+   "subjects": [
+    "järnväg"
+   ],
+   "title": "Järnvägar i Finland",
+   "year": 1930
+  },
+  {
+   "author": "Laine, Aino",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-indep-1",
+   "subjects": [
+    "itsenäisyys",
+    "historia"
+   ],
+   "title": "Suomen itsenäisyys 1917",
+   "year": 1967
+  },
+  {
+   "author": "Holm, Karl",
+   "language": "sv",
+   "library_id": "finna",
+   "record_id": "finna-indep-2",
+   "subjects": [
+    "självständighet"
+   ],
+   "title": "Finlands självständighet",
+   "year": 1927
+  },
+  {
+   "author": null,
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-news-1",
+   "subjects": [
+    "sanomalehti"
+   ],
+   "title": "Uusi Suometar",
+   "year": 1900
+  },
+  {
+   "author": null,
+   "language": "sv",
+   "library_id": "finna",
+   "record_id": "finna-news-2",
+   "subjects": [
+    "tidning"
+   ],
+   "title": "Hufvudstadsbladet",
+   "year": 1890
+  },
+  {
+   "author": "Saarinen, Liisa",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-edu-1",
+   "subjects": [
+    "koulutus",
+    "historia"
+   ],
+   "title": "Koulutuksen historia Suomessa",
+   "year": 1985
+  },
+  {
+   "author": "Niemi, Pekka",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-ind-1",
+   "subjects": [
+    "teollinen vallankumous"
+   ],
+   "title": "Teollinen vallankumous Pohjolassa",
+   "year": 1970
+  },
+  {
+   "author": "Aho, Juhani",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-steam-1",
+   "subjects": [
+    "höyrykone",
+    "teollisuus"
+   ],
+   "title": "Höyrykoneet ja teollisuus",
+   "year": 1935
+  },
+  {
+   "author": "Rinne, Sari",
+   "language": "fi",
+   "library_id": "finna",
+   "record_id": "finna-cook-1",
+   "subjects": [
+    "ruoanlaitto"
+   ],
+   "title": "Suomalainen keittokirja",
+   "year": 1990
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-hydro-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000001:mpeg21:a0001",
+   "subjects": [
+    "waterkracht"
+   ],
+   "title": "Waterkracht-centrale.",
+   "year": 1937
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-hydro-2",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000002:mpeg21:a0002",
+   "subjects": [
+    "waterkracht"
+   ],
+   "title": "Uitvoer van waterkracht.",
+   "year": 1926
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-rail-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000003:mpeg21:a0003",
+   "subjects": [
+    "spoorweg"
+   ],
+   "title": "De spoorweg naar Amsterdam",
+   "year": 1880
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-ind-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000004:mpeg21:a0004",
+   "subjects": [
+    "industrie",
+    "revolutie"
+   ],
+   "title": "Industriële revolutie in Nederland",
+   "year": 1901
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-steam-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000005:mpeg21:a0005",
+   "subjects": [
+    "stoommachine",
+    "textiel"
+   ],
+   "title": "De stoommachine in de textielindustrie",
+   "year": 1875
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-edu-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000006:mpeg21:a0006",
+   "subjects": [
+    "onderwijs"
+   ],
+   "title": "Onderwijs in Nederland",
+   "year": 1895
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-news-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000007:mpeg21:a0007",
+   "subjects": [
+    "krant"
+   ],
+   "title": "Dagblad van Nederland",
+   "year": 1850
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-dam-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000008:mpeg21:a0008",
+   "subjects": [
+    "dam"
+   ],
+   "title": "De dam in de rivier",
+   "year": 1910
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-mine-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000009:mpeg21:a0009",
+   "subjects": [
+    "mijnbouw"
+   ],
+   "title": "Mijnbouw in Limburg",
+   "year": 1920
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-ship-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000010:mpeg21:a0010",
+   "subjects": [
+    "stoomschip"
+   ],
+   "title": "Het stoomschip vertrekt",
+   "year": 1860
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-loco-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000011:mpeg21:a0011",
+   "subjects": [
+    "locomotief"
+   ],
+   "title": "De locomotief ontspoord",
+   "year": 1899
+  },
+  {
+   "author": null,
+   "corpus_id": "kb-weather-1",
+   "language": "nl",
+   "library_id": "kb-delpher",
+   "record_id": "ddd:010000012:mpeg21:a0012",
+   "subjects": [
+    "weer"
+   ],
+   "title": "Het weer van morgen",
+   "year": 1930
+  },
+  {
+   "author": "田中, 一郎",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000001",
+   "subjects": [
+    "北欧",
+    "交流"
+   ],
+   "title": "日本と北欧の交流史",
+   "year": 2001,
+   "corpus_id": "jps-nordic-1"
+  },
+  {
+   "author": "佐藤, 花",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000002",
+   "subjects": [
+    "フィンランド",
+    "歴史"
+   ],
+   "title": "フィンランドの歴史",
+   "year": 1998,
+   "corpus_id": "jps-nordic-2"
+  },
+  {
+   "author": "鈴木, 健",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "dignl-10000003",
+   "subjects": [
+    "水力発電",
+    "歴史"
+   ],
+   "title": "水力発電の歴史",
+   "year": 1975,
+   "corpus_id": "jps-hydro-1"
+  },
+  {
+   "author": "高橋, 実",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000004",
+   "subjects": [
+    "鉄道",
+    "歴史"
+   ],
+   "title": "鉄道の歴史",
+   "year": 1980,
+   "corpus_id": "jps-rail-1"
+  },
+  {
+   "author": "大久保, 純一",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "dignl-12676713",
+   "subjects": [
+    "浮世絵"
+   ],
+   "title": "浮世絵",
+   "year": 1994,
+   "corpus_id": "jps-ukiyoe-1"
+  },
+  {
+   "author": "伊藤, 洋",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000006",
+   "subjects": [
+    "教育",
+    "歴史"
+   ],
+   "title": "教育の歴史",
+   "year": 1970,
+   "corpus_id": "jps-edu-1"
+  },
+  {
+   "author": "渡辺, 明",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000007",
+   "subjects": [
+    "産業革命"
+   ],
+   "title": "産業革命",
+   "year": 1965,
+   "corpus_id": "jps-ind-1"
+  },
+  {
+   "author": "中村, 直",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "dignl-10000008",
+   "subjects": [
+    "新聞",
+    "明治"
+   ],
+   "title": "明治の新聞",
+   "year": 1990,
+   "corpus_id": "jps-news-1"
+  },
+  {
+   "author": "小林, 誠",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000009",
+   "subjects": [
+    "独立",
+    "歴史"
+   ],
+   "title": "独立の歴史",
+   "year": 1988,
+   "corpus_id": "jps-indep-1"
+  },
+  {
+   "author": "加藤, 進",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000010",
+   "subjects": [
+    "蒸気機関"
+   ],
+   "title": "蒸気機関の発達",
+   "year": 1955,
+   "corpus_id": "jps-steam-1"
+  },
+  {
+   "author": "山田, 葵",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "dignl-10000011",
+   "subjects": [
+    "スウェーデン語",
+    "新聞"
+   ],
+   "title": "スウェーデン語の新聞",
+   "year": 2010,
+   "corpus_id": "jps-sweden-1"
+  },
+  {
+   "author": "森, 恵",
+   "language": "ja",
+   "library_id": "japan-search",
+   "record_id": "bibnl-10000012",
+   "subjects": [
+    "料理"
+   ],
+   "title": "日本の料理",
+   "year": 2005,
+   "corpus_id": "jps-cook-1"
+  }
+ ]
+}

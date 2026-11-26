@@ -300,6 +300,82 @@ async def test_japan_search_document_identity_refused_for_wrong_id():
             await JapanSearchAdapter(client).get_document("dignl-99999999")
 
 
+# ---------------------------------------------------------------- compare (section 15)
+
+DIGI_OAI = """<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/">
+ <responseDate>2026-11-26T00:00:00Z</responseDate>
+ <GetRecord><record>
+  <header><identifier>oai:digi.kansalliskirjasto.fi:123456</identifier><datestamp>2024-01-01</datestamp></header>
+  <metadata><qdc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:kk="http://www.kansalliskirjasto.fi/kk">
+   <dc:title>Uusi Suometar 1900-01-02</dc:title><dc:date>1900-01-02</dc:date>
+   <dc:language>fin</dc:language><dc:rights>Tekijänoikeuden alainen</dc:rights>
+   <kk:file bundle="ORIGINAL" href="https://digi.kansalliskirjasto.fi/sanomalehti/binding/123456/pdf" type="application/pdf" />
+   <kk:checksum filetype="application/xml+alto" pagenumber="1" value="abc123" />
+  </qdc></metadata>
+ </record></GetRecord>
+</OAI-PMH>
+"""
+
+DIGI_ALTO = """<?xml version="1.0" encoding="UTF-8"?>
+<alto xmlns="http://www.loc.gov/standards/alto/ns-v4#">
+ <Description><sourceImageInformation><fileName>123456_0001.jp2</fileName></sourceImageInformation></Description>
+ <Layout><Page ID="Page1" PHYSICAL_IMG_NR="1"><PrintSpace>
+ <TextBlock ID="b1"><TextLine ID="l1"><String CONTENT="Suomen" /><String CONTENT="historia" /></TextLine></TextBlock>
+ <TextBlock ID="b2"><TextLine ID="l2"><String CONTENT="vesivoima" /><String CONTENT="ja" /><String CONTENT="teollisuus" /></TextLine></TextBlock>
+ </PrintSpace></Page></Layout>
+</alto>
+"""
+
+
+@pytest.mark.asyncio
+async def test_compare_kb_and_digi_cross_language():
+    kb_handler = _kb_handler()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "digi.kansalliskirjasto.fi":
+            path = request.url.path
+            if path == "/interfaces/OAI-PMH":
+                return httpx.Response(200, text=DIGI_OAI, headers={"content-type": "text/xml"})
+            if path.endswith("/page-1.xml"):
+                return httpx.Response(200, text=DIGI_ALTO, headers={"content-type": "text/xml"})
+            return httpx.Response(404, text="not found")
+        return kb_handler(request)
+
+    async with _client(handler) as client:
+        service = _LS(client)
+        result = await service.compare_documents(
+            [
+                {"library_id": "kb-delpher", "record_id": "ddd:010286065:mpeg21:a0141"},
+                {"library_id": "finland-nl-digi", "record_id": "123456"},
+            ],
+            aspects=["waterkracht", "vesivoima"],
+        )
+    assert result["status"] == "compared"
+    docs = {(d["library_id"], d["record_id"]): d for d in result["documents"]}
+    assert docs[("kb-delpher", "ddd:010286065:mpeg21:a0141")]["verified_pages"] >= 1
+    assert docs[("finland-nl-digi", "123456")]["verified_pages"] >= 1
+    rows = {row["aspect"]: row for row in result["rows"]}
+    kb_key = "kb-delpher|ddd:010286065:mpeg21:a0141"
+    digi_key = "finland-nl-digi|123456"
+    assert rows["waterkracht"]["documents"][kb_key]["found"] is True
+    assert rows["waterkracht"]["documents"][digi_key]["found"] is False
+    assert rows["vesivoima"]["documents"][digi_key]["found"] is True
+    assert rows["vesivoima"]["documents"][kb_key]["found"] is False
+    assert all(row["semantic_comparison"] == "not_checked" for row in result["rows"])
+
+
+@pytest.mark.asyncio
+async def test_kb_search_in_document_single_page_unit():
+    async with _client(_kb_handler()) as client:
+        adapter = KbDelpherAdapter(client)
+        hit = await adapter.search_in_document("ddd:010286065:mpeg21:a0141", "waterkracht")
+        miss = await adapter.search_in_document("ddd:010286065:mpeg21:a0141", "stoommachine")
+    assert hit["matches"]["list"][0]["page_id"] == "ddd:010286065:mpeg21:a0141"
+    assert hit["complete"] is True and hit["total_pages"] == 1
+    assert miss["matches"]["list"] == []
+
+
 # ---------------------------------------------------------------- lexicon fi/sv/nl
 
 
@@ -322,4 +398,16 @@ def test_expansion_generates_finnish_variant_for_japanese_query():
     texts = {(v["language"], v["text"]) for v in plan["variants"]}
     assert ("fi", "vesivoima") in texts
     assert ("sv", "vattenkraft") in texts
-    assert ("nl", "waterkracht") in texts
+    # This query matches THREE concepts (hydroelectric power,
+    # water power, history), so under the deep cap of 14 the
+    # last language in the interleave (nl) is the one that
+    # drops; with two matched concepts it fits, as the railway
+    # query shows. The cap is a real budget, not raised to hide
+    # this (brief section 12); the behaviour is recorded in
+    # docs/b8-evaluation.md.
+    plan2 = QueryExpansionEngine().expand(
+        analyze_discovery_query("鉄道の歴史"), mode="deep"
+    )
+    texts2 = {(v["language"], v["text"]) for v in plan2["variants"]}
+    assert ("nl", "spoorweg") in texts2
+    assert ("fi", "rautatie") in texts2
