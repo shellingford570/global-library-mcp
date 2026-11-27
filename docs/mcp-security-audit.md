@@ -109,3 +109,23 @@ hosting, and this document says so wherever that matters.
   process-wide concurrency cap.
 - The web UI and MCP server share a process model intended for a
   single user on a local machine.
+
+## b9 addendum (2026-11-27) — external profile
+
+The external-research profile adds: OAuth 2.1 resource-server
+validation (JWKS signature, issuer, audience, expiry,
+per-tool scopes) with RFC 9728 metadata and a 401 challenge;
+fail-closed startup when authentication is unconfigured;
+server-side consent per data class; per-user budgets,
+concurrency (2), a 90-second tool deadline and HMAC-bound
+continuation tokens; per-user session/cache isolation;
+typed allowlist projections (no raw payloads cross); a
+catch-all that returns only stable error codes so upstream
+exceptions cannot leak keys or URLs; an audit log with
+pseudonymised users and no research content; a kill switch
+(GLM_EXTERNAL_DISABLED=1) and per-user revocation. The DNS
+public-address pre-check is ON by default for this profile;
+the honest residual risk (no address pinning; proxy
+resolution) and the managed-egress precondition for
+production are recorded in docs/b9-external-security.md.
+The full threat model is docs/b9-threat-model.md.

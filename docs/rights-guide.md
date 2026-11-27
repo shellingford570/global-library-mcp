@@ -95,3 +95,15 @@ to store or redistribute it. In the b7 workspace:
 
 See docs/b7-research-workspace.md for the full policy
 table.
+
+## b9: external transfer is a separate question (2026-11-27)
+
+What this guide says about local reading/storage does NOT
+decide what may be sent to an external AI service. The
+external-research profile applies its own transfer policy
+(docs/b9-external-rights-policy.md) with a per-library
+transfer matrix (docs/b9-library-transfer-matrix.md): OCR
+full text and original-image binaries are never transferred,
+CC BY-NC is not assumed to satisfy its NonCommercial
+condition for transfer to an AI service, and short excerpts
+are disabled by default and individually gated.

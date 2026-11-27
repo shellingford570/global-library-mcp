@@ -1,0 +1,68 @@
+{
+ "A_local_search": {
+  "median_ms": 0.13,
+  "min_ms": 0.11,
+  "max_ms": 0.43
+ },
+ "B_tools_list": {
+  "median_ms": 0.05,
+  "min_ms": 0.03,
+  "max_ms": 0.08
+ },
+ "B_search": {
+  "median_ms": 0.2,
+  "min_ms": 0.17,
+  "max_ms": 1.21
+ },
+ "B_search_response_bytes": 4511,
+ "B_fetch": {
+  "median_ms": 0.2,
+  "min_ms": 0.19,
+  "max_ms": 0.31
+ },
+ "B_fetch_response_bytes": 1664,
+ "B_search_cached": {
+  "median_ms": 0.14,
+  "min_ms": 0.14,
+  "max_ms": 0.2
+ },
+ "auth_validate": {
+  "median_ms": 0.1,
+  "min_ms": 0.08,
+  "max_ms": 0.25
+ },
+ "rights_decision": {
+  "median_ms": 0.01,
+  "min_ms": 0.01,
+  "max_ms": 0.03
+ },
+ "C_excerpt": {
+  "median_ms": 0.27,
+  "min_ms": 0.19,
+  "max_ms": 0.53
+ },
+ "C_excerpt_response_bytes": 1151,
+ "D_concurrent": {
+  "1": {
+   "wall_ms": 1.07,
+   "per_user_ms": 1.07
+  },
+  "2": {
+   "wall_ms": 1.88,
+   "per_user_ms": 0.94
+  },
+  "5": {
+   "wall_ms": 2.67,
+   "per_user_ms": 0.53
+  },
+  "10": {
+   "wall_ms": 4.68,
+   "per_user_ms": 0.47
+  },
+  "20": {
+   "wall_ms": 8.21,
+   "per_user_ms": 0.41
+  }
+ },
+ "note": "synthetic in-process measurements on the development VM (1.5 shared CPUs); indicative, not a production benchmark"
+}

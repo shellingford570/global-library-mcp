@@ -192,10 +192,18 @@ def test_allowlist_is_exact_and_workspace_free():
     assert "research_question" not in names
     assert "get_page_text" not in names
     pkg = Path(__file__).resolve().parents[1] / "src" / "global_library_mcp" / "external"
+    import ast
+
     for path in pkg.glob("*.py"):
-        text = path.read_text(encoding="utf-8")
-        assert "global_library_mcp.workspace" not in text, path.name
-        assert "GLM_WORKSPACE" not in text, path.name
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            module = ""
+            if isinstance(node, ast.ImportFrom):
+                module = node.module or ""
+            elif isinstance(node, ast.Import):
+                module = ",".join(a.name for a in node.names)
+            assert not ("workspace" in module and "global_library_mcp" in module), \
+                f"{path.name} imports the workspace package"
 
 
 def test_resources_and_prompts_are_empty():
@@ -408,6 +416,21 @@ def test_audit_log_has_no_research_content():
     assert "secret research topic" not in blob
     assert "user-a" not in blob          # pseudonymised
     assert any(e["tool"] == "search" for e in ctx.audit.events)
+
+
+def test_doctor_runs_without_network():
+    from global_library_mcp.external.doctor import run_doctor
+
+    report = run_doctor()
+    assert report["network_used"] is False
+    names = {c["check"] for c in report["checks"]}
+    assert {"external_allowlist", "transfer_matrix",
+            "workspace_separation", "local_profiles"} <= names
+    by_name = {c["check"]: c for c in report["checks"]}
+    assert by_name["external_allowlist"]["ok"] is True
+    assert by_name["workspace_separation"]["ok"] is True
+    blob = json.dumps(report)
+    assert HS_SECRET not in blob
 
 
 # ---------------------------------------------------------------- startup

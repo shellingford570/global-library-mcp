@@ -257,7 +257,25 @@ class _SdkTokenVerifier:
 
 
 def _verify_allowlist(server: FastMCP) -> None:
-    names = {tool.name for tool in asyncio.run(server.list_tools())}
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        names = {tool.name for tool in asyncio.run(server.list_tools())}
+    else:
+        # Called from inside a running loop (embedding hosts):
+        # verify on a scratch thread with its own loop.
+        import threading
+
+        holder: dict[str, Any] = {}
+
+        def _collect() -> None:
+            holder["names"] = {tool.name for tool in
+                               asyncio.run(server.list_tools())}
+
+        thread = threading.Thread(target=_collect)
+        thread.start()
+        thread.join()
+        names = holder["names"]
     if names != set(EXTERNAL_TOOLS):
         raise RuntimeError(
             "external profile tool mismatch: "

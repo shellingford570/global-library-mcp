@@ -1,5 +1,62 @@
 # Changelog
 
+## 1.0.0b9 — External MCP Readiness
+
+- New **external-research MCP profile**: a separate FastMCP
+  server that registers only 9 allowlisted read-only tools
+  (search, fetch, list_libraries, get_library_capabilities,
+  get_document_rights, verify_original_reference,
+  get_allowed_excerpt, research_materials_external,
+  compare_documents_external), verified against the allowlist
+  at startup. The local full (15) and research (14) profiles
+  are unchanged; research_question, the workspace and every
+  write path are structurally unreachable from this profile.
+- External document/page identifiers: versioned, strictly
+  parsed tokens over (library_id, record_id); URLs and paths
+  can never be identifiers.
+- **External transfer rights policy**, independent of the
+  workspace storage policy: per-library transfer matrix for
+  all 13 adapters grounded in official terms (unknown where
+  unconfirmed); OCR full text and image binaries never
+  transfer; CC BY-NC is not assumed to satisfy NonCommercial
+  for AI-service transfer; excerpts are disabled by default
+  and, when enabled, require identity + rights + matrix +
+  consent + cumulative caps (500/1,000/2,000/5,000 chars).
+- OAuth 2.1 resource-server validation (MCP authorization
+  spec): RFC 9728 Protected Resource Metadata, 401 challenge,
+  JWKS signature + issuer + audience + expiry + per-tool
+  scopes via PyJWT; fail-closed startup. Server-side user
+  consent per data class; per-user budgets, concurrency,
+  deadlines (90 s), continuation tokens bound to
+  user/scopes/parameters; per-user session/cache isolation.
+- Security: upstream exceptions surface only as stable error
+  codes; the external profile enables the DNS public-address
+  pre-check by default (residual rebinding risk documented,
+  managed egress recorded as a production precondition);
+  audit log with pseudonymised users and no research content;
+  kill switch and per-user revocation.
+- `global-library-mcp doctor` diagnostics (no network by
+  default).
+- Stage 0 hardening: the workspace rights trust model no
+  longer treats trust-less observations with server-looking
+  source strings as server-observed, and missing/malformed
+  observation timestamps cannot establish trust.
+- Official-spec research (2026-11-27): OpenAI custom MCP in
+  ChatGPT (full MCP for Business/Enterprise-Edu; Pro
+  read/fetch; **no documented route for Plus**), Secure MCP
+  Tunnel requirements and limits, Responses API MCP, MCP
+  authorization spec — docs/b9-openai-compatibility.md.
+  Connection runbooks: docs/chatgpt-connection.md (.ja.md),
+  docs/secure-mcp-tunnel.md. **No tunnel was created, no
+  ChatGPT connection was made, no API key was issued, and no
+  research data was sent anywhere.**
+- Evaluation: 171-case synthetic security evaluation, all
+  passing (docs/b9-security-evaluation.md); synthetic
+  performance evaluation (docs/b9-performance-evaluation.md);
+  new CI jobs external-mcp and external-security.
+- b10 design only: docs/b10-candidates.md (including the
+  multilingual expansion rebalance carried from b9 §5.4).
+
 ## 1.0.0b8 — Global Coverage II
 
 - Stage 0 (b7 residual fixes): a rights trust model for the

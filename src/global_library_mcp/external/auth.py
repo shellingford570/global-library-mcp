@@ -99,6 +99,8 @@ class TokenValidator:
             raise AuthError("bad_signature") from exc
         except _jwt.InvalidTokenError as exc:
             raise AuthError("invalid_token") from exc
+        if not str(claims.get("sub") or "").strip():
+            raise AuthError("invalid_token")
         scope_text = claims.get("scope") or ""
         scopes = set(scope_text.split()) if isinstance(scope_text, str) \
             else set(claims.get("scp") or [])

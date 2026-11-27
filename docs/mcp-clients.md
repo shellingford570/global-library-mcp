@@ -181,3 +181,27 @@ the local web UI/API of a workspace-enabled server.
 Workspace MCP tools are a future candidate that would
 require separate approval plus an authentication and audit
 design (see docs/b7-research-workspace.md).
+
+## b9: the external-research profile (2026-11-27)
+
+A third profile now exists: `--profile external-research`
+(port 8002 by convention). It is a SEPARATE server built only
+from an allowlist of 9 read-only tools (search, fetch,
+list_libraries, get_library_capabilities, get_document_rights,
+verify_original_reference, get_allowed_excerpt,
+research_materials_external, compare_documents_external),
+with OAuth 2.1 token validation, per-tool scopes, server-side
+consent, per-user budgets and an independent external
+transfer rights policy. It never exposes the workspace, the
+AI answering tool, OCR full text or image binaries.
+
+ChatGPT status, updated by the 2026-11-27 official research
+(docs/b9-openai-compatibility.md): custom MCP connections are
+documented for Business and Enterprise/Edu (full MCP) and
+Pro (read/fetch); no official route is documented for Plus.
+The connection route for this project is Secure MCP Tunnel;
+the runbook is docs/chatgpt-connection.md /
+docs/secure-mcp-tunnel.md. **Not connected**: no tunnel has
+been created and no ChatGPT connection has been made; both
+need separate approval. Local clients (Claude Code etc.)
+keep using stdio with the full/research profiles as before.

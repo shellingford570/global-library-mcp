@@ -183,3 +183,68 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8129
         run: npx playwright test tests/e2e/workspace-live.spec.js --reporter=list
+
+  external-mcp:
+    # b9 section 41: the external-research profile regression.
+    # Real MCP server (FastMCP + SDK auth), real LibraryService
+    # code paths against fake/fixture services, real external
+    # rights policy, real token validation with a synthetic
+    # HS256 test signer, real Streamable HTTP via uvicorn.
+    # No live API, no real keys, no tunnel, no ChatGPT account.
+    # Mandatory tests must not skip.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: pip install '.[test]'
+      - name: External MCP pytest (profile, ids, policy, auth, HTTP, isolation)
+        run: pytest tests/test_b9_external.py tests/test_b9_http_security.py -q --junitxml=/tmp/b9-junit.xml
+      - name: Assert no mandatory external test skipped
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('/tmp/b9-junit.xml').getroot()
+          suites = list(root.iter('testsuite'))
+          tests = sum(int(s.get('tests', 0)) for s in suites)
+          skipped = sum(int(s.get('skipped', 0)) for s in suites)
+          failures = sum(int(s.get('failures', 0)) + int(s.get('errors', 0)) for s in suites)
+          print(f"external-mcp: tests={tests} skipped={skipped} failures={failures}")
+          assert failures == 0, "external MCP tests failed"
+          assert skipped == 0, "a mandatory external test skipped - not a CI success (section 41)"
+          assert tests >= 40, f"expected the full external suite, got {tests}"
+          EOF
+      - name: Doctor (no network)
+        run: |
+          global-library-mcp doctor > /tmp/doctor.json || true
+          python3 -c "import json; r=json.load(open('/tmp/doctor.json')); assert r['network_used'] is False; assert any(c['check']=='external_allowlist' and c['ok'] for c in r['checks'])"
+
+  external-security:
+    # b9 section 41: the fixed synthetic security evaluation
+    # (171 cases) and the performance evaluation. The security
+    # script exits non-zero on any failed case, including any
+    # non-zero mandatory safety metric.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: pip install '.[test]'
+      - name: Security evaluation (171 synthetic cases)
+        run: python eval/b9_security_eval.py --out /tmp/results-b9-security.json
+      - name: Performance evaluation (synthetic)
+        run: python eval/b9_perf.py --out /tmp/results-b9-perf.json
+      - name: Upload evaluation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: b9-evaluation-results
+          path: |
+            /tmp/results-b9-security.json
+            /tmp/results-b9-perf.json
+          if-no-files-found: ignore
