@@ -1,0 +1,132 @@
+{
+ "evaluation_kind": "ranking comparison over fixed simulation retrieval (config F)",
+ "label_source": "agent_assigned",
+ "rankers": {
+  "R0": {
+   "b6_fixed": {
+    "recall@5": 0.9167,
+    "recall@10": 0.9167,
+    "recall@20": 0.9167,
+    "precision@5": 0.3944,
+    "mrr": 0.8519,
+    "ndcg@10": 0.8266,
+    "cross": 0.6111,
+    "cases": 36
+   },
+   "b6_challenge": {
+    "recall@5": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2444,
+    "mrr": 0.8611,
+    "ndcg@10": 0.9,
+    "cross": 0.6111,
+    "cases": 18
+   },
+   "b6_dev": {
+    "recall@5": 0.9474,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2421,
+    "mrr": 0.9263,
+    "ndcg@10": 0.9243,
+    "cross": 0.3158,
+    "cases": 38
+   },
+   "b6_holdout": {
+    "recall@5": 0.9375,
+    "recall@10": 0.9375,
+    "recall@20": 0.9375,
+    "precision@5": 0.2375,
+    "mrr": 0.8594,
+    "ndcg@10": 0.8618,
+    "cross": 0.25,
+    "cases": 16
+   }
+  },
+  "R1": {
+   "b6_fixed": {
+    "recall@5": 0.9028,
+    "recall@10": 0.9167,
+    "recall@20": 0.9167,
+    "precision@5": 0.3889,
+    "mrr": 0.8657,
+    "ndcg@10": 0.8423,
+    "cross": 0.6111,
+    "cases": 36
+   },
+   "b6_challenge": {
+    "recall@5": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2444,
+    "mrr": 0.8796,
+    "ndcg@10": 0.9142,
+    "cross": 0.6111,
+    "cases": 18
+   },
+   "b6_dev": {
+    "recall@5": 0.9737,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2474,
+    "mrr": 0.8627,
+    "ndcg@10": 0.8878,
+    "cross": 0.3158,
+    "cases": 38
+   },
+   "b6_holdout": {
+    "recall@5": 0.875,
+    "recall@10": 0.9375,
+    "recall@20": 0.9375,
+    "precision@5": 0.2125,
+    "mrr": 0.8438,
+    "ndcg@10": 0.8511,
+    "cross": 0.25,
+    "cases": 16
+   }
+  },
+  "R2": {
+   "b6_fixed": {
+    "recall@5": 0.8889,
+    "recall@10": 0.9167,
+    "recall@20": 0.9167,
+    "precision@5": 0.3833,
+    "mrr": 0.8565,
+    "ndcg@10": 0.8501,
+    "cross": 0.6111,
+    "cases": 36
+   },
+   "b6_challenge": {
+    "recall@5": 1.0,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2444,
+    "mrr": 0.9074,
+    "ndcg@10": 0.9347,
+    "cross": 0.6111,
+    "cases": 18
+   },
+   "b6_dev": {
+    "recall@5": 0.9342,
+    "recall@10": 1.0,
+    "recall@20": 1.0,
+    "precision@5": 0.2421,
+    "mrr": 0.8831,
+    "ndcg@10": 0.8964,
+    "cross": 0.3158,
+    "cases": 38
+   },
+   "b6_holdout": {
+    "recall@5": 0.9062,
+    "recall@10": 0.9375,
+    "recall@20": 0.9375,
+    "precision@5": 0.225,
+    "mrr": 0.8125,
+    "ndcg@10": 0.8309,
+    "cross": 0.25,
+    "cases": 16
+   }
+  }
+ }
+}

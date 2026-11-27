@@ -1,0 +1,38 @@
+{
+ "evaluation_kind": "whole-corpus ranking (b6 simulation corpus)",
+ "label_source": "agent_assigned",
+ "dataset": "dev",
+ "model": {
+  "id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+  "file": "onnx/model_quint8_avx2.onnx",
+  "load_seconds": 2.661,
+  "encode_ms_per_text": 10.19
+ },
+ "rankers": {
+  "LEX": {
+   "recall@5": 0.7895,
+   "recall@10": 0.8158,
+   "recall@20": 0.9079,
+   "precision@5": 0.1947,
+   "mrr": 0.8586,
+   "ndcg@10": 0.7975
+  },
+  "SEM": {
+   "recall@5": 0.9605,
+   "recall@10": 1.0,
+   "recall@20": 1.0,
+   "precision@5": 0.2421,
+   "mrr": 0.8333,
+   "ndcg@10": 0.8719
+  },
+  "HYB": {
+   "recall@5": 0.9079,
+   "recall@10": 0.9474,
+   "recall@20": 0.9868,
+   "precision@5": 0.2263,
+   "mrr": 0.9275,
+   "ndcg@10": 0.9044
+  }
+ }
+}

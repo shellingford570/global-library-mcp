@@ -714,3 +714,30 @@ listed as verified was not live-verified; see
   live-verified for ten focus authors and recorded in the
   lexicon; resolver evaluation over the frozen b10 dataset with
   zero false verifications on all splits.
+- b10 Stage 3: simulation routing aligned with production (plan
+  language, not text detection) - b6 fixed F Recall@10 recovered
+  to 0.9167 and challenge to 1.0000 in simulation; Wasserkraft
+  label added for hydroelectric power (de). Lexical TF-IDF
+  scorer and ResearchRanker (strict tier + lexical/semantic
+  fusion, OCR as usability only) added; hybrid comparison did
+  not show a uniform win, so the incumbent ranker stays default
+  and ResearchRanker is opt-in (GLM_RESEARCH_RANKER=1) with
+  per-item ranking reasons. Local semantic backend
+  (paraphrase-multilingual-MiniLM-L12-v2, ONNX quint8, 127 MB,
+  Apache-2.0, pinned revision) evaluated: whole-corpus
+  Recall@10 1.0000 fixed vs 0.7286 lexical. Adaptive stop added
+  to standard-mode variant search (strict title-tier match).
+- b10 Stage 4: research.py - ResearchQuestion/ResearchClaim
+  structuring, claim-evidence candidate mapping (candidate-level
+  statuses only; unadmitted candidates are never assessed),
+  cross-source fact comparison with document vs independent
+  source counts and contradiction CANDIDATES (never confirmed).
+- b10 Stage 5: workspace b10 artefacts as versioned JSON
+  envelopes in research notes (no schema change), research
+  progress summary and candidate relationship graph; /api/features
+  endpoint and UI features line (semantic availability is only
+  ever reported when a local backend exists); ranking reasons
+  rendered when present. Zotero: format-level compatibility
+  verified on synthetic records (13/13 checks); the Zotero
+  application is not present in this environment, so real-app
+  import remains unverified.

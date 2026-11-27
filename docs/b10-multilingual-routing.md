@@ -108,3 +108,40 @@ Consequence: allocation is closed as the primary lever for the
 fixed set. The remaining recovery path is the Stage 3
 ResearchRanker (brief sections 20–21), evaluated against these
 same corpora under the same no-one-sided-regression rule.
+
+## Addendum (Stage 3, 2026-11-28): the gap was routing, not ranking
+
+Per-case diagnosis of the remaining fixed-set shortfall showed
+the relevant records were **not retrieved at all**, and the
+cause was in the simulation harness, not the allocation policy:
+`eval/b6_engine_configs.py` routed each engine variant by
+running `detect_language()` on the variant TEXT. Single-word
+variants misroute: the German compound "Dampfmaschine" was
+detected as English and dispatched to loc/internet-archive —
+never to ddb, the German library holding the record — while
+the Finnish "höyrykone" was detected as German and sent to ddb.
+Production routing (service.py) never had this defect: it reads
+the expansion plan's own `language` field per variant. The
+simulation now does the same for engine variants (legacy
+variants keep text detection), restoring the harness's stated
+intent ("routing mirrors the production service"). A lexicon
+gap was also fixed: `Wasserkraft` added as a German label of
+concept:hydroelectric-power (it was only under water-power).
+
+Re-measured comparison (same runner, `eval/results-b10-allocation.json`
+regenerated at the Stage 3 head):
+
+| Policy | b6 fixed | b6 challenge | b8 std | b8 cross | attempts |
+|---|---|---|---|---|---|
+| A legacy (adopted) | **0.9167** | **1.0000** | 0.7667 | 0.7500 | 33.4 |
+| B diagonal | 0.9005 | 0.9444 | 0.7500 | 0.6667 | 32.6 |
+| E/G hierarchy/guarantee | 0.8819 | 0.9444 | 0.8583 | 0.9167 | 34.0 |
+
+All section-43 multilingual targets are now met under the
+adopted policy A: fixed ≥ 0.9097 ✓, challenge ≥ 0.9167 ✓,
+b8 standard ≥ 0.7500 ✓, b8 cross-language ≥ 0.6667 ✓. E/G
+remain unadopted (they still trade b6-fixed recall for b8
+gains). Attempts fell from ~40 to 33.4 because variants now go
+to the libraries that can actually answer them. The frozen
+datasets were not modified; F38's dataset defect stands as
+recorded in Stage 1.

@@ -1373,6 +1373,33 @@ class LibraryService:
                 if _capable >= 8:
                     _early_stop_note = {"stage": "variant_search", "status": "early_stop", "detail": f"{_capable} in-document candidates pooled; remaining variants skipped (standard mode)"}
                     break
+            # b10 (section 10): adaptive stop. When the pool
+            # already holds a strict title-tier match (an exact
+            # original/translated-title or full-query title hit),
+            # the author/work forms have answered the discovery
+            # need and the remaining expansion variants are
+            # skipped. The stop is reported as a planning decision
+            # only - it never asserts that no more relevant
+            # records exist.
+            if (_mode == "standard" and _early_stop_note is None
+                    and not _engine_pending and discovery_plan
+                    and len(merged) >= 3):
+                from global_library_mcp.discovery import analyze_discovery_query as _adq
+                from global_library_mcp.ranking import score_item as _si
+                _dan = _adq(query)
+                _strict = False
+                for _it in merged:
+                    _s, _r = _si(_dan, _it, {})
+                    if any(m in r for r in _r for m in
+                           ("title matches", "title contains the full query",
+                            "record belongs to")):
+                        _strict = True
+                        break
+                if _strict:
+                    _early_stop_note = {
+                        "stage": "variant_search", "status": "adaptive_stop",
+                        "detail": "strict title-tier match pooled; remaining expansion variants skipped (adaptive plan, b10 section 10)"}
+                    break
         for _variant in variants:
             if _variant not in _executed_queries:
                 _variant_execution.append({
@@ -1404,7 +1431,28 @@ class LibraryService:
             deduped, _biblio_filter_report = apply_biblio_filter(deduped, record_filter)
         merged = deduped[:30]
         ranked = rank_candidates(analysis, merged, query_hits)
-        search_view = {"query": query, "results": [item.to_dict() for item in ranked], "errors": search_errors}
+        # b10 (sections 20-22): opt-in ResearchRanker re-ranking
+        # with per-item reasons. Default OFF: the Stage 3 hybrid
+        # comparison did not show a uniform improvement over the
+        # incumbent ranker (docs/b10-ranking.md), so adoption is
+        # the operator's explicit choice via GLM_RESEARCH_RANKER=1.
+        import os as _os_rr
+        _rr_reasons: dict[tuple[str, str], list[str]] = {}
+        if _os_rr.getenv("GLM_RESEARCH_RANKER") == "1" and discovery_plan:
+            from global_library_mcp.discovery import analyze_discovery_query as _adq2
+            from global_library_mcp.research_ranker import ResearchRanker as _RR
+            ranked = _RR().rank(_adq2(query), list(ranked), query_hits)
+            for _it in ranked:
+                _rr_reasons[(_it.library_id, _it.record_id)] = list(
+                    getattr(_it, "_research_reasons", []))
+        _result_dicts = []
+        for _it in ranked:
+            _d = _it.to_dict()
+            if _rr_reasons:
+                _d["ranking_reasons"] = _rr_reasons.get(
+                    (_it.library_id, _it.record_id), [])
+            _result_dicts.append(_d)
+        search_view = {"query": query, "results": _result_dicts, "errors": search_errors}
         verified: list[Evidence] = []
         premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []

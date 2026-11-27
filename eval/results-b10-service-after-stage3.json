@@ -1,0 +1,284 @@
+{
+ "evaluation_kind": "B: real LibraryService over fixed HTTP fixtures",
+ "label_source": "agent_assigned",
+ "cases": 10,
+ "modes": {
+  "quick": {
+   "cases": [
+    {
+     "id": "F01",
+     "query": "明治時代の水力発電技術",
+     "recall@10": 0.5,
+     "materials": 1,
+     "http_requests": 15,
+     "bytes_received": 361,
+     "bytes_on_wire": 361,
+     "executed_variants": 4,
+     "elapsed_s": 9.062,
+     "answerable": false
+    },
+    {
+     "id": "F03",
+     "query": "カントの認識論",
+     "recall@10": 0.6666666666666666,
+     "materials": 3,
+     "http_requests": 12,
+     "bytes_received": 592,
+     "bytes_on_wire": 592,
+     "executed_variants": 4,
+     "elapsed_s": 12.013,
+     "answerable": false
+    },
+    {
+     "id": "F04",
+     "query": "純粋理性批判",
+     "recall@10": 0.6666666666666666,
+     "materials": 2,
+     "http_requests": 12,
+     "bytes_received": 472,
+     "bytes_on_wire": 472,
+     "executed_variants": 4,
+     "elapsed_s": 12.013,
+     "answerable": false
+    },
+    {
+     "id": "F06",
+     "query": "蒸氣機關の歴史",
+     "recall@10": 0.3333333333333333,
+     "materials": 2,
+     "http_requests": 12,
+     "bytes_received": 467,
+     "bytes_on_wire": 467,
+     "executed_variants": 4,
+     "elapsed_s": 12.015,
+     "answerable": false
+    },
+    {
+     "id": "F08",
+     "query": "マックス・ウェーバーの宗教社会学",
+     "recall@10": 0.3333333333333333,
+     "materials": 1,
+     "http_requests": 12,
+     "bytes_received": 560,
+     "bytes_on_wire": 560,
+     "executed_variants": 4,
+     "elapsed_s": 12.013,
+     "answerable": false
+    },
+    {
+     "id": "F09",
+     "query": "資本論",
+     "recall@10": 0.6666666666666666,
+     "materials": 3,
+     "http_requests": 14,
+     "bytes_received": 660,
+     "bytes_on_wire": 660,
+     "executed_variants": 4,
+     "elapsed_s": 12.016,
+     "answerable": false
+    },
+    {
+     "id": "F10",
+     "query": "ヨーロッパの天文学史",
+     "recall@10": 0.3333333333333333,
+     "materials": 1,
+     "http_requests": 13,
+     "bytes_received": 439,
+     "bytes_on_wire": 439,
+     "executed_variants": 4,
+     "elapsed_s": 12.012,
+     "answerable": false
+    },
+    {
+     "id": "F12",
+     "query": "Charles Darwin",
+     "recall@10": 0.6666666666666666,
+     "materials": 4,
+     "http_requests": 12,
+     "bytes_received": 1444,
+     "bytes_on_wire": 1444,
+     "executed_variants": 4,
+     "elapsed_s": 12.015,
+     "answerable": false
+    },
+    {
+     "id": "F13",
+     "query": "Kritik der reinen Vernunft",
+     "recall@10": 0.5,
+     "materials": 2,
+     "http_requests": 12,
+     "bytes_received": 472,
+     "bytes_on_wire": 472,
+     "executed_variants": 4,
+     "elapsed_s": 12.013,
+     "answerable": false
+    },
+    {
+     "id": "F14",
+     "query": "Dampfmaschine Industrie Deutschland 19. Jahrhundert",
+     "recall@10": 0.0,
+     "materials": 2,
+     "http_requests": 12,
+     "bytes_received": 589,
+     "bytes_on_wire": 589,
+     "executed_variants": 4,
+     "elapsed_s": 12.012,
+     "answerable": false
+    }
+   ],
+   "recall@10": 0.4667,
+   "avg_http_requests": 12.6,
+   "avg_bytes_received": 605,
+   "avg_elapsed_s": 11.718,
+   "warm_rerun_cache_hits": 0
+  },
+  "standard": {
+   "cases": [
+    {
+     "id": "F01",
+     "query": "明治時代の水力発電技術",
+     "recall@10": 0.5,
+     "materials": 3,
+     "http_requests": 28,
+     "bytes_received": 927,
+     "bytes_on_wire": 927,
+     "executed_variants": 11,
+     "elapsed_s": 12.035,
+     "answerable": false
+    },
+    {
+     "id": "F03",
+     "query": "カントの認識論",
+     "recall@10": 1.0,
+     "materials": 4,
+     "http_requests": 21,
+     "bytes_received": 1320,
+     "bytes_on_wire": 1320,
+     "executed_variants": 10,
+     "elapsed_s": 18.021,
+     "answerable": false
+    },
+    {
+     "id": "F04",
+     "query": "純粋理性批判",
+     "recall@10": 1.0,
+     "materials": 4,
+     "http_requests": 6,
+     "bytes_received": 387,
+     "bytes_on_wire": 387,
+     "executed_variants": 9,
+     "elapsed_s": 6.007,
+     "answerable": false
+    },
+    {
+     "id": "F06",
+     "query": "蒸氣機關の歴史",
+     "recall@10": 1.0,
+     "materials": 4,
+     "http_requests": 22,
+     "bytes_received": 1255,
+     "bytes_on_wire": 1255,
+     "executed_variants": 10,
+     "elapsed_s": 12.015,
+     "answerable": false
+    },
+    {
+     "id": "F08",
+     "query": "マックス・ウェーバーの宗教社会学",
+     "recall@10": 1.0,
+     "materials": 3,
+     "http_requests": 39,
+     "bytes_received": 1891,
+     "bytes_on_wire": 1891,
+     "executed_variants": 15,
+     "elapsed_s": 27.028,
+     "answerable": false
+    },
+    {
+     "id": "F09",
+     "query": "資本論",
+     "recall@10": 1.0,
+     "materials": 4,
+     "http_requests": 17,
+     "bytes_received": 1290,
+     "bytes_on_wire": 1290,
+     "executed_variants": 8,
+     "elapsed_s": 12.016,
+     "answerable": false
+    },
+    {
+     "id": "F10",
+     "query": "ヨーロッパの天文学史",
+     "recall@10": 1.0,
+     "materials": 4,
+     "http_requests": 34,
+     "bytes_received": 1319,
+     "bytes_on_wire": 1319,
+     "executed_variants": 14,
+     "elapsed_s": 24.028,
+     "answerable": false
+    },
+    {
+     "id": "F12",
+     "query": "Charles Darwin",
+     "recall@10": 0.6666666666666666,
+     "materials": 5,
+     "http_requests": 21,
+     "bytes_received": 3461,
+     "bytes_on_wire": 3461,
+     "executed_variants": 9,
+     "elapsed_s": 21.025,
+     "answerable": false
+    },
+    {
+     "id": "F13",
+     "query": "Kritik der reinen Vernunft",
+     "recall@10": 0.5,
+     "materials": 3,
+     "http_requests": 9,
+     "bytes_received": 272,
+     "bytes_on_wire": 272,
+     "executed_variants": 13,
+     "elapsed_s": 3.006,
+     "answerable": false
+    },
+    {
+     "id": "F14",
+     "query": "Dampfmaschine Industrie Deutschland 19. Jahrhundert",
+     "recall@10": 1.0,
+     "materials": 6,
+     "http_requests": 24,
+     "bytes_received": 985,
+     "bytes_on_wire": 985,
+     "executed_variants": 13,
+     "elapsed_s": 18.019,
+     "answerable": false
+    }
+   ],
+   "recall@10": 0.8667,
+   "avg_http_requests": 22.1,
+   "avg_bytes_received": 1310,
+   "avg_elapsed_s": 15.32,
+   "warm_rerun_cache_hits": 8
+  }
+ },
+ "commit": "c3f9f396cc6b5196be20b6f2296be43a6abc7a12",
+ "corpus_sha256": "63cf8cd8af63ebb2",
+ "dataset_sha256": "969d84e4e4bab733",
+ "filter_check": {
+  "case": "F03",
+  "author_filter": "Immanuel Kant",
+  "materials_after": 3,
+  "all_materials_match_author": true,
+  "filters": {
+   "applied_local": [
+    "author"
+   ],
+   "metadata_missing": {},
+   "candidates_before": 4,
+   "candidates_after": 3,
+   "stage": "bibliographic (before OCR fetching)",
+   "unsupported": []
+  }
+ }
+}
