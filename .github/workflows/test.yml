@@ -236,7 +236,7 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install --upgrade pip
       - run: pip install '.[test]'
-      - name: Security evaluation (171 synthetic cases)
+      - name: Security evaluation (164 synthetic cases)
         run: python eval/b9_security_eval.py --out /tmp/results-b9-security.json
       - name: Performance evaluation (synthetic)
         run: python eval/b9_perf.py --out /tmp/results-b9-perf.json

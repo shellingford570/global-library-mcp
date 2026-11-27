@@ -4,7 +4,8 @@ Configurations:
   A: local research path - LibraryService.search over a stub
      adapter (the core the research profile wraps);
   B: external profile, bibliographic/reference only;
-  C: external profile with the synthetic excerpt path enabled;
+  C: REMOVED in the final review - the excerpt tool no longer
+     exists, so there is no excerpt path to benchmark;
   D: external profile under concurrent synthetic users
      (1 / 2 / 5 / 10 / 20).
 
@@ -92,12 +93,9 @@ async def main_async() -> dict:
         _config(), service=_FakeService(), registry=_FakeRegistry())
     ctx.local_principal = Principal(
         user_id="perf", scopes={"catalog:search", "metadata:read",
-                                "libraries:read", "references:read",
-                                "originals:verify", "excerpts:read",
-                                "comparisons:read"})
+                                "libraries:read", "references:read"})
     ctx.runtime.consent.grant("perf", {"bibliographic", "references",
-                                       "rights", "search_terms_upstream",
-                                       "excerpts"})
+                                       "rights", "search_terms_upstream"})
 
     async def call(name, args):
         result = await server.call_tool(name, args)
@@ -126,57 +124,11 @@ async def main_async() -> dict:
     token = _token()
     report["auth_validate"] = timed(lambda: validator.validate(token))
     report["rights_decision"] = timed(
-        lambda: decide_transfer("ndl", "Public Domain", excerpt_enabled=True))
+        lambda: decide_transfer("ndl", "Public Domain"))
 
-    # --- C: excerpt path (synthetic matrix) ---------------------------
-    import global_library_mcp.external.server as srv
-    from global_library_mcp.external import rights_policy
-
-    original = rights_policy.decide_transfer
-
-    def patched(library_id, statement, *, excerpt_enabled=False, matrix=None):
-        row = {"metadata": "allowed", "reference_url": "allowed",
-               "ocr_excerpt": "allowed", "image_url": "restricted",
-               "third_party_ai": "allowed", "attribution": "Test",
-               "source": "synthetic"}
-        return original(library_id, statement,
-                        excerpt_enabled=excerpt_enabled, matrix=row)
-
-    srv.decide_transfer = patched
-    server_c, ctx_c = build_external_server(
-        _config(excerpt_enabled=True), service=_FakeService(),
-        registry=_FakeRegistry())
-    ctx_c.local_principal = ctx.local_principal
-    ctx_c.runtime.consent.grant("perf", {"bibliographic", "references",
-                                         "rights", "search_terms_upstream",
-                                         "excerpts"})
-
-    counter = {"n": 0}
-
-    async def call_c(name, args):
-        # A fresh user per call: the cumulative excerpt caps
-        # (correctly) refuse repeat excerpts for one user.
-        counter["n"] += 1
-        user = f"perf-c-{counter['n']}"
-        ctx_c.local_principal = Principal(
-            user_id=user, scopes=ctx.local_principal.scopes)
-        ctx_c.runtime.consent.grant(user, {"bibliographic", "references",
-                                           "rights", "search_terms_upstream",
-                                           "excerpts"})
-        result = await server_c.call_tool(name, args)
-        content = result[0] if isinstance(result, tuple) else result
-        return "".join(getattr(c, "text", "") for c in content)
-
-    try:
-        excerpt_t, excerpt_out = await timed_async(
-            lambda: call_c("get_allowed_excerpt", {
-                "id": doc_id,
-                "page_id": ext_ids.make_page_id("ndl", "12345_0007")}),
-            repeats=3)
-        report["C_excerpt"] = excerpt_t
-        report["C_excerpt_response_bytes"] = len(excerpt_out.encode("utf-8"))
-    finally:
-        srv.decide_transfer = original
+    # --- C: excerpt path - removed in the final review --------
+    report["C_excerpt"] = ("removed: the final review deleted the "
+                           "excerpt tool; no excerpt path exists")
 
     # --- D: concurrent users ------------------------------------------
     report["D_concurrent"] = {}
@@ -186,15 +138,13 @@ async def main_async() -> dict:
         for i in range(users):
             user = f"d-user-{i}"
             ctx_d.runtime.consent.grant(user, {"bibliographic", "references",
-                                               "rights", "search_terms_upstream",
-                                               "excerpts"})
+                                               "rights", "search_terms_upstream"})
 
         async def one(i):
             ctx_d.local_principal = Principal(
                 user_id=f"d-user-{i}",
                 scopes={"catalog:search", "metadata:read", "libraries:read",
-                        "references:read", "originals:verify",
-                        "excerpts:read", "comparisons:read"})
+                        "references:read"})
             result = await server_d.call_tool(
                 "search", {"query": f"concurrent {i}", "limit": 3})
             return result
