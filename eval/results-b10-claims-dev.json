@@ -1,0 +1,218 @@
+{
+ "evaluation_kind": "structured claim/contradiction mapping over frozen b10 dataset",
+ "label_source": "agent_assigned",
+ "split": "dev",
+ "stats": {
+  "snippet_match": {
+   "correct": 4,
+   "total": 7,
+   "rate": 0.5714
+  },
+  "structure": {
+   "correct": 8,
+   "total": 8,
+   "rate": 1.0
+  },
+  "contradiction": {
+   "correct": 8,
+   "total": 10,
+   "rate": 0.8
+  }
+ },
+ "false_support_promotions": 0,
+ "details": [
+  {
+   "id": "b10-clai-002",
+   "kind": "snippet",
+   "ok": true,
+   "got": "contextual_only",
+   "want": "contextual_only"
+  },
+  {
+   "id": "b10-clai-004",
+   "kind": "snippet",
+   "ok": true,
+   "got": "supported_candidate",
+   "want": "supported_candidate"
+  },
+  {
+   "id": "b10-clai-005",
+   "kind": "snippet",
+   "ok": false,
+   "got": "insufficient_evidence",
+   "want": "contextual_only"
+  },
+  {
+   "id": "b10-clai-007",
+   "kind": "snippet",
+   "ok": false,
+   "got": "insufficient_evidence",
+   "want": "contextual_only"
+  },
+  {
+   "id": "b10-clai-011",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "insufficient_evidence"
+  },
+  {
+   "id": "b10-clai-012",
+   "kind": "snippet",
+   "ok": true,
+   "got": "supported_candidate",
+   "want": "supported_candidate"
+  },
+  {
+   "id": "b10-clai-017",
+   "kind": "snippet",
+   "ok": true,
+   "got": "conflicting_candidate",
+   "want": "conflicting_candidate"
+  },
+  {
+   "id": "b10-clai-027",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-029",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-030",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-032",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-033",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-034",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-036",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-037",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-cont-002",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "differing_scope",
+   "want": "differing_scope",
+   "pair": "scope-difference"
+  },
+  {
+   "id": "b10-cont-003",
+   "kind": "contradiction",
+   "ok": false,
+   "got": "contradiction_candidate",
+   "want": "differing_time",
+   "pair": "time-difference"
+  },
+  {
+   "id": "b10-cont-006",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "differing_scope",
+   "want": "differing_scope",
+   "pair": "definition-difference"
+  },
+  {
+   "id": "b10-cont-007",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "contradiction_candidate",
+   "want": "contradiction_candidate",
+   "pair": "true-contradiction-1"
+  },
+  {
+   "id": "b10-cont-009",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "contradiction_candidate",
+   "want": "contradiction_candidate",
+   "pair": "ocr-suspect"
+  },
+  {
+   "id": "b10-cont-013",
+   "kind": "contradiction",
+   "ok": false,
+   "got": "contradiction_candidate",
+   "want": "differing_time",
+   "pair": "time-difference-rev"
+  },
+  {
+   "id": "b10-cont-014",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "consistent_candidate",
+   "want": "consistent_candidate",
+   "pair": "notation-difference-rev"
+  },
+  {
+   "id": "b10-cont-015",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "consistent_candidate",
+   "want": "consistent_candidate",
+   "pair": "translation-difference-rev"
+  },
+  {
+   "id": "b10-cont-016",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "differing_scope",
+   "want": "differing_scope",
+   "pair": "definition-difference-rev"
+  },
+  {
+   "id": "b10-cont-018",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "contradiction_candidate",
+   "want": "contradiction_candidate",
+   "pair": "true-contradiction-2-rev"
+  }
+ ]
+}
