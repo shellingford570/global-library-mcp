@@ -134,6 +134,36 @@ Enterprise/Edu and read/fetch connections for Pro, with no
 documented custom-MCP route for Plus. See
 docs/b9-external-mcp-readiness.md.
 
+### Advanced Research Intelligence (1.0.0b10)
+
+b10 deepens research capability on the b9 foundation. The
+external profile's residual risks found in review were
+reproduced and fixed (consent-expiry re-checks at send and
+return time, per-data-class consent, send-level library
+binding, budget ledgers that survive state eviction, per-user
+session caps, typed external projections, per-library
+reference-host allowlists, document identity states,
+consent-file hardening, unified startup validation) — the
+external profile itself is unchanged (5 tools, no original
+text transfer) and real external connection remains disabled
+(DNS pinning unimplemented, no production IdP). Multilingual
+retrieval was diagnosed and repaired: b6 fixed F Recall@10
+recovered to 0.9167 and challenge to 1.0000 in simulation.
+New: an AuthorityResolver (local lexicon plus key-free
+lobid GND / Wikidata clients; GND identifiers live-verified
+for ten focus authors) that never certifies identity from a
+name alone; a lexical TF-IDF scorer and an opt-in local
+semantic backend (paraphrase-multilingual-MiniLM-L12-v2,
+Apache-2.0, 127 MB, offline) that proved the strongest
+cross-language discovery signal measured; structured research
+questions and claims with candidate-level claim–evidence
+mapping; rule-based contradiction candidates across sources
+with document vs independent-source counts; and Research
+Workspace artefacts, progress and candidate relationship
+graphs. The new ResearchRanker was evaluated but NOT adopted
+as the default (mixed results) and ships opt-in. See
+docs/b10-advanced-research-intelligence.md.
+
 ## Quick start (local)
 
 ```bash

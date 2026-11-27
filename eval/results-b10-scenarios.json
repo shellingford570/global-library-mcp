@@ -1,0 +1,96 @@
+{
+ "evaluation_kind": "b10 scenarios A-L (offline-decidable parts)",
+ "scenarios": {
+  "A_original_work_discovery": {
+   "kind": "fixture(local lexicon)",
+   "work_resolved": true,
+   "original_title": "Kritik der reinen Vernunft",
+   "note": "live Top-10 rank is measured separately (b10_live_check)"
+  },
+  "B_edition_identification": {
+   "kind": "fixture",
+   "kant_A_vs_B_distinct": true,
+   "origin_1_vs_6_distinct": true,
+   "unknown_year_rejected": true
+  },
+  "C_historical_notation": {
+   "kind": "fixture(dataset)",
+   "dataset_cases": 9,
+   "note": "scored via the multilingual subject + notation categories in the Stage 1/3 simulation runs"
+  },
+  "D_multilingual_industrial_history": {
+   "kind": "simulation",
+   "b6_fixed_recall@10": 0.9167,
+   "b6_challenge_recall@10": 1.0
+  },
+  "E_nordic_allocation": {
+   "kind": "simulation",
+   "b8_standard_recall@10": 0.7667,
+   "b8_cross_language_rate": 0.75
+  },
+  "F_newspaper_research": {
+   "kind": "fixture(corpus)",
+   "newspaper_records_in_corpus": 2,
+   "note": "material-type ranking signal covered by ranking tests; live newspaper search depends on LoC availability"
+  },
+  "G_historical_claim": {
+   "kind": "fixture(dataset)",
+   "stats": {
+    "snippet_match": {
+     "correct": 5,
+     "total": 8,
+     "rate": 0.625
+    },
+    "structure": {
+     "correct": 7,
+     "total": 7,
+     "rate": 1.0
+    },
+    "contradiction": {
+     "correct": 6,
+     "total": 6,
+     "rate": 1.0
+    }
+   },
+   "false_support_promotions": 0
+  },
+  "G_claim_structure_example": {
+   "kind": "fixture",
+   "claim": {
+    "claim_id": "claim",
+    "original_statement": "明治時代の日本で水力発電所が建設された",
+    "subject": "concept:hydroelectric-power",
+    "time": {
+     "era": "明治",
+     "start": 1868,
+     "end": 1912,
+     "years_mentioned": []
+    },
+    "place": "日本",
+    "source_type_required": "primary_or_contemporary",
+    "evidence_status": "not_checked"
+   }
+  },
+  "H_multilingual_comparison": {
+   "kind": "fixture(synthetic pair)",
+   "concept_overlap_computed": true
+  },
+  "I_contradiction_candidates": {
+   "kind": "fixture(dataset)",
+   "fixed_rate": 1.0
+  },
+  "J_false_premise": {
+   "kind": "fixture(dataset)+frozen gates",
+   "dataset_cases": 14,
+   "note": "premise handling lives in the frozen evidence pipeline (Phase 7/9 suites in pytest); b10 structuring adds no promotion path"
+  },
+  "K_research_saving": {
+   "kind": "fixture(Playwright)",
+   "note": "6 mandatory workspace journeys pass (Stage 5 local run); b10 artefacts covered by tests/test_b10_workspace.py"
+  },
+  "L_external_safety": {
+   "kind": "fixture(security eval)",
+   "note": "external profile unchanged (5 tools, no text transfer); Stage 0 hardening tests in tests/test_b10_stage0.py; security eval re-run in Stage 6"
+  }
+ }
+}

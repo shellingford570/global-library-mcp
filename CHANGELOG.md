@@ -741,3 +741,8 @@ listed as verified was not live-verified; see
   verified on synthetic records (13/13 checks); the Zotero
   application is not present in this environment, so real-app
   import remains unverified.
+- b10 Stage 6: scenario evaluation A-L (live Kant check:
+  original-work candidates at #1 (French translation, IA) and
+  #10 (German original, DDB) in a live standard search);
+  performance measurements; consolidated evaluation and
+  ablation record; b11 candidates drafted (not started).
