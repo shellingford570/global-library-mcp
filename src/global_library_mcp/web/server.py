@@ -259,6 +259,23 @@ class Handler(BaseHTTPRequestHandler):
             registry = Registry(ROOT / "libraries.yaml")
             self._send(json_bytes({"libraries": registry.list()}))
             return
+        if parsed.path == "/api/features":
+            # b10 (section 37): the UI states which search features
+            # are ACTUALLY active in this process. Semantic search
+            # is reported available only when a local backend can
+            # be constructed; the UI must never claim it ran when
+            # it did not.
+            import os as _os_feat
+            from global_library_mcp.semantic_local import get_local_backend
+            self._send(json_bytes({
+                "research_ranker": _os_feat.getenv("GLM_RESEARCH_RANKER") == "1",
+                "semantic_search": get_local_backend() is not None,
+                "semantic_model": ("paraphrase-multilingual-MiniLM-L12-v2"
+                                   if get_local_backend() is not None else None),
+                "expansion_allocation": _os_feat.getenv(
+                    "GLM_EXPANSION_ALLOCATION", "legacy"),
+            }))
+            return
         if parsed.path == "/api/cancel":
             op_id = parse_qs(parsed.query).get("op", [""])[0]
             if not op_id:
