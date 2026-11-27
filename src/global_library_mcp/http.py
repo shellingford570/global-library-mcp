@@ -303,6 +303,28 @@ def use_send_guard(guard: Any):
         current_send_guard.reset(token)
 
 
+# The library the current operation is talking to (b10 4.3).
+# LibraryService sets this around each adapter call, so the
+# transport can tell the send guard WHICH library a send
+# belongs to; the guard then binds the send to the user's
+# per-library consent, not merely to a host name (several
+# libraries can share a host, and one library can use several).
+current_library: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "current_library", default=None
+)
+
+
+@contextlib.contextmanager
+def use_library(library_id: str | None):
+    """Set the active library for this context (see
+    current_library). Restores the previous value on exit."""
+    token = current_library.set(library_id)
+    try:
+        yield library_id
+    finally:
+        current_library.reset(token)
+
+
 # One concurrency cap shared by every BudgetedTransport on the same
 # event loop (b3.1: proxy and direct transports previously had
 # separate caps, doubling the effective limit).
@@ -426,8 +448,19 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                 # Per-send guard (b9 final review P0): the
                 # external profile's per-user budget / revocation
                 # check, atomic at the last moment before the
-                # wire. Raising here means nothing is sent.
-                guard.reserve(host)
+                # wire. Raising here means nothing is sent. The
+                # guard also hears which library this send
+                # belongs to when the service layer knows it
+                # (b10 4.3); guards written against the older
+                # reserve(host) protocol keep working.
+                library_id = current_library.get()
+                if library_id:
+                    try:
+                        guard.reserve(host, library_id=library_id)
+                    except TypeError:
+                        guard.reserve(host)
+                else:
+                    guard.reserve(host)
             response = await self._send(request)
             if response.status_code == 429:
                 wait = _retry_after_seconds(response.headers.get("retry-after"))

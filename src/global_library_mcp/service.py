@@ -525,7 +525,10 @@ class LibraryService:
         async def one(library_id: str):
             started = _time.monotonic()
             try:
-                value = await asyncio.wait_for(self.adapters[library_id].search(query, limit), timeout=deadline)
+                from global_library_mcp.http import use_library
+
+                with use_library(library_id):
+                    value = await asyncio.wait_for(self.adapters[library_id].search(query, limit), timeout=deadline)
                 timings[library_id] = round(_time.monotonic() - started, 2)
                 state = self._breaker.setdefault(library_id, {"failures": 0, "open_until": 0.0})
                 state["failures"] = 0
@@ -576,8 +579,11 @@ class LibraryService:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
+        from global_library_mcp.http import use_library
+
         async with self._op_budget(15, 8) as budget:
-            result = await adapter.get_document(record_id)
+            with use_library(library_id):
+                result = await adapter.get_document(record_id)
         if budget is not None and isinstance(result, dict):
             result = {**result, "http_stats": budget.stats()}
         return result

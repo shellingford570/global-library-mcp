@@ -1,5 +1,44 @@
 # Changelog
 
+## 1.0.0b10 — Advanced Research Intelligence (in development)
+
+Stage 0 (b9 external-profile regression hardening;
+docs/b10-b9-regression-hardening.md):
+
+- Authorisation currency now includes **expiry**: natural
+  consent expiry and access-token expiry refuse sends and void
+  responses at every checkpoint (post-queue, pre-send,
+  pre-return), not only grant/revoke generation changes.
+- Consent is applied **per data class at projection time**:
+  bibliographic fields, the rights block, reference URLs and
+  image URLs (new `images` class) are gated independently.
+- Sends carry their **library identity** to the send-path
+  guard; a send for a library outside the consent record's
+  library set is refused whatever host it targets.
+- **Budget history survives eviction and revocation** (separate
+  ledger); the tracked-user capacity is strict — new users are
+  refused at capacity instead of silently exceeding it.
+- Session bindings expire on an idle TTL, are capped **per
+  user** as well as per token, and new-session creation is
+  refused at capacity before the SDK runs.
+- Typed projections hardened: `clean_text` drops containers
+  instead of stringifying them; library capabilities are
+  projected field-by-field with types; reference URLs require
+  a known per-library host and carry no credential-shaped
+  query parameters.
+- Document identity distinguishes **upstream-confirmed**
+  identifiers from request echoes; rights are never certified
+  for an identity-less payload. The Internet Archive adapter
+  confirms identity from the metadata payload's own identifier.
+- The persisted consent file is strictly validated (a NaN
+  expiry no longer loads as permanent consent), versioned, and
+  written owner-only; direct server construction applies the
+  same startup gates as the CLI; audit events name the basis
+  of the recorded response size, and auth/session-layer
+  rejections are audited.
+- Tests: 599 pytest (29 new Stage 0 regressions); the b9
+  security evaluation still passes 164/164.
+
 ## 1.0.0b9 — External MCP Readiness
 
 - New **external-research MCP profile**: a separate FastMCP

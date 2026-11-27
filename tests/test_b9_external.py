@@ -119,7 +119,10 @@ class _FakeService:
         return {}
 
     async def get_document(self, library_id, record_id):
-        return dict(self.doc, library_id=library_id, record_id=record_id)
+        # The fake plays the role of an upstream that confirms
+        # the identity in its own response (b10 4.8 provenance).
+        return dict(self.doc, library_id=library_id,
+                    record_id=record_id, identity_source="upstream")
 
 
 class _MismatchService(_FakeService):

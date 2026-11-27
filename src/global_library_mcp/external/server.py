@@ -38,6 +38,20 @@ The server:
   and the external transfer rights policy (12, 14);
 - writes the section-26 audit log - including denials,
   cancellations and revocations - without research content.
+
+b10 Stage 0 hardening (docs/b10-b9-regression-hardening.md):
+authorisation currency includes consent and token EXPIRY at
+every checkpoint (post-queue, pre-send, pre-return); consent
+is applied per DATA CLASS at projection time (bibliographic,
+rights, references and images are independent); sends carry
+their library so per-library consent binds the wire, not only
+the tool entry; document identity distinguishes an identifier
+the upstream response itself carried from a request echo, and
+rights are never certified for an identity-less payload;
+session bindings expire when idle, are capped per USER (not
+only per token), and new-session creation is refused at
+capacity instead of leaving an unbound SDK session behind;
+token-validation and session-layer rejections are audited.
 """
 
 from __future__ import annotations
@@ -200,6 +214,15 @@ def build_external_server(config: ExternalConfig | None = None,
                           registry: Any = None,
                           resource_url: str | None = None) -> tuple[FastMCP, ExternalContext]:
     config = config or ExternalConfig.from_env()
+    # b10 4.10: the transport-agnostic startup gates (kill
+    # switch, DNS-check refusal) apply on EVERY construction
+    # path, not only through the CLI entry - a directly built
+    # server is refused under the same incomplete configuration
+    # the CLI would refuse.
+    problems = [p for p in config.validate_startup("stdio")]
+    if problems:
+        raise RuntimeError(
+            "external profile refuses to start: " + "; ".join(problems))
     ctx = ExternalContext(config, service=service, registry=registry)
     # The RFC 9728 resource URL: its path determines the
     # Protected Resource Metadata well-known location, so it
@@ -254,7 +277,17 @@ class _SdkTokenVerifier:
 
         try:
             principal = self.ctx.validator.validate(token)
-        except AuthError:
+        except AuthError as exc:
+            # b10 4.11: rejections at the authentication layer
+            # are audited too (pseudonymous, content-free) -
+            # previously only tool-layer outcomes were recorded.
+            try:
+                self.ctx.audit.record(
+                    user_id="anonymous", tool="(auth)",
+                    status="denied", auth="denied",
+                    error_class=f"token_validation_failed:{exc.kind}")
+            except Exception:  # noqa: BLE001 - auditing never breaks auth
+                pass
             return None
         if self.ctx.runtime.user_revoked(principal.user_id):
             return None
@@ -307,7 +340,8 @@ async def _run_tool(ctx: ExternalContext, tool: str, library_id: str,
         principal = await _guard(ctx, tool, library_id)
         if task is not None:
             ctx.runtime.track(principal.user_id, task)
-        guard = ctx.runtime.http_guard(principal.user_id)
+        guard = ctx.runtime.http_guard(
+            principal.user_id, token_expires_at=principal.expires_at)
         async with ctx.runtime.slot(principal.user_id, deadline):
             if guard.stale():
                 raise Denied("access_revoked")
@@ -337,6 +371,12 @@ async def _run_tool(ctx: ExternalContext, tool: str, library_id: str,
     except QueueFull as exc:
         status, error_class, denials = "denied", "queue_full", 1
         raise Denied("queue_full") from exc
+    except BudgetExceeded as exc:
+        # Raised by the execution slot when the tracked-user
+        # capacity is exhausted (b10 4.4 strict cap).
+        status, error_class, denials = \
+            "denied", f"budget_exceeded:{exc.kind}", 1
+        raise Denied(f"budget_exceeded:{exc.kind}") from exc
     except asyncio.TimeoutError as exc:
         status, error_class = "timeout", "deadline_exceeded"
         raise Denied("deadline_exceeded") from exc
@@ -361,7 +401,7 @@ async def _run_tool(ctx: ExternalContext, tool: str, library_id: str,
             rights_category=rights_category,
             http_attempts=guard.attempts if guard else 0,
             bytes_received=guard.bytes_received if guard else 0,
-            response_bytes=size,
+            response_bytes=size, response_bytes_basis="projected_json",
             duration_ms=int((time.monotonic() - started) * 1000),
             cancelled=(status == "cancelled"),
             limit_hit=error_class if status == "timeout" else "")
@@ -380,11 +420,22 @@ def _parse_and_validate_id(value: str) -> tuple[str, str]:
 
 
 async def _fetch_document(ctx: ExternalContext, library_id: str,
-                          record_id: str) -> tuple[dict[str, Any], bool]:
-    """Fetch a document and verify its identity strictly: a
-    payload naming a DIFFERENT (library_id, record_id) than
-    requested is refused outright; the returned flag is true
-    only when the payload confirms the requested identity."""
+                          record_id: str) -> tuple[dict[str, Any], str]:
+    """Fetch a document and classify its identity strictly
+    (b10 4.8): a payload naming a DIFFERENT (library_id,
+    record_id) than requested is refused outright. Otherwise
+    the identity state is one of:
+
+    - "upstream_confirmed": the payload's identifiers match
+      AND the adapter marked them as read from the upstream
+      response itself (``identity_source == "upstream"``);
+    - "request_echo": the payload's identifiers match, but
+      they were written back from the request by the service -
+      the common case for current adapters, and NOT a
+      certification;
+    - "missing": the payload carries no identifier at all -
+      nothing about it may be certified, rights included.
+    """
     service = await ctx.service()
     doc = await service.get_document(library_id, record_id)
     doc_library = str(doc.get("library_id") or "")
@@ -392,7 +443,11 @@ async def _fetch_document(ctx: ExternalContext, library_id: str,
     if (doc_library and doc_library != library_id) \
             or (doc_record and doc_record != record_id):
         raise Denied("document_identity_mismatch")
-    return doc, bool(doc_library == library_id and doc_record == record_id)
+    if not doc_library or not doc_record:
+        return doc, "missing"
+    if doc.get("identity_source") == "upstream":
+        return doc, "upstream_confirmed"
+    return doc, "request_echo"
 
 
 def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
@@ -416,11 +471,9 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
         """Verified capabilities of one library (projected)."""
         async def go(_principal):
             caps = ctx.registry().capabilities(library_id)
-            allowed = {"library_id", "name", "catalog_search",
-                       "document_by_id", "page_ocr", "original_image",
-                       "in_document_search", "iiif", "rights"}
-            projected = {k: caps.get(k) for k in sorted(allowed) if k in caps}
-            return ext_models.envelope({"capabilities": projected}, returned=1)
+            return ext_models.envelope(
+                {"capabilities": ext_models.project_capabilities(caps)},
+                returned=1)
         return await _run_tool(ctx, "get_library_capabilities", library_id, go)
 
     @server.tool(annotations=_READ_ONLY)
@@ -462,7 +515,10 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
             if not allowed_targets:
                 raise Denied("consent_required:libraries")
             cache_key = hashlib.sha256(json.dumps(
-                params | {"targets": allowed_targets},
+                params | {"targets": allowed_targets,
+                          "classes": sorted(ctx.runtime.consent
+                                            .granted_classes(
+                                                principal.user_id))},
                 sort_keys=True).encode("utf-8")).hexdigest()
             cached = ctx.runtime.cache_get(principal.user_id, cache_key)
             if cached is not None:
@@ -479,7 +535,9 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
             total = len(items)
             page = items[offset:offset + limit]
             results = [ext_models.project_search_item(
-                item.to_dict(), excerpt_enabled=ctx.config.excerpt_enabled)
+                item.to_dict(), excerpt_enabled=ctx.config.excerpt_enabled,
+                granted=ctx.runtime.consent.granted_classes(
+                    principal.user_id, item.library_id))
                 for item in page]
             payload: dict[str, Any] = {
                 "results": results,
@@ -509,12 +567,15 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
         identity must match the requested id exactly."""
         library_id, record_id = _parse_and_validate_id(id)
 
-        async def go(_principal):
-            doc, identity_verified = await _fetch_document(
+        async def go(principal):
+            doc, identity_state = await _fetch_document(
                 ctx, library_id, record_id)
             projected = ext_models.project_document(
                 doc, excerpt_enabled=ctx.config.excerpt_enabled,
-                identity_verified=identity_verified)
+                identity_verified=identity_state == "upstream_confirmed",
+                identity_state=identity_state,
+                granted=ctx.runtime.consent.granted_classes(
+                    principal.user_id, library_id))
             return ext_models.envelope({"document": projected}, returned=1)
         return await _run_tool(ctx, "fetch", library_id, go)
 
@@ -526,7 +587,13 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
         library_id, record_id = _parse_and_validate_id(id)
 
         async def go(_principal):
-            doc, _verified = await _fetch_document(ctx, library_id, record_id)
+            doc, identity_state = await _fetch_document(
+                ctx, library_id, record_id)
+            if identity_state == "missing":
+                # b10 4.8: a payload carrying no identifier of
+                # its own certifies NOTHING about the requested
+                # document - its rights least of all.
+                raise Denied("document_identity_unverified")
             rights = doc.get("rights") or {}
             statement = rights.get("statement") if isinstance(rights, dict) else rights
             hint = doc.get("access_restricted")
@@ -538,27 +605,75 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
                 "id": id,
                 "statement": ext_models.clean_text(statement, ext_models.STATEMENT_CAP) or None,
                 "decision": decision,
+                "identity_state": identity_state,
+                "identity_verified": identity_state == "upstream_confirmed",
             }}, returned=1)
         return await _run_tool(ctx, "get_document_rights", library_id, go)
 
 
 class _SessionBindingMiddleware:
     """ASGI middleware binding MCP session ids to the bearer
-    token that created them (final review P0).
+    token that created them (final review P0; b10 4.5 rework).
 
     The MCP session id is not a credential, but a session
     carries per-connection state; presenting another
     principal's session id - on POST, GET (SSE) or DELETE -
-    is refused here, before the SDK runs. Bindings are capped
-    (total and per token) and dropped on DELETE."""
+    is refused here, before the SDK runs.
+
+    b10 4.5: bindings carry a last-seen timestamp and expire
+    after an idle TTL (an abandoned binding no longer occupies
+    capacity forever, and a stale SSE stream's session cannot
+    be resurrected indefinitely); caps are enforced per USER
+    (resolved from the token) as well as per token, so several
+    tokens of one user share one allowance; and when the
+    global cap is reached, a session-less POST - the request
+    that would make the SDK CREATE a session - is refused
+    here, so the binding cap and the SDK's own session
+    population cannot silently diverge. What this layer still
+    cannot do is reach inside the SDK: a session the SDK
+    creates through a path that never returns an id to this
+    middleware is outside its view, which is why the refusal
+    happens BEFORE the app runs rather than after."""
 
     MAX_SESSIONS = 200
     MAX_PER_TOKEN = 10
+    MAX_PER_USER = 10
+    IDLE_TTL_S = 1800.0
 
-    def __init__(self, app):
+    def __init__(self, app, user_resolver=None, audit=None):
         self.app = app
-        self._bindings: dict[str, str] = {}
+        self._bindings: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
+        # Optional: authorization header value -> user id (or
+        # None). Supplied by the app builder from the token
+        # validator; absent in unit tests, where the token hash
+        # remains the binding key.
+        self._user_resolver = user_resolver
+        # Optional: callable(error_class) recording a rejection.
+        self._audit = audit
+
+    def _user_key(self, authorization: str, token_hash: str) -> str:
+        if self._user_resolver is not None:
+            try:
+                user_id = self._user_resolver(authorization)
+            except Exception:  # noqa: BLE001 - resolver must never break I/O
+                user_id = None
+            if user_id:
+                return f"user:{user_id}"
+        return f"token:{token_hash}"
+
+    def _sweep(self, now: float) -> None:
+        expired = [sid for sid, b in self._bindings.items()
+                   if now - b["last_seen"] > self.IDLE_TTL_S]
+        for sid in expired:
+            self._bindings.pop(sid, None)
+
+    def _note_rejection(self, error_class: str) -> None:
+        if self._audit is not None:
+            try:
+                self._audit(error_class)
+            except Exception:  # noqa: BLE001 - auditing never breaks I/O
+                pass
 
     async def __call__(self, scope, receive, send):
         if scope.get("type") != "http":
@@ -567,14 +682,22 @@ class _SessionBindingMiddleware:
         headers = {k.decode("latin-1").lower(): v.decode("latin-1")
                    for k, v in scope.get("headers", [])}
         session_id = headers.get("mcp-session-id")
+        authorization = headers.get("authorization", "")
         token_hash = hashlib.sha256(
-            headers.get("authorization", "").encode("utf-8")).hexdigest()
+            authorization.encode("utf-8")).hexdigest()
+        user_key = self._user_key(authorization, token_hash)
+        now = time.monotonic()
         if session_id:
             with self._lock:
+                self._sweep(now)
                 bound = self._bindings.get(session_id)
-            if bound != token_hash:
+                if bound is not None:
+                    bound["last_seen"] = now
+            if bound is None or bound["token_hash"] != token_hash \
+                    or bound["user_key"] != user_key:
                 from starlette.responses import JSONResponse
 
+                self._note_rejection("session_binding_mismatch")
                 response = JSONResponse(
                     {"error": "session_binding_mismatch"}, status_code=403)
                 await response(scope, receive, send)
@@ -585,6 +708,19 @@ class _SessionBindingMiddleware:
                     self._bindings.pop(session_id, None)
             return
 
+        if scope.get("method") == "POST":
+            with self._lock:
+                self._sweep(now)
+                at_capacity = len(self._bindings) >= self.MAX_SESSIONS
+            if at_capacity:
+                from starlette.responses import JSONResponse
+
+                self._note_rejection("session_capacity")
+                response = JSONResponse(
+                    {"error": "session_capacity"}, status_code=429)
+                await response(scope, receive, send)
+                return
+
         async def send_wrapper(message):
             if message.get("type") == "http.response.start":
                 for key, value in message.get("headers", []):
@@ -592,11 +728,19 @@ class _SessionBindingMiddleware:
                         new_id = value.decode("latin-1")
                         with self._lock:
                             per_token = sum(
-                                1 for t in self._bindings.values()
-                                if t == token_hash)
+                                1 for b in self._bindings.values()
+                                if b["token_hash"] == token_hash)
+                            per_user = sum(
+                                1 for b in self._bindings.values()
+                                if b["user_key"] == user_key)
                             if len(self._bindings) < self.MAX_SESSIONS \
-                                    and per_token < self.MAX_PER_TOKEN:
-                                self._bindings[new_id] = token_hash
+                                    and per_token < self.MAX_PER_TOKEN \
+                                    and per_user < self.MAX_PER_USER:
+                                self._bindings[new_id] = {
+                                    "token_hash": token_hash,
+                                    "user_key": user_key,
+                                    "last_seen": time.monotonic(),
+                                }
             await send(message)
 
         await self.app(scope, receive, send_wrapper)
@@ -638,7 +782,23 @@ def external_http_app(server: FastMCP, ctx: ExternalContext):
     # Inserted FIRST so it wins over the SDK's own PRM route
     # (which advertises an empty scope set by construction).
     app.routes.insert(0, Route(prm_path, _prm, methods=["GET"]))
-    return _SessionBindingMiddleware(app)
+
+    def _resolve_user(authorization: str) -> str | None:
+        if not authorization.lower().startswith("bearer "):
+            return None
+        try:
+            return ctx.validator.validate(
+                authorization[7:].strip()).user_id
+        except AuthError:
+            return None
+
+    def _audit_session(error_class: str) -> None:
+        ctx.audit.record(user_id="anonymous", tool="(session)",
+                         status="denied", auth="denied",
+                         error_class=error_class, denials=1)
+
+    return _SessionBindingMiddleware(
+        app, user_resolver=_resolve_user, audit=_audit_session)
 
 
 def run_external(transport: str = "stdio", host: str = "127.0.0.1",
@@ -675,7 +835,12 @@ def run_external(transport: str = "stdio", host: str = "127.0.0.1",
         # bibliographic/reference classes (never excerpts - the
         # profile has no excerpt tool), and expires with a
         # 12-hour bound rather than being a standing grant.
-        # HTTP mode never takes this path.
+        # HTTP mode never takes this path. b10 4.9: this grant
+        # authorises LOCAL use by the operator at their own
+        # machine only - it is not, and must never be read as, a
+        # permission to send research data to an external AI;
+        # the external HTTP profile always requires its own
+        # per-user consent records.
         ctx.local_principal = Principal(
             user_id="local", scopes=set(ALL_SCOPES))
         ctx.runtime.consent.grant(

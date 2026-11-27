@@ -54,6 +54,7 @@ class AuditLog:
     def record(self, *, user_id: str, tool: str, library_id: str = "",
                status: str = "ok", auth: str = "ok", http_attempts: int = 0,
                bytes_received: int = 0, response_bytes: int = 0,
+               response_bytes_basis: str = "",
                rights_category: str = "",
                denials: int = 0, duration_ms: int = 0,
                cancelled: bool = False, limit_hit: str = "",
@@ -69,6 +70,12 @@ class AuditLog:
             "http_attempts": int(http_attempts),
             "bytes_received": int(bytes_received),
             "response_bytes": int(response_bytes),
+            # b10 4.11: WHAT the byte count measures. The tool
+            # layer can only measure its projected payload; the
+            # SDK then wraps it (the payload travels twice in
+            # the final MCP response), so the two numbers are
+            # recorded as distinct quantities, never conflated.
+            "response_bytes_basis": response_bytes_basis,
             "rights_category": rights_category,
             "denials": int(denials),
             "duration_ms": int(duration_ms),
