@@ -100,3 +100,15 @@ phase.
    files. An authority identifier is a strong signal, never
    an unconditional guarantee of identity; the refusal rules
    in resolution.py stay in force.
+
+## b10 update (2026-11-28)
+
+Live read-only verification was performed for the b10
+AuthorityResolver (see `docs/b10-authority-resolution.md` for
+the full record): lobid GND and Wikidata work key-free from
+the development network; VIAF's AutoSuggest endpoint returned
+a Cloudflare bot-block; the NDL Search SRU endpoint answered
+429 (concurrent-access cap) at check time. GND identifiers
+for ten focus authors were live-verified and recorded in the
+local lexicon. No API keys were issued and no service
+registration was performed.

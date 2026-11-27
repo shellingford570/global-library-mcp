@@ -706,3 +706,11 @@ listed as verified was not live-verified; see
   Europeana), library registry (`libraries.yaml`), NDL Book/Page API
   page OCR and IIIF image URLs, Docker, GitHub Actions, pytest and
   Playwright suites.
+- b10 Stage 2: AuthorityResolver (local lexicon + lobid GND /
+  Wikidata clients, VIAF implemented but live-blocked and off by
+  default); signal-based person resolution with hard year-conflict
+  exclusion and a one-year calendar-ambiguity rule; work/edition
+  resolution with a never-merge edition table; GND identifiers
+  live-verified for ten focus authors and recorded in the
+  lexicon; resolver evaluation over the frozen b10 dataset with
+  zero false verifications on all splits.

@@ -1,0 +1,205 @@
+{
+ "evaluation_kind": "local AuthorityResolver over frozen b10 dataset",
+ "label_source": "dataset provenance (agent_assigned / bibliographic_source_supported)",
+ "split": "holdout",
+ "stats": {
+  "identify_author": {
+   "correct": 5,
+   "total": 5,
+   "rate": 1.0
+  },
+  "identify_author_from_variant": {
+   "correct": 3,
+   "total": 3,
+   "rate": 1.0
+  },
+  "work_titles": {
+   "correct": 8,
+   "total": 8,
+   "rate": 1.0
+  },
+  "editions": {
+   "correct": 5,
+   "total": 5,
+   "rate": 1.0
+  },
+  "traps_scored": {
+   "correct": 3,
+   "total": 3,
+   "rate": 1.0
+  }
+ },
+ "false_verified": 0,
+ "traps_deferred_to_stage3_4": 2,
+ "surname_variant_not_falsely_verified": {
+  "ok": 3,
+  "total": 3
+ },
+ "details": [
+  {
+   "id": "b10-auth-001",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "カント",
+   "want": "Immanuel Kant"
+  },
+  {
+   "id": "b10-auth-007",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "ニュートン",
+   "want": "Isaac Newton"
+  },
+  {
+   "id": "b10-auth-012",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "アルフレート・ウェーバー",
+   "want": "Alfred Weber"
+  },
+  {
+   "id": "b10-auth-013",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "ルソー",
+   "want": "Jean-Jacques Rousseau"
+  },
+  {
+   "id": "b10-auth-015",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "福沢諭吉",
+   "want": "福澤諭吉"
+  },
+  {
+   "id": "b10-auth-016",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "福沢諭吉",
+   "want": "福澤諭吉"
+  },
+  {
+   "id": "b10-auth-017",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "夏目漱石",
+   "want": "夏目漱石"
+  },
+  {
+   "id": "b10-auth-020",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "森鷗外",
+   "want": "森鷗外"
+  },
+  {
+   "id": "b10-auth-021",
+   "status": "insufficient_metadata",
+   "ok": true,
+   "trap": "surname_only_darwin"
+  },
+  {
+   "id": "b10-auth-029",
+   "status": "authority_candidate",
+   "ok": true,
+   "trap": "old_script_ogai"
+  },
+  {
+   "id": "b10-auth-037",
+   "status": "insufficient_metadata",
+   "ok": true,
+   "trap": "initials_only"
+  },
+  {
+   "id": "b10-orig-001",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik",
+   "want": "kant-kritik"
+  },
+  {
+   "id": "b10-orig-002",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik",
+   "want": "kant-kritik"
+  },
+  {
+   "id": "b10-orig-005",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin",
+   "want": "darwin-origin"
+  },
+  {
+   "id": "b10-orig-016",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia",
+   "want": "newton-principia"
+  },
+  {
+   "id": "b10-orig-017",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia",
+   "want": "newton-principia"
+  },
+  {
+   "id": "b10-orig-018",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia",
+   "want": "newton-principia"
+  },
+  {
+   "id": "b10-orig-020",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust",
+   "want": "goethe-faust"
+  },
+  {
+   "id": "b10-orig-023",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "dostoevsky-crime",
+   "want": "dostoevsky-crime"
+  },
+  {
+   "id": "b10-edit-005",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia-1",
+   "want": "newton-principia-1"
+  },
+  {
+   "id": "b10-edit-006",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia-3",
+   "want": "newton-principia-3"
+  },
+  {
+   "id": "b10-edit-007",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust-1",
+   "want": "goethe-faust-1"
+  },
+  {
+   "id": "b10-edit-023",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin-1",
+   "want": "darwin-origin-1"
+  },
+  {
+   "id": "b10-edit-028",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust-2",
+   "want": "goethe-faust-2"
+  }
+ ]
+}

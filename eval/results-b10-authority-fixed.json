@@ -1,0 +1,297 @@
+{
+ "evaluation_kind": "local AuthorityResolver over frozen b10 dataset",
+ "label_source": "dataset provenance (agent_assigned / bibliographic_source_supported)",
+ "split": "fixed",
+ "stats": {
+  "identify_author": {
+   "correct": 4,
+   "total": 4,
+   "rate": 1.0
+  },
+  "identify_author_from_variant": {
+   "correct": 3,
+   "total": 3,
+   "rate": 1.0
+  },
+  "work_titles": {
+   "correct": 16,
+   "total": 16,
+   "rate": 1.0
+  },
+  "editions": {
+   "correct": 9,
+   "total": 9,
+   "rate": 1.0
+  },
+  "traps_scored": {
+   "correct": 3,
+   "total": 3,
+   "rate": 1.0
+  },
+  "must_not_merge": {
+   "correct": 2,
+   "total": 2,
+   "rate": 1.0
+  }
+ },
+ "false_verified": 0,
+ "traps_deferred_to_stage3_4": 10,
+ "surname_variant_not_falsely_verified": {
+  "ok": 3,
+  "total": 3
+ },
+ "details": [
+  {
+   "id": "b10-auth-003",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "ダーウィン",
+   "want": "Charles Darwin"
+  },
+  {
+   "id": "b10-auth-004",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "ダーウィン",
+   "want": "Charles Darwin"
+  },
+  {
+   "id": "b10-auth-005",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "エラズマス・ダーウィン",
+   "want": "Erasmus Darwin"
+  },
+  {
+   "id": "b10-auth-008",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "ニュートン",
+   "want": "Isaac Newton"
+  },
+  {
+   "id": "b10-auth-009",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "マックス・ウェーバー",
+   "want": "Max Weber"
+  },
+  {
+   "id": "b10-auth-014",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "ルソー",
+   "want": "Jean-Jacques Rousseau"
+  },
+  {
+   "id": "b10-auth-019",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "森鷗外",
+   "want": "森鷗外"
+  },
+  {
+   "id": "b10-auth-022",
+   "status": "insufficient_metadata",
+   "ok": true,
+   "trap": "surname_only_weber"
+  },
+  {
+   "id": "b10-auth-028",
+   "status": "authority_candidate",
+   "ok": true,
+   "trap": "old_script_fukuzawa"
+  },
+  {
+   "id": "b10-auth-030",
+   "status": "authority_candidate",
+   "ok": true,
+   "trap": "name_order_kant"
+  },
+  {
+   "id": "b10-orig-003",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik",
+   "want": "kant-kritik"
+  },
+  {
+   "id": "b10-orig-004",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin",
+   "want": "darwin-origin"
+  },
+  {
+   "id": "b10-orig-006",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin",
+   "want": "darwin-origin"
+  },
+  {
+   "id": "b10-orig-008",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "marx-kapital",
+   "want": "marx-kapital"
+  },
+  {
+   "id": "b10-orig-013",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "rousseau-contrat",
+   "want": "rousseau-contrat"
+  },
+  {
+   "id": "b10-orig-014",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "rousseau-contrat",
+   "want": "rousseau-contrat"
+  },
+  {
+   "id": "b10-orig-015",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "rousseau-contrat",
+   "want": "rousseau-contrat"
+  },
+  {
+   "id": "b10-orig-019",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust",
+   "want": "goethe-faust"
+  },
+  {
+   "id": "b10-orig-021",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust",
+   "want": "goethe-faust"
+  },
+  {
+   "id": "b10-orig-022",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "dostoevsky-crime",
+   "want": "dostoevsky-crime"
+  },
+  {
+   "id": "b10-orig-024",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "dostoevsky-crime",
+   "want": "dostoevsky-crime"
+  },
+  {
+   "id": "b10-orig-025",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "tolstoy-war",
+   "want": "tolstoy-war"
+  },
+  {
+   "id": "b10-orig-026",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "tolstoy-war",
+   "want": "tolstoy-war"
+  },
+  {
+   "id": "b10-orig-027",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "tolstoy-war",
+   "want": "tolstoy-war"
+  },
+  {
+   "id": "b10-orig-028",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "hugo-miserables",
+   "want": "hugo-miserables"
+  },
+  {
+   "id": "b10-orig-029",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "hugo-miserables",
+   "want": "hugo-miserables"
+  },
+  {
+   "id": "b10-edit-002",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik-B",
+   "want": "kant-kritik-B"
+  },
+  {
+   "id": "b10-edit-003",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin-1",
+   "want": "darwin-origin-1"
+  },
+  {
+   "id": "b10-edit-008",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust-2",
+   "want": "goethe-faust-2"
+  },
+  {
+   "id": "b10-edit-010",
+   "ok": true,
+   "trap": "origin-1-vs-6"
+  },
+  {
+   "id": "b10-edit-014",
+   "ok": true,
+   "trap": "principia-editions"
+  },
+  {
+   "id": "b10-edit-021",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik-A",
+   "want": "kant-kritik-A"
+  },
+  {
+   "id": "b10-edit-022",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik-B",
+   "want": "kant-kritik-B"
+  },
+  {
+   "id": "b10-edit-024",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin-6",
+   "want": "darwin-origin-6"
+  },
+  {
+   "id": "b10-edit-026",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia-3",
+   "want": "newton-principia-3"
+  },
+  {
+   "id": "b10-edit-027",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "goethe-faust-1",
+   "want": "goethe-faust-1"
+  },
+  {
+   "id": "b10-edit-030",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik-B",
+   "want": "kant-kritik-B"
+  }
+ ]
+}

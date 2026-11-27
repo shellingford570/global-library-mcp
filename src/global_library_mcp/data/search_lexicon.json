@@ -1972,7 +1972,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118523813",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2006,7 +2006,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118671049",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2042,7 +2042,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118559796",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2129,7 +2129,8 @@
    "names": {
     "ja": [
      "マックス・ウェーバー",
-     "ウェーバー"
+     "ウェーバー",
+     "マックス・ヴェーバー"
     ],
     "en": [
      "Max Weber",
@@ -2144,7 +2145,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118629743",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2163,7 +2164,8 @@
    "death_year": 1958,
    "names": {
     "ja": [
-     "アルフレート・ウェーバー"
+     "アルフレート・ウェーバー",
+     "アルフレート・ヴェーバー"
     ],
     "en": [
      "Alfred Weber"
@@ -2177,7 +2179,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118765787",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2279,7 +2281,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118603426",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2314,7 +2316,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118587544",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2366,7 +2368,9 @@
    "names": {
     "ja": [
      "夏目漱石",
-     "ナツメソセキ"
+     "ナツメソセキ",
+     "なつめ そうせき",
+     "夏目金之助"
     ],
     "en": [
      "Natsume Sōseki",
@@ -2382,10 +2386,10 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118785737",
     "ndl": null,
     "isni": null,
-    "wikidata": null
+    "wikidata": "Q180903"
    },
    "known_works": [
     "work:wagahai",
@@ -2404,7 +2408,8 @@
     "ja": [
      "福沢諭吉",
      "福澤諭吉",
-     "フクザワユキチ"
+     "フクザワユキチ",
+     "ふくざわ ゆきち"
     ],
     "en": [
      "Fukuzawa Yukichi",
@@ -2419,7 +2424,7 @@
    },
    "authority_ids": {
     "viaf": null,
-    "gnd": null,
+    "gnd": "118952633",
     "ndl": null,
     "isni": null,
     "wikidata": null
@@ -2700,6 +2705,220 @@
    ],
    "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
    "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:ogai",
+   "surname": "Mori",
+   "given_names": "Ōgai",
+   "birth_year": 1862,
+   "death_year": 1922,
+   "names": {
+    "ja": [
+     "森鷗外",
+     "森鸥外",
+     "森林太郎",
+     "もり おうがい",
+     "森鴎外"
+    ],
+    "en": [
+     "Mori Ōgai",
+     "Mori Ogai",
+     "Ōgai Mori",
+     "Mori Rintarō"
+    ],
+    "de": [
+     "Mori Ōgai"
+    ],
+    "fr": [
+     "Mori Ōgai"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": "118736957",
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [],
+   "source": "Compiled for this project from standard public bibliographic knowledge; GND identifier 118736957 live-verified via lobid on 2026-11-28 (Mori, Ōgai, 1862-1922).",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:goethe",
+   "surname": "Goethe",
+   "given_names": "Johann Wolfgang von",
+   "birth_year": 1749,
+   "death_year": 1832,
+   "names": {
+    "ja": [
+     "ゲーテ",
+     "ヨハン・ヴォルフガング・フォン・ゲーテ"
+    ],
+    "en": [
+     "Johann Wolfgang von Goethe",
+     "Goethe"
+    ],
+    "de": [
+     "Johann Wolfgang von Goethe",
+     "Goethe"
+    ],
+    "fr": [
+     "Johann Wolfgang von Goethe",
+     "Goethe"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:faust"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:smith-adam",
+   "surname": "Smith",
+   "given_names": "Adam",
+   "birth_year": 1723,
+   "death_year": 1790,
+   "names": {
+    "ja": [
+     "アダム・スミス"
+    ],
+    "en": [
+     "Adam Smith",
+     "Smith, Adam"
+    ],
+    "de": [
+     "Adam Smith"
+    ],
+    "fr": [
+     "Adam Smith"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:wealth-of-nations"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:dostoevsky",
+   "surname": "Dostoevsky",
+   "given_names": "Fyodor",
+   "birth_year": 1821,
+   "death_year": 1881,
+   "names": {
+    "ja": [
+     "ドストエフスキー",
+     "フョードル・ドストエフスキー"
+    ],
+    "en": [
+     "Fyodor Dostoevsky",
+     "Dostoevsky, Fyodor"
+    ],
+    "de": [
+     "Fjodor Dostojewski"
+    ],
+    "fr": [
+     "Fiodor Dostoïevski"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:crime-and-punishment"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:hugo",
+   "surname": "Hugo",
+   "given_names": "Victor",
+   "birth_year": 1802,
+   "death_year": 1885,
+   "names": {
+    "ja": [
+     "ヴィクトル・ユゴー",
+     "ユゴー"
+    ],
+    "en": [
+     "Victor Hugo",
+     "Hugo, Victor"
+    ],
+    "de": [
+     "Victor Hugo"
+    ],
+    "fr": [
+     "Victor Hugo"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:les-miserables"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "author_id": "author:tolstoy",
+   "surname": "Tolstoy",
+   "given_names": "Leo",
+   "birth_year": 1828,
+   "death_year": 1910,
+   "names": {
+    "ja": [
+     "トルストイ",
+     "レフ・トルストイ"
+    ],
+    "en": [
+     "Leo Tolstoy",
+     "Tolstoy, Leo"
+    ],
+    "de": [
+     "Leo Tolstoi"
+    ],
+    "fr": [
+     "Léon Tolstoï"
+    ]
+   },
+   "authority_ids": {
+    "viaf": null,
+    "gnd": null,
+    "ndl": null,
+    "isni": null,
+    "wikidata": null
+   },
+   "known_works": [
+    "work:war-and-peace"
+   ],
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
   }
  ],
  "works": [
@@ -2861,10 +3080,12 @@
    "year_first": 1687,
    "translated_titles": {
     "ja": [
-     "プリンキピア"
+     "プリンキピア",
+     "自然哲学の数学的諸原理"
     ],
     "en": [
-     "Mathematical Principles of Natural Philosophy"
+     "Mathematical Principles of Natural Philosophy",
+     "Principia"
     ],
     "de": [
      "Mathematische Prinzipien der Naturlehre"
@@ -2986,6 +3207,125 @@
     ]
    },
    "editions_note": "English translation (1929) of the 1909 German original.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:faust",
+   "original_title": "Faust",
+   "original_language": "de",
+   "author_id": "author:goethe",
+   "year_first": 1808,
+   "translated_titles": {
+    "ja": [
+     "ファウスト"
+    ],
+    "en": [
+     "Faust"
+    ],
+    "fr": [
+     "Faust"
+    ],
+    "de": [
+     "Faust. Eine Tragödie",
+     "Faust. Der Tragödie erster Teil",
+     "Faust. Der Tragödie zweiter Teil"
+    ]
+   },
+   "editions_note": "Part One published 1808; Part Two published posthumously in 1832. The two parts are distinct texts and are never merged.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:wealth-of-nations",
+   "original_title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+   "original_language": "en",
+   "author_id": "author:smith-adam",
+   "year_first": 1776,
+   "translated_titles": {
+    "ja": [
+     "国富論",
+     "諸国民の富"
+    ],
+    "de": [
+     "Der Wohlstand der Nationen"
+    ],
+    "fr": [
+     "Recherches sur la nature et les causes de la richesse des nations"
+    ]
+   },
+   "editions_note": "First edition 1776; the short title 'The Wealth of Nations' is standard.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:crime-and-punishment",
+   "original_title": "Преступление и наказание",
+   "original_language": "ru",
+   "author_id": "author:dostoevsky",
+   "year_first": 1866,
+   "translated_titles": {
+    "ja": [
+     "罪と罰"
+    ],
+    "en": [
+     "Crime and Punishment"
+    ],
+    "de": [
+     "Schuld und Sühne",
+     "Verbrechen und Strafe"
+    ],
+    "fr": [
+     "Crime et Châtiment"
+    ]
+   },
+   "editions_note": "Serialised 1866; book edition 1867.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:les-miserables",
+   "original_title": "Les Misérables",
+   "original_language": "fr",
+   "author_id": "author:hugo",
+   "year_first": 1862,
+   "translated_titles": {
+    "ja": [
+     "レ・ミゼラブル",
+     "哀史"
+    ],
+    "en": [
+     "Les Misérables"
+    ],
+    "de": [
+     "Die Elenden"
+    ]
+   },
+   "editions_note": "First published 1862 simultaneously in several countries.",
+   "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
+   "verification_status": "unverified"
+  },
+  {
+   "work_id": "work:war-and-peace",
+   "original_title": "Война и мир",
+   "original_language": "ru",
+   "author_id": "author:tolstoy",
+   "year_first": 1869,
+   "translated_titles": {
+    "ja": [
+     "戦争と平和"
+    ],
+    "en": [
+     "War and Peace"
+    ],
+    "de": [
+     "Krieg und Frieden"
+    ],
+    "fr": [
+     "Guerre et Paix"
+    ]
+   },
+   "editions_note": "Serialised 1865-1867; first complete book edition 1869.",
    "source": "Compiled for this project from standard public bibliographic knowledge (title pages and publisher data in the public domain). Not copied from any copyrighted dictionary.",
    "verification_status": "unverified"
   }
