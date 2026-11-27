@@ -277,6 +277,32 @@ def use_budget(budget: HttpBudget):
         current_http_budget.reset(token)
 
 
+# Per-send guard (b9 final review, P0): an optional object with
+# ``reserve(host)`` / ``note_bytes(n)`` that BudgetedTransport
+# consults IMMEDIATELY BEFORE each wire send. The external MCP
+# profile installs its per-user budget/revocation guard here, so
+# the per-user limit is enforced on the real send path - atomic
+# check-and-count before anything leaves the process, counting
+# retries, redirects, failures and cancellations alike (the
+# count is taken pre-send and never refunded). Cache hits never
+# reach the transport, so they are never counted. With no guard
+# in context the transport behaves exactly as before.
+current_send_guard: contextvars.ContextVar[Any | None] = contextvars.ContextVar(
+    "current_send_guard", default=None
+)
+
+
+@contextlib.contextmanager
+def use_send_guard(guard: Any):
+    """Set the active per-send guard for this context (see
+    current_send_guard). Restores the previous guard on exit."""
+    token = current_send_guard.set(guard)
+    try:
+        yield guard
+    finally:
+        current_send_guard.reset(token)
+
+
 # One concurrency cap shared by every BudgetedTransport on the same
 # event loop (b3.1: proxy and direct transports previously had
 # separate caps, doubling the effective limit).
@@ -353,6 +379,7 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         budget = current_http_budget.get()
+        guard = current_send_guard.get()
         host = request.url.host
         # ONE absolute send deadline for the whole attempt (b5
         # final review, S10): gate waits and semaphore waits all
@@ -395,6 +422,12 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
             )
         try:
             await honour_gate()
+            if guard is not None:
+                # Per-send guard (b9 final review P0): the
+                # external profile's per-user budget / revocation
+                # check, atomic at the last moment before the
+                # wire. Raising here means nothing is sent.
+                guard.reserve(host)
             response = await self._send(request)
             if response.status_code == 429:
                 wait = _retry_after_seconds(response.headers.get("retry-after"))
@@ -408,8 +441,14 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                     f"unsupported content-encoding {encoding!r} from {host}; refused",
                     retryable=False,
                 )
-            if budget is None:
+            if budget is None and guard is None:
                 return response
+            # Effective per-response cap: the operation budget's,
+            # or the transport default when only a send guard is
+            # installed (the guard still needs the decoded body
+            # buffered so it can account the received bytes).
+            max_response_bytes = budget.max_response_bytes \
+                if budget is not None else 25_000_000
             try:
                 if encoding not in ("gzip", "deflate"):
                     # Content-Length pre-check (identity only: with
@@ -421,18 +460,19 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                             declared = int(content_length)
                         except ValueError:
                             declared = -1
-                        if declared > budget.max_response_bytes:
+                        if declared > max_response_bytes:
                             raise BudgetExceeded(
-                                f"response from {host} declares {declared} bytes, over the {budget.max_response_bytes}-byte cap"
+                                f"response from {host} declares {declared} bytes, over the {max_response_bytes}-byte cap"
                             )
                 body = bytearray()
 
                 def take(piece: bytes) -> None:
-                    budget.add_streamed_bytes(len(piece))
+                    if budget is not None:
+                        budget.add_streamed_bytes(len(piece))
                     body.extend(piece)
-                    if len(body) > budget.max_response_bytes:
+                    if len(body) > max_response_bytes:
                         raise BudgetExceeded(
-                            f"response from {host} exceeded the {budget.max_response_bytes}-byte cap while streaming"
+                            f"response from {host} exceeded the {max_response_bytes}-byte cap while streaming"
                         )
 
                 if encoding in ("gzip", "deflate"):
@@ -448,7 +488,8 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                     raw_fallback_tried = False
                     try:
                         async for raw in response.aiter_raw():
-                            budget.record_wire_bytes(len(raw))
+                            if budget is not None:
+                                budget.record_wire_bytes(len(raw))
                             data = raw
                             # One raw chunk can contain the end of
                             # one gzip member, several whole members
@@ -489,7 +530,8 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                         raise httpx.DecodingError(f"error decoding response from {host}: {exc}") from exc
                 else:
                     async for chunk in response.aiter_bytes(65536):
-                        budget.record_wire_bytes(len(chunk))
+                        if budget is not None:
+                            budget.record_wire_bytes(len(chunk))
                         take(chunk)
             except BaseException:
                 await response.aclose()
@@ -508,6 +550,8 @@ class BudgetedTransport(httpx.AsyncHTTPTransport):
                 }
             )
             clean_headers["content-length"] = str(len(body))
+            if guard is not None:
+                guard.note_bytes(len(body))
             return httpx.Response(
                 status_code=response.status_code,
                 headers=clean_headers,

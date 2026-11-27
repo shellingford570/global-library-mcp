@@ -89,9 +89,21 @@ def run_doctor(live: bool = False) -> dict[str, Any]:
     add("http_budget", True,
         f"max_requests={budget.max_requests}, per_host_max={budget.per_host_max}, "
         f"max_response_bytes={budget.max_response_bytes}")
-    add("dns_precheck", True,
-        "GLM_DNS_CHECK=" + os.environ.get("GLM_DNS_CHECK", "(unset; "
-        "the external profile enables it by default at startup)"))
+    add("dns_precheck", not cfg.dns_check_explicitly_disabled,
+        "GLM_DNS_CHECK=" + os.environ.get("GLM_DNS_CHECK", "(unset)")
+        + "; the external profile forces the pre-check on and "
+          "refuses to start when it is disabled (a pre-check, "
+          "not address pinning - DNS pinning is unimplemented "
+          "and is a production connection blocker)")
+    add("audit_pseudonym", True,
+        "audit pseudonyms are HMAC-keyed: "
+        + ("operator key configured" if cfg.audit_hmac_key
+           else "ephemeral per-process key (pseudonyms stable "
+                "within a process only)"))
+    add("consent_store", True,
+        "consent records are "
+        + (f"persisted at the configured consent file"
+           if cfg.consent_path else "in-memory only (this process)"))
 
     # Workspace separation: the external package must not
     # IMPORT the workspace package (AST-level check, so this

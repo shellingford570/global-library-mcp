@@ -1,5 +1,8 @@
-"""b9 external profile tests: allowlist, ids, projections,
-auth, consent, budgets, continuation, excerpt gating, audit.
+"""b9 external profile tests (final-review rework): the
+five-tool allowlist, per-library id grammars, projections,
+auth, per-library consent (incl. persistence), the send-path
+HTTP guard, revocation semantics, rights negation handling,
+and the audit log.
 
 All upstream data is synthetic; the service is a fake with
 canned payloads, the authorization server is a local HS256
@@ -22,8 +25,17 @@ from global_library_mcp.external.auth import (
     Principal,
     TokenValidator,
 )
-from global_library_mcp.external.control import ExternalConfig
+from global_library_mcp.external.control import (
+    ConsentStore,
+    ExternalConfig,
+    ExternalRuntime,
+)
+from global_library_mcp.external.grammars import validate_record_id
 from global_library_mcp.external.models import envelope
+from global_library_mcp.external.rights_policy import (
+    classify_item_rights,
+    decide_transfer,
+)
 from global_library_mcp.external.server import (
     EXTERNAL_TOOLS,
     build_external_server,
@@ -33,6 +45,8 @@ from global_library_mcp.models import Rights, SearchResponse, SearchResult
 HS_SECRET = "synthetic-test-secret"
 ISSUER = "https://as.example.test"
 AUDIENCE = "https://localhost/external-mcp"
+ALL_TEST_SCOPES = ("catalog:search", "metadata:read",
+                   "libraries:read", "references:read")
 
 
 def _config(**overrides) -> ExternalConfig:
@@ -43,16 +57,12 @@ def _config(**overrides) -> ExternalConfig:
         issuer=ISSUER,
         audience=AUDIENCE,
         test_hs_secret=HS_SECRET,
-        continuation_secret="test-continuation-secret",
     )
     base.update(overrides)
     return ExternalConfig(**base)
 
 
-def _token(sub="user-a", scopes=("catalog:search", "metadata:read",
-                                 "libraries:read", "references:read",
-                                 "originals:verify", "excerpts:read",
-                                 "comparisons:read"),
+def _token(sub="user-a", scopes=ALL_TEST_SCOPES,
            exp_offset=600, **claims) -> str:
     payload = {
         "sub": sub, "iss": ISSUER, "aud": AUDIENCE,
@@ -75,6 +85,8 @@ class _FakeRegistry:
 
 
 class _FakeService:
+    default_libraries = ("ndl",)
+
     def __init__(self):
         self.doc = {
             "library_id": "ndl", "record_id": "12345",
@@ -85,26 +97,21 @@ class _FakeService:
             "raw": {"secret_internal": "RAW-MUST-NOT-CROSS"},
             "description": "<p>long</p>" * 100,
         }
-        self.page = {
-            "library_id": "ndl", "record_id": "12345",
-            "page_id": "12345_0007", "contents": "verbatim page text " * 40,
-            "verified_mapping": True,
-            "ocr_state": {"page_identity_verified": True},
-            "rights": {"statement": "Public Domain"},
-        }
+        self.queried: list[str] = []
 
     async def search(self, query, libraries, limit):
+        self.queried = list(libraries or [])
         results = [
             SearchResult(
                 library_id="ndl", library_name="National Diet Library",
-                record_id=f"r{i}", title=f"Title {i}", author="A U Thor",
+                record_id=f"100{i}", title=f"Title {i}", author="A U Thor",
                 date="1900", language="en",
-                landing_url=f"https://dl.ndl.go.jp/item/r{i}",
+                landing_url=f"https://dl.ndl.go.jp/item/100{i}",
                 rights=Rights(statement="Public Domain"))
             for i in range(8)
         ]
         return SearchResponse(query=query, results=results[:limit],
-                              queried_libraries=["ndl"],
+                              queried_libraries=list(libraries or []),
                               http_stats={"attempts": 2})
 
     def _filter_spec(self, author, title, year_from, year_to, languages,
@@ -114,45 +121,27 @@ class _FakeService:
     async def get_document(self, library_id, record_id):
         return dict(self.doc, library_id=library_id, record_id=record_id)
 
-    async def get_page_text(self, library_id, page_id):
-        return dict(self.page, library_id=library_id, page_id=page_id)
 
-    async def verify_page(self, library_id, page_id):
-        return {"checks": {"page_identity": {"ok": True},
-                           "image_reachable": {"ok": True},
-                           "image_identity": {"ok": False},
-                           "ocr": {"ok": True}},
-                "admitted": False}
+class _MismatchService(_FakeService):
+    """Returns a payload naming a DIFFERENT record than asked."""
 
-    async def research_materials(self, query, libraries, limit, **kw):
-        return {"materials": [{
-            "document": dict(self.doc), "admitted": True,
-            "verification": {"page_identity_verified": True}}],
-            "search_scope": {"libraries": ["ndl"]}, "http_stats": {}}
-
-    async def compare_documents(self, documents, aspects=None, question=None):
-        return {"documents": [
-            {"library_id": d["library_id"], "title": "T",
-             "rights": {"statement": "Public Domain"}} for d in documents],
-            "aspects": aspects or [], "gaps": [], "semantic_status": "not_checked"}
+    async def get_document(self, library_id, record_id):
+        return dict(self.doc, library_id=library_id, record_id="99999")
 
 
-def _server(**cfg_overrides):
+def _server(service=None, **cfg_overrides):
     server, ctx = build_external_server(
-        _config(**cfg_overrides), service=_FakeService(),
+        _config(**cfg_overrides), service=service or _FakeService(),
         registry=_FakeRegistry())
     ctx.local_principal = Principal(
-        user_id="user-a",
-        scopes={"catalog:search", "metadata:read", "libraries:read",
-                "references:read", "originals:verify", "excerpts:read",
-                "comparisons:read"})
+        user_id="user-a", scopes=set(ALL_TEST_SCOPES))
     return server, ctx
 
 
 def _grant(ctx, user="user-a", classes=("bibliographic", "references",
-                                        "rights", "search_terms_upstream",
-                                        "excerpts")):
-    ctx.runtime.consent.grant(user, set(classes))
+                                        "rights", "search_terms_upstream"),
+           libraries=None):
+    ctx.runtime.consent.grant(user, set(classes), libraries=libraries)
 
 
 def _call(server, name, args):
@@ -170,8 +159,8 @@ def _call(server, name, args):
 # ---------------------------------------------------------------- ids
 
 def test_ids_round_trip_and_rejections():
-    doc = ext_ids.make_document_id("ndl", "info:ndljp/pid/12345")
-    assert ext_ids.parse_document_id(doc) == ("ndl", "info:ndljp/pid/12345")
+    doc = ext_ids.make_document_id("ndl", "12345")
+    assert ext_ids.parse_document_id(doc) == ("ndl", "12345")
     page = ext_ids.make_page_id("internet-archive", "item@leaf-3")
     assert ext_ids.parse_page_id(page) == ("internet-archive", "item@leaf-3")
     for bad in ("https://evil.example/x", "../etc/passwd", "glm1.ndl.",
@@ -183,14 +172,77 @@ def test_ids_round_trip_and_rejections():
         ext_ids.parse_page_id(doc)   # document id is not a page id
 
 
+def test_record_id_grammars_per_library():
+    valid = {
+        "ndl": "992954",
+        "internet-archive": "onoriginofspecie1859darw",
+        "loc": "sn83030214/1900-01-05/ed-1",
+        "gallica": "https://gallica.bnf.fr/ark:/12148/bpt6k1234567",
+        "bsb": "bsb10000001",
+        "e-rara": "12345678",
+        "europeana": "/9200332/BibliographicResource_123",
+        "ddb": "ABC123def456",
+        "finna": "finna.12345678",
+        "finland-nl-digi": "987654",
+        "kb-delpher": "ddd:010567890:mpeg21:a0001",
+        "japan-search": "ndl-1234567",
+        "dpla": "abc123def456",
+    }
+    for library_id, record_id in valid.items():
+        validate_record_id(library_id, record_id)
+    invalid = [
+        ("ndl", "abc123"),                       # NDL pids are numeric
+        ("ndl", "123/456"),                      # no path fragments
+        ("internet-archive", "../secret"),       # traversal
+        ("internet-archive", "https://evil.example/x"),
+        ("loc", "sn83030214/1900-13-45"),        # not the issue grammar
+        ("gallica", "https://evil.example/ark:/12148/bpt6k1"),
+        ("bsb", "xyz10000001"),
+        ("kb-delpher", "ddd:010567890"),         # truncated URN
+        ("japan-search", "NDL-123"),             # source prefix is lowercase
+        ("finland-nl-digi", "binding-12"),
+        ("unknown-library", "12345"),
+    ]
+    for library_id, record_id in invalid:
+        with pytest.raises(ext_ids.ExternalIdError):
+            validate_record_id(library_id, record_id)
+
+
+def test_fetch_rejects_grammar_invalid_id():
+    server, ctx = _server()
+    _grant(ctx)
+    bad = ext_ids.make_document_id("ndl", "not-a-pid")
+    out = _call(server, "fetch", {"id": bad})
+    assert "invalid_document_id" in out
+
+
+def test_fetch_identity_mismatch_is_refused():
+    server, ctx = _server(service=_MismatchService())
+    _grant(ctx)
+    doc_id = ext_ids.make_document_id("ndl", "12345")
+    out = _call(server, "fetch", {"id": doc_id})
+    assert "document_identity_mismatch" in out
+
+
+def test_fetch_identity_verified_when_payload_matches():
+    server, ctx = _server()
+    _grant(ctx)
+    doc_id = ext_ids.make_document_id("ndl", "12345")
+    payload = json.loads(_call(server, "fetch", {"id": doc_id}))
+    assert payload["document"]["verification"]["document_identity_verified"] is True
+
+
 # ---------------------------------------------------------------- allowlist
 
-def test_allowlist_is_exact_and_workspace_free():
+def test_allowlist_is_exactly_five_and_workspace_free():
     server, _ctx = _server()
     names = {t.name for t in asyncio.run(server.list_tools())}
     assert names == set(EXTERNAL_TOOLS)
-    assert "research_question" not in names
-    assert "get_page_text" not in names
+    assert len(names) == 5
+    for gone in ("research_question", "get_page_text",
+                 "verify_original_reference", "get_allowed_excerpt",
+                 "research_materials_external", "compare_documents_external"):
+        assert gone not in names
     pkg = Path(__file__).resolve().parents[1] / "src" / "global_library_mcp" / "external"
     import ast
 
@@ -204,6 +256,15 @@ def test_allowlist_is_exact_and_workspace_free():
                 module = ",".join(a.name for a in node.names)
             assert not ("workspace" in module and "global_library_mcp" in module), \
                 f"{path.name} imports the workspace package"
+
+
+def test_removed_tools_refuse_direct_calls():
+    server, ctx = _server()
+    _grant(ctx)
+    for name in ("get_allowed_excerpt", "verify_original_reference",
+                 "compare_documents_external", "research_materials_external"):
+        out = _call(server, name, {})
+        assert "ERROR" in out  # unknown tool, refused by the server
 
 
 def test_resources_and_prompts_are_empty():
@@ -243,6 +304,8 @@ def test_token_validation_matrix():
     assert e4.value.kind == "bad_signature"
     with pytest.raises(AuthError):
         validator.validate("")
+    with pytest.raises(AuthError):
+        validator.validate(_token(sub="   "))
 
 
 def test_scope_denied_on_direct_call():
@@ -270,12 +333,79 @@ def test_consent_required_then_granted_then_revoked():
     assert "consent_required" in out
 
 
+def test_search_excludes_libraries_without_consent():
+    service = _FakeService()
+    server, ctx = _server(service=service)
+    _grant(ctx, libraries={"e-rara"})
+    out = _call(server, "search",
+                {"query": "darwin", "libraries": ["ndl", "e-rara"]})
+    payload = json.loads(out)
+    assert payload["search_scope"]["excluded_no_consent"] == ["ndl"]
+    assert service.queried == ["e-rara"]   # NDL was never queried
+    out = _call(server, "search", {"query": "darwin", "libraries": ["ndl"]})
+    assert "consent_required:libraries" in out
+    assert service.queried == ["e-rara"]   # still never queried
+
+
+def test_consent_persistence_round_trip(tmp_path):
+    path = str(tmp_path / "consent.json")
+    store = ConsentStore(path)
+    store.grant("user-a", {"bibliographic"}, libraries={"ndl"},
+                ttl_s=3600)
+    reloaded = ConsentStore(path)
+    assert reloaded.has("user-a", "bibliographic", "ndl")
+    assert not reloaded.has("user-a", "bibliographic", "loc")
+    reloaded.revoke("user-a")
+    assert not ConsentStore(path).has("user-a", "bibliographic", "ndl")
+
+
 def test_user_revocation_blocks_everything():
     server, ctx = _server()
     _grant(ctx)
     ctx.runtime.revoke_user("user-a")
     out = _call(server, "list_libraries", {})
-    assert "access_revoked" in out or "consent_required" in out
+    assert "access_revoked" in out
+
+
+# ---------------------------------------------------------------- send-path guard
+
+def test_http_guard_counts_and_caps_on_the_send_path():
+    import global_library_mcp.external.control as control
+    from global_library_mcp.http import BudgetExceeded as HttpBudgetExceeded
+
+    runtime = ExternalRuntime(_config())
+    runtime.consent.grant("user-a", {"bibliographic"})
+    guard = runtime.http_guard("user-a")
+    original = control.UPSTREAM_HTTP_PER_HOUR
+    control.UPSTREAM_HTTP_PER_HOUR = 3
+    try:
+        for _ in range(3):
+            guard.reserve("example.org")
+        assert guard.attempts == 3
+        with pytest.raises(HttpBudgetExceeded):
+            guard.reserve("example.org")
+        assert guard.attempts == 3   # refused sends are not double-counted
+    finally:
+        control.UPSTREAM_HTTP_PER_HOUR = original
+
+
+def test_http_guard_stops_when_consent_changes_or_user_revoked():
+    from global_library_mcp.http import BudgetExceeded as HttpBudgetExceeded
+
+    runtime = ExternalRuntime(_config())
+    runtime.consent.grant("user-a", {"bibliographic"})
+    guard = runtime.http_guard("user-a")
+    guard.reserve("example.org")
+    runtime.consent.revoke("user-a")          # generation changes
+    assert guard.stale()
+    with pytest.raises(HttpBudgetExceeded):
+        guard.reserve("example.org")
+    runtime2 = ExternalRuntime(_config())
+    runtime2.consent.grant("user-b", {"bibliographic"})
+    guard2 = runtime2.http_guard("user-b")
+    runtime2.revoke_user("user-b")
+    with pytest.raises(HttpBudgetExceeded):
+        guard2.reserve("example.org")
 
 
 # ---------------------------------------------------------------- projections
@@ -294,21 +424,73 @@ def test_fetch_projection_drops_raw_and_markup():
     assert "raw" not in document and "description" not in document
 
 
-def test_search_results_carry_no_raw():
+def test_search_results_carry_no_raw_and_paginate_by_offset():
     server, ctx = _server()
     _grant(ctx)
-    out = _call(server, "search", {"query": "species"})
+    out = _call(server, "search", {"query": "species", "limit": 3})
     payload = json.loads(out)
     first = payload["results"][0]
     assert first["id"].startswith("glm1.ndl.")
     assert "raw" not in first
     assert payload["data_notice"]
+    out2 = _call(server, "search",
+                 {"query": "species", "limit": 3, "offset": 3})
+    payload2 = json.loads(out2)
+    assert payload2["results"][0]["title"] != payload["results"][0]["title"]
 
 
-def test_envelope_size_cap():
-    big = envelope({"blob": "x" * (300 * 1024)}, returned=1)
+def test_envelope_size_cap_counts_the_final_mcp_response():
+    big = envelope({"blob": "x" * (200 * 1024)}, returned=1)
     assert big["error"] == "response_too_large"
     assert big["truncated"] is True
+
+
+# ---------------------------------------------------------------- rights policy
+
+def test_rights_negation_is_never_an_allowance():
+    assert classify_item_rights(
+        "This work is not in the public domain") != "public_domain"
+    assert classify_item_rights(
+        "Not public domain; all rights reserved") == "copyrighted"
+    assert classify_item_rights("Public Domain") == "public_domain"
+    assert classify_item_rights(
+        "https://creativecommons.org/publicdomain/mark/1.0/") == "public_domain"
+
+
+def test_real_libraries_never_allow_excerpts_even_with_switch():
+    for library_id in ("ndl", "internet-archive", "loc", "bsb", "gallica",
+                       "europeana", "finna", "japan-search"):
+        decision = decide_transfer(
+            library_id, "https://creativecommons.org/publicdomain/mark/1.0/",
+            excerpt_enabled=True)
+        assert decision["excerpt_allowed"] is False, library_id
+        assert decision["full_text_allowed"] is False
+        assert decision["image_binary_allowed"] is False
+
+
+def test_excerpt_allow_path_needs_ocr_rights_confirmation():
+    row = {"metadata": "allowed", "reference_url": "allowed",
+           "ocr_excerpt": "allowed", "image_url": "restricted",
+           "third_party_ai": "allowed", "attribution": "Test Library",
+           "source": "synthetic fixture"}
+    decision = decide_transfer(
+        "ndl", "https://creativecommons.org/publicdomain/mark/1.0/",
+        excerpt_enabled=True, matrix=row)
+    assert decision["excerpt_allowed"] is False   # ocr_rights unconfirmed
+    row["ocr_rights"] = "allowed"
+    decision = decide_transfer(
+        "ndl", "https://creativecommons.org/publicdomain/mark/1.0/",
+        excerpt_enabled=True, matrix=row)
+    assert decision["excerpt_allowed"] is True
+
+
+def test_rights_decision_separates_metadata_and_ocr():
+    decision = decide_transfer(
+        "ndl", {"statement": "Public Domain",
+                "ocr_statement": "In Copyright"})
+    assert decision["metadata_rights_category"] == "public_domain"
+    assert decision["ocr_rights_category"] == "copyrighted"
+    assert decision["ocr_rights_basis"] == "separate_ocr_statement"
 
 
 # ---------------------------------------------------------------- budgets
@@ -323,99 +505,22 @@ def test_call_budget_denies_21st_call():
     assert "budget_exceeded" in out
 
 
-def test_continuation_binds_user_params_and_expiry():
-    server, ctx = _server()
-    _grant(ctx)
-    out = _call(server, "search", {"query": "darwin", "limit": 3})
-    payload = json.loads(out)
-    token = payload.get("continuation")
-    assert token
-    out2 = _call(server, "search",
-                 {"query": "darwin", "limit": 3, "continuation": token})
-    payload2 = json.loads(out2)
-    assert payload2["results"][0]["title"] != payload["results"][0]["title"]
-    tampered = token[:-2] + "xx"
-    out3 = _call(server, "search",
-                 {"query": "darwin", "limit": 3, "continuation": tampered})
-    assert "continuation_invalid" in out3
-    out4 = _call(server, "search",
-                 {"query": "other", "limit": 3, "continuation": token})
-    assert "continuation_invalid" in out4
-
-
-# ---------------------------------------------------------------- excerpts
-
-def test_excerpt_denied_by_default_policy():
-    server, ctx = _server()
-    _grant(ctx)
-    doc_id = ext_ids.make_document_id("ndl", "12345")
-    page_id = ext_ids.make_page_id("ndl", "12345_0007")
-    out = _call(server, "get_allowed_excerpt",
-                {"id": doc_id, "page_id": page_id})
-    assert "excerpt_not_permitted" in out
-    assert "verbatim page text" not in out
-
-
-def test_excerpt_allowed_only_with_matrix_and_switch(tmp_path=None):
-    import global_library_mcp.external.server as server_mod
-    from global_library_mcp.external import rights_policy
-
-    server, ctx = _server(excerpt_enabled=True)
-    _grant(ctx)
-    original = rights_policy.decide_transfer
-
-    def patched(library_id, statement, *, excerpt_enabled=False, matrix=None):
-        row = {"metadata": "allowed", "reference_url": "allowed",
-               "ocr_excerpt": "allowed", "image_url": "restricted",
-               "third_party_ai": "allowed", "attribution": "Test Library",
-               "source": "synthetic fixture"}
-        return original(library_id, statement,
-                        excerpt_enabled=excerpt_enabled, matrix=row)
-
-    server_mod.decide_transfer = patched
-    try:
-        doc_id = ext_ids.make_document_id("ndl", "12345")
-        page_id = ext_ids.make_page_id("ndl", "12345_0007")
-        out = _call(server, "get_allowed_excerpt",
-                    {"id": doc_id, "page_id": page_id})
-        payload = json.loads(out)
-        excerpt = payload["excerpt"]
-        assert excerpt["chars"] <= 500
-        assert excerpt["text"].startswith("verbatim page text")
-        # Cumulative per-document cap: 1,000 chars total.
-        _call(server, "get_allowed_excerpt",
-              {"id": doc_id, "page_id": page_id})
-        out3 = _call(server, "get_allowed_excerpt",
-                     {"id": doc_id, "page_id": page_id})
-        assert "excerpt_budget_exhausted" in out3 or "excerpt" in out3
-    finally:
-        server_mod.decide_transfer = original
-
-
-def test_verify_original_reference_states():
-    server, ctx = _server()
-    _grant(ctx)
-    doc_id = ext_ids.make_document_id("ndl", "12345")
-    page_id = ext_ids.make_page_id("ndl", "12345_0007")
-    out = _call(server, "verify_original_reference",
-                {"id": doc_id, "page_id": page_id})
-    payload = json.loads(out)
-    verification = payload["verification"]
-    assert verification["page_identity_verified"] is True
-    assert verification["image_identity_verified"] is False
-    assert verification["human_visual_verified"] is False
-
-
 # ---------------------------------------------------------------- audit
 
-def test_audit_log_has_no_research_content():
+def test_audit_records_denials_and_has_no_research_content():
     server, ctx = _server()
+    out = _call(server, "search", {"query": "secret research topic darwin"})
+    assert "consent_required" in out
     _grant(ctx)
     _call(server, "search", {"query": "secret research topic darwin"})
     blob = json.dumps(ctx.audit.events)
     assert "secret research topic" not in blob
-    assert "user-a" not in blob          # pseudonymised
-    assert any(e["tool"] == "search" for e in ctx.audit.events)
+    assert "user-a" not in blob          # HMAC-pseudonymised
+    denied = [e for e in ctx.audit.events if e["status"] == "denied"]
+    assert denied and denied[0]["error_class"].startswith("consent_required")
+    ok = [e for e in ctx.audit.events
+          if e["tool"] == "search" and e["status"] == "ok"]
+    assert ok and "bytes_received" in ok[0] and "response_bytes" in ok[0]
 
 
 def test_doctor_runs_without_network():
@@ -439,5 +544,15 @@ def test_startup_fail_closed_without_auth_config():
     cfg = ExternalConfig(require_auth=True, local_test_mode=False)
     problems = cfg.validate_startup("streamable-http")
     assert problems
-    cfg2 = _config(disabled=True)
-    assert cfg2.validate_startup("stdio")
+
+
+def test_startup_refuses_disabled_auth_and_dns_off():
+    cfg = _config(require_auth=False)
+    assert any("authentication cannot be disabled" in p
+               for p in cfg.validate_startup("streamable-http"))
+    cfg = _config(dns_check_explicitly_disabled=True)
+    assert any("DNS" in p for p in cfg.validate_startup("stdio"))
+    cfg = _config(jwks_url="https://as.example.test/jwks.json")
+    assert any("ambiguous" in p for p in cfg.validate_startup("streamable-http"))
+    cfg = _config(disabled=True)
+    assert cfg.validate_startup("stdio")

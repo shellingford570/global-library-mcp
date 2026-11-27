@@ -9,9 +9,11 @@ JSON is size-checked against the deployment cap (section 23).
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
 from typing import Any
+from urllib.parse import urlsplit
 
 from global_library_mcp.external.ids import make_document_id, make_page_id
 from global_library_mcp.external.rights_policy import decide_transfer
@@ -42,13 +44,40 @@ def clean_text(value: Any, cap: int) -> str:
 
 
 def clean_url(value: Any) -> str | None:
+    """A reference URL may leave the server only if it is a
+    structurally safe https URL (final review P0): no embedded
+    credentials, no non-443 port, no localhost, no private /
+    link-local / reserved IP literal (including IPv4-mapped
+    forms), no control or quoting characters."""
     text = str(value or "").strip()
     if not text or len(text) > URL_CAP:
         return None
-    if not text.startswith("https://"):
-        return None
     if any(ch in text for ch in " \t\r\n<>\"'"):
         return None
+    parts = urlsplit(text)
+    if parts.scheme != "https" or not parts.hostname:
+        return None
+    if parts.username or parts.password:
+        return None
+    try:
+        port = parts.port
+    except ValueError:
+        return None
+    if port is not None and port != 443:
+        return None
+    host = parts.hostname.rstrip(".").lower()
+    if host == "localhost" or host.endswith(".localhost"):
+        return None
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        ip = None
+    if ip is not None:
+        mapped = getattr(ip, "ipv4_mapped", None)
+        if mapped is not None:
+            ip = mapped
+        if not ip.is_global:
+            return None
     return text
 
 
@@ -70,8 +99,10 @@ def project_search_item(item: dict[str, Any], *,
     record_id = str(item.get("record_id") or "")
     rights = item.get("rights") or {}
     statement = rights.get("statement") if isinstance(rights, dict) else rights
-    decision = decide_transfer(library_id, statement,
-                               excerpt_enabled=excerpt_enabled)
+    hint = item.get("access_restricted")
+    decision = decide_transfer(
+        library_id, statement, excerpt_enabled=excerpt_enabled,
+        access_hint=hint if isinstance(hint, bool) else None)
     out: dict[str, Any] = {
         "id": make_document_id(library_id, record_id) if record_id else None,
         "library_id": library_id,
@@ -106,14 +137,22 @@ def project_search_item(item: dict[str, Any], *,
 
 
 def project_document(doc: dict[str, Any], *,
-                     excerpt_enabled: bool = False) -> dict[str, Any]:
-    """A get_document payload -> external fetch result."""
+                     excerpt_enabled: bool = False,
+                     identity_verified: bool | None = None) -> dict[str, Any]:
+    """A get_document payload -> external fetch result.
+    ``identity_verified`` is the caller's strict check that the
+    payload's (library_id, record_id) equal the requested id;
+    when given it overrides the payload's own flags, which an
+    upstream-shaped payload could otherwise assert about
+    itself."""
     library_id = str(doc.get("library_id") or "")
     record_id = str(doc.get("record_id") or "")
     rights = doc.get("rights") or {}
     statement = rights.get("statement") if isinstance(rights, dict) else rights
-    decision = decide_transfer(library_id, statement,
-                               excerpt_enabled=excerpt_enabled)
+    hint = doc.get("access_restricted")
+    decision = decide_transfer(
+        library_id, statement, excerpt_enabled=excerpt_enabled,
+        access_hint=hint if isinstance(hint, bool) else None)
     out: dict[str, Any] = {
         "id": make_document_id(library_id, record_id) if record_id else None,
         "library_id": library_id,
@@ -130,7 +169,8 @@ def project_document(doc: dict[str, Any], *,
             "catalog_found": True,
             "metadata_fetched": True,
             "document_identity_verified": bool(
-                doc.get("identity_verified") or doc.get("verified")),
+                identity_verified if identity_verified is not None
+                else (doc.get("identity_verified") or doc.get("verified"))),
             "external_transfer_allowed": bool(decision["metadata_allowed"]),
         },
     }
@@ -194,7 +234,13 @@ def envelope(payload: dict[str, Any], *, returned: int,
     if reason:
         out["reason"] = clean_text(reason, 200)
     out["data_notice"] = DATA_NOTICE
-    if len(json.dumps(out, ensure_ascii=False).encode("utf-8")) > MAX_RESPONSE_BYTES:
+    # Final review P0: the cap applies to the FINAL MCP
+    # response, where the payload travels twice (TextContent
+    # JSON text + structuredContent) inside the JSON-RPC
+    # envelope - so the projection must fit in half the cap,
+    # with margin for the envelope itself.
+    serialized = len(json.dumps(out, ensure_ascii=False).encode("utf-8"))
+    if 2 * serialized + 1024 > MAX_RESPONSE_BYTES:
         out = {
             "error": "response_too_large",
             "returned_count": 0,

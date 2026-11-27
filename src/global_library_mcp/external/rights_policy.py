@@ -45,6 +45,20 @@ _ACCESS_RE = re.compile(
     r"lending|borrow|restricted access|access restricted|in-library|"
     r"閲覧のみ|貸出", re.IGNORECASE)
 
+# Negation cues (final review P0): a rights statement that
+# NEGATES a permissive status must never be read as granting
+# it. "not in the public domain" contains the words "public
+# domain" - substring matching alone turned a denial into an
+# allowance in the first b9 build; these patterns run BEFORE
+# any affirmative classification of free text.
+_NEGATED_PD_RE = re.compile(
+    r"(not|never|no longer|isn't|is not)\s+(in\s+the\s+)?public domain"
+    r"|public domain\s+ではない|パブリックドメインではない"
+    r"|非パブリックドメイン|パブリックドメインにはない", re.IGNORECASE)
+_AFFIRMED_COPYRIGHT_RE = re.compile(
+    r"in copyright|all rights reserved|著作権(保護|存続|あり)|"
+    r"権利(が)?存続", re.IGNORECASE)
+
 
 def classify_item_rights(statement: Any) -> str:
     """Classify ONE item rights statement for TRANSFER.
@@ -52,9 +66,12 @@ def classify_item_rights(statement: Any) -> str:
     Structured rights URIs decide; anything else - free text,
     missing statements, unrecognised URIs - is UNKNOWN, except
     explicit in-copyright / restriction signals which classify
-    as such. A Public Domain Mark URI classifies as
-    public_domain here, but transfer still requires the matrix
-    to allow the content kind (see decide_transfer)."""
+    as such. Negated permissive statements classify as UNKNOWN
+    (or COPYRIGHTED when a restriction is affirmed alongside),
+    never as the negated permission. A Public Domain Mark URI
+    classifies as public_domain here, but transfer still
+    requires the matrix to allow the content kind (see
+    decide_transfer)."""
     if isinstance(statement, dict):
         statement = (statement.get("statement") or statement.get("status")
                      or statement.get("uri") or "")
@@ -84,7 +101,9 @@ def classify_item_rights(statement: Any) -> str:
                 return PUBLIC_DOMAIN
             return UNKNOWN  # UND / CNE / unrecognised
     low = text.lower()
-    if "in copyright" in low or "著作権" in low and "なし" not in low:
+    if _NEGATED_PD_RE.search(low):
+        return COPYRIGHTED if _AFFIRMED_COPYRIGHT_RE.search(low) else UNKNOWN
+    if _AFFIRMED_COPYRIGHT_RE.search(low):
         return COPYRIGHTED
     if "public domain" in low:
         return PUBLIC_DOMAIN
@@ -99,16 +118,36 @@ def is_access_restricted(statement: Any) -> bool:
 
 def decide_transfer(library_id: str, statement: Any, *,
                     excerpt_enabled: bool = False,
-                    matrix: dict[str, str] | None = None) -> dict[str, Any]:
+                    matrix: dict[str, str] | None = None,
+                    access_hint: bool | None = None) -> dict[str, Any]:
     """Full transfer decision for one item.
 
     Returns the section-12 category labels plus the concrete
     per-kind permissions the projections enforce. ``matrix``
     may be injected (tests / future verified updates); by
-    default the shipped matrix row for the library is used."""
+    default the shipped matrix row for the library is used.
+
+    Final-review separations:
+    - METADATA rights and OCR rights are decided separately.
+      The item statement speaks for the item; an OCR-specific
+      basis exists only when the payload carries a distinct
+      OCR/text rights field, and the matrix must additionally
+      confirm OCR rights (``ocr_rights``) - no shipped library
+      row does, so OCR transfer stays structurally impossible
+      for real libraries regardless of the excerpt switch.
+    - ACCESS restriction is evaluated independently: from the
+      caller's ``access_hint`` (the document's own access /
+      availability fields) as well as from the statement."""
     row = matrix if matrix is not None else matrix_entry(library_id)
     category = classify_item_rights(statement)
-    access_restricted = is_access_restricted(statement)
+    ocr_category, ocr_basis = category, "same_statement_as_item"
+    if isinstance(statement, dict):
+        ocr_text = statement.get("ocr_statement") \
+            or statement.get("text_rights") or statement.get("ocr_rights")
+        if ocr_text:
+            ocr_category = classify_item_rights(ocr_text)
+            ocr_basis = "separate_ocr_statement"
+    access_restricted = bool(access_hint) or is_access_restricted(statement)
 
     categories: list[str] = []
     metadata_ok = row.get("metadata") == "allowed" and not access_restricted
@@ -134,8 +173,9 @@ def decide_transfer(library_id: str, statement: Any, *,
     excerpt_ok = bool(
         excerpt_enabled
         and row.get("ocr_excerpt") == "allowed"
+        and row.get("ocr_rights") == "allowed"
         and row.get("third_party_ai") == "allowed"
-        and category in _EXCERPT_ITEM_OK
+        and ocr_category in _EXCERPT_ITEM_OK
         and not access_restricted)
     if excerpt_ok:
         categories.append("excerpt_allowed")
@@ -143,6 +183,10 @@ def decide_transfer(library_id: str, statement: Any, *,
     return {
         "library_id": library_id,
         "item_rights_category": category,
+        "metadata_rights_category": category,
+        "ocr_rights_category": ocr_category,
+        "ocr_rights_basis": ocr_basis,
+        "access_restricted": access_restricted,
         "categories": categories,
         "metadata_allowed": metadata_ok,
         "reference_allowed": reference_ok,
@@ -154,7 +198,7 @@ def decide_transfer(library_id: str, statement: Any, *,
         "attribution": row.get("attribution", ""),
         "matrix_source": row.get("source", ""),
         "excerpt_denial_reasons": _excerpt_reasons(
-            row, category, access_restricted, excerpt_enabled, excerpt_ok),
+            row, ocr_category, access_restricted, excerpt_enabled, excerpt_ok),
     }
 
 
@@ -168,6 +212,8 @@ def _excerpt_reasons(row: dict[str, str], category: str,
         reasons.append("external excerpt transfer is disabled in this deployment")
     if row.get("ocr_excerpt") != "allowed":
         reasons.append("the library's terms do not confirm OCR excerpt transfer")
+    if row.get("ocr_rights") != "allowed":
+        reasons.append("OCR-specific rights are not separately confirmed for this library")
     if row.get("third_party_ai") != "allowed":
         reasons.append("transfer to a third-party AI service is not confirmed by the library's terms")
     if category not in _EXCERPT_ITEM_OK:

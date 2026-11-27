@@ -194,7 +194,12 @@ def matrix_entry(library_id: str) -> dict[str, str]:
             "item_check_required": "yes",
             "source": "",
         }
-    return entry
+    # Final review: OCR-specific rights are a separate matrix
+    # dimension. No library's official terms, as researched for
+    # this matrix, separately confirm OCR-text transfer rights,
+    # so the value is "unknown" for every shipped row; the
+    # transfer policy treats anything but "allowed" as denied.
+    return {**entry, "ocr_rights": entry.get("ocr_rights", "unknown")}
 
 
 def transfer_allowed(library_id: str, kind: str) -> bool:
