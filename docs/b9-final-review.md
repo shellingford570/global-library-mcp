@@ -234,11 +234,17 @@ search text, OCR text, tokens or secrets are recorded.
 
 ## 4. CI
 
-(CI results for the final head are recorded here after the
-push; the merge gate below requires all mandatory jobs —
-test, workspace, docker-playwright, external-mcp,
-external-security — to succeed. workspace-live is
-informational.)
+Final-review head before this record: `50779aa`. Push run
+45958051113: **all 6 jobs success** — test, workspace,
+docker-playwright, workspace-live (informational),
+external-mcp (now including the real-path integration
+suite), external-security (164-case synthetic evaluation +
+performance evaluation). The first final-review push
+(`b55c008`, run 45957553516) failed external-security because
+the candidate-era `eval/b9_perf.py` still benchmarked the
+removed excerpt tool; fixed in `1e3e1f4` and disclosed here
+rather than hidden. The merge gate requires all mandatory
+jobs green on the exact head being merged.
 
 ## 5. Production connection blockers (unchanged honesty)
 
