@@ -16,7 +16,7 @@ host's network position, and upstream libraries' availability.
 | T6 | Rights-violating transfer (OCR text, images) | Independent transfer policy; matrix + item rights + excerpt switch; cumulative caps; full text/binaries never | Terms change over time; matrix needs periodic re-checks (checked date recorded) |
 | T7 | Prompt injection from library content | No write/fetch/file tools; typed fields + data notice; server-side enforcement | The external client's own behaviour is outside our control |
 | T8 | SSRF to internal services / cloud metadata | URL validation, exact allowlists, DNS pre-check on | DNS rebinding not fully preventable without pinning; production requires managed egress (documented) |
-| T9 | Cross-user data contamination | All state keyed by user id; per-user cache; continuation tokens bound to user/scopes/params | — |
+| T9 | Cross-user data contamination | All state keyed by user id; per-user cache; MCP sessions bound to the creating principal (final review) | — |
 | T10 | Budget/DoS abuse (upstream hammering) | Per-user call/HTTP budgets, concurrency 2, deadlines, existing HttpBudget + circuit breaker | A determined authorised user can still consume their own budget |
 | T11 | Secret leakage via errors/logs | Stable error codes; audit log content rules; sanitize_error upstream | New exception types must keep messages out of the surface — covered by the catch-all |
 | T12 | Workspace disclosure | External package never imports workspace; no DB path/config reaches it; canary tests | A future feature must preserve the import boundary (doctor + tests check it) |

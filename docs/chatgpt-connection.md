@@ -77,9 +77,9 @@ the plugin.
 
 1. The discovered tools are exactly: search, fetch,
    list_libraries, get_library_capabilities,
-   get_document_rights, verify_original_reference,
-   get_allowed_excerpt, research_materials_external,
-   compare_documents_external. Anything else: disconnect.
+   get_document_rights. Anything else: disconnect.
+   (The final review reduced the profile from 9 tools to
+   these 5; older snapshots listing 9 are stale.)
 2. First call: list_libraries.
 3. Safe first search: a public-domain topic (e.g. Darwin).
 4. Confirm a rights-restricted item returns reference-only

@@ -27,8 +27,13 @@
   JWKS signature + issuer + audience + expiry + per-tool
   scopes via PyJWT; fail-closed startup. Server-side user
   consent per data class; per-user budgets, concurrency,
-  deadlines (90 s), continuation tokens bound to
-  user/scopes/parameters; per-user session/cache isolation.
+  deadlines (90 s); per-user session/cache isolation.
+  [Final review, 2026-11-27: profile reduced to 5 tools
+  (search, fetch, list_libraries, get_library_capabilities,
+  get_document_rights); continuation tokens removed; per-user
+  HTTP budget enforced on the send path; per-library consent;
+  session-principal binding; per-library id grammars;
+  RS256/ES256 in non-test mode. See docs/b9-final-review.md.]
 - Security: upstream exceptions surface only as stable error
   codes; the external profile enables the DNS public-address
   pre-check by default (residual rebinding risk documented,
@@ -50,8 +55,10 @@
   docs/secure-mcp-tunnel.md. **No tunnel was created, no
   ChatGPT connection was made, no API key was issued, and no
   research data was sent anywhere.**
-- Evaluation: 171-case synthetic security evaluation, all
-  passing (docs/b9-security-evaluation.md); synthetic
+- Evaluation: 164-case synthetic security evaluation, all
+  passing (docs/b9-security-evaluation.md), plus a 6-test
+  real-path MCP integration suite and an OS-level isolation
+  check (both in docs/b9-final-review.md); synthetic
   performance evaluation (docs/b9-performance-evaluation.md);
   new CI jobs external-mcp and external-security.
 - b10 design only: docs/b10-candidates.md (including the

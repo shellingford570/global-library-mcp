@@ -23,9 +23,9 @@ Module: `ConsentStore` in
 |---|---|---|
 | `bibliographic` | sending bibliographic metadata about the user's queries' results | search, fetch, materials, compare |
 | `search_terms_upstream` | the user's search terms being sent to upstream library APIs (inherent to searching) | search, materials, compare |
-| `references` | original-reference verification requests | verify_original_reference |
+| `references` | original-reference data in fetch results | fetch |
 | `rights` | rights statements/decisions for items the user asks about | get_document_rights |
-| `excerpts` | conditionally permitted short excerpts | get_allowed_excerpt |
+| `excerpts` | (no tool exposes excerpts after the final-review reduction) | — |
 
 ## Lifecycle
 

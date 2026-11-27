@@ -87,8 +87,9 @@ per-library deadlines and circuit breaker.
 
 ## Session and cache isolation (brief section 22)
 
-All external state — consent, budgets, excerpt ledgers,
-continuation tokens, the search-projection cache — is keyed
+All external state — consent, budgets, the search-projection
+cache (continuation tokens were removed in the final
+review; pagination is plain offset) — is keyed
 by the authenticated user id. The shared LibraryService HTTP
 cache holds upstream responses only (never rights decisions
 or projected answers), and every external call re-evaluates

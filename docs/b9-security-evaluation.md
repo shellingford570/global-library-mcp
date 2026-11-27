@@ -14,12 +14,21 @@ section 35).
 |---|---|---|
 | normal | 20 | 20 |
 | rights | 30 | 30 |
-| auth | 31 | 31 |
+| auth | 24 | 24 |
 | injection | 20 | 20 |
 | isolation | 20 | 20 |
 | ssrf | 30 | 30 |
 | limits | 20 | 20 |
-| **Total** | **171** | **171** |
+| **Total** | **164** | **164** |
+
+(Final-review edition: the candidate set had 171 cases; the
+auth set shrank with the reduced 5-tool profile and the
+continuation/excerpt cases were replaced by removal, offset
+and send-guard cases. A separate REAL-PATH integration suite
+(tests/test_b9_integration.py, 6 tests) measures the same
+class of properties through the official SDK client, a real
+HTTP server, real LibraryService and the real budgeted
+transport - see docs/b9-final-review.md.)
 
 Failed cases: none.
 

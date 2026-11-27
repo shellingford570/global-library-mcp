@@ -32,12 +32,12 @@ docs/b9-openai-compatibility.md section 4).
 | Scope | Tools |
 |---|---|
 | `libraries:read` | list_libraries, get_library_capabilities |
-| `catalog:search` | search, research_materials_external |
+| `catalog:search` | search |
 | `metadata:read` | fetch |
 | `references:read` | get_document_rights |
-| `originals:verify` | verify_original_reference |
-| `excerpts:read` | get_allowed_excerpt |
-| `comparisons:read` | compare_documents_external |
+| `originals:verify` | REMOVED in the final review (tool dropped) |
+| `excerpts:read` | REMOVED in the final review (tool dropped) |
+| `comparisons:read` | REMOVED in the final review (tool dropped) |
 
 There is deliberately **no workspace scope**. Scopes are
 checked server-side on every tools/call — hiding a tool from

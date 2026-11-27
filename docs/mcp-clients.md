@@ -188,8 +188,8 @@ A third profile now exists: `--profile external-research`
 (port 8002 by convention). It is a SEPARATE server built only
 from an allowlist of 9 read-only tools (search, fetch,
 list_libraries, get_library_capabilities, get_document_rights,
-verify_original_reference, get_allowed_excerpt,
-research_materials_external, compare_documents_external),
+(final review: reduced to search, fetch, list_libraries,
+get_library_capabilities, get_document_rights),
 with OAuth 2.1 token validation, per-tool scopes, server-side
 consent, per-user budgets and an independent external
 transfer rights policy. It never exposes the workspace, the

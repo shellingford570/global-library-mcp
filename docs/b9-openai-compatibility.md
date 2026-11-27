@@ -1,6 +1,8 @@
 # b9 — OpenAI / MCP official-specification research
 
-Checked: **2026-11-27**. Sources are the official pages listed
+Checked: **2026-11-27** (re-verified the same day for the
+final review against the official pages only - no substantive
+change from the first check). Sources are the official pages listed
 per section; statements below are what those pages said on the
 check date. Anything not confirmed there is marked unknown.
 

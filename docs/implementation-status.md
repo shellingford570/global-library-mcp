@@ -8,8 +8,8 @@ service or a full local test; **not implemented** = absent by design or pending.
 
 | Capability | Status | Notes |
 |---|---|---|
-| external-research profile | implemented, verified locally | Separate FastMCP server; 9 allowlisted tools verified at startup; full 15 / research 14 unchanged |
-| search / fetch (OpenAI shape) | implemented, verified locally | Typed projections; no raw fields; continuation tokens |
+| external-research profile | implemented, verified locally | Separate FastMCP server; 5 allowlisted tools verified at startup (final review reduced 9 -> 5); full 15 / research 14 unchanged |
+| search / fetch (OpenAI shape) | implemented, verified locally | Typed projections; no raw fields; offset pagination (continuation tokens removed in the final review) |
 | External document/page ids | implemented, verified | Versioned strict tokens over (library_id, record_id) |
 | External transfer rights policy | implemented, verified | Independent of workspace policy; matrix for 13 adapters; full text/binaries never; excerpts default-off |
 | OAuth 2.1 resource-server validation | implemented, verified with a synthetic AS | JWKS/iss/aud/exp/scopes via PyJWT; RFC 9728 PRM + 401 challenge over real HTTP; NOT a production IdP |

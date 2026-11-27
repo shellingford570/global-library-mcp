@@ -117,8 +117,11 @@ validation (JWKS signature, issuer, audience, expiry,
 per-tool scopes) with RFC 9728 metadata and a 401 challenge;
 fail-closed startup when authentication is unconfigured;
 server-side consent per data class; per-user budgets,
-concurrency (2), a 90-second tool deadline and HMAC-bound
-continuation tokens; per-user session/cache isolation;
+concurrency (2), a 90-second tool deadline; per-user
+session/cache isolation. [Final review, 2026-11-27: the
+external profile was reduced to 5 tools, continuation
+tokens were REMOVED, and sessions are bound to the creating
+principal - see docs/b9-final-review.md.]
 typed allowlist projections (no raw payloads cross); a
 catch-all that returns only stable error codes so upstream
 exceptions cannot leak keys or URLs; an audit log with
