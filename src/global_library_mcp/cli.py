@@ -13,7 +13,7 @@ def main() -> None:
     mcp_cmd.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
     mcp_cmd.add_argument("--host", default="127.0.0.1")
     mcp_cmd.add_argument("--port", type=int, default=8001)
-    mcp_cmd.add_argument("--profile", choices=["full", "research"], default="full")
+    mcp_cmd.add_argument("--profile", choices=["full", "research", "external-research"], default="full")
     web = sub.add_parser("web", help="Run the API and Web UI")
     web.add_argument("--host", default="127.0.0.1")
     web.add_argument("--port", type=int, default=8000)
@@ -24,7 +24,13 @@ def main() -> None:
                           "(default: GLM_WORKSPACE_PATH or the OS data directory)")
     args = parser.parse_args()
     if args.command == "mcp":
-        run_mcp(transport=args.transport, host=args.host, port=args.port, profile=args.profile)
+        if args.profile == "external-research":
+            from global_library_mcp.external.server import run_external
+
+            run_external(transport=args.transport, host=args.host,
+                         port=args.port)
+        else:
+            run_mcp(transport=args.transport, host=args.host, port=args.port, profile=args.profile)
     else:
         run_web(args.host, args.port, workspace=args.workspace,
                 workspace_path=args.workspace_path)
