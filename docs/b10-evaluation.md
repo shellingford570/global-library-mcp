@@ -66,3 +66,23 @@ security evaluation **164/164** re-run at the b10 head; real
 MCP integration suite passes inside pytest; stdio smoke: full
 profile 15 tools, research profile 14 tools (external profile
 is HTTP-only, 5 tools, covered by the integration suite).
+
+## CI note (2026-11-28, final head)
+
+GitHub Actions on the b10 branch: **test, workspace,
+workspace-live, external-mcp and external-security all pass.**
+The docker-playwright job's Playwright suite passes (17/17
+in-job, including against the Docker image), but its appended
+live smoke step fails at the live NDL page request
+(`/api/page?library=ndl&id=974405_2` → 502 from the web layer).
+Root cause, verified from two independent networks: NDL's page
+API (`lab.ndl.go.jp/dl/api/page/...`) returns **500** today,
+while its search and IIIF manifest endpoints answer normally;
+the identical smoke passed on the b9 master run the day
+before. This is an upstream availability condition — exactly
+the dependency brief section 48 says mandatory CI should not
+have — not a b10 regression (the page code path is unchanged
+except the Stage 0 library-binding context). The smoke script
+was NOT modified to hide the failure; whether to make that
+live step informational is left as a decision for the
+maintainer, recorded here and on PR #21.
