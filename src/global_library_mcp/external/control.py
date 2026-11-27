@@ -335,6 +335,13 @@ class ExternalRuntime:
         task.add_done_callback(
             lambda _t: self._inflight.get(user_id, set()).discard(task))
 
+    def untrack(self, user_id: str, task: asyncio.Task) -> None:
+        """Remove a task when its CALL finishes. Tracking is
+        per call, not per task lifetime: a host task that runs
+        many calls must not stay registered (and cancellable)
+        after the call it was tracked for has ended."""
+        self._inflight.get(user_id, set()).discard(task)
+
     # -- tool-call rate budget ----------------------------------
     def check_call_budget(self, user_id: str) -> None:
         state = self._state(user_id)

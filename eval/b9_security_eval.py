@@ -1,11 +1,18 @@
-"""b9 external-MCP security evaluation (brief sections 35-36).
+"""b9 external-MCP security evaluation (brief sections 35-36;
+final-review edition).
 
 Fixed synthetic case set: 20 normal research, 30 rights,
-30 auth, 20 prompt-injection, 20 session-isolation, 30 SSRF,
-20 limits = 170 cases. Everything runs in-process against the
-real external server, the real token validator, the real URL
-validation and a fake LibraryService. No network, no real
-tokens, no real research data.
+24 auth, 20 prompt-injection, 20 session-isolation, 30 SSRF,
+20 limits = 164 cases. (The candidate edition had 171; the
+auth set shrank with the five-tool profile - fewer scopes and
+tools exist to enforce - and continuation/excerpt cases were
+replaced by removal, offset and send-guard cases.) Everything
+runs in-process against the real external server, the real
+token validator, the real URL validation and a fake
+LibraryService. No network, no real tokens, no real research
+data. The REAL-PATH integration metrics (real HTTP server,
+real LibraryService, fixed upstream fixtures) live in
+tests/test_b9_integration.py and are reported separately.
 
 Mandatory safety metrics (section 36) must be zero:
 workspace leaks, unknown-rights text transfers, forbidden text
@@ -67,14 +74,12 @@ def make_server(service=None, **cfg):
 def principal(user="user-a", scopes=None):
     return Principal(user_id=user, scopes=scopes if scopes is not None else {
         "catalog:search", "metadata:read", "libraries:read",
-        "references:read", "originals:verify", "excerpts:read",
-        "comparisons:read"})
+        "references:read"})
 
 
 def grant(ctx, user="user-a"):
     ctx.runtime.consent.grant(user, {"bibliographic", "references",
-                                     "rights", "search_terms_upstream",
-                                     "excerpts"})
+                                     "rights", "search_terms_upstream"})
 
 
 async def call(server, name, args):
@@ -95,29 +100,37 @@ async def eval_normal() -> None:
     doc_id = ext_ids.make_document_id("ndl", "12345")
     page_id = ext_ids.make_page_id("ndl", "12345_0007")
     scenarios = [
-        ("A_historical_search", "search", {"query": "水力発電 明治"}),
-        ("B_darwin_editions", "search", {"query": "Origin of Species", "author": "Darwin"}),
-        ("C_kant_multilingual", "search", {"query": "Kritik der reinen Vernunft", "languages": ["de"]}),
-        ("D_newspaper_search", "search", {"query": "railroad", "year_from": 1900, "year_to": 1910}),
-        ("E_nordic_search", "search", {"query": "teollistuminen", "languages": ["fi", "sv"]}),
-        ("F_compare", "compare_documents_external", {"ids": [doc_id, ext_ids.make_document_id("ndl", "999")]}),
-        ("G_citation_verify", "verify_original_reference", {"id": doc_id, "page_id": page_id}),
-        ("H_false_premise", "search", {"query": "明治時代 テレビ放送 一次資料"}),
-        ("list_libraries", "list_libraries", {}),
-        ("capabilities", "get_library_capabilities", {"library_id": "ndl"}),
-        ("fetch_doc", "fetch", {"id": doc_id}),
-        ("rights_doc", "get_document_rights", {"id": doc_id}),
-        ("verify_doc_only", "verify_original_reference", {"id": doc_id}),
-        ("materials", "research_materials_external", {"query": "steam engine"}),
-        ("search_limit_1", "search", {"query": "x", "limit": 1}),
-        ("search_limit_20", "search", {"query": "x", "limit": 20}),
-        ("search_libraries_subset", "search", {"query": "x", "libraries": ["ndl"]}),
-        ("search_year_filter", "search", {"query": "x", "year_from": 1850, "year_to": 1900}),
-        ("search_title_filter", "search", {"query": "x", "title": "Title"}),
-        ("fetch_second", "fetch", {"id": ext_ids.make_document_id("ndl", "777")}),
+        ("A_historical_search", "search", {"query": "水力発電 明治"}, False),
+        ("B_darwin_editions", "search", {"query": "Origin of Species", "author": "Darwin"}, False),
+        ("C_kant_multilingual", "search", {"query": "Kritik der reinen Vernunft", "languages": ["de"]}, False),
+        ("D_newspaper_search", "search", {"query": "railroad", "year_from": 1900, "year_to": 1910}, False),
+        ("E_nordic_search", "search", {"query": "teollistuminen", "languages": ["fi", "sv"]}, False),
+        ("H_false_premise", "search", {"query": "明治時代 テレビ放送 一次資料"}, False),
+        ("list_libraries", "list_libraries", {}, False),
+        ("capabilities", "get_library_capabilities", {"library_id": "ndl"}, False),
+        ("fetch_doc", "fetch", {"id": doc_id}, False),
+        ("rights_doc", "get_document_rights", {"id": doc_id}, False),
+        ("search_limit_1", "search", {"query": "x", "limit": 1}, False),
+        ("search_limit_20", "search", {"query": "x", "limit": 20}, False),
+        ("search_libraries_subset", "search", {"query": "x", "libraries": ["ndl"]}, False),
+        ("search_year_filter", "search", {"query": "x", "year_from": 1850, "year_to": 1900}, False),
+        ("search_title_filter", "search", {"query": "x", "title": "Title"}, False),
+        ("fetch_second", "fetch", {"id": ext_ids.make_document_id("ndl", "777")}, False),
+        ("search_offset_pagination", "search", {"query": "x", "limit": 3, "offset": 3}, False),
+        # Removed in the final-review profile reduction: these
+        # calls must be REFUSED (unknown tool), never served.
+        ("removed_excerpt_tool", "get_allowed_excerpt",
+         {"id": doc_id, "page_id": page_id}, True),
+        ("removed_verify_tool", "verify_original_reference",
+         {"id": doc_id, "page_id": page_id}, True),
+        ("removed_compare_tool", "compare_documents_external",
+         {"ids": [doc_id, ext_ids.make_document_id("ndl", "999")]}, True),
     ]
-    for name, tool, args in scenarios:
+    for name, tool, args, expect_refusal in scenarios:
         out, is_err = await call(server, tool, args)
+        if expect_refusal:
+            case("normal", name, is_err and "verbatim" not in out)
+            continue
         ok = not is_err and len(out) > 2
         if name == "H_false_premise":
             # The fake returns generic hits; the requirement is
@@ -165,8 +178,7 @@ def eval_auth() -> None:
     variants.append(("wrong_issuer", _token(iss="https://evil"), False))
     variants.append(("no_sub", _token(sub=""), False))
     for scope in ("catalog:search", "metadata:read", "libraries:read",
-                  "references:read", "originals:verify", "excerpts:read",
-                  "comparisons:read"):
+                  "references:read"):
         variants.append((f"only_{scope}", _token(scopes=(scope,)), True))
     variants.append(("empty_scope", _token(scopes=()), True))
     variants.append(("garbage", "not-a-jwt", False))
@@ -188,17 +200,14 @@ def eval_auth() -> None:
         except Exception:  # noqa: BLE001
             ok = not should_pass
         case("auth", name, ok)
-    # Remaining auth cases: scope enforcement per tool (7 tools x 2).
+    # Remaining auth cases: scope enforcement per tool (5 tools x 2).
     async def scope_cases():
         server, ctx = make_server()
         grant(ctx)
         tools = [("search", {"query": "x"}), ("fetch", {"id": "glm1.ndl.MTIzNDU"}),
                  ("list_libraries", {}),
                  ("get_library_capabilities", {"library_id": "ndl"}),
-                 ("get_document_rights", {"id": "glm1.ndl.MTIzNDU"}),
-                 ("verify_original_reference", {"id": "glm1.ndl.MTIzNDU"}),
-                 ("compare_documents_external",
-                  {"ids": ["glm1.ndl.MTIzNDU", "glm1.ndl.OTk5"]})]
+                 ("get_document_rights", {"id": "glm1.ndl.MTIzNDU"})]
         for tool, args in tools:
             ctx.local_principal = principal(scopes=set())
             out, _ = await call(server, tool, args)
@@ -244,11 +253,13 @@ async def eval_injection() -> None:
               and payload not in audited
               and len(ctx.audit.events) == 1)
         case("injection", f"search_payload_{i}", ok)
-        out2, _ = await call(server, "get_allowed_excerpt", {
+        # The excerpt tool no longer exists on this profile:
+        # the injected instruction cannot reach any text path.
+        out2, is_err2 = await call(server, "get_allowed_excerpt", {
             "id": ext_ids.make_document_id("ndl", "12345"),
             "page_id": ext_ids.make_page_id("ndl", "12345_0007")})
-        case("injection", f"excerpt_blocked_{i}",
-             "excerpt_not_permitted" in out2)
+        case("injection", f"excerpt_tool_absent_{i}",
+             is_err2 and "verbatim" not in out2)
 
 
 # ---------------------------------------------------------------- isolation
@@ -257,9 +268,9 @@ async def eval_isolation() -> None:
     server, ctx = make_server()
     grant(ctx, "user-a")
     ctx.local_principal = principal("user-a")
-    out_a, _ = await call(server, "search", {"query": "shared query", "limit": 3})
-    token_a = json.loads(out_a).get("continuation")
-    assert token_a, "fixture must produce a continuation token"
+    out_a, err_a = await call(server, "search",
+                              {"query": "shared query", "limit": 3})
+    assert not err_a
     checks = []
     # B has no consent: A's cached result must not serve B.
     ctx.local_principal = principal("user-b")
@@ -268,11 +279,19 @@ async def eval_isolation() -> None:
     grant(ctx, "user-b")
     out_b2, err_b2 = await call(server, "search", {"query": "shared query"})
     checks.append(("b_own_search_ok", not err_b2))
-    # A's continuation token must not work for B.
-    out_b3, _ = await call(server, "search",
-                           {"query": "shared query", "limit": 3,
-                            "continuation": token_a})
-    checks.append(("b_cannot_use_a_continuation", "continuation_invalid" in out_b3))
+    # Pagination is a plain offset: there is no bearer artefact
+    # for B to steal - B's offset call is just B's own search.
+    out_b3, err_b3 = await call(server, "search",
+                                {"query": "shared query", "limit": 3,
+                                 "offset": 3})
+    checks.append(("offset_pagination_stateless",
+                   not err_b3 and "continuation" not in out_b3))
+    # A consent change invalidates entries cached under the old
+    # generation (checked directly against the runtime store).
+    ctx.runtime.cache_put("user-a", "probe-key", {"x": 1})
+    grant(ctx, "user-a")   # re-grant bumps the generation
+    checks.append(("cache_invalidated_by_consent_change",
+                   ctx.runtime.cache_get("user-a", "probe-key") is None))
     # Budgets are per user: exhaust A, B still works.
     ctx.local_principal = principal("user-a")
     for _ in range(20):
@@ -291,11 +310,6 @@ async def eval_isolation() -> None:
     ctx.local_principal = principal("user-b")
     out_b5, err_b5 = await call(server, "list_libraries", {})
     checks.append(("b_unaffected_by_a_revoke", not err_b5))
-    # Excerpt ledgers are per user (both at zero here; the room
-    # function must not share state).
-    room_a = ctx.runtime.excerpt_room("user-a", "glm1.ndl.X")
-    room_b = ctx.runtime.excerpt_room("user-b", "glm1.ndl.X")
-    checks.append(("excerpt_ledgers_separate", room_a == room_b == 500))
     # Audit pseudonyms differ per user and contain no raw ids.
     blob = json.dumps(ctx.audit.events)
     checks.append(("audit_pseudonymised",
@@ -347,7 +361,10 @@ def eval_ssrf() -> None:
 # ---------------------------------------------------------------- limits
 
 async def eval_limits() -> None:
+    import global_library_mcp.external.control as control
     import global_library_mcp.external.server as srv
+    from global_library_mcp.external.control import QueueFull
+    from global_library_mcp.http import BudgetExceeded as HttpBudgetExceeded
 
     # Deadline: a slow service must surface deadline_exceeded.
     class SlowService(_FakeService):
@@ -366,50 +383,87 @@ async def eval_limits() -> None:
     finally:
         srv.TOOL_DEADLINE_S = old
 
-    # Concurrency: semaphore admits exactly 2 per user.
-    sem = ctx.runtime.semaphore("user-a")
-    case("limits", "concurrency_cap_2", sem._value == 2)
+    # Concurrency + queue bounds via the runtime slot: two run,
+    # a third waits against the absolute deadline and times out.
+    rt = ctx.runtime
+    deadline = time.monotonic() + 30
+    held = [rt.slot("user-a", deadline), rt.slot("user-a", deadline)]
+    for slot in held:
+        await slot.__aenter__()
+    try:
+        try:
+            async with rt.slot("user-a", time.monotonic() + 0.2):
+                third_ok = False
+        except TimeoutError:
+            third_ok = True
+        case("limits", "concurrency_cap_2_and_queue_deadline", third_ok)
+        # Fill the wait queue (4) behind the two running slots;
+        # the next arrival is refused immediately (QueueFull).
+        async def _waiter():
+            async with rt.slot("user-a", time.monotonic() + 30):
+                pass
 
-    # Response size cap via the envelope.
+        waiters = [asyncio.create_task(_waiter()) for _ in range(4)]
+        await asyncio.sleep(0.3)
+        try:
+            async with rt.slot("user-a", time.monotonic() + 30):
+                queue_ok = False
+        except QueueFull:
+            queue_ok = True
+        case("limits", "wait_queue_bounded", queue_ok)
+        for waiter in waiters:
+            waiter.cancel()
+        await asyncio.gather(*waiters, return_exceptions=True)
+        # A deadline already in the past refuses immediately -
+        # queueing time counts against the absolute deadline.
+        try:
+            async with rt.slot("user-a", time.monotonic() - 1):
+                past_ok = False
+        except TimeoutError:
+            past_ok = True
+        case("limits", "past_deadline_refused", past_ok)
+    finally:
+        for slot in held:
+            await slot.__aexit__(None, None, None)
+
+    # Response size cap via the envelope (final MCP response:
+    # text + structured duplication accounted).
     from global_library_mcp.external.models import envelope
 
     big = envelope({"x": "y" * (300 * 1024)}, returned=1)
     case("limits", "response_size_cap", big.get("error") == "response_too_large")
 
-    # Excerpt cumulative caps.
-    room = ctx.runtime.excerpt_room("user-a", "doc1")
-    case("limits", "excerpt_single_cap_500", room == 500)
-    ctx.runtime.note_excerpt("user-a", "doc1", 1000)
-    case("limits", "excerpt_document_cap_1000",
-         ctx.runtime.excerpt_room("user-a", "doc1") == 0)
-    ctx.runtime.note_excerpt("user-a", "doc2", 4000)
-    case("limits", "excerpt_session_cap_5000",
-         ctx.runtime.excerpt_room("user-a", "doc3") == 0)
-
-    # Continuation expiry: craft an expired token.
-    import base64
-    import hashlib
-    import hmac as hmac_mod
-
-    payload = {"u": "user-a", "s": sorted(principal().scopes),
-               "p": hashlib.sha256(json.dumps(
-                   {"q": "x"}, sort_keys=True).encode()).hexdigest(),
-               "o": 5, "exp": int(time.time()) - 10}
-    body = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
-    sig = hmac_mod.new(b"test-continuation-secret", body.encode(),
-                       hashlib.sha256).hexdigest()
+    # Send-path guard caps: hourly per-user and per-host, with
+    # refusals leaving the counters untouched.
+    old_total, old_host = control.UPSTREAM_HTTP_PER_HOUR, \
+        control.UPSTREAM_HTTP_PER_HOST_HOUR
+    control.UPSTREAM_HTTP_PER_HOUR = 3
+    control.UPSTREAM_HTTP_PER_HOST_HOUR = 2
     try:
-        ctx.runtime.read_continuation(f"{body}.{sig}", "user-a",
-                                      principal().scopes, {"q": "x"})
-        expired_ok = False
-    except ValueError:
-        expired_ok = True
-    case("limits", "continuation_expired", expired_ok)
+        guard = rt.http_guard("user-a")
+        guard.reserve("a.example")
+        guard.reserve("a.example")
+        try:
+            guard.reserve("a.example")
+            host_ok = False
+        except HttpBudgetExceeded:
+            host_ok = True
+        case("limits", "guard_per_host_cap", host_ok and guard.attempts == 2)
+        guard.reserve("b.example")
+        try:
+            guard.reserve("b.example")
+            total_ok = False
+        except HttpBudgetExceeded:
+            total_ok = True
+        case("limits", "guard_hourly_cap", total_ok and guard.attempts == 3)
+    finally:
+        control.UPSTREAM_HTTP_PER_HOUR = old_total
+        control.UPSTREAM_HTTP_PER_HOST_HOUR = old_host
 
-    # Remaining limit cases: repeated budget/ledger invariants.
+    # Fresh users start with a zero send count (no shared pool).
     for j in range(13):
-        state_room = ctx.runtime.excerpt_room(f"fresh-{j}", "d")
-        case("limits", f"fresh_user_room_{j}", state_room == 500)
+        fresh = rt.http_guard(f"fresh-{j}")
+        case("limits", f"fresh_user_guard_{j}", fresh.attempts == 0)
 
 
 def main() -> int:

@@ -1,0 +1,10 @@
+{
+  "routes": [
+    {"host": "archive.org", "path": "/advancedsearch.php",
+     "file": "ia-search.json", "content_type": "application/json"},
+    {"host": "archive.org", "path": "/metadata/onoriginofspecie1859darw",
+     "file": "ia-metadata.json", "content_type": "application/json"},
+    {"host": "archive.org", "path": "/metadata/principlesofgeol00lyel",
+     "file": "ia-metadata-lyell.json", "content_type": "application/json"}
+  ]
+}

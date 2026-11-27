@@ -230,7 +230,7 @@ def envelope(payload: dict[str, Any], *, returned: int,
     out["omitted_count"] = omitted
     out["truncated"] = bool(omitted)
     out["partial"] = bool(partial)
-    out["continuation_available"] = bool(omitted)
+    out["more_available"] = bool(omitted)   # page with offset; no tokens
     if reason:
         out["reason"] = clean_text(reason, 200)
     out["data_notice"] = DATA_NOTICE
@@ -247,7 +247,7 @@ def envelope(payload: dict[str, Any], *, returned: int,
             "omitted_count": returned + omitted,
             "truncated": True,
             "partial": True,
-            "continuation_available": False,
+            "more_available": False,
             "reason": "the projected response exceeded the external size cap",
             "data_notice": DATA_NOTICE,
         }

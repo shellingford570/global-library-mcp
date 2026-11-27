@@ -350,6 +350,8 @@ async def _run_tool(ctx: ExternalContext, tool: str, library_id: str,
         status, error_class = "error", type(exc).__name__
         raise Denied("upstream_error") from exc
     finally:
+        if principal is not None and task is not None:
+            ctx.runtime.untrack(principal.user_id, task)
         size = len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) \
             if payload is not None else 0
         ctx.audit.record(

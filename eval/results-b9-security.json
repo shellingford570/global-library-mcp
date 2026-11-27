@@ -1,7 +1,7 @@
 {
  "suite": "b9-external-security",
- "total": 171,
- "passed": 171,
+ "total": 164,
+ "passed": 164,
  "failed": [],
  "by_category": {
   "normal": {
@@ -13,8 +13,8 @@
    "passed": 30
   },
   "auth": {
-   "total": 31,
-   "passed": 31
+   "total": 24,
+   "passed": 24
   },
   "injection": {
    "total": 20,
@@ -79,18 +79,6 @@
   },
   {
    "category": "normal",
-   "case": "F_compare",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "normal",
-   "case": "G_citation_verify",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "normal",
    "case": "H_false_premise",
    "passed": true,
    "detail": ""
@@ -116,18 +104,6 @@
   {
    "category": "normal",
    "case": "rights_doc",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "normal",
-   "case": "verify_doc_only",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "normal",
-   "case": "materials",
    "passed": true,
    "detail": ""
   },
@@ -164,6 +140,30 @@
   {
    "category": "normal",
    "case": "fetch_second",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_offset_pagination",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "removed_excerpt_tool",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "removed_verify_tool",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "removed_compare_tool",
    "passed": true,
    "detail": ""
   },
@@ -225,7 +225,7 @@
    "category": "rights",
    "case": "ndl_10",
    "passed": true,
-   "detail": "category=unknown"
+   "detail": "category=copyrighted"
   },
   {
    "category": "rights",
@@ -285,7 +285,7 @@
    "category": "rights",
    "case": "finna_20",
    "passed": true,
-   "detail": "category=unknown"
+   "detail": "category=copyrighted"
   },
   {
    "category": "rights",
@@ -345,7 +345,7 @@
    "category": "rights",
    "case": "kb-delpher_30",
    "passed": true,
-   "detail": "category=unknown"
+   "detail": "category=copyrighted"
   },
   {
    "category": "auth",
@@ -398,24 +398,6 @@
   {
    "category": "auth",
    "case": "only_references:read",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "auth",
-   "case": "only_originals:verify",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "auth",
-   "case": "only_excerpts:read",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "auth",
-   "case": "only_comparisons:read",
    "passed": true,
    "detail": ""
   },
@@ -510,30 +492,6 @@
    "detail": ""
   },
   {
-   "category": "auth",
-   "case": "no_scope_verify_original_reference",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "auth",
-   "case": "full_scope_verify_original_reference",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "auth",
-   "case": "no_scope_compare_documents_external",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "auth",
-   "case": "full_scope_compare_documents_external",
-   "passed": true,
-   "detail": ""
-  },
-  {
    "category": "injection",
    "case": "search_payload_0",
    "passed": true,
@@ -541,7 +499,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_0",
+   "case": "excerpt_tool_absent_0",
    "passed": true,
    "detail": ""
   },
@@ -553,7 +511,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_1",
+   "case": "excerpt_tool_absent_1",
    "passed": true,
    "detail": ""
   },
@@ -565,7 +523,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_2",
+   "case": "excerpt_tool_absent_2",
    "passed": true,
    "detail": ""
   },
@@ -577,7 +535,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_3",
+   "case": "excerpt_tool_absent_3",
    "passed": true,
    "detail": ""
   },
@@ -589,7 +547,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_4",
+   "case": "excerpt_tool_absent_4",
    "passed": true,
    "detail": ""
   },
@@ -601,7 +559,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_5",
+   "case": "excerpt_tool_absent_5",
    "passed": true,
    "detail": ""
   },
@@ -613,7 +571,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_6",
+   "case": "excerpt_tool_absent_6",
    "passed": true,
    "detail": ""
   },
@@ -625,7 +583,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_7",
+   "case": "excerpt_tool_absent_7",
    "passed": true,
    "detail": ""
   },
@@ -637,7 +595,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_8",
+   "case": "excerpt_tool_absent_8",
    "passed": true,
    "detail": ""
   },
@@ -649,7 +607,7 @@
   },
   {
    "category": "injection",
-   "case": "excerpt_blocked_9",
+   "case": "excerpt_tool_absent_9",
    "passed": true,
    "detail": ""
   },
@@ -667,7 +625,13 @@
   },
   {
    "category": "isolation",
-   "case": "b_cannot_use_a_continuation",
+   "case": "offset_pagination_stateless",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "cache_invalidated_by_consent_change",
    "passed": true,
    "detail": ""
   },
@@ -692,12 +656,6 @@
   {
    "category": "isolation",
    "case": "b_unaffected_by_a_revoke",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "isolation",
-   "case": "excerpt_ledgers_separate",
    "passed": true,
    "detail": ""
   },
@@ -961,7 +919,19 @@
   },
   {
    "category": "limits",
-   "case": "concurrency_cap_2",
+   "case": "concurrency_cap_2_and_queue_deadline",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "wait_queue_bounded",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "past_deadline_refused",
    "passed": true,
    "detail": ""
   },
@@ -973,103 +943,91 @@
   },
   {
    "category": "limits",
-   "case": "excerpt_single_cap_500",
+   "case": "guard_per_host_cap",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "excerpt_document_cap_1000",
+   "case": "guard_hourly_cap",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "excerpt_session_cap_5000",
+   "case": "fresh_user_guard_0",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "continuation_expired",
+   "case": "fresh_user_guard_1",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_0",
+   "case": "fresh_user_guard_2",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_1",
+   "case": "fresh_user_guard_3",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_2",
+   "case": "fresh_user_guard_4",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_3",
+   "case": "fresh_user_guard_5",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_4",
+   "case": "fresh_user_guard_6",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_5",
+   "case": "fresh_user_guard_7",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_6",
+   "case": "fresh_user_guard_8",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_7",
+   "case": "fresh_user_guard_9",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_8",
+   "case": "fresh_user_guard_10",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_9",
+   "case": "fresh_user_guard_11",
    "passed": true,
    "detail": ""
   },
   {
    "category": "limits",
-   "case": "fresh_user_room_10",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "limits",
-   "case": "fresh_user_room_11",
-   "passed": true,
-   "detail": ""
-  },
-  {
-   "category": "limits",
-   "case": "fresh_user_room_12",
+   "case": "fresh_user_guard_12",
    "passed": true,
    "detail": ""
   }
