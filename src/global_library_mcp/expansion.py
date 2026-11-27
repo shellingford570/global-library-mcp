@@ -23,6 +23,19 @@ from global_library_mcp.question import latin_variants, script_variants
 _MODE_CAPS = {"quick": 3, "standard": 8, "deep": 14}
 _ALL_LANGS = ("ja", "en", "de", "fr", "fi", "sv", "nl")
 
+# b10 section 9 allocation policies for the concept-translation
+# fan-out (see QueryExpansionEngine.expand). "legacy" is the
+# b6-release sequential order; "diagonal" the b8/b9 interleave;
+# "primary_guarantee" the b8 section-19 experiment (not adopted
+# then); "hierarchy" concept-major allocation; "user_priority"
+# prefers the caller's requested languages; "authority_first"
+# is structurally identical to "diagonal" for translations -
+# its content (compounds and authority forms first) is already
+# guaranteed by the priority sort, which the b10 comparison
+# verifies numerically instead of assuming.
+_ALLOCATION_POLICIES = ("diagonal", "legacy", "primary_guarantee",
+                        "hierarchy", "user_priority", "authority_first")
+
 # Historical kana orthography (search-only): wi/we kana and the
 # iteration mark. Word-level old-kana spellings live in the
 # lexicon's historical_variants, not in free rewriting.
@@ -91,8 +104,31 @@ class QueryExpansionEngine:
         expand_multilingual: bool = True,
         expand_historical: bool = True,
         target_languages: list[str] | None = None,
+        allocation: str | None = None,
     ) -> dict[str, Any]:
         cap = _MODE_CAPS.get(mode, 8)
+        # b10 section 9: the multilingual ALLOCATION policy -
+        # how concept-translation candidates compete for the
+        # variant cap across languages. The b10 comparison
+        # (docs/b10-multilingual-routing.md, measured on the
+        # b6 fixed + challenge simulations, the b6 dev/holdout
+        # sets and the b8 fixed evaluation) found the b6-release
+        # concept-major order ("legacy") at least as good as the
+        # b8 diagonal interleave on every corpus and better on
+        # the challenge set (0.9167 vs 0.8611), the b8 set
+        # (0.7667 vs 0.7500; cross-language 0.7500 vs 0.6667)
+        # and MRR, so it is the default again; "diagonal"
+        # remains available, and the guarantee/hierarchy
+        # policies - which improved b8 but regressed b6 fixed -
+        # were NOT adopted, per the brief's rule against
+        # one-sided trade-offs. The GLM_EXPANSION_ALLOCATION
+        # environment variable is an evaluation hook only.
+        import os as _os
+
+        allocation = allocation \
+            or _os.environ.get("GLM_EXPANSION_ALLOCATION") or "legacy"
+        if allocation not in _ALLOCATION_POLICIES:
+            allocation = "legacy"
         query = analysis.raw
         query_lang = analysis.query_language["language"]
         # Final review (section 5): the two expansion toggles and
@@ -210,7 +246,44 @@ class QueryExpansionEngine:
         # adopted. The languages that miss out under the cap
         # are reported in languages_not_represented below
         # instead of being silently dropped.
-        _translations.sort(key=lambda item: (item[2], item[0] + item[1], item[1], item[0]))
+        # b10 section 9: the ordering is now chosen by the
+        # allocation policy so the alternatives can be compared
+        # on BOTH fixed corpora before any adoption decision.
+        # Items are (concept_index, lang_order, label_index,
+        # lang, label, concept).
+        if allocation == "legacy":
+            # A: b6-release sequential order (concept, then
+            # lexicon language order, then label).
+            _translations.sort(key=lambda item: (item[0], item[1], item[2]))
+        elif allocation == "primary_guarantee":
+            # G: the primary concept's first label in EVERY
+            # language precedes all other translations; the
+            # remainder keeps the diagonal order.
+            _translations.sort(key=lambda item: (
+                0 if (item[0] == 0 and item[2] == 0) else 1,
+                item[2], item[0] + item[1], item[1], item[0]))
+        elif allocation == "hierarchy":
+            # E: concept-major hierarchy - every language of
+            # the primary concept (all label rounds) before the
+            # secondary concepts are served at all.
+            _translations.sort(key=lambda item: (item[0], item[2], item[1]))
+        elif allocation == "user_priority":
+            # C: the caller's requested languages (in their
+            # stated order) win the interleave; unrequested
+            # languages follow in lexicon order.
+            _pref = list(target_languages or [])
+
+            def _pref_rank(item: tuple) -> int:
+                return _pref.index(item[3]) if item[3] in _pref \
+                    else 100 + item[1]
+
+            _translations.sort(key=lambda item: (
+                item[2], _pref_rank(item), item[0] + item[1], item[0]))
+        else:
+            # B (diagonal interleave, the b8/b9 default) and H
+            # (authority_first: identical here by construction -
+            # see the policy table above).
+            _translations.sort(key=lambda item: (item[2], item[0] + item[1], item[1], item[0]))
         for _ci, _li, _bi, lang, label, concept in _translations:
             add(label, lang, "concept_translation", "translation",
                 f"{lang} label of {concept['concept_id']}", "lexicon:concepts", 3,
@@ -282,6 +355,7 @@ class QueryExpansionEngine:
             "cap_reason": ("variant cap reached" if overflow else None),
             "budget": {"variant_cap": cap, "variants_used": len(variants),
                        "mode": mode},
+            "allocation": allocation,
             "multilingual_enabled": expand_multilingual,
             "historical_enabled": expand_historical,
             "allowed_languages": sorted(allowed_languages),

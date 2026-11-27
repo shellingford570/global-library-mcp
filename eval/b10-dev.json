@@ -1,0 +1,1640 @@
+{
+ "dataset": "b10-dev",
+ "cases": [
+  {
+   "id": "b10-auth-002",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "identify_author_from_variant",
+   "prompt_form": "Kant, Immanuel",
+   "expect": {
+    "author": "Immanuel Kant"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-auth-006",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "identify_author_from_variant",
+   "prompt_form": "エラズマス・ダーウィン",
+   "expect": {
+    "author": "Erasmus Darwin"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-auth-010",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "identify_author_from_variant",
+   "prompt_form": "マックス・ウェーバー",
+   "expect": {
+    "author": "Max Weber"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-auth-011",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "identify_author",
+   "prompt_form": "アルフレート・ヴェーバー",
+   "expect": {
+    "author": "Alfred Weber",
+    "birth_year": 1868,
+    "death_year": 1958,
+    "known_work": "Kulturgeschichte als Kultursoziologie"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-auth-018",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "identify_author_from_variant",
+   "prompt_form": "なつめ そうせき",
+   "expect": {
+    "author": "夏目漱石"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-auth-024",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "translator_not_author",
+   "prompt": "『純粋理性批判』の日本語訳者",
+   "expect": {
+    "required_behaviour": "翻訳者を原著者 Kant と認定しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-026",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "pen_name_soseki",
+   "prompt": "夏目金之助の小説",
+   "expect": {
+    "required_behaviour": "筆名 夏目漱石 と同一人物として扱う"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-027",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "pen_name_ogai",
+   "prompt": "森林太郎の小説",
+   "expect": {
+    "required_behaviour": "筆名 森鷗外 と同一人物として扱う"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-031",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "subject_person_not_author",
+   "prompt": "ダーウィンを論じた伝記の著者",
+   "expect": {
+    "required_behaviour": "伝記の著者を Darwin 本人と認定しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-033",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "brother_not_brother",
+   "prompt": "アルフレート・ヴェーバーの文化社会学",
+   "expect": {
+    "required_behaviour": "Max Weber の著作と統合しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-034",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "posthumous_editor",
+   "prompt": "死後に編纂されたカントの講義録",
+   "expect": {
+    "required_behaviour": "編者を著者とせず、Kant の講義に基づく資料として区別する"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-035",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "corporate_author",
+   "prompt": "文部省編の教科書",
+   "expect": {
+    "required_behaviour": "機関著者を個人著者として扱わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-auth-036",
+   "category": "author_work_identification",
+   "split": "dev",
+   "task": "author_trap",
+   "trap_id": "same_name_different_person",
+   "prompt": "ジョン・スミス(別人同名)の著作",
+   "expect": {
+    "required_behaviour": "同姓同名を無条件に統合しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-orig-007",
+   "category": "original_translated_title",
+   "split": "dev",
+   "task": "find_original_from_translation",
+   "given_title": "Capital",
+   "given_language": "en",
+   "expect": {
+    "work": "marx-kapital",
+    "original_title": "Das Kapital",
+    "author": "Karl Marx"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-orig-009",
+   "category": "original_translated_title",
+   "split": "dev",
+   "task": "work_identity_across_languages",
+   "given_title": "資本論",
+   "given_language": "ja",
+   "expect": {
+    "work": "marx-kapital",
+    "original_title": "Das Kapital",
+    "first_publication_year": 1867
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-orig-010",
+   "category": "original_translated_title",
+   "split": "dev",
+   "task": "find_original_from_translation",
+   "given_title": "Der Wohlstand der Nationen",
+   "given_language": "de",
+   "expect": {
+    "work": "smith-wealth",
+    "original_title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+    "author": "Adam Smith"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-orig-011",
+   "category": "original_translated_title",
+   "split": "dev",
+   "task": "find_translations_from_original",
+   "given_title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+   "expect": {
+    "work": "smith-wealth",
+    "translated_titles": {
+     "ja": [
+      "国富論"
+     ],
+     "de": [
+      "Der Wohlstand der Nationen"
+     ]
+    }
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-orig-012",
+   "category": "original_translated_title",
+   "split": "dev",
+   "task": "work_identity_across_languages",
+   "given_title": "国富論",
+   "given_language": "ja",
+   "expect": {
+    "work": "smith-wealth",
+    "original_title": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+    "first_publication_year": 1776
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-orig-030",
+   "category": "original_translated_title",
+   "split": "dev",
+   "task": "work_identity_across_languages",
+   "given_title": "レ・ミゼラブル",
+   "given_language": "ja",
+   "expect": {
+    "work": "hugo-miserables",
+    "original_title": "Les Misérables",
+    "first_publication_year": 1862
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-hist-003",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "鐵道",
+   "expect": {
+    "modern_form": "鉄道",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-004",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "學術",
+   "expect": {
+    "modern_form": "学術",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-007",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "機關車",
+   "expect": {
+    "modern_form": "機関車",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-008",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "歐洲",
+   "expect": {
+    "modern_form": "欧州",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-011",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "佛蘭西",
+   "expect": {
+    "modern_form": "フランス",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-013",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "英吉利",
+   "expect": {
+    "modern_form": "イギリス",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-014",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "澤山",
+   "expect": {
+    "modern_form": "沢山",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-015",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "廣島",
+   "expect": {
+    "modern_form": "広島",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-016",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "櫻",
+   "expect": {
+    "modern_form": "桜",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-017",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "龍",
+   "expect": {
+    "modern_form": "竜",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-018",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "國語",
+   "expect": {
+    "modern_form": "国語",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-020",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "思ふ",
+   "expect": {
+    "modern_form": "思う",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-022",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "ゐる",
+   "expect": {
+    "modern_form": "いる",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-023",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "steam-engine",
+   "expect": {
+    "modern_form": "steam engine",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-026",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "Dampfmafchine",
+   "expect": {
+    "modern_form": "Dampfmaschine",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-027",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "sçavoir",
+   "expect": {
+    "modern_form": "savoir",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-hist-028",
+   "category": "historical_notation",
+   "split": "dev",
+   "task": "historical_form_search",
+   "historical_form": "connoître",
+   "expect": {
+    "modern_form": "connaître",
+    "rule": "正規化は検索補助のみ;原文・逐語引用は改変しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-002",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "de",
+   "query_term": "Dampfmaschine",
+   "expect": {
+    "concept": "steam_engine",
+    "labels": {
+     "ja": "蒸気機関",
+     "en": "steam engine",
+     "de": "Dampfmaschine",
+     "fr": "machine à vapeur",
+     "fi": "höyrykone",
+     "sv": "ångmaskin",
+     "nl": "stoommachine"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-004",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "ja",
+   "query_term": "蒸気機関",
+   "expect": {
+    "concept": "steam_engine",
+    "labels": {
+     "ja": "蒸気機関",
+     "en": "steam engine",
+     "de": "Dampfmaschine",
+     "fr": "machine à vapeur",
+     "fi": "höyrykone",
+     "sv": "ångmaskin",
+     "nl": "stoommachine"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-009",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "en",
+   "query_term": "railway",
+   "expect": {
+    "concept": "railway",
+    "labels": {
+     "ja": "鉄道",
+     "en": "railway",
+     "de": "Eisenbahn",
+     "fr": "chemin de fer",
+     "fi": "rautatie",
+     "sv": "järnväg",
+     "nl": "spoorweg"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-012",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "ja",
+   "query_term": "鉄道",
+   "expect": {
+    "concept": "railway",
+    "labels": {
+     "ja": "鉄道",
+     "en": "railway",
+     "de": "Eisenbahn",
+     "fr": "chemin de fer",
+     "fi": "rautatie",
+     "sv": "järnväg",
+     "nl": "spoorweg"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-014",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "de",
+   "query_term": "Buchdruck",
+   "expect": {
+    "concept": "printing",
+    "labels": {
+     "ja": "印刷",
+     "en": "printing",
+     "de": "Buchdruck",
+     "fr": "imprimerie",
+     "fi": "kirjapaino",
+     "sv": "boktryckeri",
+     "nl": "boekdrukkunst"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-016",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "ja",
+   "query_term": "印刷",
+   "expect": {
+    "concept": "printing",
+    "labels": {
+     "ja": "印刷",
+     "en": "printing",
+     "de": "Buchdruck",
+     "fr": "imprimerie",
+     "fi": "kirjapaino",
+     "sv": "boktryckeri",
+     "nl": "boekdrukkunst"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-020",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "ja",
+   "query_term": "養蚕",
+   "expect": {
+    "concept": "sericulture",
+    "labels": {
+     "ja": "養蚕",
+     "en": "sericulture",
+     "de": "Seidenraupenzucht",
+     "fr": "sériciculture",
+     "fi": "silkkiäistoukan kasvatus",
+     "sv": "silkesodling",
+     "nl": "zijdeteelt"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-022",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "de",
+   "query_term": "Pockenimpfung",
+   "expect": {
+    "concept": "vaccination",
+    "labels": {
+     "ja": "種痘",
+     "en": "vaccination",
+     "de": "Pockenimpfung",
+     "fr": "vaccination",
+     "fi": "isorokkorokotus",
+     "sv": "vaccination",
+     "nl": "inenting"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-028",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "ja",
+   "query_term": "電信",
+   "expect": {
+    "concept": "telegraph",
+    "labels": {
+     "ja": "電信",
+     "en": "telegraph",
+     "de": "Telegraf",
+     "fr": "télégraphe",
+     "fi": "lennätin",
+     "sv": "telegraf",
+     "nl": "telegraaf"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-030",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "de",
+   "query_term": "Spinnerei",
+   "expect": {
+    "concept": "textile_mill",
+    "labels": {
+     "ja": "紡績",
+     "en": "textile mill",
+     "de": "Spinnerei",
+     "fr": "filature",
+     "fi": "kehruutehdas",
+     "sv": "spinneri",
+     "nl": "spinnerij"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-033",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "en",
+   "query_term": "lighthouse",
+   "expect": {
+    "concept": "lighthouse",
+    "labels": {
+     "ja": "灯台",
+     "en": "lighthouse",
+     "de": "Leuchtturm",
+     "fr": "phare",
+     "fi": "majakka",
+     "sv": "fyr",
+     "nl": "vuurtoren"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-035",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "fr",
+   "query_term": "phare",
+   "expect": {
+    "concept": "lighthouse",
+    "labels": {
+     "ja": "灯台",
+     "en": "lighthouse",
+     "de": "Leuchtturm",
+     "fr": "phare",
+     "fi": "majakka",
+     "sv": "fyr",
+     "nl": "vuurtoren"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-mult-037",
+   "category": "multilingual_subject",
+   "split": "dev",
+   "task": "subject_search_from_language",
+   "query_language": "en",
+   "query_term": "canal",
+   "expect": {
+    "concept": "canal",
+    "labels": {
+     "ja": "運河",
+     "en": "canal",
+     "de": "Kanal",
+     "fr": "canal",
+     "fi": "kanava",
+     "sv": "kanal",
+     "nl": "kanaal"
+    },
+    "rule": "原語クエリは必ず実行;他言語ラベルは発見用展開"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-edit-001",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "distinguish_edition",
+   "title": "Kritik der reinen Vernunft",
+   "year": 1781,
+   "expect": {
+    "edition": "kant-kritik-A",
+    "edition_label": "第1版(A版)",
+    "rule": "同一作品でも版が異なればページ・OCR・引用を共有しない"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-edit-004",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "distinguish_edition",
+   "title": "On the Origin of Species",
+   "year": 1872,
+   "expect": {
+    "edition": "darwin-origin-6",
+    "edition_label": "第6版",
+    "rule": "同一作品でも版が異なればページ・OCR・引用を共有しない"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-edit-009",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "must_not_merge",
+   "trap_id": "kant-A-vs-B",
+   "prompt": "1781年版と1787年版の『純粋理性批判』",
+   "expect": {
+    "required_behaviour": "同一作品の異なる版として区別し、統合しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-edit-012",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "must_not_merge",
+   "trap_id": "genji-translations",
+   "prompt": "源氏物語の Waley 訳と Tyler 訳",
+   "expect": {
+    "required_behaviour": "同一作品の異なる翻訳として区別する"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-edit-013",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "must_not_merge",
+   "trap_id": "genji-vs-modern-ja",
+   "prompt": "源氏物語の原文と谷崎潤一郎の現代語訳",
+   "expect": {
+    "required_behaviour": "原文と現代語訳を別表現として区別する"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-edit-017",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "must_not_merge",
+   "trap_id": "abridged-vs-full",
+   "prompt": "抄訳と全訳",
+   "expect": {
+    "required_behaviour": "抄訳を全訳と同一視しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-edit-025",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "edition_from_year_and_title",
+   "title": "Principia",
+   "year": 1687,
+   "expect": {
+    "edition": "newton-principia-1"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-edit-029",
+   "category": "edition_identification",
+   "split": "dev",
+   "task": "edition_from_year_and_title",
+   "title": "Kritik der reinen Vernunft",
+   "year": 1781,
+   "expect": {
+    "edition": "kant-kritik-A"
+   },
+   "label_provenance": {
+    "source": "bibliographic_source_supported",
+    "basis": "standard bibliographic record fact (national-library catalogue data: author dates, first-edition year, original title) restated without alteration"
+   }
+  },
+  {
+   "id": "b10-clai-002",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_snippet_match",
+   "claim_id": "meiji-hydro",
+   "statement": "明治時代の日本で水力発電所が建設された",
+   "structure": {
+    "subject": "日本",
+    "event": "水力発電所の建設",
+    "era": "明治"
+   },
+   "snippet": "1925年に明治期の発電事業を回顧した資料",
+   "expect": {
+    "evidence_state": "contextual_only",
+    "rule": "語彙一致だけで supported に昇格させない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-004",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_snippet_match",
+   "claim_id": "railway-1872",
+   "statement": "日本の鉄道は1872年に開業した",
+   "structure": {
+    "subject": "日本",
+    "event": "鉄道開業",
+    "year": 1872
+   },
+   "snippet": "1872年の新橋・横浜間開業を報じる資料",
+   "expect": {
+    "evidence_state": "supported_candidate",
+    "rule": "語彙一致だけで supported に昇格させない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-005",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_snippet_match",
+   "claim_id": "railway-1872",
+   "statement": "日本の鉄道は1872年に開業した",
+   "structure": {
+    "subject": "日本",
+    "event": "鉄道開業",
+    "year": 1872
+   },
+   "snippet": "1889年の東海道線全通を報じる資料",
+   "expect": {
+    "evidence_state": "contextual_only",
+    "rule": "語彙一致だけで supported に昇格させない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-007",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_snippet_match",
+   "claim_id": "origin-1859",
+   "statement": "『種の起源』は1859年に刊行された",
+   "structure": {
+    "work": "On the Origin of Species",
+    "year": 1859
+   },
+   "snippet": "1872年刊行の第6版の書誌情報",
+   "expect": {
+    "evidence_state": "contextual_only",
+    "rule": "語彙一致だけで supported に昇格させない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-011",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_snippet_match",
+   "claim_id": "printing-gutenberg",
+   "statement": "グーテンベルクの活版印刷は15世紀半ばに始まった",
+   "structure": {
+    "person": "Gutenberg",
+    "topic": "活版印刷",
+    "century": 15
+   },
+   "snippet": "中国の木版印刷を記した資料",
+   "expect": {
+    "evidence_state": "insufficient_evidence",
+    "rule": "語彙一致だけで supported に昇格させない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-012",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_snippet_match",
+   "claim_id": "telegraph-japan",
+   "statement": "日本で電信が実用化されたのは明治初期である",
+   "structure": {
+    "subject": "日本",
+    "topic": "電信",
+    "era": "明治初期"
+   },
+   "snippet": "1869年の東京・横浜間電信開通を記した資料",
+   "expect": {
+    "evidence_state": "supported_candidate",
+    "rule": "語彙一致だけで supported に昇格させない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-017",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_numeric_match",
+   "claim_id": "year-mismatch",
+   "statement": "発電所は明治30年に完成した",
+   "snippet": "原文は明治13年の完成と記す",
+   "expect": {
+    "evidence_state": "conflicting_candidate",
+    "rule": "年代の不一致を矛盾候補として示す"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-027",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "meiji-hydro-struct-6",
+   "statement": "明治時代の日本で水力発電所が建設された",
+   "expect": {
+    "structure": {
+     "subject": "日本",
+     "event": "水力発電所の建設",
+     "era": "明治"
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-029",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "origin-1859-struct-8",
+   "statement": "『種の起源』は1859年に刊行された",
+   "expect": {
+    "structure": {
+     "work": "On the Origin of Species",
+     "year": 1859
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-030",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "steam-japan-struct-9",
+   "statement": "明治初期の日本に蒸気機関が導入された",
+   "expect": {
+    "structure": {
+     "subject": "日本",
+     "topic": "蒸気機関",
+     "era": "明治初期"
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-032",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "telegraph-japan-struct-11",
+   "statement": "日本で電信が実用化されたのは明治初期である",
+   "expect": {
+    "structure": {
+     "subject": "日本",
+     "topic": "電信",
+     "era": "明治初期"
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-033",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "meiji-hydro-struct-12",
+   "statement": "明治時代の日本で水力発電所が建設された",
+   "expect": {
+    "structure": {
+     "subject": "日本",
+     "event": "水力発電所の建設",
+     "era": "明治"
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-034",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "railway-1872-struct-13",
+   "statement": "日本の鉄道は1872年に開業した",
+   "expect": {
+    "structure": {
+     "subject": "日本",
+     "event": "鉄道開業",
+     "year": 1872
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-036",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "steam-japan-struct-15",
+   "statement": "明治初期の日本に蒸気機関が導入された",
+   "expect": {
+    "structure": {
+     "subject": "日本",
+     "topic": "蒸気機関",
+     "era": "明治初期"
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-clai-037",
+   "category": "claim_evidence",
+   "split": "dev",
+   "task": "claim_structure_extraction",
+   "claim_id": "printing-gutenberg-struct-16",
+   "statement": "グーテンベルクの活版印刷は15世紀半ばに始まった",
+   "expect": {
+    "structure": {
+     "person": "Gutenberg",
+     "topic": "活版印刷",
+     "century": 15
+    },
+    "rule": "主張の構造化は真偽判定ではない;原文にない主体・時代・数値を補わない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-002",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference",
+   "pair_id": "scope-difference",
+   "statement_a": "管内の発電所は12か所",
+   "statement_b": "全国の発電所は300か所",
+   "expect": {
+    "classification": "differing_scope",
+    "note": "集計範囲が異なる",
+    "rule": "意味的矛盾が独立検証されない限りcontradiction_confirmed としない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-003",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference",
+   "pair_id": "time-difference",
+   "statement_a": "明治20年の鉄道延長",
+   "statement_b": "明治40年の鉄道延長",
+   "expect": {
+    "classification": "differing_time",
+    "note": "時点が異なる",
+    "rule": "意味的矛盾が独立検証されない限りcontradiction_confirmed としない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-006",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference",
+   "pair_id": "definition-difference",
+   "statement_a": "発電所(水力のみ)",
+   "statement_b": "発電所(火力を含む)",
+   "expect": {
+    "classification": "differing_scope",
+    "note": "定義範囲が異なる",
+    "rule": "意味的矛盾が独立検証されない限りcontradiction_confirmed としない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-007",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference",
+   "pair_id": "true-contradiction-1",
+   "statement_a": "開業は1872年",
+   "statement_b": "開業は1882年",
+   "expect": {
+    "classification": "contradiction_candidate",
+    "note": "同対象・同時点で年が異なる",
+    "rule": "意味的矛盾が独立検証されない限りcontradiction_confirmed としない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-009",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference",
+   "pair_id": "ocr-suspect",
+   "statement_a": "明治36年",
+   "statement_b": "明治86年",
+   "expect": {
+    "classification": "contradiction_candidate",
+    "note": "OCR誤認の可能性を併記する",
+    "rule": "意味的矛盾が独立検証されない限りcontradiction_confirmed としない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-013",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference_reversed",
+   "pair_id": "time-difference-rev",
+   "statement_a": "明治40年の鉄道延長",
+   "statement_b": "明治20年の鉄道延長",
+   "expect": {
+    "classification": "differing_time"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-014",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference_reversed",
+   "pair_id": "notation-difference-rev",
+   "statement_a": "水力発電",
+   "statement_b": "水力發電",
+   "expect": {
+    "classification": "consistent_candidate"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-015",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference_reversed",
+   "pair_id": "translation-difference-rev",
+   "statement_a": "steam engine",
+   "statement_b": "蒸気機関",
+   "expect": {
+    "classification": "consistent_candidate"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-016",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference_reversed",
+   "pair_id": "definition-difference-rev",
+   "statement_a": "発電所(火力を含む)",
+   "statement_b": "発電所(水力のみ)",
+   "expect": {
+    "classification": "differing_scope"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-cont-018",
+   "category": "contradiction",
+   "split": "dev",
+   "task": "classify_difference_reversed",
+   "pair_id": "true-contradiction-2-rev",
+   "statement_a": "出力は800キロワット",
+   "statement_b": "出力は500キロワット",
+   "expect": {
+    "classification": "contradiction_candidate"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-001",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "明治時代のテレビ放送に関する資料",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-003",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "江戸時代の蒸気機関車の営業運行記録",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-010",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "明治時代の飛行機による旅客輸送の記録",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-012",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "シェイクスピアが書いた映画の脚本",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-013",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "ベートーヴェンの演奏を収めたレコード",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-016",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "森鷗外が書いた『こころ』",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-020",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "平安時代に発行された日刊新聞",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-024",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "キュリー夫人が発見したペニシリン",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-025",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "フレミングが行った放射能研究",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-028",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "ヴォルテールが書いた『社会契約論』",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  },
+  {
+   "id": "b10-fals-030",
+   "category": "false_premise_negative",
+   "split": "dev",
+   "task": "false_premise_handling",
+   "prompt": "明治5年に開業した新幹線",
+   "expect": {
+    "required_behaviour": "誤った前提を指摘し、前提に合致する根拠を採用しない;関連資料の発見と前提の成立を混同しない"
+   },
+   "label_provenance": {
+    "source": "agent_assigned",
+    "basis": "agent-assigned expectation; not human-reviewed"
+   }
+  }
+ ]
+}
