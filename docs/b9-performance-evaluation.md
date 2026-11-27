@@ -6,6 +6,13 @@ results in `eval/results-b9-perf.json`) on the development VM
 production benchmark, and no load was placed on any real
 library API (brief section 37).
 
+> Final-review note (2026-11-27): the table below is the
+> candidate-era measurement. Configuration C (excerpt) no
+> longer exists — the final review removed the excerpt tool —
+> and `eval/b9_perf.py` now records that removal instead of
+> benchmarking it. The remaining configurations are unchanged
+> in shape (5-tool profile, 4 scopes).
+
 ## Configurations
 
 | Measurement | Median ms | Min ms | Max ms |
