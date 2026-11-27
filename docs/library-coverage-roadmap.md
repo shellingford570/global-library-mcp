@@ -81,3 +81,14 @@ unachieved from the development network (Finna 403; Digi OAI
 reachable at protocol level, real-binding verification not
 achieved). DPLA remains authentication_required. Next
 milestone: b9 External MCP Readiness (design only in b8).
+
+## b9 update (2026-11-27)
+
+b9 added no new libraries; it made the existing 13 adapters
+reachable from external AI clients under the transfer matrix
+(docs/b9-library-transfer-matrix.md). Remaining coverage
+gaps are unchanged: DPLA and Europeana await API keys
+(separate approval), Finna/Digi await a network from which
+they answer, Gallica remains 403 from this network. Next
+coverage work belongs to b10 planning
+(docs/b10-candidates.md).

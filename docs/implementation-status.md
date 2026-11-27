@@ -1,8 +1,24 @@
 # Implementation status
 
-Last updated: 2026-11-26 (branch `feat/global-coverage-b8`, b8 candidate).
+Last updated: 2026-11-27 (branch `feat/external-mcp-readiness-b9`, b9 candidate).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
+
+## External MCP Readiness (b9)
+
+| Capability | Status | Notes |
+|---|---|---|
+| external-research profile | implemented, verified locally | Separate FastMCP server; 5 allowlisted tools verified at startup (final review reduced 9 -> 5); full 15 / research 14 unchanged |
+| search / fetch (OpenAI shape) | implemented, verified locally | Typed projections; no raw fields; offset pagination (continuation tokens removed in the final review) |
+| External document/page ids | implemented, verified | Versioned strict tokens over (library_id, record_id) |
+| External transfer rights policy | implemented, verified | Independent of workspace policy; matrix for 13 adapters; full text/binaries never; excerpts default-off |
+| OAuth 2.1 resource-server validation | implemented, verified with a synthetic AS | JWKS/iss/aud/exp/scopes via PyJWT; RFC 9728 PRM + 401 challenge over real HTTP; NOT a production IdP |
+| Consent / budgets / isolation | implemented, verified | Server-side consent; per-user budgets, concurrency, deadlines; per-user caches/ledgers |
+| Audit log / kill switch / revocation | implemented, verified | Pseudonymised, no research content; GLM_EXTERNAL_DISABLED |
+| doctor CLI | implemented, verified | No-network diagnostics; --live is opt-in |
+| Secure MCP Tunnel | **not created** | Runbook only (docs/secure-mcp-tunnel.md); separate approval required |
+| ChatGPT connection | **not performed** | Official research: full MCP for Business/Enterprise-Edu, Pro read/fetch, Plus unconfirmed; docs/b9-openai-compatibility.md |
+| Workspace from external profile | unreachable by construction | Import-boundary + canary tests |
 
 ## Global Coverage II (b8)
 

@@ -1,0 +1,18 @@
+{"responseHeader": {"status": 0}, "response": {"numFound": 3, "start": 0, "docs": [
+  {"identifier": "onoriginofspecie1859darw",
+   "title": "On the origin of species by means of natural selection",
+   "creator": "Darwin, Charles, 1809-1882", "date": "1859", "language": "eng",
+   "licenseurl": "http://creativecommons.org/publicdomain/mark/1.0/",
+   "mediatype": "texts",
+   "description": "CANARY-DESCRIPTION-9e1b must never cross the external surface",
+   "notes": "CANARY-NOTES-9e1b internal cataloguing note"},
+  {"identifier": "principlesofgeol00lyel",
+   "title": "Principles of geology",
+   "creator": "Lyell, Charles, Sir, 1797-1875", "date": "1837", "language": "eng",
+   "licenseurl": "http://creativecommons.org/licenses/by/4.0/",
+   "mediatype": "texts"},
+  {"identifier": "bulkytitleitem1900aaaa",
+   "title": "A very long bibliographic title AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+   "creator": "Verbose, Victor", "date": "1900", "language": "eng",
+   "licenseurl": "http://creativecommons.org/publicdomain/mark/1.0/",
+   "mediatype": "texts"}]}}

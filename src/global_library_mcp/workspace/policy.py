@@ -230,7 +230,10 @@ def is_server_source(source: Any) -> bool:
 
 def _observation_is_future(observed_at: Any) -> bool:
     if not isinstance(observed_at, str) or not observed_at:
-        return False
+        # b9 section 5.1: a missing or malformed timestamp cannot
+        # establish provenance - treat it like an unparseable one
+        # (untrusted), never as "not future, therefore fine".
+        return True
     try:
         from datetime import datetime, timezone
         ts = datetime.strptime(observed_at, "%Y-%m-%dT%H:%M:%SZ").replace(
@@ -260,15 +263,13 @@ def observation_trust(observation: dict[str, Any]) -> str:
     if trust == TRUST_SERVER_OBSERVED and is_server_source(source) \
             and not _observation_is_future(observation.get("observed_at")):
         return TRUST_SERVER_OBSERVED
-    if trust is None and is_server_source(source) \
-            and not _observation_is_future(observation.get("observed_at")):
-        # Pre-v4 rows written by this server itself (the only
-        # writer of these sources before the trust column
-        # existed) - but ONLY in a database that was never
-        # restored; the restore path rewrites every pre-existing
-        # row's trust to restored_claim, so a restored database
-        # cannot reach this branch with a forged row.
-        return TRUST_SERVER_OBSERVED
+    # b9 section 5.1: the pre-v4 compatibility branch (trust
+    # missing + a server-looking source string implies trust)
+    # was removed. The schema-v4 migration backfills an
+    # explicit trust value for every row a real database can
+    # contain, and add_rights_observation always writes one,
+    # so a row reaching this function WITHOUT a trust value
+    # has unprovable provenance - fail closed as a claim.
     return TRUST_IMPORTED_CLAIM
 
 

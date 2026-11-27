@@ -52,3 +52,14 @@
   した。表示分類は保存許可判断には使わない。
 - Finna の usageRights は機関独自ラベルとして保持し、
   正式ライセンスとは区別する（従来どおり）。
+
+## b9 addendum (2026-11-27)
+
+External transfer adds a second, independent normalisation:
+`external/rights_policy.py` classifies the item statement
+from its structured rights URI (via the shared
+`rights_uri.py`) into transfer categories, and combines it
+with the per-library transfer matrix. It deliberately does
+not reuse workspace observations or the storage decision:
+storage permission and transfer permission are different
+questions with different defaults.

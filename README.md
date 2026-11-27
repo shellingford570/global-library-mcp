@@ -112,6 +112,28 @@ honestly in docs/b8-live-verification.md - Finna and Digi
 could not be reached from the development network and are
 fixture-verified only. See docs/b8-global-coverage-ii.md.
 
+### External MCP Readiness (1.0.0b9)
+
+A separate **external-research** MCP profile for external AI
+clients: a dedicated FastMCP server exposing only 9
+allowlisted read-only tools (`search`/`fetch` in the OpenAI
+shape, library listing/capabilities, rights, original
+verification, a policy-gated excerpt tool, and external
+materials/comparison projections), with OAuth 2.1 token
+validation and per-tool scopes, server-side user consent,
+per-user budgets and deadlines, and an **external transfer
+rights policy** that is independent of the workspace storage
+policy — OCR full text and image binaries never leave, and
+excerpts are disabled by default. The Research Workspace is
+structurally unreachable from this profile. Connection
+runbooks for ChatGPT (via Secure MCP Tunnel) are prepared in
+docs/chatgpt-connection.md, but **no tunnel has been created
+and ChatGPT has not been connected**; official plan research
+(2026-11-27) found full MCP documented for Business and
+Enterprise/Edu and read/fetch connections for Pro, with no
+documented custom-MCP route for Plus. See
+docs/b9-external-mcp-readiness.md.
+
 ## Quick start (local)
 
 ```bash
@@ -139,8 +161,11 @@ Run `global-library-mcp mcp` (stdio) and configure that
 command in your MCP client. A local Streamable HTTP transport
 is also available (`global-library-mcp mcp --transport
 streamable-http`, bound to 127.0.0.1), and
-`--profile research` exposes a read-only tool set for external
-AI clients. See `docs/mcp-clients.md`. Tools include
+`--profile research` exposes a read-only tool set.
+`--profile external-research` (b9) starts the separate
+external server described above, on port 8002 by convention;
+`global-library-mcp doctor` checks the configuration without
+any network access. See `docs/mcp-clients.md`. Tools include
 `research_materials` (the beta's primary tool),
 `search_across_libraries`, `search_catalog`,
 `get_document`, `search_in_document`, `get_page_text`,

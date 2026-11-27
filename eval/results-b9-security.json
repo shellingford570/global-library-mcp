@@ -1,0 +1,1035 @@
+{
+ "suite": "b9-external-security",
+ "total": 164,
+ "passed": 164,
+ "failed": [],
+ "by_category": {
+  "normal": {
+   "total": 20,
+   "passed": 20
+  },
+  "rights": {
+   "total": 30,
+   "passed": 30
+  },
+  "auth": {
+   "total": 24,
+   "passed": 24
+  },
+  "injection": {
+   "total": 20,
+   "passed": 20
+  },
+  "isolation": {
+   "total": 20,
+   "passed": 20
+  },
+  "ssrf": {
+   "total": 30,
+   "passed": 30
+  },
+  "limits": {
+   "total": 20,
+   "passed": 20
+  }
+ },
+ "mandatory_zero_metrics": {
+  "workspace_leaks": 0,
+  "unknown_rights_text_transfers": 0,
+  "forbidden_text_transfers": 0,
+  "secret_leaks": 0,
+  "cross_user_contamination": 0,
+  "bad_url_fetches": 0,
+  "budget_overruns": 0,
+  "oversize_responses": 0,
+  "post_deadline_work": 0,
+  "post_revocation_successes": 0,
+  "note": "zeros are within this synthetic case set only; they do not prove the absence of unknown vulnerabilities"
+ },
+ "cases": [
+  {
+   "category": "normal",
+   "case": "A_historical_search",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "B_darwin_editions",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "C_kant_multilingual",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "D_newspaper_search",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "E_nordic_search",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "H_false_premise",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "list_libraries",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "capabilities",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "fetch_doc",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "rights_doc",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_limit_1",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_limit_20",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_libraries_subset",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_year_filter",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_title_filter",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "fetch_second",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "search_offset_pagination",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "removed_excerpt_tool",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "removed_verify_tool",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "normal",
+   "case": "removed_compare_tool",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "rights",
+   "case": "ndl_1",
+   "passed": true,
+   "detail": "category=public_domain"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_2",
+   "passed": true,
+   "detail": "category=public_domain"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_3",
+   "passed": true,
+   "detail": "category=cc_by"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_4",
+   "passed": true,
+   "detail": "category=cc_nc"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_5",
+   "passed": true,
+   "detail": "category=copyrighted"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_6",
+   "passed": true,
+   "detail": "category=noc_nc"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_7",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_8",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_9",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "ndl_10",
+   "passed": true,
+   "detail": "category=copyrighted"
+  },
+  {
+   "category": "rights",
+   "case": "finna_11",
+   "passed": true,
+   "detail": "category=public_domain"
+  },
+  {
+   "category": "rights",
+   "case": "finna_12",
+   "passed": true,
+   "detail": "category=public_domain"
+  },
+  {
+   "category": "rights",
+   "case": "finna_13",
+   "passed": true,
+   "detail": "category=cc_by"
+  },
+  {
+   "category": "rights",
+   "case": "finna_14",
+   "passed": true,
+   "detail": "category=cc_nc"
+  },
+  {
+   "category": "rights",
+   "case": "finna_15",
+   "passed": true,
+   "detail": "category=copyrighted"
+  },
+  {
+   "category": "rights",
+   "case": "finna_16",
+   "passed": true,
+   "detail": "category=noc_nc"
+  },
+  {
+   "category": "rights",
+   "case": "finna_17",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "finna_18",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "finna_19",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "finna_20",
+   "passed": true,
+   "detail": "category=copyrighted"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_21",
+   "passed": true,
+   "detail": "category=public_domain"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_22",
+   "passed": true,
+   "detail": "category=public_domain"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_23",
+   "passed": true,
+   "detail": "category=cc_by"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_24",
+   "passed": true,
+   "detail": "category=cc_nc"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_25",
+   "passed": true,
+   "detail": "category=copyrighted"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_26",
+   "passed": true,
+   "detail": "category=noc_nc"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_27",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_28",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_29",
+   "passed": true,
+   "detail": "category=unknown"
+  },
+  {
+   "category": "rights",
+   "case": "kb-delpher_30",
+   "passed": true,
+   "detail": "category=copyrighted"
+  },
+  {
+   "category": "auth",
+   "case": "valid",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "expired",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "wrong_audience",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "wrong_issuer",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "no_sub",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "only_catalog:search",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "only_metadata:read",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "only_libraries:read",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "only_references:read",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "empty_scope",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "garbage",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "empty",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "forged_signature",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "alg_none",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "no_scope_search",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "full_scope_search",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "no_scope_fetch",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "full_scope_fetch",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "no_scope_list_libraries",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "full_scope_list_libraries",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "no_scope_get_library_capabilities",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "full_scope_get_library_capabilities",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "no_scope_get_document_rights",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "auth",
+   "case": "full_scope_get_document_rights",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_0",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_0",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_1",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_1",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_2",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_2",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_3",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_3",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_4",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_4",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_5",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_5",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_6",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_6",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_7",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_7",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_8",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_8",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "search_payload_9",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "injection",
+   "case": "excerpt_tool_absent_9",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "b_no_consent_despite_a_cache",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "b_own_search_ok",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "offset_pagination_stateless",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "cache_invalidated_by_consent_change",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "a_budget_exhausted",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "b_budget_unaffected",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "a_revoked_blocked",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "b_unaffected_by_a_revoke",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "audit_pseudonymised",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "cache_namespaced",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_0",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_1",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_2",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_3",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_4",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_5",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_6",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_7",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_8",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "isolation",
+   "case": "scope_isolation_9",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_0",
+   "passed": true,
+   "detail": "http://example.org/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_1",
+   "passed": true,
+   "detail": "https://127.0.0.1/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_2",
+   "passed": true,
+   "detail": "https://10.0.0.5/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_3",
+   "passed": true,
+   "detail": "https://172.16.0.9/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_4",
+   "passed": true,
+   "detail": "https://192.168.1.1/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_5",
+   "passed": true,
+   "detail": "https://169.254.169.254/latest/meta-data/"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_6",
+   "passed": true,
+   "detail": "https://[::1]/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_7",
+   "passed": true,
+   "detail": "https://[::ffff:127.0.0.1]/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_8",
+   "passed": true,
+   "detail": "https://[fe80::1]/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_9",
+   "passed": true,
+   "detail": "https://[fd00::1]/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_10",
+   "passed": true,
+   "detail": "https://2130706433/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_11",
+   "passed": true,
+   "detail": "https://0x7f000001/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_12",
+   "passed": true,
+   "detail": "https://0177.0.0.1/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_13",
+   "passed": true,
+   "detail": "https://user:pass@example.org/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_14",
+   "passed": true,
+   "detail": "https://example.org:8443/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_15",
+   "passed": true,
+   "detail": "https://example.org:22/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_16",
+   "passed": true,
+   "detail": "https://localhost/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_17",
+   "passed": true,
+   "detail": "https://foo.localhost/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_18",
+   "passed": true,
+   "detail": "https://example%2eorg/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_19",
+   "passed": true,
+   "detail": "https://exa mple.org/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_20",
+   "passed": true,
+   "detail": "https://100.64.0.1/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_21",
+   "passed": true,
+   "detail": "https://192.0.2.1/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_22",
+   "passed": true,
+   "detail": "https://198.51.100.7/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_23",
+   "passed": true,
+   "detail": "https://203.0.113.9/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_24",
+   "passed": true,
+   "detail": "https://224.0.0.1/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_25",
+   "passed": true,
+   "detail": "https://0.0.0.0/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_26",
+   "passed": true,
+   "detail": "ftp://example.org/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_27",
+   "passed": true,
+   "detail": "//example.org/x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_28",
+   "passed": true,
+   "detail": "https:///x"
+  },
+  {
+   "category": "ssrf",
+   "case": "refuse_29",
+   "passed": true,
+   "detail": "https://example.org@evil.test/x"
+  },
+  {
+   "category": "limits",
+   "case": "deadline_exceeded",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "concurrency_cap_2_and_queue_deadline",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "wait_queue_bounded",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "past_deadline_refused",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "response_size_cap",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "guard_per_host_cap",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "guard_hourly_cap",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_0",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_1",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_2",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_3",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_4",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_5",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_6",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_7",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_8",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_9",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_10",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_11",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "category": "limits",
+   "case": "fresh_user_guard_12",
+   "passed": true,
+   "detail": ""
+  }
+ ]
+}

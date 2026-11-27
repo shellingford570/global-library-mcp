@@ -100,6 +100,27 @@ NDL引き継ぎ候補）、DPLA（認証待ち実装。キーは発行してお
 できずフィクスチャ検証のみ）。詳細は
 docs/b8-global-coverage-ii.md。
 
+### External MCP Readiness（1.0.0b9）
+
+外部AIクライアント向けの専用プロファイル
+**external-research** を新設しました。専用の FastMCP
+サーバーが、allowlist で承認された読み取り専用ツール
+9件（OpenAI 形式の search/fetch、図書館一覧・能力、権利、
+原典検証、ポリシーでゲートされた抜粋、外部向け資料・
+比較プロジェクション）のみを公開します。OAuth 2.1
+トークン検証とツール別スコープ、サーバー側の利用者同意、
+利用者別予算と期限、そしてワークスペースの保存ポリシー
+から独立した**外部送信権利ポリシー**（OCR全文と原本画像
+バイナリは送信せず、抜粋は既定無効）を備えます。
+Research Workspace には構造的に到達できません。
+ChatGPT 接続（Secure MCP Tunnel）の手順書は
+docs/chatgpt-connection.ja.md に用意しましたが、**トンネルは
+未作成で ChatGPT へは未接続**です。公式プラン調査
+（2026-11-27）では、フルMCPは Business / Enterprise・Edu、
+読み取り/取得のカスタム接続は Pro に記載があり、Plus には
+公式経路が確認できませんでした。詳細は
+docs/b9-external-mcp-readiness.md。
+
 ## クイックスタート（ローカル）
 
 ```bash
