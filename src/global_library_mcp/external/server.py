@@ -184,9 +184,16 @@ def _http_attempts(payload: Any) -> int:
 
 def build_external_server(config: ExternalConfig | None = None,
                           service: Any = None,
-                          registry: Any = None) -> tuple[FastMCP, ExternalContext]:
+                          registry: Any = None,
+                          resource_url: str | None = None) -> tuple[FastMCP, ExternalContext]:
     config = config or ExternalConfig.from_env()
     ctx = ExternalContext(config, service=service, registry=registry)
+    # The RFC 9728 resource URL: its path determines the
+    # Protected Resource Metadata well-known location, so it
+    # must be the real MCP endpoint URL (…/mcp), not merely the
+    # token audience string.
+    ctx.resource_url = resource_url or config.audience \
+        or "https://localhost/external-mcp"
 
     auth_settings = None
     token_verifier = None
@@ -199,11 +206,17 @@ def build_external_server(config: ExternalConfig | None = None,
 
         from global_library_mcp.external.auth import ALL_SCOPES as _scopes
 
-        resource = config.audience or "https://localhost/external-mcp"
+        resource = ctx.resource_url
         auth_settings = AuthSettings(
             issuer_url=config.issuer or "https://localhost/test-as",
             resource_server_url=resource,
+            # Per-tool scopes are enforced inside the tools; the
+            # SDK middleware's required_scopes would demand ALL
+            # of them on every request. Token audience binding is
+            # validated by TokenValidator itself (PyJWT aud), so
+            # the SDK resource check is explicitly off.
             required_scopes=[],
+            validate_token_resource=False,
             client_registration_options=ClientRegistrationOptions(enabled=False),
             revocation_options=RevocationOptions(enabled=False),
         )
@@ -239,7 +252,8 @@ class _SdkTokenVerifier:
             token=token, client_id=principal.client_id or "external-client",
             scopes=sorted(principal.scopes), expires_at=principal.expires_at,
             subject=principal.user_id,
-            resource=self.ctx.config.audience or None)
+            resource=getattr(self.ctx, "resource_url", None)
+            or self.ctx.config.audience or None)
 
 
 def _verify_allowlist(server: FastMCP) -> None:
@@ -278,6 +292,14 @@ async def _run_tool(ctx: ExternalContext, tool: str, library_id: str,
                          cancelled=True,
                          duration_ms=int((time.monotonic() - started) * 1000))
         raise
+    except Denied:
+        raise
+    except Exception as exc:  # noqa: BLE001 - deliberate catch-all
+        # Section 27: upstream exceptions can embed URLs, keys or
+        # tracebacks; the external surface returns a stable class
+        # only, and the audit log records the exception TYPE.
+        status, error_class = "error", type(exc).__name__
+        raise Denied("upstream_error") from exc
     finally:
         if status != "ok" or payload is not None:
             size = len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) \
@@ -633,6 +655,34 @@ def _register_tools(server: FastMCP, ctx: ExternalContext) -> None:
         return await _run_tool(ctx, "compare_documents_external", "", go)
 
 
+def external_http_app(server: FastMCP, ctx: ExternalContext):
+    """The Streamable HTTP app with a corrected RFC 9728
+    document: the SDK derives scopes_supported from
+    required_scopes (kept empty here by design), so the PRM
+    route's endpoint is replaced with one that advertises the
+    real scope set."""
+    from starlette.responses import JSONResponse
+
+    from global_library_mcp.external.auth import protected_resource_metadata
+
+    app = server.streamable_http_app()
+    resource_path = ctx.resource_url.split("://", 1)[-1]
+    resource_path = "/" + resource_path.split("/", 1)[1] \
+        if "/" in resource_path else ""
+    prm_path = "/.well-known/oauth-protected-resource" + resource_path
+
+    async def _prm(_request):
+        return JSONResponse(protected_resource_metadata(
+            ctx.resource_url, ctx.config.issuer, ALL_SCOPES))
+
+    from starlette.routing import Route
+
+    # Inserted FIRST so it wins over the SDK's own PRM route
+    # (which advertises an empty scope set by construction).
+    app.routes.insert(0, Route(prm_path, _prm, methods=["GET"]))
+    return app
+
+
 def run_external(transport: str = "stdio", host: str = "127.0.0.1",
                  port: int = 8002,
                  config: ExternalConfig | None = None) -> None:
@@ -649,7 +699,9 @@ def run_external(transport: str = "stdio", host: str = "127.0.0.1",
     import os as _os
 
     _os.environ.setdefault("GLM_DNS_CHECK", "1")
-    server, ctx = build_external_server(config)
+    resource_url = f"http://{host}:{port}/mcp" \
+        if transport == "streamable-http" else None
+    server, ctx = build_external_server(config, resource_url=resource_url)
     if transport == "stdio":
         # Local stdio clients authenticate via the environment
         # (MCP spec); the local operator is the principal and is
@@ -661,6 +713,8 @@ def run_external(transport: str = "stdio", host: str = "127.0.0.1",
                       "search_terms_upstream", "excerpts"},
             ttl_s=10 * 365 * 24 * 3600)
     if transport == "streamable-http":
+        import uvicorn
+
         from global_library_mcp.mcp_server import (
             _validate_bind_host,
             local_transport_security,
@@ -670,6 +724,7 @@ def run_external(transport: str = "stdio", host: str = "127.0.0.1",
         server.settings.host = host
         server.settings.port = port
         server.settings.transport_security = local_transport_security()
-        server.run(transport="streamable-http")
+        uvicorn.run(external_http_app(server, ctx), host=host, port=port,
+                    log_level="warning")
     else:
         server.run(transport="stdio")
