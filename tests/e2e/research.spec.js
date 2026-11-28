@@ -27,6 +27,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('research journey: question, claim, citation link, assessment, graph, report', async ({ page }) => {
+  page.on('response', (r) => {
+    if (r.url().includes('/research/')) console.log('RESP', r.status(), r.url());
+  });
+  page.on('pageerror', (e) => console.log('PAGEERROR', e.message));
   await page.goto('/');
   await expect(page.locator('#workspace-section')).toBeVisible();
 
