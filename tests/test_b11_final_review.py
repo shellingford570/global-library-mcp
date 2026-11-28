@@ -385,8 +385,8 @@ def test_graph_question_claim_and_citation_nodes(tmp_path):
     assert ("page", "has_citation") in edges
     assert ("question", "asks_about") in edges
     # rights change: reference stays, excerpt display forbidden
-    store.add_rights_observation(doc["saved_document_id"], {
-        "category": "in_copyright", "statement": "x"})
+    store.add_rights_observation(doc["saved_document_id"], "x",
+                                  "in_copyright", "test", "changed")
     g2 = build_project_graph(store, pid)
     cn2 = [n for n in g2["nodes"] if n["type"] == "citation"][0]
     assert cn2["reference_available"] is True
