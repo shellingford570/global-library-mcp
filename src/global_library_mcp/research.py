@@ -281,6 +281,18 @@ class ResearchClaim:
     qualifiers: list[str] = field(default_factory=list)
     source_type_required: str = "primary_or_contemporary"
     evidence_status: str = "not_checked"
+    # b11 (section 35): additional structured fields.  Every field
+    # is either extracted verbatim from the statement or left at
+    # its not-extracted state; ``extraction`` records per-field
+    # provenance so "absent" is never confused with "extracted as
+    # empty".  Nothing is inferred beyond surface markers.
+    event: str = ""
+    condition: str = ""
+    modality: str = ""
+    negation: bool | None = None
+    attribution: str = ""
+    uncertainty: str = ""
+    extraction: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in self.__dict__.items()
@@ -331,6 +343,50 @@ def structure_claim(statement: str, claim_id: str = "") -> ResearchClaim:
     claim.qualifiers = [q for q in _QUALIFIERS if q in statement]
     # Predicate/object stay textual: the span after the subject
     # concept's surface, uninterpreted.
+    # b11 (section 35): surface-marker fields, extraction states.
+    low = statement.lower()
+    claim.negation = any(m in statement or m in low
+                         for m in _NEGATION_MARKERS) or None
+    for marker, label in (("とされる", "reported"), ("と見られる", "reported"),
+                          ("と考えられる", "considered"),
+                          ("可能性がある", "possible"),
+                          ("かもしれない", "possible"),
+                          ("may ", "possible"), ("might ", "possible"),
+                          ("主張", "asserted_by_source")):
+        if marker in statement or marker in low:
+            claim.modality = label
+            break
+    for marker in ("によれば", "によると", "according to"):
+        if marker in statement or marker in low:
+            claim.attribution = "explicit_source_marker"
+            break
+    for marker in ("推定", "約", "およそ", "不明", "uncertain",
+                   "estimated", "approximately"):
+        if marker in statement or marker in low:
+            claim.uncertainty = "marked_approximate_or_uncertain"
+            break
+    for marker, label in (("導入", "introduction"), ("建設", "construction"),
+                          ("出版", "publication"), ("設立", "establishment"),
+                          ("開業", "opening"), ("founded", "establishment"),
+                          ("published", "publication"),
+                          ("introduced", "introduction")):
+        if marker in statement or marker in low:
+            claim.event = label
+            break
+    for marker in ("場合", "とき", "条件", "if ", "when "):
+        if marker in statement or marker in low:
+            claim.condition = "conditional_marker_present"
+            break
+    tracked = {"subject": claim.subject, "predicate": claim.predicate,
+               "object": claim.object, "event": claim.event,
+               "time": claim.time, "place": claim.place,
+               "quantity": claim.quantity, "condition": claim.condition,
+               "modality": claim.modality, "negation": claim.negation,
+               "attribution": claim.attribution,
+               "uncertainty": claim.uncertainty}
+    claim.extraction = {
+        k: ("extracted" if v not in (None, "", [], {}) else "not_extracted")
+        for k, v in tracked.items()}
     return claim
 
 
@@ -715,3 +771,92 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
                  "independence is unknown unless explicitly confirmed "
                  "with a basis"),
     }
+
+
+# ---------------------------------------------------------------------------
+# Per-claim evidence summary + source dependence (b11 sections 36-37)
+# ---------------------------------------------------------------------------
+
+def summarize_claim_evidence(assessments: list[dict[str, Any]]) -> dict[str, Any]:
+    """Group claim-evidence assessments for display (section 36).
+
+    Categories stay distinct; a source whose independence is
+    unknown is NEVER counted as independent support, and the
+    summary phrases counts accordingly (``*_count`` keys only -
+    callers must not render unknown-independence items as
+    "multiple independent sources").
+    """
+    groups: dict[str, list[dict[str, Any]]] = {
+        "supporting_candidates": [], "contradicting_candidates": [],
+        "related": [], "insufficient": [], "not_checked": []}
+    for a in assessments:
+        st = a.get("status")
+        if st in ("supported", "supported_candidate"):
+            groups["supporting_candidates"].append(a)
+        elif st in ("contradiction_candidate", "conflicting_candidate"):
+            groups["contradicting_candidates"].append(a)
+        elif st == "insufficient_evidence":
+            groups["insufficient"].append(a)
+        elif st == "not_checked":
+            groups["not_checked"].append(a)
+        else:
+            groups["related"].append(a)
+    confirmed = unknown = 0
+    for a in groups["supporting_candidates"]:
+        if a.get("independence_confirmed") and a.get("independence_basis"):
+            confirmed += 1
+        else:
+            unknown += 1
+    return {
+        **{k: len(v) for k, v in groups.items()},
+        "groups": groups,
+        "supporting_independence_confirmed_count": confirmed,
+        "supporting_independence_unknown_count": unknown,
+        "independence_note": (
+            "independence is unknown unless independence_basis is "
+            "recorded; unknown-independence sources are not "
+            "multiple independent evidence"),
+    }
+
+
+_DEPENDENCE_STATES = ("confirmed_dependent", "suspected_dependent",
+                      "independence_unknown", "independence_confirmed")
+
+
+def assess_source_dependence(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
+    """Assess whether two sources are dependent (section 37).
+
+    Signals: explicit reprint/derivation statements, shared
+    publisher + year, citation-chain overlap, and text similarity.
+    Similarity ALONE can at most raise ``suspected_dependent``;
+    ``confirmed_dependent`` requires an explicit reprint/derived
+    signal; ``independence_confirmed`` requires a recorded basis
+    on both sides and no dependence signal.
+    """
+    signals: list[str] = []
+    explicit = bool(a.get("reprint_of") == b.get("document_id")
+                    or b.get("reprint_of") == a.get("document_id")
+                    or a.get("derived_from") == b.get("document_id")
+                    or b.get("derived_from") == a.get("document_id"))
+    if explicit:
+        signals.append("explicit_reprint_or_derivation")
+    if a.get("publisher") and a.get("publisher") == b.get("publisher") \
+            and a.get("year") and a.get("year") == b.get("year"):
+        signals.append("same_publisher_and_year")
+    shared_refs = set(a.get("cites") or []) & set(b.get("cites") or [])
+    if shared_refs:
+        signals.append("shared_citation_chain")
+    sim = a.get("similarity_to_other")
+    if isinstance(sim, (int, float)) and sim >= 0.9:
+        signals.append("high_text_similarity")
+    if explicit:
+        state = "confirmed_dependent"
+    elif signals:
+        state = "suspected_dependent"
+    elif a.get("independence_basis") and b.get("independence_basis"):
+        state = "independence_confirmed"
+    else:
+        state = "independence_unknown"
+    return {"state": state, "signals": signals,
+            "note": "similarity alone never confirms dependence "
+                    "or independence"}
