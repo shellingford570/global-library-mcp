@@ -1,0 +1,118 @@
+{
+ "dataset": "b11-nli-proxy",
+ "cases": [
+  {
+   "case_id": "nli-en-ent-1",
+   "language": "en",
+   "kind": "direct_support",
+   "premise": "The mill produced 40 kW of power in 1890.",
+   "hypothesis": "The mill produced 40 kW of power in 1890.",
+   "expected_relation": "entailment"
+  },
+  {
+   "case_id": "nli-en-con-1",
+   "language": "en",
+   "kind": "numeric_conflict",
+   "premise": "The mill produced 40 kW of power in 1890.",
+   "hypothesis": "The mill produced 90 kW of power in 1890.",
+   "expected_relation": "contradiction"
+  },
+  {
+   "case_id": "nli-en-neu-1",
+   "language": "en",
+   "kind": "unrelated",
+   "premise": "The mill produced 40 kW of power in 1890.",
+   "hypothesis": "The author was born in London.",
+   "expected_relation": "neutral"
+  },
+  {
+   "case_id": "nli-en-neg-1",
+   "language": "en",
+   "kind": "negation",
+   "premise": "The railway did not reach the town in 1880.",
+   "hypothesis": "The railway reached the town in 1880.",
+   "expected_relation": "contradiction"
+  },
+  {
+   "case_id": "nli-ja-ent-1",
+   "language": "ja",
+   "kind": "direct_support",
+   "premise": "明治二十三年に蒸気機関が導入された。",
+   "hypothesis": "明治二十三年に蒸気機関が導入された。",
+   "expected_relation": "entailment"
+  },
+  {
+   "case_id": "nli-ja-neu-1",
+   "language": "ja",
+   "kind": "unrelated",
+   "premise": "明治二十三年に蒸気機関が導入された。",
+   "hypothesis": "著者はロンドンで生まれた。",
+   "expected_relation": "neutral"
+  },
+  {
+   "case_id": "nli-ja-ocr-1",
+   "language": "ja",
+   "kind": "ocr_noise",
+   "premise": "明治二十三年に蒸氣機關が導入された。",
+   "hypothesis": "明治二十三年に蒸気機関が導入された。",
+   "expected_relation": "entailment"
+  },
+  {
+   "case_id": "nli-de-ent-1",
+   "language": "de",
+   "kind": "direct_support",
+   "premise": "Die Dampfmaschine wurde 1890 eingefuhrt.",
+   "hypothesis": "Die Dampfmaschine wurde 1890 eingefuhrt.",
+   "expected_relation": "entailment"
+  },
+  {
+   "case_id": "nli-de-con-1",
+   "language": "de",
+   "kind": "numeric_conflict",
+   "premise": "Die Leistung betrug 40 kW im Jahr 1890.",
+   "hypothesis": "Die Leistung betrug 90 kW im Jahr 1890.",
+   "expected_relation": "contradiction"
+  },
+  {
+   "case_id": "nli-fr-neu-1",
+   "language": "fr",
+   "kind": "unrelated",
+   "premise": "La machine a vapeur fut introduite en 1890.",
+   "hypothesis": "L'auteur est ne a Paris.",
+   "expected_relation": "neutral"
+  },
+  {
+   "case_id": "nli-fi-neu-1",
+   "language": "fi",
+   "kind": "unrelated",
+   "premise": "Hoyrykone otettiin kayttoon vuonna 1890.",
+   "hypothesis": "Kirjailija syntyi Lontoossa.",
+   "expected_relation": "neutral"
+  },
+  {
+   "case_id": "nli-era-1",
+   "language": "en",
+   "kind": "era_mismatch",
+   "premise": "The mill produced 40 kW of power in 1890.",
+   "hypothesis": "The mill produced 40 kW of power in 1790.",
+   "expected_relation": "contradiction"
+  },
+  {
+   "case_id": "nli-unit-1",
+   "language": "en",
+   "kind": "unit_mismatch",
+   "premise": "The output was 100 kW.",
+   "hypothesis": "The output was 100 MW.",
+   "expected_relation": "neutral"
+  },
+  {
+   "case_id": "nli-partial-1",
+   "language": "en",
+   "kind": "partial",
+   "premise": "The mill produced 40 kW of power in 1890 and employed 30 workers.",
+   "hypothesis": "The mill employed 30 workers.",
+   "expected_relation": "entailment"
+  }
+ ],
+ "note": "Labelled by the agent (proxy). Expected relations describe the intended NLI task, not ground truth from human annotation."
+}

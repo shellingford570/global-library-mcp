@@ -1,0 +1,129 @@
+{
+ "evaluation_kind": "proxy_synthetic_backend",
+ "warning": "NOT a real NLI model measurement; the synthetic backend is a lexical-overlap stand-in",
+ "backend": "synthetic-lexical-overlap-v1",
+ "nli_status": "synthetic_test",
+ "cases": 14,
+ "agreement": 0.8571428571428571,
+ "confusion": {
+  "contradiction->contradiction_candidate": 4,
+  "entailment->entailment": 4,
+  "entailment->neutral": 1,
+  "neutral->entailment": 1,
+  "neutral->neutral": 4
+ },
+ "rows": [
+  {
+   "case_id": "nli-en-ent-1",
+   "language": "en",
+   "kind": "direct_support",
+   "expected": "entailment",
+   "predicted": "entailment",
+   "agree": true
+  },
+  {
+   "case_id": "nli-en-con-1",
+   "language": "en",
+   "kind": "numeric_conflict",
+   "expected": "contradiction",
+   "predicted": "contradiction_candidate",
+   "agree": true
+  },
+  {
+   "case_id": "nli-en-neu-1",
+   "language": "en",
+   "kind": "unrelated",
+   "expected": "neutral",
+   "predicted": "neutral",
+   "agree": true
+  },
+  {
+   "case_id": "nli-en-neg-1",
+   "language": "en",
+   "kind": "negation",
+   "expected": "contradiction",
+   "predicted": "contradiction_candidate",
+   "agree": true
+  },
+  {
+   "case_id": "nli-ja-ent-1",
+   "language": "ja",
+   "kind": "direct_support",
+   "expected": "entailment",
+   "predicted": "entailment",
+   "agree": true
+  },
+  {
+   "case_id": "nli-ja-neu-1",
+   "language": "ja",
+   "kind": "unrelated",
+   "expected": "neutral",
+   "predicted": "neutral",
+   "agree": true
+  },
+  {
+   "case_id": "nli-ja-ocr-1",
+   "language": "ja",
+   "kind": "ocr_noise",
+   "expected": "entailment",
+   "predicted": "neutral",
+   "agree": false
+  },
+  {
+   "case_id": "nli-de-ent-1",
+   "language": "de",
+   "kind": "direct_support",
+   "expected": "entailment",
+   "predicted": "entailment",
+   "agree": true
+  },
+  {
+   "case_id": "nli-de-con-1",
+   "language": "de",
+   "kind": "numeric_conflict",
+   "expected": "contradiction",
+   "predicted": "contradiction_candidate",
+   "agree": true
+  },
+  {
+   "case_id": "nli-fr-neu-1",
+   "language": "fr",
+   "kind": "unrelated",
+   "expected": "neutral",
+   "predicted": "neutral",
+   "agree": true
+  },
+  {
+   "case_id": "nli-fi-neu-1",
+   "language": "fi",
+   "kind": "unrelated",
+   "expected": "neutral",
+   "predicted": "neutral",
+   "agree": true
+  },
+  {
+   "case_id": "nli-era-1",
+   "language": "en",
+   "kind": "era_mismatch",
+   "expected": "contradiction",
+   "predicted": "contradiction_candidate",
+   "agree": true
+  },
+  {
+   "case_id": "nli-unit-1",
+   "language": "en",
+   "kind": "unit_mismatch",
+   "expected": "neutral",
+   "predicted": "entailment",
+   "agree": false
+  },
+  {
+   "case_id": "nli-partial-1",
+   "language": "en",
+   "kind": "partial",
+   "expected": "entailment",
+   "predicted": "entailment",
+   "agree": true
+  }
+ ]
+}
