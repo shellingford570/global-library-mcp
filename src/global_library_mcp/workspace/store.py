@@ -1056,7 +1056,17 @@ class WorkspaceStore:
             rows = self._conn.execute(
                 "SELECT * FROM research_artefacts WHERE project_id = ?"
                 " ORDER BY created_at, artefact_id", (project_id,)).fetchall()
-        return [dict(r) for r in rows]
+        out = []
+        for r in rows:
+            d = dict(r)
+            for key in ("payload", "model"):
+                if isinstance(d.get(key), str):
+                    try:
+                        d[key] = json.loads(d[key])
+                    except (ValueError, TypeError):
+                        d[key] = {}
+            out.append(d)
+        return out
 
     def save_note(self, project_id: str, content: str, *, title: str = "",
                   saved_document_id: str | None = None,

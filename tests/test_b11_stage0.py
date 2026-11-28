@@ -73,9 +73,13 @@ def test_artefact_copied_to_other_project_note_not_trusted(tmp_path):
                           {"pairs": [{"a": "x", "b": "y",
                                       "status": "contradiction_candidate"}]})
     row = store.list_artefact_rows(pid)[0]
+    payload = row["payload"]
+    if not isinstance(payload, dict):
+        payload = json.loads(payload)
     env = {"kind": row["kind"], "version": 2, "trust": "server_generated",
-           "integrity": hashlib.sha256(row["payload"].encode()).hexdigest(),
-           "payload": json.loads(row["payload"])}
+           "integrity": hashlib.sha256(
+               json.dumps(payload, sort_keys=True).encode()).hexdigest(),
+           "payload": payload}
     store.save_note(pid2, json.dumps(env), title="copy")
     assert project_research_progress(store, pid2)["contradiction_candidates"] == 0
     assert saved["trust"] == "server_generated"

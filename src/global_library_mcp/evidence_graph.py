@@ -117,11 +117,14 @@ def build_project_graph(store: Any, project_id: str, *,
     for art in store.list_artefact_rows(project_id):
         state = artefact_state.get(art["trust"], "unresolved")
         payload = art.get("payload") or {}
-        if art["kind"] == "research_question":
+        kind = art["kind"]
+        if kind.startswith("b10_"):
+            kind = kind[4:]
+        if kind == "research_question":
             qid = f"research_question:{art['artefact_id']}"
             _node(nodes, qid, "research_question",
                   art.get("title") or art["artefact_id"], art["trust"])
-        elif art["kind"] == "claim_assessment":
+        elif kind == "claim_assessment":
             seen_claims: set[str] = set()
             for a in payload.get("assessments") or []:
                 cid = a.get("claim_id") or "claim"
@@ -137,7 +140,7 @@ def build_project_graph(store: Any, project_id: str, *,
                                  "conflicting_candidate")
                              else "supported_by_candidate")
                     edge(cnid, doc_nodes[key], etype, state, art["trust"])
-        elif art["kind"] == "comparison":
+        elif kind == "comparison":
             cmpid = f"comparison:{art['artefact_id']}"
             _node(nodes, cmpid, "comparison",
                   art.get("title") or art["artefact_id"], art["trust"])
@@ -146,7 +149,7 @@ def build_project_graph(store: Any, project_id: str, *,
                 if key in doc_nodes:
                     edge(cmpid, doc_nodes[key], "mentions", state,
                          art["trust"])
-        elif art["kind"] == "research_report":
+        elif kind == "research_report":
             rid = f"report:{art['artefact_id']}"
             _node(nodes, rid, "report",
                   art.get("title") or art["artefact_id"], art["trust"])

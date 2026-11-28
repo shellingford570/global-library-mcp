@@ -232,7 +232,9 @@ def list_artefacts(store: Any, project_id: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for row in store.list_artefact_rows(project_id):
         try:
-            payload = json.loads(row.get("payload") or "{}")
+            raw_payload = row.get("payload")
+            payload = raw_payload if isinstance(raw_payload, dict) \
+                else json.loads(raw_payload or "{}")
         except ValueError:
             payload = {}
         out.append({"artefact_id": row["artefact_id"],
