@@ -45,6 +45,11 @@ jobs:
       - name: Start workspace-enabled server (temp SQLite, fixed upstream fixtures)
         env:
           GLM_UPSTREAM_FIXTURE_DIR: ${{ github.workspace }}/tests/e2e/fixtures/upstream
+          # All journeys share one client IP (127.0.0.1); the
+          # production default of 120 API requests/minute per IP
+          # is exhausted by the combined journeys within a minute.
+          # Test-server only - the shipped default is unchanged.
+          GLM_RATE_LIMIT_PER_MINUTE: "1200"
         run: |
           mkdir -p /tmp/glm-ws-ci
           nohup global-library-mcp web --host 127.0.0.1 --port 8128 --workspace --workspace-path /tmp/glm-ws-ci/ws.db > /tmp/glm-ws-ci/server.log 2>&1 &

@@ -138,6 +138,17 @@ both stated here as defined-but-limited.
   journeys hit project-creation timing races under parallel
   load; both pass standalone. This is a local harness timing
   observation, not a product assertion failure.
+  CI diagnosis note: the research journey initially failed in
+  CI (passed locally) because the web server's per-IP rate
+  limiter (120 API requests/minute, pre-existing) was
+  exhausted by the combined journeys from 127.0.0.1 within
+  one minute, and a 429 mid-render aborted the tab's
+  sequential fetches. The CI workspace server now sets the
+  documented `GLM_RATE_LIMIT_PER_MINUTE=1200` override for
+  the test server only; the shipped default is unchanged.
+  Disclosed product constraint: under heavy same-IP use the
+  limiter can interrupt the research tab's multi-fetch
+  rendering; the tab does not yet degrade per-section.
 
 ## Part 5 — Models and evaluation (sections 33-39)
 
