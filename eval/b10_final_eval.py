@@ -163,8 +163,12 @@ def challenge2() -> dict:
         "text": "明治25年 横浜 100馬力 発電所 完成"}])
     probe("missing_evidence_ref", rows[0]["status"], "not_checked")
     # same-topic different-event: trusted ref, different place
-    cand = build_trusted_candidate(
+    from global_library_mcp.research import register_admitted_evidence
+    _tok = register_admitted_evidence(
         library_id="ndl", record_id="r1", page_id="3",
+        text="明治25年に大阪で出力100馬力の発電所が完成した")
+    cand = build_trusted_candidate(
+        evidence_ref_token=_tok,
         text="明治25年に大阪で出力100馬力の発電所が完成した")
     rows = research.assess_claim_evidence(claim, [cand])
     probe("different_place_no_support", rows[0]["status"] != "supported_candidate",

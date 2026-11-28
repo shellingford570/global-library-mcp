@@ -28,6 +28,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from typing import Any
+import math
+import math
 
 from . import lexicon
 from .discovery import analyze_discovery_query
@@ -55,32 +57,88 @@ CLAIM_STATUSES = (
 TRUSTED_ADMISSION_SOURCE = "glm_evidence_pipeline"
 
 
-def build_trusted_candidate(*, library_id: str, record_id: str,
-                            page_id: str, text: str,
-                            citation_id: str | None = None,
-                            excerpt_start: int | None = None,
-                            excerpt_end: int | None = None,
+# b11 Stage 0 (section 8): trusted evidence references are
+# issued ONLY by the server-side admission pipeline through
+# register_admitted_evidence(). The registry keeps an immutable
+# snapshot; a candidate is assessable only when it carries the
+# opaque token AND its reference fields and excerpt hash match
+# the snapshot exactly and the reference has not expired.
+# Caller-built dictionaries - even with a complete evidence_ref
+# and a correct hash of never-admitted text - are refused.
+import secrets as _secrets
+import time as _time
+
+_EVIDENCE_REGISTRY: dict[str, dict[str, Any]] = {}
+EVIDENCE_REF_TTL_SECONDS = 3600
+
+
+def register_admitted_evidence(*, library_id: str, record_id: str,
+                               page_id: str, text: str,
+                               citation_id: str | None = None,
+                               excerpt_start: int | None = None,
+                               excerpt_end: int | None = None,
+                               document_identity_state: str = "upstream_confirmed",
+                               page_identity_state: str = "verified_mapping",
+                               rights_state: str | None = None,
+                               ttl_seconds: int = EVIDENCE_REF_TTL_SECONDS) -> str:
+    """Pipeline-only: register one ADMITTED evidence item and
+    return its opaque reference token."""
+    import hashlib as _hl
+    token = "evr_" + _secrets.token_hex(16)
+    _EVIDENCE_REGISTRY[token] = {
+        "library_id": library_id, "record_id": record_id,
+        "page_id": page_id, "citation_id": citation_id,
+        "excerpt_start": excerpt_start, "excerpt_end": excerpt_end,
+        "excerpt_hash": _hl.sha256((text or "").encode("utf-8")).hexdigest(),
+        "document_identity_state": document_identity_state,
+        "page_identity_state": page_identity_state,
+        "rights_state": rights_state,
+        "admitted_at_epoch": _time.time(),
+        "expires_at_epoch": _time.time() + ttl_seconds,
+    }
+    return token
+
+
+def revoke_evidence_ref(token: str) -> None:
+    _EVIDENCE_REGISTRY.pop(token, None)
+
+
+def build_trusted_candidate(*, evidence_ref_token: str,
+                            text: str,
                             years: list[int] | None = None,
                             place: str | None = None) -> dict[str, Any]:
-    """Construct an assessable candidate from pipeline-admitted
-    evidence, with the full reference chain and excerpt hash."""
+    """Build an assessable candidate from a REGISTRY-ISSUED
+    reference token. Arbitrary caller data can no longer create
+    verified state: without a token (or with a forged/expired
+    one) this raises, and assess_claim_evidence refuses the
+    candidate at assessment time as well."""
+    snap = _EVIDENCE_REGISTRY.get(evidence_ref_token)
+    if snap is None:
+        raise ValueError("unknown evidence reference token; "
+                         "references are issued by the admission pipeline only")
+    if _time.time() > snap["expires_at_epoch"]:
+        raise ValueError("evidence reference expired")
     import hashlib as _hl
+    if _hl.sha256((text or "").encode("utf-8")).hexdigest() != snap["excerpt_hash"]:
+        raise ValueError("excerpt does not match the registered evidence snapshot")
     return {
         "admitted": True,
         "admission_source": TRUSTED_ADMISSION_SOURCE,
+        "evidence_ref_token": evidence_ref_token,
         "evidence_ref": {
-            "library_id": library_id, "record_id": record_id,
-            "page_id": page_id, "citation_id": citation_id,
-            "excerpt_start": excerpt_start, "excerpt_end": excerpt_end,
-            "excerpt_hash": _hl.sha256((text or "").encode("utf-8")).hexdigest(),
+            "library_id": snap["library_id"], "record_id": snap["record_id"],
+            "page_id": snap["page_id"], "citation_id": snap["citation_id"],
+            "excerpt_start": snap["excerpt_start"],
+            "excerpt_end": snap["excerpt_end"],
+            "excerpt_hash": snap["excerpt_hash"],
             "admission_state": "admitted",
-            "document_identity_state": "upstream_confirmed",
-            "page_identity_state": "verified_mapping",
-            "source": "original_page_ocr",
+            "document_identity_state": snap["document_identity_state"],
+            "page_identity_state": snap["page_identity_state"],
+            "rights_state": snap["rights_state"],
         },
-        "document_id": f"{library_id}:{record_id}",
-        "library_id": library_id, "record_id": record_id,
-        "page_id": page_id, "text": text,
+        "document_id": f"{snap['library_id']}:{snap['record_id']}",
+        "library_id": snap["library_id"], "record_id": snap["record_id"],
+        "page_id": snap["page_id"], "text": text,
         "years": years, "place": place,
     }
 
@@ -91,12 +149,31 @@ def _trusted_ref(cand: dict[str, Any]) -> tuple[bool, str]:
     if cand.get("admission_source") != TRUSTED_ADMISSION_SOURCE:
         return False, ("admission is caller-asserted, not issued by the "
                        "evidence pipeline; refusing to assess")
+    token = cand.get("evidence_ref_token")
+    if not token:
+        return False, ("no registry-issued evidence reference token; "
+                       "caller-built references are not trusted")
+    snap = _EVIDENCE_REGISTRY.get(token)
+    if snap is None:
+        return False, "evidence reference token is unknown or revoked"
+    if _time.time() > snap["expires_at_epoch"]:
+        return False, "evidence reference expired"
     ref = cand.get("evidence_ref") or {}
     for field_name in ("library_id", "record_id", "page_id", "excerpt_hash"):
         if not ref.get(field_name):
             return False, f"evidence reference incomplete: {field_name} missing"
+        if ref.get(field_name) != snap[field_name]:
+            return False, f"evidence reference mismatch: {field_name}"
+    for field_name in ("excerpt_start", "excerpt_end", "citation_id",
+                       "document_identity_state", "page_identity_state"):
+        if ref.get(field_name) != snap[field_name]:
+            return False, f"evidence reference mismatch: {field_name}"
     if ref.get("admission_state") != "admitted":
         return False, "evidence reference does not record admitted state"
+    import hashlib as _hl
+    text = cand.get("text")
+    if text is not None and _hl.sha256(text.encode("utf-8")).hexdigest() != snap["excerpt_hash"]:
+        return False, "candidate text does not match the registered excerpt hash"
     return True, ""
 
 
@@ -495,6 +572,31 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
             a, b = facts[i], facts[j]
             pair: dict[str, Any] = {"a": a.get("document_id"),
                                     "b": b.get("document_id")}
+            # b11 Stage 0 (section 10): comparison requires the
+            # identity conditions on BOTH sides. Missing subject /
+            # predicate / object / place / year / unit means the
+            # pair cannot be confirmed comparable:
+            # insufficient_context, never consistent or
+            # contradiction. "No mismatch found" is not
+            # "agreement confirmed".
+            _missing = [f for f in ("subject", "predicate", "object",
+                                    "place", "unit")
+                        if not a.get(f) or not b.get(f)]
+            _va, _vb = a.get("value"), b.get("value")
+            _nonfinite = any(
+                isinstance(v, float) and not math.isfinite(v)
+                for v in (_va, _vb) if v is not None)
+            if _nonfinite:
+                pair["status"] = "insufficient_context"
+                pair["reason"] = "non-finite numeric value (NaN/Infinity)"
+                pairs.append(pair)
+                continue
+            if _missing and _va is not None and _vb is not None:
+                pair["status"] = "insufficient_context"
+                pair["reason"] = ("comparison conditions incomplete: "
+                                   + ", ".join(_missing) + " missing")
+                pairs.append(pair)
+                continue
             for field_name in ("subject", "predicate", "object"):
                 if a.get(field_name) and b.get(field_name) \
                         and a.get(field_name) != b.get(field_name):
@@ -530,18 +632,35 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
                             "a_base": norm_a, "b_base": norm_b, "family": ca[0]}
                     else:
                         comparable = False
+                    _neg_a, _neg_b = bool(a.get("negated")), bool(b.get("negated"))
                     if not comparable:
                         pair["status"] = "differing_unit"
                     elif a.get("year") and b.get("year") and a.get("year") != b.get("year") \
                             and au not in ("年", "year", "years"):
                         pair["status"] = "differing_time"
+                    elif _neg_a != _neg_b:
+                        # Affirmation vs negation: same value is a
+                        # direct conflict candidate; differing
+                        # values under negation are not comparable.
+                        if norm_a == norm_b:
+                            pair["status"] = "contradiction_candidate"
+                            pair["reason"] = "one source affirms and the other negates the same value"
+                        else:
+                            pair["status"] = "insufficient_context"
+                            pair["reason"] = "negated and affirmed values are not directly comparable"
                     elif norm_a != norm_b:
-                        both_negated = bool(a.get("negated")) and bool(b.get("negated"))
-                        if both_negated:
+                        if _neg_a and _neg_b:
                             pair["status"] = "insufficient_context"
                             pair["reason"] = ("both sources state a negation; "
                                                "differing negated values are not "
                                                "a mutual contradiction")
+                        elif a.get("approximate") or b.get("approximate"):
+                            _tol = max(abs(norm_a), abs(norm_b)) * 0.1
+                            if abs(norm_a - norm_b) <= _tol:
+                                pair["status"] = "insufficient_context"
+                                pair["reason"] = "approximate ranges overlap; difference is not confirmed"
+                            else:
+                                pair["status"] = "contradiction_candidate"
                         else:
                             pair["status"] = "contradiction_candidate"
                     else:
@@ -552,8 +671,31 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
     families = {f.get("work_id") or f"{f.get('library_id')}|{f.get('record_id') or f.get('document_id')}"
                 for f in facts}
     libraries = {f.get("library_id") for f in facts if f.get("library_id")}
-    confirmed = sum(1 for f in facts if f.get("independence_confirmed"))
-    dependent = sum(1 for f in facts if f.get("dependent_on"))
+    # b11 Stage 0 (section 9): independence is confirmed ONLY
+    # when the fact carries an explicit basis recorded by a
+    # trusted observation AND does not also claim dependence.
+    # Conflicting flags are an inconsistency: the fact falls
+    # back to unknown and is counted once, in exactly one bucket.
+    confirmed = dependent = unknown = flag_conflicts = 0
+    _seen_docs: set[str] = set()
+    for f in facts:
+        _dk = f"{f.get('library_id')}|{f.get('record_id') or f.get('document_id')}"
+        if _dk in _seen_docs:
+            unknown += 0  # same document again: not a new source
+            continue
+        _seen_docs.add(_dk)
+        _conf = bool(f.get("independence_confirmed"))
+        _basis = f.get("independence_basis")
+        _dep = bool(f.get("dependent_on"))
+        if _conf and _dep:
+            flag_conflicts += 1
+            unknown += 1
+        elif _conf and isinstance(_basis, str) and _basis.strip():
+            confirmed += 1
+        elif _dep:
+            dependent += 1
+        else:
+            unknown += 1
     return {
         "evidence_item_count": len(facts),
         "distinct_document_count": len(doc_keys),
@@ -561,7 +703,8 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
         "distinct_library_count": len(libraries),
         "source_family_candidate_count": len(families),
         "known_dependent_source_count": dependent,
-        "independence_unknown_count": len(facts) - confirmed - dependent,
+        "independence_unknown_count": unknown,
+        "independence_flag_conflicts": flag_conflicts,
         "independently_confirmed_source_count": confirmed,
         # Legacy keys kept as DOCUMENT counts only (never read as
         # independent corroboration):

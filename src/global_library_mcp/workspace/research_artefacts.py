@@ -1,30 +1,36 @@
-"""b10 research artefacts in the Research Workspace.
+"""Research artefacts in the Research Workspace.
 
-Final-review hardened (b10 final review sections 17-19):
+b11 Stage 0 (sections 5-7): the trust boundary was rebuilt.
 
-- Every artefact kind has a STRICT payload schema: field types
-  are validated, unknown fields are rejected, and payload size,
-  array length and nesting depth are capped.
-- Envelopes are version 2 and carry provenance + an integrity
-  hash over the canonical payload. Artefacts are TRUSTED as
-  server-generated only when the envelope is intact; legacy v1
-  envelopes and hand-written notes that merely look like
-  artefacts are reported with trust="user_asserted" and never
-  change verified tallies.
-- Imported artefacts are downgraded (trust="imported_unverified")
-  and their claimed statuses are not counted as verified.
-- Artefacts reference saved citations/documents BY ID only.
-  Raw OCR text is never stored through this path: fields that
-  would carry original text (ocr_text / full_text / page_text)
-  are rejected, and excerpt strings are capped well below the
-  citation excerpt limit, so the note format cannot bypass the
-  rights model or the 2,000-character citation cap.
-- Referenced documents/citations must belong to the project.
+- Artefacts live in a DEDICATED table (schema v5) whose trust
+  column is set only by server-side code paths. A payload hash
+  is kept for tamper-evidence of the stored row only; it is
+  NEVER proof of origin, and list/progress/graph code does not
+  derive trust from any hash.
+- Plain notes are NEVER artefacts. Legacy b10 note envelopes
+  (v1/v2, including hand-forged ones with a correct
+  self-computed SHA-256 and trust="server_generated") surface
+  only as trust="user_asserted" data and cannot change
+  verified tallies, progress, graphs or reports.
+- Imported artefacts are stored as imported_unverified;
+  restored databases downgrade server rows to
+  restored_unverified (store.apply_restore_trust_downgrade).
+- Payloads are validated by a RECURSIVE allowlist schema:
+  per-kind top-level fields, closed nested key sets for
+  assessments/pairs/claim/config/items/candidates, closed
+  status vocabularies, string caps (free-text fields such as
+  notes/reason/text/description/summary are capped at the
+  excerpt cap so original text cannot be smuggled under
+  another field name), finite numbers only, node/depth caps.
+- Artefacts reference saved citations/documents BY ID only;
+  original-text-bearing fields are rejected anywhere in the
+  payload.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import math
 from typing import Any
 
 KINDS = (
@@ -35,9 +41,14 @@ _PREFIX = "b10_"
 MAX_PAYLOAD_BYTES = 64 * 1024
 MAX_LIST_ITEMS = 100
 MAX_DEPTH = 6
+MAX_NODES = 2000
+MAX_STR_CHARS = 2000
 MAX_EXCERPT_CHARS = 200
 _TEXT_BEARING_KEYS = {"ocr_text", "full_text", "page_text", "ocr",
-                      "original_text", "image_url", "image_binary"}
+                      "original_text", "image_url", "image_binary",
+                      "raw_text", "passage_text", "image"}
+_SHORT_TEXT_KEYS = {"excerpt", "quote", "notes", "note", "reason",
+                    "description", "summary"}
 
 _SCHEMAS: dict[str, dict[str, type | tuple[type, ...]]] = {
     "claim_assessment": {
@@ -55,34 +66,91 @@ _SCHEMAS: dict[str, dict[str, type | tuple[type, ...]]] = {
 _COMMON_FIELDS = {"record_refs": list, "citation_refs": list,
                   "rights_state": str, "model": dict}
 
+_STATUS_VOCAB = {
+    "supported_candidate", "partially_supported",
+    "conflicting_candidate", "contextual_only",
+    "insufficient_evidence", "evidence_reference_only",
+    "not_checked", "consistent_candidate", "differing_unit",
+    "differing_time", "differing_scope", "contradiction_candidate",
+    "insufficient_context", "authority_verified", "candidate",
+    "ambiguous", "unresolved", "verified", "unverified",
+}
+_NESTED_KEYS: dict[str, set[str]] = {
+    "assessments": {"claim_id", "status", "library_id", "record_id",
+                    "page_id", "citation_id", "passage_id", "signals",
+                    "unconfirmed_signals", "reason", "signals_used",
+                    "signals_missing"},
+    "pairs": {"a", "b", "status", "value_a", "value_b", "unit_a",
+              "unit_b", "converted", "reason", "subject", "predicate",
+              "object", "place", "year_a", "year_b"},
+    "claim": {"claim_id", "text", "subject", "predicate", "object",
+              "years", "places", "quantities", "entities",
+              "qualifiers", "era", "negated"},
+    "config": {"ranking_mode", "model_id", "model_revision",
+               "allocation", "version", "mode"},
+    "items": {"library_id", "record_id", "title", "reasons",
+              "subscores", "rank", "status"},
+    "candidates": {"name", "person_id", "status", "score",
+                   "birth_year", "death_year", "identifiers", "works",
+                   "source", "authority_id"},
+    "counts": {"evidence_item_count", "distinct_document_count",
+               "distinct_library_record_count",
+               "source_family_candidate_count",
+               "known_dependent_source_count",
+               "independence_unknown_count",
+               "independently_confirmed_source_count",
+               "document_count", "independent_source_count"},
+    "ranking": {"requested_ranking_mode", "effective_ranking_mode",
+                "semantic_applied", "fallback_reason", "model_id",
+                "model_revision", "candidate_pool_size"},
+    "model": {"model_id", "model_revision", "kind"},
+    "structured": {"intent", "entities", "era", "constraints",
+                   "ambiguities", "subject", "predicate", "object"},
+    "question": {"claim_id", "text", "subject", "predicate", "object",
+                 "years", "places", "quantities", "entities",
+                 "qualifiers", "era", "negated"},
+}
 
-def _check_depth(value: Any, depth: int = 0) -> None:
+
+def _walk(value: Any, key: str, depth: int, counter: list[int]) -> None:
+    counter[0] += 1
+    if counter[0] > MAX_NODES:
+        raise ValueError("artefact payload has too many nodes")
     if depth > MAX_DEPTH:
         raise ValueError("artefact payload nesting too deep")
     if isinstance(value, dict):
-        for v in value.values():
-            _check_depth(v, depth + 1)
+        if key in _TEXT_BEARING_KEYS:
+            raise ValueError(f"original-text field not allowed: {key}")
+        allowed = _NESTED_KEYS.get(key)
+        if allowed is not None:
+            for k in value:
+                if k not in allowed:
+                    raise ValueError(
+                        f"unknown nested field in {key}: {k}")
+        for k, v in value.items():
+            if k in _TEXT_BEARING_KEYS:
+                raise ValueError(
+                    f"artefact payload may not carry original text "
+                    f"field: {k} (reference saved citations by id)")
+            if k == "status" and isinstance(v, str) \
+                    and v not in _STATUS_VOCAB:
+                raise ValueError(f"status outside the closed vocabulary: {v}")
+            _walk(v, k, depth + 1, counter)
     elif isinstance(value, list):
         if len(value) > MAX_LIST_ITEMS:
             raise ValueError("artefact payload list too long")
         for v in value:
-            _check_depth(v, depth + 1)
-
-
-def _check_text_bearing(value: Any, key: str = "") -> None:
-    if key in _TEXT_BEARING_KEYS:
-        raise ValueError(
-            f"artefact payload may not carry original text field: {key} "
-            "(reference saved citations by id instead)")
-    if isinstance(value, dict):
-        for k, v in value.items():
-            _check_text_bearing(v, k)
-    elif isinstance(value, list):
-        for v in value:
-            _check_text_bearing(v, key)
-    elif isinstance(value, str) and key in ("excerpt", "quote") \
-            and len(value) > MAX_EXCERPT_CHARS:
-        raise ValueError("artefact excerpt exceeds the artefact cap")
+            _walk(v, key, depth + 1, counter)
+    elif isinstance(value, str):
+        cap = MAX_EXCERPT_CHARS if key in _SHORT_TEXT_KEYS else MAX_STR_CHARS
+        if len(value) > cap:
+            raise ValueError(
+                f"artefact string field {key!r} exceeds {cap} chars")
+    elif isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("artefact payload numbers must be finite")
+    elif value is not None and not isinstance(value, (int, bool)):
+        raise ValueError("artefact payload contains an unsupported type")
 
 
 def validate_payload(kind: str, payload: Any) -> dict[str, Any]:
@@ -97,8 +165,7 @@ def validate_payload(kind: str, payload: Any) -> dict[str, Any]:
     for field_name, value in payload.items():
         if not isinstance(value, schema[field_name]):
             raise ValueError(f"field {field_name} has the wrong type")
-    _check_depth(payload)
-    _check_text_bearing(payload)
+    _walk(payload, "", 0, [0])
     raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     if len(raw) > MAX_PAYLOAD_BYTES:
         raise ValueError("artefact payload too large")
@@ -114,10 +181,9 @@ def _validate_refs(store: Any, project_id: str,
                    payload: dict[str, Any]) -> None:
     refs = payload.get("record_refs") or []
     if refs:
-        known = {(d.get("library_id"), d.get("record_id"))
-                 for d in store.list_documents(project_id)}
-        known_ids = {d.get("saved_document_id")
-                     for d in store.list_documents(project_id)}
+        docs = store.list_documents(project_id)
+        known = {(d.get("library_id"), d.get("record_id")) for d in docs}
+        known_ids = {d.get("saved_document_id") for d in docs}
         for ref in refs:
             if isinstance(ref, dict):
                 key = (ref.get("library_id"), ref.get("record_id"))
@@ -142,13 +208,16 @@ def save_artefact(store: Any, project_id: str, kind: str,
     _validate_refs(store, project_id, payload)
     trust = ("server_generated" if provenance == "server"
              else "imported_unverified")
-    envelope = {"kind": _PREFIX + kind, "version": 2,
-                "provenance": provenance, "trust": trust,
-                "integrity": _integrity(payload), "payload": payload}
-    note = store.save_note(
-        project_id, json.dumps(envelope, ensure_ascii=False), title=title)
-    return {"note_id": note["note_id"], "kind": _PREFIX + kind,
-            "title": title, "trust": trust}
+    model = payload.get("model") or {}
+    row = store.save_artefact_row(
+        project_id, _PREFIX + kind, title,
+        json.dumps(payload, ensure_ascii=False),
+        trust=trust, provenance=provenance,
+        operation_id="op_" + _integrity(payload)[:16],
+        algorithm_version="b11",
+        model_json=json.dumps(model, ensure_ascii=False))
+    return {"artefact_id": row["artefact_id"], "note_id": row["artefact_id"],
+            "kind": _PREFIX + kind, "title": title, "trust": trust}
 
 
 def import_artefact(store: Any, project_id: str, kind: str,
@@ -161,6 +230,21 @@ def import_artefact(store: Any, project_id: str, kind: str,
 
 def list_artefacts(store: Any, project_id: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
+    for row in store.list_artefact_rows(project_id):
+        try:
+            payload = json.loads(row.get("payload") or "{}")
+        except ValueError:
+            payload = {}
+        out.append({"artefact_id": row["artefact_id"],
+                    "note_id": row["artefact_id"], "kind": row["kind"],
+                    "title": row.get("title", ""),
+                    "payload": payload if isinstance(payload, dict) else {},
+                    "trust": row["trust"],
+                    "provenance": row.get("provenance"),
+                    "created_at": row.get("created_at")})
+    # Legacy b10 note envelopes (any version, any claimed trust,
+    # any hash) are plain user data now: surfaced for the
+    # researcher's own reference, never trusted.
     for note in store.list_notes(project_id):
         content = note.get("content") or ""
         try:
@@ -173,25 +257,20 @@ def list_artefacts(store: Any, project_id: str) -> list[dict[str, Any]]:
         if not kind.startswith(_PREFIX):
             continue
         payload = envelope.get("payload")
-        trust = "user_asserted"
-        if envelope.get("version") == 2 and isinstance(payload, dict) \
-                and envelope.get("integrity") == _integrity(payload):
-            trust = envelope.get("trust") or "user_asserted"
-            if trust not in ("server_generated", "imported_unverified"):
-                trust = "user_asserted"
         out.append({"note_id": note["note_id"], "kind": kind,
                     "title": note.get("title", ""),
                     "payload": payload if isinstance(payload, dict) else {},
-                    "trust": trust,
+                    "trust": "user_asserted",
                     "created_at": note.get("created_at")})
     return out
 
 
 def project_research_progress(store: Any, project_id: str) -> dict[str, Any]:
-    """Progress summary. Only intact server-generated artefacts
-    contribute candidate tallies; user-asserted or imported
-    artefacts are counted separately and can never change the
-    verified-adjacent numbers (section 19)."""
+    """Progress summary. Only artefacts in the dedicated table
+    with server-side trust contribute candidate tallies; note
+    lookalikes and imported/restored artefacts are counted
+    separately and can never change the verified-adjacent
+    numbers."""
     project = store.get_project(project_id)
     if project is None:
         return {"project_id": project_id, "found": False}
@@ -239,11 +318,10 @@ MAX_GRAPH_EDGES = 500
 
 
 def project_relationship_graph(store: Any, project_id: str) -> dict[str, Any]:
-    """Relationship graph with hard caps (section 19). Large
-    same-work/author groups are aggregated through a group node
-    instead of quadratic pairwise edges; omitted counts are
-    reported, and edges to documents outside the project are
-    never emitted."""
+    """Relationship graph with hard caps. Large same-work/author
+    groups are aggregated through a group node instead of
+    quadratic pairwise edges; omitted counts are reported, and
+    edges to documents outside the project are never emitted."""
     documents = store.list_documents(project_id)
     doc_ids = {d["saved_document_id"] for d in documents}
     nodes = [{"id": f"doc:{d['saved_document_id']}",

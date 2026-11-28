@@ -40,7 +40,8 @@ def test_artefact_roundtrip_and_progress(tmp_path):
     # a plain note is not an artefact and stays untouched
     store.save_note(pid, "ordinary research note", title="memo")
     assert len(list_artefacts(store, pid)) == 3
-    assert project_research_progress(store, pid)["research_notes"] == 4
+    # b11 Stage 0: artefacts live in a dedicated table, not notes
+    assert project_research_progress(store, pid)["research_notes"] == 1
 
 
 def test_artefact_kind_validation(tmp_path):

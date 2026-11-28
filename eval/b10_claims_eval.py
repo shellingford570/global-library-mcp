@@ -84,10 +84,13 @@ def main() -> int:
                                 "ok": ok, "era_ok": era_ok, "place_ok": place_ok,
                                 "event_extracted": False})
                 continue
-            from global_library_mcp.research import build_trusted_candidate
-            _cand = build_trusted_candidate(
+            from global_library_mcp.research import (
+                build_trusted_candidate, register_admitted_evidence)
+            _tok = register_admitted_evidence(
                 library_id="fixture", record_id=case["id"], page_id="1",
                 text=case.get("snippet") or "")
+            _cand = build_trusted_candidate(
+                evidence_ref_token=_tok, text=case.get("snippet") or "")
             _cand["document_id"] = case["id"]
             rows = assess_claim_evidence(claim, [_cand])
             got = rows[0]["status"]

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "global-library-mcp"
-version = "1.0.0b10"
+version = "1.0.0b11"
 description = "Evidence-first MCP gateway for library and digital archive APIs"
 readme = "README.md"
 requires-python = ">=3.11"

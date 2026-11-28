@@ -35,7 +35,7 @@ from typing import Any, Iterable
 
 from . import policy as _policy
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 # Verification-status vocabulary a genuine database of this
 # application can contain. Restore validation rejects
@@ -271,7 +271,24 @@ _SCHEMA_V4 = """
 ALTER TABLE rights_observations ADD COLUMN trust TEXT;
 """
 
-MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3), (4, _SCHEMA_V4)]
+_SCHEMA_V5 = """
+CREATE TABLE research_artefacts (
+    artefact_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    payload TEXT NOT NULL DEFAULT '{}',
+    trust TEXT NOT NULL DEFAULT 'server_generated',
+    provenance TEXT NOT NULL DEFAULT 'server',
+    operation_id TEXT NOT NULL DEFAULT '',
+    algorithm_version TEXT NOT NULL DEFAULT '',
+    model TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX idx_artefacts_project ON research_artefacts(project_id);
+"""
+
+MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3), (4, _SCHEMA_V4), (5, _SCHEMA_V5)]
 
 
 def _json(value: Any) -> str:
@@ -879,6 +896,9 @@ class WorkspaceStore:
             observations_downgraded = self._conn.execute(
                 "UPDATE rights_observations SET trust = 'restored_claim'"
             ).rowcount
+            artefacts_downgraded = self._conn.execute(
+                "UPDATE research_artefacts SET trust = 'restored_unverified'"
+                " WHERE trust = 'server_generated'").rowcount
             rows = self._conn.execute(
                 "SELECT citation_id, quotation_verification_status,"
                 " page_mapping_status, image_verification_status, verified_at"
@@ -996,12 +1016,48 @@ class WorkspaceStore:
                                          self.list_documents(
                                              project_id, collection_id=c["collection_id"])]
                     for c in self.list_collections(project_id)},
+                "artefacts": self.list_artefact_rows(project_id),
                 "rights_observations": {
                     d["saved_document_id"]: self.list_rights_observations(d["saved_document_id"])
                     for d in documents},
             }
 
     # -- notes -----------------------------------------------------------------
+    # -- research artefacts (schema v5, b11 stage 0) -------------------
+    # Artefacts live in their OWN table. The trust column is set
+    # only by server-side code paths in this module's callers:
+    # save via save_artefact_row (server), import via
+    # import_artefact_row (always imported_unverified). Plain
+    # notes can never become trusted artefacts, and a payload
+    # hash is never used as proof of origin.
+    def save_artefact_row(self, project_id: str, kind: str, title: str,
+                          payload_json: str, *, trust: str,
+                          provenance: str, operation_id: str = "",
+                          algorithm_version: str = "",
+                          model_json: str = "{}") -> dict[str, Any]:
+        if trust not in ("server_generated", "imported_unverified",
+                         "restored_unverified"):
+            raise ValueError(f"invalid artefact trust: {trust}")
+        aid = "art_" + uuid.uuid4().hex[:20]
+        ts = now_iso()
+        with self._lock, self._conn:
+            self._conn.execute(
+                "INSERT INTO research_artefacts (artefact_id, project_id,"
+                " kind, title, payload, trust, provenance, operation_id,"
+                " algorithm_version, model, created_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (aid, project_id, kind, title, payload_json, trust,
+                 provenance, operation_id, algorithm_version, model_json, ts))
+        return {"artefact_id": aid, "project_id": project_id, "kind": kind,
+                "title": title, "trust": trust, "created_at": ts}
+
+    def list_artefact_rows(self, project_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM research_artefacts WHERE project_id = ?"
+                " ORDER BY created_at, artefact_id", (project_id,)).fetchall()
+        return [dict(r) for r in rows]
+
     def save_note(self, project_id: str, content: str, *, title: str = "",
                   saved_document_id: str | None = None,
                   citation_id: str | None = None,

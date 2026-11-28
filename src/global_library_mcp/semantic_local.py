@@ -54,6 +54,23 @@ MODEL_MANIFEST = {
 }
 MAX_BATCH = 64
 MAX_TEXT_CHARS = 2000
+# b11 Stage 0 (section 12): inference resource management.
+MAX_CONCURRENT_INFERENCE = 2
+MAX_INFERENCE_QUEUE = 8
+INFERENCE_ACQUIRE_TIMEOUT_S = 5.0
+MAX_ENCODE_TEXTS = 256
+
+
+def process_rss_bytes() -> int | None:
+    """Current process RSS (bytes), for resource reporting."""
+    try:
+        import resource as _res
+        peak = _res.getrusage(_res.RUSAGE_SELF).ru_maxrss
+        # Linux reports KiB, macOS reports bytes.
+        import sys as _sys
+        return int(peak * 1024) if _sys.platform.startswith("linux") else int(peak)
+    except Exception:
+        return None
 
 
 class SemanticBackendUnavailable(RuntimeError):
@@ -166,8 +183,55 @@ class LocalSemanticBackend:
         return out_all
 
     async def encode_async(self, texts: Sequence[str]) -> list[list[float]]:
+        if len(texts) > MAX_ENCODE_TEXTS:
+            raise SemanticBackendUnavailable(
+                f"too many texts for one inference call: {len(texts)}")
+        gate = _inference_gate()
+        global _gate_waiters
+        if gate.locked() and _gate_waiters >= MAX_INFERENCE_QUEUE:
+            raise SemanticBackendUnavailable(
+                "inference queue full; falling back")
+        _gate_waiters += 1
+        try:
+            await asyncio.wait_for(gate.acquire(),
+                                   timeout=INFERENCE_ACQUIRE_TIMEOUT_S)
+        except (asyncio.TimeoutError, TimeoutError) as exc:
+            raise SemanticBackendUnavailable(
+                "inference queue deadline exceeded; "
+                "falling back") from exc
+        finally:
+            _gate_waiters -= 1
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self.encode, texts)
+        future = loop.run_in_executor(None, self.encode, texts)
+
+        def _release(_f: Any = None) -> None:
+            try:
+                gate.release()
+            except ValueError:
+                pass
+        # The resource reservation is released only when the
+        # THREAD actually finishes - cancelling the awaiting
+        # caller does not stop ONNX inference, so the slot stays
+        # reserved until the work is really done (section 12).
+        future.add_done_callback(_release)
+        try:
+            return await asyncio.shield(future)
+        except asyncio.CancelledError:
+            raise
+
+
+_gate: asyncio.Semaphore | None = None
+_gate_loop: Any = None
+_gate_waiters = 0
+
+
+def _inference_gate() -> asyncio.Semaphore:
+    global _gate, _gate_loop
+    loop = asyncio.get_running_loop()
+    if _gate is None or _gate_loop is not loop:
+        _gate = asyncio.Semaphore(MAX_CONCURRENT_INFERENCE)
+        _gate_loop = loop
+    return _gate
 
 
 _singleton: LocalSemanticBackend | None = None
@@ -217,8 +281,14 @@ def reset_backend_cache() -> None:
 
 def cosine_scores(query_vector: Sequence[float],
                   doc_vectors: Sequence[Sequence[float]]) -> list[float]:
+    if any(not math.isfinite(v) for v in query_vector):
+        raise ValueError("query vector contains NaN or Infinity")
     out: list[float] = []
     for vec in doc_vectors:
+        if len(vec) != len(query_vector):
+            raise ValueError("embedding dimension mismatch")
+        if any(not math.isfinite(v) for v in vec):
+            raise ValueError("document vector contains NaN or Infinity")
         out.append(float(sum(a * b for a, b in zip(query_vector, vec))))
     peak = max(out) if out else 0.0
     if peak > 0:

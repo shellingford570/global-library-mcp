@@ -9,12 +9,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from global_library_mcp import service as _LS  # noqa: F401,E402
 from global_library_mcp.research import (  # noqa: E402
     assess_claim_evidence, build_trusted_candidate, compare_facts,
-    structure_claim, structure_question)
+    register_admitted_evidence, structure_claim, structure_question)
 
 
 def _trusted(document_id, text, **kw):
-    cand = build_trusted_candidate(
-        library_id="ndl", record_id=document_id, page_id="1", text=text, **kw)
+    # b11 Stage 0: trusted candidates come from registry-issued
+    # tokens (the admission pipeline), never from caller data.
+    tok = register_admitted_evidence(
+        library_id="ndl", record_id=document_id, page_id="1", text=text)
+    cand = build_trusted_candidate(evidence_ref_token=tok, text=text, **kw)
     cand["document_id"] = document_id
     return cand
 
@@ -67,23 +70,23 @@ def test_evidence_year_conflict():
 
 def test_compare_facts_unit_difference_not_contradiction():
     out = compare_facts([
-        {"value": 500, "unit": "馬力", "document_id": "a", "work_id": "w1"},
-        {"value": 373, "unit": "キロワット", "document_id": "b", "work_id": "w2"}])
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 500, "unit": "馬力", "document_id": "a", "work_id": "w1"},
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 373, "unit": "キロワット", "document_id": "b", "work_id": "w2"}])
     assert out["pairs"][0]["status"] == "differing_unit"
 
 
 def test_compare_facts_translation_same_unit():
     out = compare_facts([
-        {"value": 500, "unit": "馬力", "document_id": "a", "work_id": "w1"},
-        {"value": 500, "unit": "horsepower", "document_id": "b", "work_id": "w2"}])
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 500, "unit": "馬力", "document_id": "a", "work_id": "w1"},
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 500, "unit": "horsepower", "document_id": "b", "work_id": "w2"}])
     assert out["pairs"][0]["status"] == "consistent_candidate"
 
 
 def test_compare_facts_independence_count():
     out = compare_facts([
-        {"value": 120, "unit": "kw", "document_id": "ndl-copy", "work_id": "w1"},
-        {"value": 120, "unit": "kw", "document_id": "ia-copy", "work_id": "w1"},
-        {"value": 150, "unit": "kw", "document_id": "other", "work_id": "w2"}])
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 120, "unit": "kw", "document_id": "ndl-copy", "work_id": "w1"},
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 120, "unit": "kw", "document_id": "ia-copy", "work_id": "w1"},
+        {"subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜", "value": 150, "unit": "kw", "document_id": "other", "work_id": "w2"}])
     assert out["document_count"] == 3
     # b10 final review (section 16): distinct documents are NOT
     # independent sources. Same-work copies form one source-family

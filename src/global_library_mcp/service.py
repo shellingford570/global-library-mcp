@@ -475,6 +475,25 @@ def adaptive_stop_allowed(query: str, record_filter: Any,
     return True, ""
 
 
+def _evidence_dicts(items: Any) -> list[dict[str, Any]]:
+    """Serialize admitted evidence and register each item in
+    the server-side evidence registry (b11 Stage 0 section 8),
+    attaching the opaque reference token. Only items that went
+    through the frozen admission gates reach this function."""
+    from global_library_mcp.research import register_admitted_evidence
+    out: list[dict[str, Any]] = []
+    for item in items:
+        d = item.to_dict()
+        try:
+            d["evidence_ref_token"] = register_admitted_evidence(
+                library_id=item.library_id, record_id=item.record_id,
+                page_id=item.page_id, text=item.ocr_text or "")
+        except Exception:
+            d["evidence_ref_token"] = None
+        out.append(d)
+    return out
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -1537,6 +1556,10 @@ class LibraryService:
                             _vecs = await _aio.get_running_loop().run_in_executor(
                                 None, _backend.encode, [query, *_texts])
                         _scores = _cos(_vecs[0], _vecs[1:])
+                        import math as _math
+                        if len(_scores) != len(ranked) or not all(
+                                _math.isfinite(_sc) for _sc in _scores):
+                            raise ValueError("invalid semantic scores")
                         _sem_scores = {
                             (_it.library_id, _it.record_id): float(_sc)
                             for _it, _sc in zip(ranked, _scores)}
@@ -1548,7 +1571,7 @@ class LibraryService:
                         _sem_scores = None
                 if _sem_scores is None:
                     _ranking_info["effective_ranking_mode"] = "lexical"
-            _rr = _RR(lexical_weight=(0.0 if _requested_mode == "semantic"
+            _rr = _RR(lexical_weight=(0.0 if _ranking_info["effective_ranking_mode"] == "semantic"
                                       and _sem_scores is not None else 4.0))
             ranked = _rr.rank(_adq2(query), list(ranked), query_hits,
                               semantic_scores=_sem_scores)
@@ -1719,7 +1742,7 @@ class LibraryService:
             "retrieval": retrieval,
             "terms": search_terms,
             "analysis": analysis.to_dict(),
-            "evidence": [item.to_dict() for item in verified],
+            "evidence": _evidence_dicts(verified),
             "premise_contradictions": premise_contradictions[:4],
             "related": related[:8],
             "unverified": unverified,
@@ -2454,15 +2477,25 @@ class LibraryService:
                             _vq = await _aioq.get_running_loop().run_in_executor(
                                 None, _bk.encode, [query, *_texts_q])
                         _sem_q = _cosq(_vq[0], _vq[1:])
+                        import math as _mathq
+                        if len(_sem_q) != len(_items) or not all(
+                                _mathq.isfinite(_v) for _v in _sem_q):
+                            raise ValueError("invalid semantic scores")
                         _q_ranking["semantic_applied"] = True
                         _q_ranking["fallback_reason"] = None
                     except Exception as _excq:
                         _q_ranking["fallback_reason"] = f"semantic scoring failed: {type(_excq).__name__}"
                 if not _q_ranking["semantic_applied"]:
                     _q_ranking["effective_ranking_mode"] = "lexical"
+            # b11 Stage 0 (section 11): the sort MUST follow the
+            # EFFECTIVE mode. Previously a semantic request that
+            # fell back to lexical still zeroed the lexical scores
+            # (the key read the requested mode), so the reported
+            # fallback never actually ranked lexically.
+            _eff_q = _q_ranking["effective_ranking_mode"]
             _order = sorted(range(len(_items)),
-                            key=lambda i: -((_lex_q[i] if ranking_mode != "semantic" else 0.0)
-                                            + (_sem_q[i] if ranking_mode in ("semantic", "hybrid") else 0.0)))
+                            key=lambda i: -((_lex_q[i] if _eff_q != "semantic" else 0.0)
+                                            + (_sem_q[i] if _q_ranking["semantic_applied"] else 0.0)))
             _items = [_items[i] for i in _order]
         if ocr_required:
             _kept = [_it for _it in _items if self._adapter_supports_ocr(_it["library_id"])]

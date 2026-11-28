@@ -320,9 +320,9 @@ def test_quiesce_waits_for_inflight_operations(http):
     assert ws.restoring is False
 
 
-def test_schema_v4_and_validate_backup(tmp_path):
+def test_schema_current_and_validate_backup(tmp_path):
     store = WorkspaceStore(tmp_path / "w.db")
-    assert store.schema_version == 4
+    assert store.schema_version == 5  # b11: schema v5 adds research_artefacts
     backup = store.backup(tmp_path / "b.db")
     info = WorkspaceStore.validate_backup(backup["path"])
     assert info["ok"], info["problems"]
