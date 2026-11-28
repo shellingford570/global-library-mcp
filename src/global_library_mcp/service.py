@@ -477,17 +477,25 @@ def adaptive_stop_allowed(query: str, record_filter: Any,
 
 def _evidence_dicts(items: Any) -> list[dict[str, Any]]:
     """Serialize admitted evidence and register each item in
-    the server-side evidence registry (b11 Stage 0 section 8),
-    attaching the opaque reference token. Only items that went
-    through the frozen admission gates reach this function."""
+    the server-side evidence registry, attaching the opaque
+    reference token. Only items that went through the frozen
+    admission gates reach this function.
+
+    b11 final review (section 3): registration derives identity
+    states, admission state, passage id and excerpt offsets from
+    the ACTUAL Evidence object - no parameter defaults invent
+    verified states."""
+    import uuid as _uuid
+
     from global_library_mcp.research import register_admitted_evidence
+    operation_id = "op_" + _uuid.uuid4().hex[:16]
     out: list[dict[str, Any]] = []
     for item in items:
         d = item.to_dict()
         try:
             d["evidence_ref_token"] = register_admitted_evidence(
-                library_id=item.library_id, record_id=item.record_id,
-                page_id=item.page_id, text=item.ocr_text or "")
+                evidence=item, operation_id=operation_id,
+                session_id="library_service")
         except Exception:
             d["evidence_ref_token"] = None
         out.append(d)

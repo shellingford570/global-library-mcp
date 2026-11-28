@@ -16,7 +16,9 @@ def _trusted(document_id, text, **kw):
     # b11 Stage 0: trusted candidates come from registry-issued
     # tokens (the admission pipeline), never from caller data.
     tok = register_admitted_evidence(
-        library_id="ndl", record_id=document_id, page_id="1", text=text)
+        library_id="ndl", record_id=document_id, page_id="1", text=text,
+        document_identity_state="upstream_confirmed",
+        page_identity_state="verified_mapping", admission_state="admitted")
     cand = build_trusted_candidate(evidence_ref_token=tok, text=text, **kw)
     cand["document_id"] = document_id
     return cand

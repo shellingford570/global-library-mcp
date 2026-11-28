@@ -83,7 +83,9 @@ def test_claim_evidence_summary_independence_wording():
     s = summarize_claim_evidence([
         {"status": "supported_candidate", "document_id": "a"},
         {"status": "supported_candidate", "document_id": "b",
-         "independence_confirmed": True, "independence_basis": "provenance"},
+         "independence_review": {
+             "basis": "distinct provenance chains documented",
+             "source": "reviewer:provenance-check"}},
         {"status": "contradiction_candidate", "document_id": "c"},
         {"status": "insufficient_evidence", "document_id": "d"}])
     assert s["supporting_candidates"] == 2

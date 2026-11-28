@@ -183,8 +183,10 @@ def test_forged_complete_evidence_ref_refused():
 def test_registry_token_roundtrip_and_tampering():
     claim = structure_claim("明治25年に横浜で発電所が完成した")
     text = "明治25年、横浜で発電所が完成した。"
-    tok = register_admitted_evidence(library_id="ndl", record_id="1",
-                                     page_id="1", text=text)
+    tok = register_admitted_evidence(
+        library_id="ndl", record_id="1", page_id="1", text=text,
+        document_identity_state="upstream_confirmed",
+        page_identity_state="verified_mapping", admission_state="admitted")
     cand = build_trusted_candidate(evidence_ref_token=tok, text=text)
     rows = assess_claim_evidence(claim, [cand])
     assert rows[0]["status"] != "not_checked"
@@ -207,8 +209,11 @@ def test_registry_token_roundtrip_and_tampering():
 
 def test_expired_token_refused():
     text = "明治25年、横浜で発電所が完成した。"
-    tok = register_admitted_evidence(library_id="ndl", record_id="1",
-                                     page_id="1", text=text, ttl_seconds=-1)
+    tok = register_admitted_evidence(
+        library_id="ndl", record_id="1", page_id="1", text=text,
+        ttl_seconds=-1,
+        document_identity_state="upstream_confirmed",
+        page_identity_state="verified_mapping", admission_state="admitted")
     with pytest.raises(ValueError):
         build_trusted_candidate(evidence_ref_token=tok, text=text)
 
@@ -220,14 +225,25 @@ _ID = {"subject": "発電所", "predicate": "出力", "object": "発電設備",
 
 
 def test_independence_requires_basis():
+    # b11 final review (section 7): a non-empty basis string is
+    # an ASSERTION, not a confirmation. Only an independence_review
+    # record (basis + provenance) confirms independence.
     out = compare_facts([
         {**_ID, "value": 100, "unit": "kW", "document_id": "a:1",
          "independence_confirmed": True},
         {**_ID, "value": 100, "unit": "kW", "document_id": "b:2",
          "independence_confirmed": True,
          "independence_basis": "distinct primary sources verified"}])
-    assert out["independently_confirmed_source_count"] == 1
-    assert out["independence_unknown_count"] == 1
+    assert out["independently_confirmed_source_count"] == 0
+    assert out["independence_user_asserted_count"] == 2
+    assert out["independence_unknown_count"] == 2
+    reviewed = compare_facts([
+        {**_ID, "value": 100, "unit": "kW", "document_id": "a:1",
+         "independence_review": {
+             "basis": "distinct primary sources verified against "
+                      "publisher records",
+             "source": "reviewer:provenance-check-2026-11-28"}}])
+    assert reviewed["independently_confirmed_source_count"] == 1
 
 
 def test_independence_flag_conflict_falls_back_unknown():

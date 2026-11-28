@@ -65,42 +65,215 @@ TRUSTED_ADMISSION_SOURCE = "glm_evidence_pipeline"
 # the snapshot exactly and the reference has not expired.
 # Caller-built dictionaries - even with a complete evidence_ref
 # and a correct hash of never-admitted text - are refused.
+#
+# b11 final review (sections 3-6): registration now derives its
+# identity/admission states from the ACTUAL Evidence object the
+# frozen pipeline produced - never from parameter defaults.
+# Calling with bare ids/text and no recorded identity states
+# yields a REFERENCE-ONLY snapshot that claim assessment refuses
+# to use as support. The registry is capacity-bounded (global /
+# per-session / per-operation), purges expired entries, is
+# thread-safe, and a reference bound to a saved citation must be
+# revalidated against the current store before use.
 import secrets as _secrets
+import threading as _threading
 import time as _time
 
 _EVIDENCE_REGISTRY: dict[str, dict[str, Any]] = {}
+_REGISTRY_LOCK = _threading.Lock()
 EVIDENCE_REF_TTL_SECONDS = 3600
+MAX_EVIDENCE_REGISTRY_ENTRIES = 4096
+MAX_EVIDENCE_REFS_PER_SESSION = 512
+MAX_EVIDENCE_REFS_PER_OPERATION = 256
+EVIDENCE_POLICY_VERSION = "b11-evidence-policy-1"
+_UNRECORDED = "unrecorded"
 
 
-def register_admitted_evidence(*, library_id: str, record_id: str,
-                               page_id: str, text: str,
+def _purge_expired_locked(now: float) -> int:
+    dead = [t for t, s in _EVIDENCE_REGISTRY.items()
+            if now > s["expires_at_epoch"]]
+    for t in dead:
+        _EVIDENCE_REGISTRY.pop(t, None)
+    return len(dead)
+
+
+def evidence_registry_stats() -> dict[str, Any]:
+    """Registry occupancy and a rough memory estimate."""
+    with _REGISTRY_LOCK:
+        _purge_expired_locked(_time.time())
+        sessions = {s.get("session_id") for s in _EVIDENCE_REGISTRY.values()}
+        approx = sum(len(str(v)) for s in _EVIDENCE_REGISTRY.values()
+                     for v in s.values())
+        return {"entries": len(_EVIDENCE_REGISTRY),
+                "sessions": len(sessions),
+                "max_entries": MAX_EVIDENCE_REGISTRY_ENTRIES,
+                "approx_snapshot_bytes": approx}
+
+
+def register_admitted_evidence(*, library_id: str | None = None,
+                               record_id: str | None = None,
+                               page_id: str | None = None,
+                               text: str | None = None,
+                               evidence: Any = None,
+                               operation_id: str = "",
+                               session_id: str = "default",
+                               project_id: str | None = None,
                                citation_id: str | None = None,
+                               passage_id: str | None = None,
                                excerpt_start: int | None = None,
                                excerpt_end: int | None = None,
-                               document_identity_state: str = "upstream_confirmed",
-                               page_identity_state: str = "verified_mapping",
+                               document_identity_state: str | None = None,
+                               page_identity_state: str | None = None,
+                               admission_state: str | None = None,
+                               ocr_source: str | None = None,
                                rights_state: str | None = None,
                                ttl_seconds: int = EVIDENCE_REF_TTL_SECONDS) -> str:
-    """Pipeline-only: register one ADMITTED evidence item and
-    return its opaque reference token."""
+    """Pipeline-only: register one pipeline-produced evidence
+    item and return its opaque reference token.
+
+    The primary path passes the actual ``Evidence`` object:
+    identity states, admission state, passage id and excerpt
+    offsets are read from it, never defaulted into verified
+    values. The explicit-fields path (test harnesses simulating
+    the pipeline) must state the identity/admission states
+    itself; omitted states are recorded as ``unrecorded`` and
+    the reference is reference-only.
+    """
     import hashlib as _hl
+    if evidence is not None:
+        library_id = evidence.library_id
+        record_id = evidence.record_id
+        page_id = evidence.page_id
+        text = evidence.ocr_text or ""
+        states = getattr(evidence, "states", None) or {}
+        verified = bool(getattr(evidence, "verified", False))
+        document_identity_state = (
+            "upstream_confirmed" if verified and states.get("source_verified", verified)
+            else "unconfirmed")
+        page_identity_state = ("verified_mapping" if verified
+                               else "mapping_unverified")
+        admission_state = ("admitted" if states.get("assessed_evidence")
+                           else "reference_only")
+        passages = getattr(evidence, "passages", None) or []
+        if passages:
+            passage_id = passages[0].get("passage_id")
+            excerpt_start = passages[0].get("char_start")
+            excerpt_end = passages[0].get("char_end")
+        ocr_source = getattr(evidence, "ocr_source", None)
+        rights = getattr(evidence, "rights", None)
+        if rights is not None:
+            rights_state = (getattr(rights, "classification", None)
+                            or getattr(rights, "statement", None))
+        evidence_id = f"{library_id}:{record_id}:{page_id}"
+    else:
+        evidence_id = f"{library_id}:{record_id}:{page_id}"
+    if not library_id or not record_id or not page_id or text is None:
+        raise ValueError("evidence registration requires library_id, "
+                         "record_id, page_id and text (or an Evidence object)")
+    now = _time.time()
     token = "evr_" + _secrets.token_hex(16)
-    _EVIDENCE_REGISTRY[token] = {
-        "library_id": library_id, "record_id": record_id,
-        "page_id": page_id, "citation_id": citation_id,
-        "excerpt_start": excerpt_start, "excerpt_end": excerpt_end,
-        "excerpt_hash": _hl.sha256((text or "").encode("utf-8")).hexdigest(),
-        "document_identity_state": document_identity_state,
-        "page_identity_state": page_identity_state,
-        "rights_state": rights_state,
-        "admitted_at_epoch": _time.time(),
-        "expires_at_epoch": _time.time() + ttl_seconds,
-    }
+    with _REGISTRY_LOCK:
+        _purge_expired_locked(now)
+        if len(_EVIDENCE_REGISTRY) >= MAX_EVIDENCE_REGISTRY_ENTRIES:
+            raise ValueError("evidence registry is full; refusing to "
+                             "register (live references are never reused)")
+        if session_id:
+            n_sess = sum(1 for s in _EVIDENCE_REGISTRY.values()
+                         if s.get("session_id") == session_id)
+            if n_sess >= MAX_EVIDENCE_REFS_PER_SESSION:
+                raise ValueError("per-session evidence reference cap reached")
+        if operation_id:
+            n_op = sum(1 for s in _EVIDENCE_REGISTRY.values()
+                       if s.get("operation_id") == operation_id)
+            if n_op >= MAX_EVIDENCE_REFS_PER_OPERATION:
+                raise ValueError("per-operation evidence reference cap reached")
+        _EVIDENCE_REGISTRY[token] = {
+            "evidence_id": evidence_id,
+            "operation_id": operation_id,
+            "session_id": session_id,
+            "project_id": project_id,
+            "library_id": library_id, "record_id": record_id,
+            "page_id": page_id, "passage_id": passage_id,
+            "citation_id": citation_id,
+            "excerpt_start": excerpt_start, "excerpt_end": excerpt_end,
+            "excerpt_hash": _hl.sha256(text.encode("utf-8")).hexdigest(),
+            "document_identity_state": document_identity_state or _UNRECORDED,
+            "page_identity_state": page_identity_state or _UNRECORDED,
+            "admission_state": admission_state or "reference_only",
+            "ocr_source": ocr_source,
+            "rights_state": rights_state,
+            "policy_version": EVIDENCE_POLICY_VERSION,
+            "admitted_at_epoch": now,
+            "issued_at_epoch": now,
+            "expires_at_epoch": now + ttl_seconds,
+        }
     return token
 
 
 def revoke_evidence_ref(token: str) -> None:
-    _EVIDENCE_REGISTRY.pop(token, None)
+    with _REGISTRY_LOCK:
+        _EVIDENCE_REGISTRY.pop(token, None)
+
+
+def revoke_session_evidence_refs(session_id: str) -> int:
+    """Invalidate every reference bound to a session (session
+    end, section 5). Saved research history is untouched; only
+    the temporary tokens die."""
+    with _REGISTRY_LOCK:
+        dead = [t for t, s in _EVIDENCE_REGISTRY.items()
+                if s.get("session_id") == session_id]
+        for t in dead:
+            _EVIDENCE_REGISTRY.pop(t, None)
+        return len(dead)
+
+
+def evidence_ref_status(token: str, store: Any = None) -> dict[str, Any]:
+    """Current validity of a reference (section 5).
+
+    A token alone proves it was issued; CURRENT validity also
+    requires: not expired, and - when bound to a saved citation -
+    the citation still exists in the bound project, its stored
+    excerpt hash still matches, and rights have not changed
+    since issue (otherwise ``revalidation_required``)."""
+    with _REGISTRY_LOCK:
+        snap = _EVIDENCE_REGISTRY.get(token)
+        snap = dict(snap) if snap else None
+    if snap is None:
+        return {"state": "unknown_or_revoked", "token": token}
+    if _time.time() > snap["expires_at_epoch"]:
+        return {"state": "expired", "token": token}
+    out: dict[str, Any] = {"state": "current", "token": token,
+                           "evidence_id": snap["evidence_id"],
+                           "admission_state": snap["admission_state"]}
+    if snap.get("citation_id"):
+        if store is None:
+            out["state"] = "revalidation_required"
+            out["reason"] = ("reference is bound to a saved citation; "
+                             "current validity needs the workspace store")
+            return out
+        cit = store.get_citation(snap["citation_id"])
+        if cit is None:
+            out["state"] = "invalidated"
+            out["reason"] = "bound citation was deleted"
+            return out
+        doc = store.get_document(cit["saved_document_id"]) or {}
+        if snap.get("project_id") and doc.get("project_id") != snap["project_id"]:
+            out["state"] = "invalidated"
+            out["reason"] = "bound citation belongs to another project"
+            return out
+        if cit.get("excerpt_hash") and \
+                cit["excerpt_hash"] != snap["excerpt_hash"]:
+            out["state"] = "invalidated"
+            out["reason"] = "citation excerpt changed since issue"
+            return out
+        latest = store.latest_rights_observation(cit["saved_document_id"])
+        current_rights = (latest or {}).get("category")
+        if snap.get("rights_state") and current_rights and \
+                current_rights != snap["rights_state"]:
+            out["state"] = "revalidation_required"
+            out["reason"] = "rights state changed since issue"
+            return out
+    return out
 
 
 def build_trusted_candidate(*, evidence_ref_token: str,
@@ -111,15 +284,23 @@ def build_trusted_candidate(*, evidence_ref_token: str,
     reference token. Arbitrary caller data can no longer create
     verified state: without a token (or with a forged/expired
     one) this raises, and assess_claim_evidence refuses the
-    candidate at assessment time as well."""
-    snap = _EVIDENCE_REGISTRY.get(evidence_ref_token)
+    candidate at assessment time as well.
+
+    Final review (section 4): caller-supplied ``years``/``place``
+    are NOT trusted observations. They are carried separately
+    under ``user_asserted`` and never feed the assessment; years
+    and place are derived from the registered text itself."""
+    with _REGISTRY_LOCK:
+        snap = _EVIDENCE_REGISTRY.get(evidence_ref_token)
+        snap = dict(snap) if snap else None
     if snap is None:
         raise ValueError("unknown evidence reference token; "
                          "references are issued by the admission pipeline only")
     if _time.time() > snap["expires_at_epoch"]:
         raise ValueError("evidence reference expired")
     import hashlib as _hl
-    if _hl.sha256((text or "").encode("utf-8")).hexdigest() != snap["excerpt_hash"]:
+    if not isinstance(text, str) or \
+            _hl.sha256(text.encode("utf-8")).hexdigest() != snap["excerpt_hash"]:
         raise ValueError("excerpt does not match the registered evidence snapshot")
     return {
         "admitted": True,
@@ -128,10 +309,11 @@ def build_trusted_candidate(*, evidence_ref_token: str,
         "evidence_ref": {
             "library_id": snap["library_id"], "record_id": snap["record_id"],
             "page_id": snap["page_id"], "citation_id": snap["citation_id"],
+            "passage_id": snap["passage_id"],
             "excerpt_start": snap["excerpt_start"],
             "excerpt_end": snap["excerpt_end"],
             "excerpt_hash": snap["excerpt_hash"],
-            "admission_state": "admitted",
+            "admission_state": snap["admission_state"],
             "document_identity_state": snap["document_identity_state"],
             "page_identity_state": snap["page_identity_state"],
             "rights_state": snap["rights_state"],
@@ -139,11 +321,12 @@ def build_trusted_candidate(*, evidence_ref_token: str,
         "document_id": f"{snap['library_id']}:{snap['record_id']}",
         "library_id": snap["library_id"], "record_id": snap["record_id"],
         "page_id": snap["page_id"], "text": text,
-        "years": years, "place": place,
+        "years": None, "place": None,
+        "user_asserted": {"years": years, "place": place},
     }
 
 
-def _trusted_ref(cand: dict[str, Any]) -> tuple[bool, str]:
+def _trusted_ref(cand: dict[str, Any], store: Any = None) -> tuple[bool, str]:
     if not cand.get("admitted"):
         return False, "candidate did not pass the evidence admission gates"
     if cand.get("admission_source") != TRUSTED_ADMISSION_SOURCE:
@@ -153,11 +336,31 @@ def _trusted_ref(cand: dict[str, Any]) -> tuple[bool, str]:
     if not token:
         return False, ("no registry-issued evidence reference token; "
                        "caller-built references are not trusted")
-    snap = _EVIDENCE_REGISTRY.get(token)
+    with _REGISTRY_LOCK:
+        snap = _EVIDENCE_REGISTRY.get(token)
+        snap = dict(snap) if snap else None
     if snap is None:
         return False, "evidence reference token is unknown or revoked"
     if _time.time() > snap["expires_at_epoch"]:
         return False, "evidence reference expired"
+    if snap["admission_state"] != "admitted":
+        return False, ("evidence reference is reference-only (the pipeline "
+                       "did not record an admission for it)")
+    if snap["document_identity_state"] in (None, _UNRECORDED) or \
+            snap["page_identity_state"] in (None, _UNRECORDED):
+        return False, ("evidence identity states were not recorded by the "
+                       "pipeline; refusing to assess as support")
+    # Section 4: the candidate's own top-level identity fields
+    # must agree with the server-side snapshot; a genuine token
+    # attached to a different document/page is refused.
+    for field_name in ("library_id", "record_id", "page_id"):
+        if cand.get(field_name) is not None and \
+                cand.get(field_name) != snap[field_name]:
+            return False, f"candidate {field_name} does not match the registered snapshot"
+    if cand.get("document_id") is not None and \
+            cand["document_id"] not in (snap["record_id"],
+                                        f"{snap['library_id']}:{snap['record_id']}"):
+        return False, "candidate document_id does not match the registered snapshot"
     ref = cand.get("evidence_ref") or {}
     for field_name in ("library_id", "record_id", "page_id", "excerpt_hash"):
         if not ref.get(field_name):
@@ -165,15 +368,26 @@ def _trusted_ref(cand: dict[str, Any]) -> tuple[bool, str]:
         if ref.get(field_name) != snap[field_name]:
             return False, f"evidence reference mismatch: {field_name}"
     for field_name in ("excerpt_start", "excerpt_end", "citation_id",
-                       "document_identity_state", "page_identity_state"):
+                       "passage_id", "document_identity_state",
+                       "page_identity_state", "rights_state"):
         if ref.get(field_name) != snap[field_name]:
             return False, f"evidence reference mismatch: {field_name}"
     if ref.get("admission_state") != "admitted":
         return False, "evidence reference does not record admitted state"
     import hashlib as _hl
     text = cand.get("text")
-    if text is not None and _hl.sha256(text.encode("utf-8")).hexdigest() != snap["excerpt_hash"]:
+    if not isinstance(text, str) or not text:
+        return False, "candidate text is missing or not a string"
+    if _hl.sha256(text.encode("utf-8")).hexdigest() != snap["excerpt_hash"]:
         return False, "candidate text does not match the registered excerpt hash"
+    # Section 5: a citation-bound reference must still be
+    # CURRENT - deleted citation, changed excerpt or changed
+    # rights all stop the assessment until revalidation.
+    if snap.get("citation_id"):
+        status = evidence_ref_status(token, store)
+        if status["state"] != "current":
+            return False, (f"evidence reference is {status['state']}: "
+                           f"{status.get('reason', 'revalidation required')}")
     return True, ""
 
 
@@ -400,7 +614,8 @@ _NEGATION_MARKERS = ("なかった", "なかつた", "存在しない", "存在�
 
 
 def assess_claim_evidence(claim: ResearchClaim,
-                          candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+                          candidates: list[dict[str, Any]],
+                          store: Any = None) -> list[dict[str, Any]]:
     """Map gate-admitted evidence candidates to the claim.
 
     Each candidate must carry ``admitted: True`` (it passed the
@@ -418,7 +633,7 @@ def assess_claim_evidence(claim: ResearchClaim,
             "page_id": cand.get("page_id"),
             "evidence_ref": cand.get("evidence_ref"),
             "status": "not_checked", "signals": []}
-        _ok, _why = _trusted_ref(cand)
+        _ok, _why = _trusted_ref(cand, store)
         if not _ok:
             row["reason"] = _why
             out.append(row)
@@ -443,8 +658,11 @@ def assess_claim_evidence(claim: ResearchClaim,
         if concept_hit or entity_hit:
             signals.append("subject_or_entity_match")
             score += 2
-        # Time agreement: candidate years inside the claim's range.
-        cand_years = cand.get("years") or sentence_years(text_n)
+        # Time agreement: candidate years inside the claim's
+        # range. Years come from the REGISTERED TEXT only -
+        # caller-supplied ``years``/``place`` are user_asserted
+        # annotations and never feed the assessment (section 4).
+        cand_years = sentence_years(text_n)
         year_conflict = False
         if claim.time and cand_years:
             specific = claim.time.get("years_mentioned") or []
@@ -727,29 +945,34 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
     families = {f.get("work_id") or f"{f.get('library_id')}|{f.get('record_id') or f.get('document_id')}"
                 for f in facts}
     libraries = {f.get("library_id") for f in facts if f.get("library_id")}
-    # b11 Stage 0 (section 9): independence is confirmed ONLY
-    # when the fact carries an explicit basis recorded by a
-    # trusted observation AND does not also claim dependence.
-    # Conflicting flags are an inconsistency: the fact falls
-    # back to unknown and is counted once, in exactly one bucket.
-    confirmed = dependent = unknown = flag_conflicts = 0
+    # b11 final review (section 7): a non-empty independence
+    # string is an ASSERTION, not a confirmation. Independence
+    # counts as confirmed only for an independence_review record
+    # carrying a concrete dependence-investigation basis AND its
+    # provenance (who/what recorded it). Bare strings such as
+    # "verified" or "different document", differing library /
+    # record ids / publishers, low similarity and user claims
+    # never confirm independence; without a review record the
+    # honest count is 0.
+    confirmed = dependent = unknown = asserted = flag_conflicts = 0
     _seen_docs: set[str] = set()
     for f in facts:
         _dk = f"{f.get('library_id')}|{f.get('record_id') or f.get('document_id')}"
         if _dk in _seen_docs:
-            unknown += 0  # same document again: not a new source
-            continue
+            continue  # same document again: not a new source
         _seen_docs.add(_dk)
-        _conf = bool(f.get("independence_confirmed"))
-        _basis = f.get("independence_basis")
-        _dep = bool(f.get("dependent_on"))
-        if _conf and _dep:
+        if f.get("independence_confirmed") and f.get("dependent_on"):
             flag_conflicts += 1
             unknown += 1
-        elif _conf and isinstance(_basis, str) and _basis.strip():
+            continue
+        _state = independence_state(f)
+        if _state == "independently_reviewed_independence":
             confirmed += 1
-        elif _dep:
+        elif _state == "confirmed_dependent":
             dependent += 1
+        elif _state == "user_asserted_independence":
+            asserted += 1
+            unknown += 1
         else:
             unknown += 1
     return {
@@ -760,6 +983,7 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
         "source_family_candidate_count": len(families),
         "known_dependent_source_count": dependent,
         "independence_unknown_count": unknown,
+        "independence_user_asserted_count": asserted,
         "independence_flag_conflicts": flag_conflicts,
         "independently_confirmed_source_count": confirmed,
         # Legacy keys kept as DOCUMENT counts only (never read as
@@ -771,6 +995,44 @@ def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
                  "independence is unknown unless explicitly confirmed "
                  "with a basis"),
     }
+
+
+# ---------------------------------------------------------------------------
+# Independence state model (b11 final review, section 7)
+# ---------------------------------------------------------------------------
+
+INDEPENDENCE_STATES = (
+    "source_family_candidate", "confirmed_dependent",
+    "suspected_dependent", "independence_unknown",
+    "user_asserted_independence", "independently_reviewed_independence")
+
+_TRIVIAL_INDEPENDENCE_BASES = {
+    "verified", "different document", "different", "independent",
+    "confirmed", "ok", "yes", "true", "provenance", "x", "n/a", "-",
+}
+
+
+def independence_state(fact: dict[str, Any]) -> str:
+    """The independence state of one fact/assessment.
+
+    Confirmation requires an ``independence_review`` record: a
+    concrete dependence-investigation basis (not a trivial
+    string) AND its provenance (``source``: who or what recorded
+    the investigation). Anything the caller merely asserts -
+    ``independence_confirmed`` flags, free-text bases, differing
+    ids - is ``user_asserted_independence`` at best."""
+    if fact.get("dependent_on"):
+        return "confirmed_dependent"
+    review = fact.get("independence_review")
+    if isinstance(review, dict):
+        basis = str(review.get("basis") or "").strip()
+        source = str(review.get("source") or "").strip()
+        if basis and source and len(basis) >= 12 \
+                and basis.lower() not in _TRIVIAL_INDEPENDENCE_BASES:
+            return "independently_reviewed_independence"
+    if fact.get("independence_confirmed") or fact.get("independence_basis"):
+        return "user_asserted_independence"
+    return "independence_unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -801,26 +1063,31 @@ def summarize_claim_evidence(assessments: list[dict[str, Any]]) -> dict[str, Any
             groups["not_checked"].append(a)
         else:
             groups["related"].append(a)
-    confirmed = unknown = 0
+    confirmed = unknown = asserted = 0
     for a in groups["supporting_candidates"]:
-        if a.get("independence_confirmed") and a.get("independence_basis"):
+        _st = independence_state(a)
+        if _st == "independently_reviewed_independence":
             confirmed += 1
+        elif _st == "user_asserted_independence":
+            asserted += 1
+            unknown += 1
         else:
             unknown += 1
     return {
         **{k: len(v) for k, v in groups.items()},
         "groups": groups,
         "supporting_independence_confirmed_count": confirmed,
+        "supporting_independence_asserted_count": asserted,
         "supporting_independence_unknown_count": unknown,
         "independence_note": (
-            "independence is unknown unless independence_basis is "
-            "recorded; unknown-independence sources are not "
-            "multiple independent evidence"),
+            "independence is confirmed only by a recorded "
+            "independence_review (basis + provenance); asserted or "
+            "unknown-independence sources are not multiple "
+            "independent evidence"),
     }
 
 
-_DEPENDENCE_STATES = ("confirmed_dependent", "suspected_dependent",
-                      "independence_unknown", "independence_confirmed")
+_DEPENDENCE_STATES = INDEPENDENCE_STATES
 
 
 def assess_source_dependence(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
@@ -830,8 +1097,10 @@ def assess_source_dependence(a: dict[str, Any], b: dict[str, Any]) -> dict[str, 
     publisher + year, citation-chain overlap, and text similarity.
     Similarity ALONE can at most raise ``suspected_dependent``;
     ``confirmed_dependent`` requires an explicit reprint/derived
-    signal; ``independence_confirmed`` requires a recorded basis
-    on both sides and no dependence signal.
+    signal; independence is ``independently_reviewed_independence``
+    only when BOTH sides carry an independence_review record
+    (basis + provenance, section 7) and no dependence signal -
+    asserted bases yield ``user_asserted_independence``.
     """
     signals: list[str] = []
     explicit = bool(a.get("reprint_of") == b.get("document_id")
@@ -853,8 +1122,14 @@ def assess_source_dependence(a: dict[str, Any], b: dict[str, Any]) -> dict[str, 
         state = "confirmed_dependent"
     elif signals:
         state = "suspected_dependent"
-    elif a.get("independence_basis") and b.get("independence_basis"):
-        state = "independence_confirmed"
+    elif independence_state(a) == "independently_reviewed_independence" \
+            and independence_state(b) == "independently_reviewed_independence":
+        state = "independently_reviewed_independence"
+    elif independence_state(a) == "user_asserted_independence" \
+            or independence_state(b) == "user_asserted_independence":
+        state = "user_asserted_independence"
+    elif a.get("work_id") and a.get("work_id") == b.get("work_id"):
+        state = "source_family_candidate"
     else:
         state = "independence_unknown"
     return {"state": state, "signals": signals,

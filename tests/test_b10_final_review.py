@@ -247,7 +247,9 @@ def test_trusted_candidate_requires_complete_ref():
     from global_library_mcp.research import register_admitted_evidence
     _tok = register_admitted_evidence(
         library_id="ndl", record_id="1", page_id="1",
-        text="明治25年 横浜 発電所")
+        text="明治25年 横浜 発電所",
+        document_identity_state="upstream_confirmed",
+        page_identity_state="verified_mapping", admission_state="admitted")
     cand = build_trusted_candidate(evidence_ref_token=_tok,
                                    text="明治25年 横浜 発電所")
     cand["evidence_ref"].pop("page_id")
