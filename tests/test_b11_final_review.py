@@ -700,3 +700,55 @@ async def test_cross_search_dedupes_exact_record_only():
     out = await svc.search("q", libraries=["stub"], limit=10)
     ids = [r.record_id for r in out.results]
     assert ids == ["R1", "R2"], ids
+
+
+# -- section 37: blind review import rules ------------------------------------
+
+def test_review_import_validation():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "eval"))
+    import b11_agreement as ag
+    ok = ag.load_judgements(
+        "case_id,reviewer_id,judgement\nc1,r1,correct\nc2,r1,\n")
+    assert ok == {"r1": {"c1": "correct"}}  # blank excluded
+    with pytest.raises(ValueError):
+        ag.load_judgements("case_id,reviewer_id,judgement\nc1,r1,maybe\n")
+    with pytest.raises(ValueError):
+        ag.load_judgements(
+            "case_id,reviewer_id,judgement\nc1,r1,correct\nc1,r1,incorrect\n")
+    with pytest.raises(ValueError):
+        ag.load_judgements("case_id,reviewer_id,judgement\nc1,,correct\n")
+    # agreement over zero real reviews stays unmeasured
+    rep = ag.agreement_report({})
+    assert rep["status"] == "unmeasured" or "unmeasured" in json.dumps(rep)
+
+
+def test_assess_claim_citations_verified_path_unit(tmp_path):
+    """The verified-citation branch of _assess_claim_citations
+    (frozen gate via registry token) - unit level."""
+    from global_library_mcp.web.workspace_api import (
+        _assess_claim_citations)
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store = WorkspaceStore(str(tmp_path / "ws.db"))
+    pid = store.create_project("P")["project_id"]
+    doc = store.save_document(pid, "ndl", "R1", {
+        "title": "Doc", "verification_status": "verified"})
+    cit = store.save_citation(doc["saved_document_id"], {
+        "page_id": "p1", "citation_key": "ndl:R1:p1",
+        "original_excerpt": "明治25年に横浜で発電所が建設された。",
+        "quotation_verification_status": "verified",
+        "page_mapping_status": "verified"})
+    claim = {"claim_id": "c1",
+             "original_statement": "明治25年に横浜で発電所が建設された。",
+             "place": "横浜",
+             "time": {"years_mentioned": [1892]}}
+    rows = _assess_claim_citations(store, pid, claim,
+                                   [cit["citation_id"]])
+    assert rows[0]["citation_id"] == cit["citation_id"]
+    # the frozen gate actually assessed it (not the reference-
+    # only short-circuit, not a crash)
+    assert rows[0]["status"] in (
+        "supported_candidate", "partially_supported",
+        "contextual_only", "insufficient_evidence")
+    assert rows[0].get("reason") != "reference_not_admitted"

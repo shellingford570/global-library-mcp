@@ -87,10 +87,18 @@ def _assess_claim_citations(store: Any, project_id: str,
     verification states, and the existing assessor decides.
     Anything short of that stays evidence_reference_only /
     unresolved, never a support candidate."""
+    from dataclasses import fields as _dc_fields
+
     from global_library_mcp.research import (
-        assess_claim_evidence, build_trusted_candidate,
+        ResearchClaim, assess_claim_evidence, build_trusted_candidate,
         register_admitted_evidence)
 
+    # The stored claim is a dict; the frozen assessor takes the
+    # ResearchClaim object. Rebuild it from the dataclass fields
+    # only (linking metadata like question_id stays out).
+    _known = {f.name for f in _dc_fields(ResearchClaim)}
+    claim_obj = ResearchClaim(**{
+        k: v for k, v in claim.items() if k in _known})
     claim_id = claim.get("claim_id") or ""
     out: list[dict[str, Any]] = []
     docs_by_id = {d["saved_document_id"]: d
@@ -126,7 +134,6 @@ def _assess_claim_citations(store: Any, project_id: str,
         latest = store.latest_rights_observation(
             doc["saved_document_id"]) or {}
         token = register_admitted_evidence(
-            evidence_id=cit.get("citation_key") or cid,
             library_id=doc["library_id"], record_id=doc["record_id"],
             page_id=cit.get("page_id") or "", text=excerpt,
             document_identity_state=(
@@ -142,12 +149,13 @@ def _assess_claim_citations(store: Any, project_id: str,
             session_id="workspace", project_id=project_id,
             citation_id=cid)
         candidate = build_trusted_candidate(
-            **{"claim": claim, "evidence_ref_token": token})
+            **{"evidence_ref_token": token, "text": excerpt})
         if candidate is None:
             out.append({**base, "status": "evidence_reference_only",
                         "reason": "reference_not_admitted"})
             continue
-        rows = assess_claim_evidence(claim, [candidate])
+        rows = assess_claim_evidence(claim_obj, [candidate],
+                                     store=store)
         row = rows[0] if rows else {"status": "insufficient_evidence"}
         out.append({**base, "status": row.get("status"),
                     "signals": row.get("signals") or [],

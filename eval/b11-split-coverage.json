@@ -1,0 +1,37 @@
+{
+ "dataset": "b11-research-validation",
+ "total_cases": 294,
+ "per_kind": {
+  "persons": {
+   "assigned_cases": 13,
+   "assignment_rate": 0.0442,
+   "unassigned_cases": 281
+  },
+  "works": {
+   "assigned_cases": 0,
+   "assignment_rate": 0.0,
+   "unassigned_cases": 294
+  },
+  "concepts": {
+   "assigned_cases": 0,
+   "assignment_rate": 0.0,
+   "unassigned_cases": 294
+  },
+  "documents": {
+   "assigned_cases": 0,
+   "assignment_rate": 0.0,
+   "unassigned_cases": 294
+  },
+  "source_families": {
+   "assigned_cases": 13,
+   "assignment_rate": 0.0442,
+   "unassigned_cases": 281
+  }
+ },
+ "ungroupable_cases": 281,
+ "groupable_cases": 13,
+ "cross_split_entity_overlap_among_assigned": 0,
+ "component_count": 282,
+ "duplicate_statement_scope": "cross-split entity overlap 0 applies ONLY to cases with assigned identifiers; the 281 identifier-less cases cannot be grouped or deduplicated by entity, so their duplicate risk is UNCONFIRMED, not zero",
+ "method_note": "identifiers are the dataset's own entity strings; name variants of the same entity are not merged unless the dataset records the same identifier"
+}

@@ -15,19 +15,44 @@ import json
 from collections import Counter
 
 
+JUDGEMENT_VOCAB = ("correct", "partially_correct", "incorrect",
+                   "insufficient_evidence", "cannot_judge",
+                   "out_of_scope")
+
+
 def load_judgements(text: str, fmt: str = "csv") -> dict[str, dict[str, str]]:
-    """Return {reviewer_id: {case_id: judgement}} (blanks dropped)."""
+    """Return {reviewer_id: {case_id: judgement}} (final review
+    section 37 import rules): blank judgements are excluded,
+    a reviewer identity is required, judgements outside the
+    closed vocabulary are REJECTED (never silently dropped or
+    coerced), and a conflicting duplicate (same reviewer, same
+    case, different judgement) is an error - identical
+    duplicates are idempotent."""
+    def put(out: dict, rid: str, case_id: str, j: str) -> None:
+        if not rid:
+            raise ValueError("reviewer_id is required")
+        if j not in JUDGEMENT_VOCAB:
+            raise ValueError(f"judgement outside the vocabulary: {j!r}")
+        prev = out.setdefault(rid, {}).get(case_id)
+        if prev is not None and prev != j:
+            raise ValueError(
+                f"conflicting duplicate judgement for {case_id} "
+                f"by {rid}: {prev!r} vs {j!r}")
+        out[rid][case_id] = j
+
     out: dict[str, dict[str, str]] = {}
     if fmt == "json":
         data = json.loads(text)
         for reviewer, mapping in data.items():
-            out[reviewer] = {k: v for k, v in mapping.items() if v}
+            for case_id, j in mapping.items():
+                if j:
+                    put(out, reviewer, case_id, j)
         return out
     for row in csv.DictReader(io.StringIO(text)):
         j = (row.get("judgement") or "").strip()
         rid = (row.get("reviewer_id") or "").strip()
-        if j and rid:
-            out.setdefault(rid, {})[row["case_id"]] = j
+        if j:
+            put(out, rid, row["case_id"], j)
     return out
 
 
