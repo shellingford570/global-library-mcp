@@ -400,3 +400,87 @@ def test_graph_unknown_status_never_support_edge(tmp_path):
         "supports_candidate", "partially_supports",
         "contradicts_candidate", "contextualizes", "references",
         "insufficient_evidence", "unassessed", "unresolved_reference"}
+
+
+# -- sections 20-23: report trust separation, claim display, escaping --------
+
+def _report_store(tmp_path):
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store = WorkspaceStore(str(tmp_path / "ws.db"))
+    pid = store.create_project("P # Evil\n## Injected")["project_id"]
+    doc = store.save_document(pid, "ndl", "R1", {
+        "title": "Doc [x](javascript:alert(1))", "authors": "A",
+        "year": "1900"})
+    return store, pid, doc
+
+
+def test_report_imported_not_counted_and_zero_evidence_claim_shown(tmp_path):
+    from global_library_mcp.synthesis import generate_research_report
+    from global_library_mcp.workspace.research_artefacts import (
+        import_artefact, save_artefact)
+    store, pid, doc = _report_store(tmp_path)
+    save_artefact(store, pid, "claim_assessment", "empty", {
+        "claim": {"claim_id": "c-empty",
+                  "original_statement": "No evidence yet."},
+        "assessments": []})
+    import_artefact(store, pid, "claim_assessment", "imp", {
+        "claim": {"claim_id": "c-imp", "original_statement": "Imported."},
+        "assessments": [{"claim_id": "c-imp",
+                         "status": "supported_candidate",
+                         "library_id": "ndl", "record_id": "R1"}]})
+    rep = generate_research_report(store, pid)
+    # imported support is NOT a current claim state
+    assert all(cs["claim_id"] != "c-imp" for cs in rep["claim_states"])
+    assert rep["historical_claim_states"][0]["counted_as_current_evidence"] is False
+    by_id = {c["claim_id"]: c for c in rep["claims"]}
+    assert by_id["c-empty"]["state"] == "not_checked"
+    assert by_id["c-empty"]["evidence_registered"] is False
+    assert "根拠未登録" in by_id["c-empty"]["display_note"]
+    assert by_id["c-imp"]["assessment_counts"]["support"] == 0
+    assert by_id["c-imp"]["assessment_counts"]["historical"] == 1
+
+
+def test_report_citation_mismatch_downgrades(tmp_path):
+    from global_library_mcp.synthesis import generate_research_report
+    from global_library_mcp.workspace.research_artefacts import (
+        save_artefact)
+    store, pid, doc = _report_store(tmp_path)
+    cit = store.save_citation(doc["saved_document_id"], {
+        "page_id": "p1", "citation_key": "k",
+        "quotation_verification_status": "imported_unverified",
+        "page_mapping_status": "verified"})
+    save_artefact(store, pid, "claim_assessment", "c", {
+        "claim": {"claim_id": "c1", "original_statement": "S."},
+        "assessments": [{"claim_id": "c1",
+                         "status": "supported_candidate",
+                         "library_id": "ndl", "record_id": "R1",
+                         "citation_id": cit["citation_id"],
+                         "page_id": "p1"}]})
+    rep = generate_research_report(store, pid)
+    assert rep["claim_states"][0]["state"] == "revalidation_required"
+    assert rep["claims"][0]["references"][0]["title"].startswith("Doc")
+
+
+def test_report_markdown_injection_escaped(tmp_path):
+    from global_library_mcp.synthesis import generate_research_report
+    from global_library_mcp.workspace.research_artefacts import (
+        save_artefact)
+    store, pid, doc = _report_store(tmp_path)
+    save_artefact(store, pid, "research_question", "q", {
+        "question": {"text": "Q?\n# Fake heading <script>x</script>"}})
+    save_artefact(store, pid, "claim_assessment", "c", {
+        "claim": {"claim_id": "c1",
+                  "original_statement": "S ![img](https://evil.example/x)"},
+        "assessments": [{"claim_id": "c1", "status": "supported_candidate",
+                         "library_id": "ndl", "record_id": "R1"}]})
+    md = generate_research_report(store, pid)["markdown"]
+    assert "\n# Fake heading" not in md
+    assert "<script>" not in md
+    assert "![img]" not in md
+    # the javascript: text survives only in ESCAPED (inert) form,
+    # exactly the b7 export standard: brackets/parens are escaped
+    # so no link can form.
+    assert "](javascript:" not in md
+    assert "](https://evil.example" not in md
+    headings = [ln for ln in md.splitlines() if ln.startswith("# ")]
+    assert len(headings) == 1  # only the real title heading
