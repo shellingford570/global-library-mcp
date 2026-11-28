@@ -276,6 +276,14 @@ class InternetArchiveAdapter(LibraryAdapter):
         return {
             "library_id": self.library_id,
             "record_id": identifier,
+            # b10 4.8: identity provenance. The metadata payload
+            # is the upstream's own response and carries its own
+            # identifier field; only when THAT field equals the
+            # requested identifier is the identity confirmed by
+            # the upstream rather than echoed from the request.
+            "identity_source": "upstream"
+            if str(md.get("identifier") or "") == identifier
+            else "request_echo",
             "title": md.get("title"),
             "creator": md.get("creator"),
             "date": md.get("date"),

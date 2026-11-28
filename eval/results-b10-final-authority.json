@@ -1,0 +1,165 @@
+{
+ "evaluation_kind": "authority v2 - input conditions separated, no answer-key leakage",
+ "dataset": "frozen b10 dataset (dev+fixed+holdout), author_work_identification cases",
+ "label_provenance": "agent_assigned / source-supported recount in b10_final_eval",
+ "independent_human_verified": 0,
+ "modes": {
+  "name_only": {
+   "cases": 20,
+   "top_correct": 20,
+   "verified": 0,
+   "verified_correct": 0,
+   "verified_false": 0,
+   "candidate": 20,
+   "ambiguous": 0,
+   "insufficient": 0
+  },
+  "name_plus_stated_years": {
+   "cases": 20,
+   "top_correct": 20,
+   "verified": 0,
+   "verified_correct": 0,
+   "verified_false": 0,
+   "candidate": 20,
+   "ambiguous": 0,
+   "insufficient": 0
+  },
+  "name_plus_work": {
+   "cases": 20,
+   "top_correct": 20,
+   "verified": 0,
+   "verified_correct": 0,
+   "verified_false": 0,
+   "candidate": 20,
+   "ambiguous": 0,
+   "insufficient": 0
+  }
+ },
+ "official_fixture_probes": {
+  "fetched_official_with_stated_years": "authority_verified",
+  "same_id_conflicting_years": "conflicting_authorities",
+  "local_only": "authority_candidate"
+ },
+ "details_name_only": [
+  {
+   "id": "b10-auth-002",
+   "split": "dev",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-006",
+   "split": "dev",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-010",
+   "split": "dev",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-011",
+   "split": "dev",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-018",
+   "split": "dev",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-003",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-004",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-005",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-008",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-009",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-014",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-019",
+   "split": "fixed",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-001",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-007",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-012",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-013",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-015",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-016",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-017",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  },
+  {
+   "id": "b10-auth-020",
+   "split": "holdout",
+   "status": "authority_candidate",
+   "ok": true
+  }
+ ]
+}

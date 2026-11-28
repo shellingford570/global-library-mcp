@@ -1,5 +1,5 @@
 """Execution control for the external profile (b9 sections
-19-22, 28; final-review P0 rework).
+19-22, 28; final-review P0 rework; b10 Stage 0 hardening).
 
 Server-side user consent (per data class AND per library,
 optionally persisted by the operator), per-user budgets
@@ -21,6 +21,29 @@ removed from the external profile entirely: pagination is a
 plain offset, and every call is independently authorised,
 consented and budgeted, so there is no bearer artefact whose
 binding could go stale.
+
+b10 Stage 0 changes (docs/b10-b9-regression-hardening.md):
+authorisation currency now includes EXPIRY - natural consent
+expiry and access-token expiry make a guard stale and refuse
+sends, not only grant/revoke generation changes; the send-path
+guard also receives the library each send belongs to and
+refuses sends to libraries outside the consent record's
+library set; per-user budget history lives in a ledger that
+state eviction and revocation can never erase inside its
+measurement window, and the tracked-user cap is strict (new
+users are refused at capacity instead of silently exceeding
+it); the persisted consent file is strictly validated
+(unknown data classes, non-finite expiries and malformed rows
+are refused fail-closed), carries a policy version, and is
+written with owner-only permissions.
+
+Deployment limit, stated plainly: all counters, ledgers and
+revocation sets here are PER-PROCESS. A multi-process or
+restarted deployment does not share them; only the persisted
+consent file (grants, expiries, revocations) survives a
+restart. Operators needing cross-process budget enforcement
+must front the profile with a single process or an external
+coordinator - that is a production blocker, not a detail.
 """
 
 from __future__ import annotations
@@ -29,7 +52,9 @@ import asyncio
 import contextlib
 import hashlib
 import json
+import math
 import os
+import re
 import threading
 import time
 from dataclasses import dataclass, field
@@ -132,6 +157,10 @@ class ConsentRecord:
     generation: int = 0
 
 
+CONSENT_FILE_VERSION = 1
+_LIBRARY_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
 class ConsentStore:
     """Server-side consent (section 19). Grants happen through
     grant() - called by the operator/deployment, never by a
@@ -142,40 +171,63 @@ class ConsentStore:
     When ``path`` is configured the store is persisted as JSON
     (atomic replace) so consent, its expiry and revocations
     survive restarts; the file is operator-managed state and is
-    never written by tool calls."""
+    never written by tool calls.
+
+    b10 Stage 0 (brief 4.9): the persisted file is validated
+    strictly on load - a symlinked path is refused, unknown
+    policy versions fail closed, and any row with wrong types,
+    unknown data classes, malformed library ids or a
+    non-finite expiry (NaN/Infinity would otherwise make
+    consent permanent) is dropped, so a corrupt or hostile
+    file can only ever REMOVE consent, never create it. The
+    file is written owner-only (0600). A policy ``version``
+    distinguishes the operator's consent format; administrator
+    revocation and the data subject's own grant are the same
+    record here - the store records WHAT is consented, and the
+    operator channel that calls grant()/revoke() is the trust
+    boundary (there is no tool path to either)."""
 
     DATA_CLASSES = {"bibliographic", "references", "rights",
-                    "excerpts", "search_terms_upstream"}
+                    "images", "excerpts", "search_terms_upstream"}
 
     def __init__(self, path: str = "") -> None:
         self._records: dict[str, ConsentRecord] = {}
         self._path = path
+        self._lock = threading.Lock()
         if path:
             self._load()
 
     # -- persistence -------------------------------------------
     def _load(self) -> None:
+        if os.path.islink(self._path):
+            return  # symlinked consent state is refused (fail-closed)
         try:
             with open(self._path, encoding="utf-8") as fh:
+                # NaN/Infinity parse to non-finite floats and
+                # are rejected per-row by the finite checks in
+                # _parse_consent_row (one corrupt row must not
+                # erase every other user's consent).
                 raw = json.load(fh)
         except (OSError, ValueError):
             return  # unreadable consent state = no consent (fail-closed)
-        for user_id, row in (raw.get("users") or {}).items():
-            if not isinstance(row, dict):
-                continue
-            libraries = row.get("libraries")
-            self._records[user_id] = ConsentRecord(
-                user_id=user_id,
-                data_classes=set(row.get("data_classes") or []),
-                libraries=None if libraries is None else set(libraries),
-                expires_at=float(row.get("expires_at") or 0.0),
-                revoked=bool(row.get("revoked")),
-                generation=int(row.get("generation") or 0))
+        if not isinstance(raw, dict):
+            return
+        version = raw.get("version", CONSENT_FILE_VERSION)
+        if not isinstance(version, int) or isinstance(version, bool) \
+                or version > CONSENT_FILE_VERSION:
+            return  # unknown future format: fail closed
+        users = raw.get("users")
+        if not isinstance(users, dict):
+            return
+        for user_id, row in users.items():
+            record = _parse_consent_row(user_id, row)
+            if record is not None:
+                self._records[user_id] = record
 
     def _save(self) -> None:
-        if not self._path:
+        if not self._path or os.path.islink(self._path):
             return
-        payload = {"users": {
+        payload = {"version": CONSENT_FILE_VERSION, "users": {
             uid: {
                 "data_classes": sorted(r.data_classes),
                 "libraries": None if r.libraries is None else sorted(r.libraries),
@@ -184,7 +236,8 @@ class ConsentStore:
                 "generation": r.generation,
             } for uid, r in self._records.items()}}
         tmp = self._path + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as fh:
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
             json.dump(payload, fh, ensure_ascii=False)
         os.replace(tmp, self._path)
 
@@ -195,34 +248,67 @@ class ConsentStore:
         unknown = data_classes - self.DATA_CLASSES
         if unknown:
             raise ValueError(f"unknown consent data classes: {sorted(unknown)}")
-        previous = self._records.get(user_id)
-        record = ConsentRecord(
-            user_id=user_id, data_classes=set(data_classes),
-            libraries=None if libraries is None else set(libraries),
-            expires_at=time.time() + ttl_s,
-            generation=(previous.generation + 1) if previous else 1)
-        self._records[user_id] = record
-        self._save()
-        return record
+        with self._lock:
+            previous = self._records.get(user_id)
+            record = ConsentRecord(
+                user_id=user_id, data_classes=set(data_classes),
+                libraries=None if libraries is None else set(libraries),
+                expires_at=time.time() + ttl_s,
+                generation=(previous.generation + 1) if previous else 1)
+            self._records[user_id] = record
+            self._save()
+            return record
 
     def revoke(self, user_id: str) -> None:
-        record = self._records.get(user_id)
-        if record is not None:
-            record.revoked = True
-            record.data_classes = set()
-            record.generation += 1
-            self._save()
+        with self._lock:
+            record = self._records.get(user_id)
+            if record is not None:
+                record.revoked = True
+                record.data_classes = set()
+                record.generation += 1
+                self._save()
 
     def generation(self, user_id: str) -> int:
         record = self._records.get(user_id)
         return record.generation if record is not None else 0
+
+    def _expired(self, record: ConsentRecord) -> bool:
+        return bool(record.expires_at) and record.expires_at < time.time()
+
+    def current(self, user_id: str, generation: int) -> bool:
+        """The full authorisation-currency check (b10 4.1): the
+        snapshot still matches reality - no record appeared, the
+        record is not revoked, still carries the generation the
+        caller snapshotted, and has NOT reached its natural
+        expiry. Generation alone was insufficient - expiry does
+        not change the generation."""
+        record = self._records.get(user_id)
+        if record is None:
+            return generation == 0
+        if record.revoked or record.generation != generation:
+            return False
+        return not self._expired(record)
+
+    def granted_classes(self, user_id: str,
+                        library_id: str | None = None) -> frozenset[str]:
+        """The data classes currently in force for a user (and
+        library, when given) - the projection layer gates each
+        field on its own class (b10 4.2), so this is the single
+        source the projections consult."""
+        record = self._records.get(user_id)
+        if record is None or record.revoked or self._expired(record):
+            return frozenset()
+        if library_id is not None and record.libraries is not None \
+                and library_id not in record.libraries:
+            return frozenset()
+        return frozenset(record.data_classes)
 
     def has(self, user_id: str, data_class: str,
             library_id: str | None = None) -> bool:
         record = self._records.get(user_id)
         if record is None or record.revoked:
             return False
-        if record.expires_at and record.expires_at < time.time():
+        if self._expired(record):
             return False
         if data_class not in record.data_classes:
             return False
@@ -232,16 +318,74 @@ class ConsentStore:
         return True
 
 
+def _parse_consent_row(user_id: Any, row: Any) -> ConsentRecord | None:
+    """One persisted consent row -> record, or None when the
+    row is malformed in ANY way (fail-closed per user)."""
+    if not isinstance(user_id, str) or not user_id \
+            or not isinstance(row, dict):
+        return None
+    classes = row.get("data_classes")
+    if not isinstance(classes, list) \
+            or not all(isinstance(c, str) for c in classes) \
+            or not set(classes) <= ConsentStore.DATA_CLASSES:
+        return None
+    libraries = row.get("libraries")
+    if libraries is not None:
+        if not isinstance(libraries, list) \
+                or not all(isinstance(lib, str)
+                           and _LIBRARY_ID_RE.match(lib)
+                           for lib in libraries):
+            return None
+        libraries = set(libraries)
+    expires_at = row.get("expires_at")
+    if isinstance(expires_at, bool) \
+            or not isinstance(expires_at, (int, float)) \
+            or not math.isfinite(expires_at):
+        return None
+    revoked = row.get("revoked")
+    if not isinstance(revoked, bool):
+        return None
+    generation = row.get("generation")
+    if isinstance(generation, bool) or not isinstance(generation, int) \
+            or generation < 0:
+        return None
+    return ConsentRecord(
+        user_id=user_id, data_classes=set(classes),
+        libraries=libraries, expires_at=float(expires_at),
+        revoked=revoked, generation=generation)
+
+
 @dataclass
 class _UserState:
+    """Ephemeral per-user execution state (semaphore, response
+    cache). Safe to evict: nothing security-relevant lives here
+    any more (b10 4.4) - budgets moved to the ledger below."""
     semaphore: asyncio.Semaphore = field(
         default_factory=lambda: asyncio.Semaphore(MAX_CONCURRENT_PER_USER))
     waiting: int = 0
+    cache: dict[str, tuple[float, int, Any]] = field(default_factory=dict)
+    last_used: float = 0.0
+
+
+@dataclass
+class _BudgetLedger:
+    """Per-user budget history (b10 4.4). Kept APART from the
+    evictable execution state: evicting or revoking a user's
+    runtime state must never hand them a fresh HTTP budget
+    inside the measurement window. Entries are dropped only
+    once every timestamp has aged out of its window."""
     call_times: list[float] = field(default_factory=list)
     http_times: list[float] = field(default_factory=list)
     http_host_times: dict[str, list[float]] = field(default_factory=dict)
-    cache: dict[str, tuple[float, int, Any]] = field(default_factory=dict)
-    last_used: float = 0.0
+
+    def idle(self, now: float) -> bool:
+        if any(now - t < 60 for t in self.call_times):
+            return False
+        if any(now - t < 3600 for t in self.http_times):
+            return False
+        return all(now - t >= 3600
+                   for times in self.http_host_times.values()
+                   for t in times)
 
 
 class BudgetExceeded(Exception):
@@ -261,30 +405,44 @@ class UserHttpGuard:
     contextvar; the transport calls reserve() immediately
     before every wire send and note_bytes() with the decoded
     body size. Counters on this object are the call's REAL
-    upstream attempt/byte counts for the audit log."""
+    upstream attempt/byte counts for the audit log.
+
+    b10 4.1/4.3: the guard snapshots the consent generation AND
+    the access token's expiry, and reserve() receives the
+    library the send belongs to (when the service layer knows
+    it), so expiry and per-library consent are re-evaluated at
+    the last moment before the wire, not only at call start."""
 
     def __init__(self, runtime: "ExternalRuntime", user_id: str,
-                 consent_generation: int):
+                 consent_generation: int, token_expires_at: float = 0.0):
         self._runtime = runtime
         self.user_id = user_id
         self._consent_generation = consent_generation
+        self._token_expires_at = float(token_expires_at or 0.0)
         self.attempts = 0
         self.bytes_received = 0
 
-    def reserve(self, host: str) -> None:
-        self._runtime._guard_reserve(self, host)
+    def reserve(self, host: str, library_id: str | None = None) -> None:
+        self._runtime._guard_reserve(self, host, library_id)
 
     def note_bytes(self, nbytes: int) -> None:
         self.bytes_received += int(nbytes)
 
+    def token_expired(self) -> bool:
+        return bool(self._token_expires_at) \
+            and time.time() >= self._token_expires_at
+
     def stale(self) -> bool:
         """True when the authorisation snapshot this guard was
-        created under no longer holds (user revoked, or consent
-        granted/revoked since) - checked after queueing and
-        before returning a response."""
+        created under no longer holds: user revoked, consent
+        granted/revoked since, consent EXPIRED naturally, or
+        the access token has reached its expiry (b10 4.1) -
+        checked after queueing and before returning a
+        response."""
         return self._runtime.user_revoked(self.user_id) \
-            or self._runtime.consent.generation(self.user_id) \
-            != self._consent_generation
+            or not self._runtime.consent.current(
+                self.user_id, self._consent_generation) \
+            or self.token_expired()
 
 
 class ExternalRuntime:
@@ -295,6 +453,7 @@ class ExternalRuntime:
         self.config = config
         self.consent = ConsentStore(config.consent_path)
         self._users: dict[str, _UserState] = {}
+        self._ledger: dict[str, _BudgetLedger] = {}
         self._revoked_users: set[str] = set()
         self._inflight: dict[str, set[asyncio.Task]] = {}
         self._lock = threading.Lock()
@@ -306,7 +465,11 @@ class ExternalRuntime:
     def revoke_user(self, user_id: str) -> None:
         self._revoked_users.add(user_id)
         self.consent.revoke(user_id)
-        self._users.pop(user_id, None)   # drops cache + counters
+        # Ephemeral state (cache, semaphore) is dropped, but the
+        # budget LEDGER is deliberately kept (b10 4.4): if the
+        # revocation is ever lifted inside the measurement
+        # window, the user's earlier sends still count.
+        self._users.pop(user_id, None)
         for task in list(self._inflight.get(user_id, ())):
             task.cancel()                # in-flight work stops now
         if self.on_revoke is not None:
@@ -314,6 +477,24 @@ class ExternalRuntime:
 
     def user_revoked(self, user_id: str) -> bool:
         return user_id in self._revoked_users or self.config.disabled
+
+    def _ledger_for(self, user_id: str) -> _BudgetLedger:
+        ledger = self._ledger.get(user_id)
+        if ledger is None:
+            if len(self._ledger) >= MAX_TRACKED_USERS:
+                now = time.time()
+                stale = [uid for uid, entry in self._ledger.items()
+                         if entry.idle(now)]
+                for uid in stale:
+                    self._ledger.pop(uid, None)
+            if len(self._ledger) >= MAX_TRACKED_USERS:
+                # Strict cap (b10 4.4): a new user whose budget
+                # cannot even be recorded is refused, never
+                # silently untracked.
+                raise BudgetExceeded("user_capacity")
+            ledger = _BudgetLedger()
+            self._ledger[user_id] = ledger
+        return ledger
 
     def _state(self, user_id: str) -> _UserState:
         state = self._users.get(user_id)
@@ -324,6 +505,11 @@ class ExternalRuntime:
                 if idle:
                     oldest = min(idle, key=lambda u: self._users[u].last_used)
                     self._users.pop(oldest, None)
+                else:
+                    # Strict cap (b10 4.4): everyone is busy, so
+                    # the new user is refused rather than the cap
+                    # being exceeded.
+                    raise BudgetExceeded("user_capacity")
             state = _UserState()
             self._users[user_id] = state
         state.last_used = time.monotonic()
@@ -344,24 +530,37 @@ class ExternalRuntime:
 
     # -- tool-call rate budget ----------------------------------
     def check_call_budget(self, user_id: str) -> None:
-        state = self._state(user_id)
+        ledger = self._ledger_for(user_id)
         now = time.time()
-        state.call_times = [t for t in state.call_times if now - t < 60]
-        if len(state.call_times) >= TOOL_CALLS_PER_MINUTE:
+        ledger.call_times = [t for t in ledger.call_times if now - t < 60]
+        if len(ledger.call_times) >= TOOL_CALLS_PER_MINUTE:
             raise BudgetExceeded("tool_calls_per_minute")
-        state.call_times.append(now)
+        ledger.call_times.append(now)
 
     # -- the send-path guard (final review P0) -------------------
-    def http_guard(self, user_id: str) -> UserHttpGuard:
-        return UserHttpGuard(self, user_id, self.consent.generation(user_id))
+    def http_guard(self, user_id: str,
+                   token_expires_at: float = 0.0) -> UserHttpGuard:
+        return UserHttpGuard(self, user_id,
+                             self.consent.generation(user_id),
+                             token_expires_at=token_expires_at)
 
-    def _guard_reserve(self, guard: UserHttpGuard, host: str) -> None:
+    def _guard_reserve(self, guard: UserHttpGuard, host: str,
+                       library_id: str | None = None) -> None:
         """Atomic check-and-count, called by BudgetedTransport
         immediately before a send. Any refusal raises the http
         layer's BudgetExceeded, so nothing is sent. Counts are
         taken pre-send and never refunded: retries, redirects,
         failures and cancellations all consumed upstream
-        attention. Cache hits never reach this point."""
+        attention. Cache hits never reach this point.
+
+        b10 4.1/4.3: the authorisation re-evaluated here is the
+        CURRENT one - revocation, consent generation, consent
+        EXPIRY and token expiry all refuse the send - and when
+        the send's library is known, the consent record's
+        library set binds it: a send for a library outside the
+        consented set is refused whatever host it targets, so
+        future routing changes cannot silently reach an
+        unconsented library through a shared host."""
         from global_library_mcp.http import BudgetExceeded as HttpBudgetExceeded
 
         user_id = guard.user_id
@@ -369,23 +568,42 @@ class ExternalRuntime:
             if self.user_revoked(user_id):
                 raise HttpBudgetExceeded(
                     "external access for this user was revoked")
-            if self.consent.generation(user_id) != guard._consent_generation:
+            if guard._consent_generation == 0 \
+                    or not self.consent.current(
+                        user_id, guard._consent_generation):
                 raise HttpBudgetExceeded(
-                    "consent changed during the operation; sends stopped")
-            state = self._state(user_id)
+                    "consent expired or changed during the operation; "
+                    "sends stopped")
+            if guard.token_expired():
+                raise HttpBudgetExceeded(
+                    "access token expired during the operation; "
+                    "sends stopped")
+            if library_id is not None:
+                record = self.consent._records.get(user_id)
+                if record is not None and record.libraries is not None \
+                        and library_id not in record.libraries:
+                    raise HttpBudgetExceeded(
+                        f"library {library_id} is outside the consented "
+                        "library set; send refused")
+            try:
+                ledger = self._ledger_for(user_id)
+            except BudgetExceeded as exc:
+                raise HttpBudgetExceeded(
+                    "per-user budget ledger is at capacity") from exc
             now = time.time()
-            state.http_times = [t for t in state.http_times if now - t < 3600]
-            if len(state.http_times) >= UPSTREAM_HTTP_PER_HOUR:
+            ledger.http_times = [t for t in ledger.http_times
+                                 if now - t < 3600]
+            if len(ledger.http_times) >= UPSTREAM_HTTP_PER_HOUR:
                 raise HttpBudgetExceeded(
                     f"per-user upstream HTTP budget exhausted "
                     f"({UPSTREAM_HTTP_PER_HOUR}/hour)")
-            host_times = state.http_host_times.setdefault(host, [])
+            host_times = ledger.http_host_times.setdefault(host, [])
             host_times[:] = [t for t in host_times if now - t < 3600]
             if len(host_times) >= UPSTREAM_HTTP_PER_HOST_HOUR:
                 raise HttpBudgetExceeded(
                     f"per-user per-host HTTP budget exhausted for {host} "
                     f"({UPSTREAM_HTTP_PER_HOST_HOUR}/hour)")
-            state.http_times.append(now)
+            ledger.http_times.append(now)
             host_times.append(now)
             guard.attempts += 1
 

@@ -1,0 +1,185 @@
+{
+ "evaluation_kind": "structured claim/contradiction mapping over frozen b10 dataset",
+ "label_source": "agent_assigned",
+ "split": "fixed",
+ "stats": {
+  "snippet_match": {
+   "correct": 4,
+   "total": 8,
+   "rate": 0.5
+  },
+  "structure": {
+   "correct": 7,
+   "total": 7,
+   "rate": 1.0
+  },
+  "contradiction": {
+   "correct": 6,
+   "total": 6,
+   "rate": 1.0
+  }
+ },
+ "false_support_promotions": 0,
+ "details": [
+  {
+   "id": "b10-clai-003",
+   "kind": "snippet",
+   "ok": true,
+   "got": "insufficient_evidence",
+   "want": "insufficient_evidence"
+  },
+  {
+   "id": "b10-clai-006",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "supported_candidate"
+  },
+  {
+   "id": "b10-clai-009",
+   "kind": "snippet",
+   "ok": false,
+   "got": "insufficient_evidence",
+   "want": "contextual_only"
+  },
+  {
+   "id": "b10-clai-010",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "supported_candidate"
+  },
+  {
+   "id": "b10-clai-013",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "contextual_only"
+  },
+  {
+   "id": "b10-clai-016",
+   "kind": "snippet",
+   "ok": true,
+   "got": "insufficient_evidence",
+   "want": "insufficient_evidence"
+  },
+  {
+   "id": "b10-clai-018",
+   "kind": "snippet",
+   "ok": true,
+   "got": "insufficient_evidence",
+   "want": "insufficient_evidence"
+  },
+  {
+   "id": "b10-clai-020",
+   "kind": "snippet",
+   "ok": true,
+   "got": "conflicting_candidate",
+   "want": "conflicting_candidate"
+  },
+  {
+   "id": "b10-clai-021",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-023",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-028",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-031",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-038",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-039",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-040",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-cont-001",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "differing_unit",
+   "want": "differing_unit",
+   "pair": "unit-difference"
+  },
+  {
+   "id": "b10-cont-005",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "consistent_candidate",
+   "want": "consistent_candidate",
+   "pair": "translation-difference"
+  },
+  {
+   "id": "b10-cont-008",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "contradiction_candidate",
+   "want": "contradiction_candidate",
+   "pair": "true-contradiction-2"
+  },
+  {
+   "id": "b10-cont-010",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "insufficient_context",
+   "want": "insufficient_context",
+   "pair": "insufficient-context"
+  },
+  {
+   "id": "b10-cont-017",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "contradiction_candidate",
+   "want": "contradiction_candidate",
+   "pair": "true-contradiction-1-rev"
+  },
+  {
+   "id": "b10-cont-019",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "contradiction_candidate",
+   "want": "contradiction_candidate",
+   "pair": "ocr-suspect-rev"
+  }
+ ]
+}

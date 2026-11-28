@@ -1,0 +1,132 @@
+{
+ "evaluation_kind": "structured claim/contradiction mapping over frozen b10 dataset",
+ "label_source": "agent_assigned",
+ "split": "holdout",
+ "stats": {
+  "snippet_match": {
+   "correct": 2,
+   "total": 5,
+   "rate": 0.4
+  },
+  "structure": {
+   "correct": 5,
+   "total": 5,
+   "rate": 1.0
+  },
+  "contradiction": {
+   "correct": 4,
+   "total": 4,
+   "rate": 1.0
+  }
+ },
+ "false_support_promotions": 0,
+ "details": [
+  {
+   "id": "b10-clai-001",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "supported_candidate"
+  },
+  {
+   "id": "b10-clai-008",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "supported_candidate"
+  },
+  {
+   "id": "b10-clai-014",
+   "kind": "snippet",
+   "ok": true,
+   "got": "insufficient_evidence",
+   "want": "insufficient_evidence"
+  },
+  {
+   "id": "b10-clai-015",
+   "kind": "snippet",
+   "ok": false,
+   "got": "partially_supported",
+   "want": "contextual_only"
+  },
+  {
+   "id": "b10-clai-019",
+   "kind": "snippet",
+   "ok": true,
+   "got": "insufficient_evidence",
+   "want": "insufficient_evidence"
+  },
+  {
+   "id": "b10-clai-022",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-024",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-025",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-026",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-clai-035",
+   "kind": "structure",
+   "ok": true,
+   "era_ok": true,
+   "place_ok": true,
+   "event_extracted": false
+  },
+  {
+   "id": "b10-cont-004",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "consistent_candidate",
+   "want": "consistent_candidate",
+   "pair": "notation-difference"
+  },
+  {
+   "id": "b10-cont-011",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "differing_unit",
+   "want": "differing_unit",
+   "pair": "unit-difference-rev"
+  },
+  {
+   "id": "b10-cont-012",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "differing_scope",
+   "want": "differing_scope",
+   "pair": "scope-difference-rev"
+  },
+  {
+   "id": "b10-cont-020",
+   "kind": "contradiction",
+   "ok": true,
+   "got": "insufficient_context",
+   "want": "insufficient_context",
+   "pair": "insufficient-context-rev"
+  }
+ ]
+}

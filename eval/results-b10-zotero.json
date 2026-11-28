@@ -1,0 +1,22 @@
+{
+ "evaluation_kind": "format-level Zotero compatibility with synthetic records",
+ "zotero_application_available": false,
+ "zotero_real_import_verified": false,
+ "note": "No Zotero application exists in this environment; real-application import is NOT verified (section 36). No user library was touched.",
+ "checks": {
+  "citation_keys_stable": true,
+  "bibtex_entry_count": true,
+  "bibtex_japanese_author": true,
+  "bibtex_edition": true,
+  "bibtex_translator": true,
+  "bibtex_year": true,
+  "bibtex_url": true,
+  "ris_grammar": true,
+  "ris_japanese_author": true,
+  "csl_count": true,
+  "csl_shape": true,
+  "csl_corporate_author": true,
+  "csl_newspaper_type": true
+ },
+ "all_format_checks_passed": true
+}

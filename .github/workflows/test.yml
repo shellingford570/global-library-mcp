@@ -103,13 +103,31 @@ jobs:
         run: cat /tmp/glm-ws-ci/server.log || true
 
   docker-playwright:
+    # b10 final review section 3/35: MANDATORY Docker regression.
+    # The image is built and run as the non-root appuser; the web
+    # server, LibraryService, adapters and BudgetedTransport are
+    # real, and ONLY the upstream library HTTP is fixed
+    # (GLM_UPSTREAM_FIXTURE_DIR mounted read-only). The live
+    # upstream smoke is the separate informational
+    # docker-live-smoke job below - it is not part of this job
+    # and its failures are never rewritten into successes here.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build --tag global-library-mcp:${{ github.sha }} .
-      - name: Start Docker container
-        run: docker run --detach --name global-library-mcp --publish 8000:8000 global-library-mcp:${{ github.sha }}
+      - name: Assert the image runs as a non-root user
+        run: |
+          user="$(docker image inspect --format '{{.Config.User}}' global-library-mcp:${{ github.sha }})"
+          echo "image user: $user"
+          test -n "$user" && test "$user" != "root" && test "$user" != "0"
+      - name: Start Docker container (fixed upstream fixtures)
+        run: >-
+          docker run --detach --name global-library-mcp
+          --publish 8000:8000
+          --volume ${{ github.workspace }}/tests/e2e/fixtures/upstream:/fixtures:ro
+          --env GLM_UPSTREAM_FIXTURE_DIR=/fixtures
+          global-library-mcp:${{ github.sha }}
       - name: Wait for health endpoint
         run: |
           for attempt in $(seq 1 30); do
@@ -124,14 +142,29 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Run Playwright E2E against Docker
+      - name: Run Playwright E2E against Docker (fixed fixtures)
         env:
           BASE_URL: http://127.0.0.1:8000
-        run: npx playwright test tests/e2e/search.spec.js
-      - name: Run live API smoke against Docker
+        run: npx playwright test tests/e2e/search.spec.js --reporter=json > /tmp/docker-pw.json
+      - name: Assert all 17 search journeys passed with no skips
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import json
+          with open('/tmp/docker-pw.json') as fh:
+              report = json.load(fh)
+          stats = report.get('stats', {})
+          passed = stats.get('expected', 0)
+          skipped = stats.get('skipped', 0)
+          print(f"docker search journeys: passed={passed} skipped={skipped} unexpected={stats.get('unexpected', 0)}")
+          assert stats.get('unexpected', 0) == 0, "docker Playwright journeys failed"
+          assert skipped == 0, "a mandatory journey skipped - not a CI success"
+          assert passed == 17, f"expected all 17 search journeys to pass, got {passed}"
+          EOF
+      - name: Run fixture API smoke against Docker
         env:
           BASE_URL: http://127.0.0.1:8000
-        run: tests/e2e_smoke.sh
+        run: tests/e2e_smoke_fixture.sh
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -144,6 +177,45 @@ jobs:
       - name: Show container logs
         if: always()
         run: docker logs global-library-mcp || true
+      - name: Stop Docker container
+        if: always()
+        run: docker rm --force global-library-mcp || true
+
+  docker-live-smoke:
+    # b10 final review sections 3/35: INFORMATIONAL live-upstream
+    # smoke, separated from the mandatory fixture regression.
+    # Failures are preserved in the step log and the uploaded
+    # result file with the failing stage and HTTP status; an
+    # upstream failure (e.g. the NDL page API returning 500) is
+    # reported as an upstream failure, never rewritten into a
+    # normal response. This job does not gate the release.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build --tag global-library-mcp:${{ github.sha }} .
+      - name: Start Docker container (LIVE upstreams)
+        run: docker run --detach --name global-library-mcp --publish 8000:8000 global-library-mcp:${{ github.sha }}
+      - name: Wait for health endpoint
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/health | grep -q '"ok": true'; then exit 0; fi
+            sleep 2
+          done
+          docker logs global-library-mcp
+          exit 1
+      - name: Run live API smoke against Docker (informational)
+        env:
+          BASE_URL: http://127.0.0.1:8000
+        run: tests/e2e_smoke.sh 2>&1 | tee /tmp/live-smoke-result.txt
+      - name: Upload live smoke result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-live-smoke-result
+          path: /tmp/live-smoke-result.txt
+          if-no-files-found: warn
       - name: Stop Docker container
         if: always()
         run: docker rm --force global-library-mcp || true

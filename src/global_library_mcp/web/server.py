@@ -44,6 +44,9 @@ def structured_kwargs(qs: dict) -> dict:
             kwargs[key] = int(qs[key][0])
     if qs.get("ocr", [""])[0] == "1":
         kwargs["ocr_required"] = True
+    if qs.get("ranking_mode") and qs["ranking_mode"][0] in (
+            "legacy", "lexical", "semantic", "hybrid"):
+        kwargs["ranking_mode"] = qs["ranking_mode"][0]
     return kwargs
 
 
@@ -259,6 +262,32 @@ class Handler(BaseHTTPRequestHandler):
             registry = Registry(ROOT / "libraries.yaml")
             self._send(json_bytes({"libraries": registry.list()}))
             return
+        if parsed.path == "/api/features":
+            # b10 (section 37): the UI states which search features
+            # are ACTUALLY active in this process. Semantic search
+            # is reported available only when a local backend can
+            # be constructed; the UI must never claim it ran when
+            # it did not.
+            import os as _os_feat
+            from global_library_mcp.semantic_local import (
+                backend_unavailable_reason, get_local_backend)
+            _backend_feat = get_local_backend()
+            self._send(json_bytes({
+                "research_ranker": _os_feat.getenv("GLM_RESEARCH_RANKER") == "1",
+                "ranking_modes": ["legacy", "lexical", "semantic", "hybrid"],
+                "semantic_search": _backend_feat is not None,
+                "semantic_backend_available": _backend_feat is not None,
+                "semantic_unavailable_reason": (
+                    None if _backend_feat is not None
+                    else backend_unavailable_reason()),
+                "semantic_model": ("paraphrase-multilingual-MiniLM-L12-v2"
+                                   if _backend_feat is not None else None),
+                "semantic_model_revision": (
+                    getattr(_backend_feat, "model_revision", None)),
+                "expansion_allocation": _os_feat.getenv(
+                    "GLM_EXPANSION_ALLOCATION", "legacy"),
+            }))
+            return
         if parsed.path == "/api/cancel":
             op_id = parse_qs(parsed.query).get("op", [""])[0]
             if not op_id:
@@ -301,6 +330,7 @@ class Handler(BaseHTTPRequestHandler):
                         "search_kind": "structured_bibliographic",
                         "options_applied": True,
                         "filters": result.get("filters"),
+                        "ranking": result.get("ranking"),
                         "discovery": result.get("discovery"),
                         "search_scope": result.get("search_scope"),
                         "history_token": _history_token(

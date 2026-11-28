@@ -1,0 +1,334 @@
+{
+ "evaluation": "b10 final review bundle",
+ "commit": "see docs/b10-final-review.md (measured at the final-review head)",
+ "grouped_splits": {
+  "total_cases": 260,
+  "dataset_sha256": {
+   "dev": "b39a88a62c61a0aa6e8cdb42c20b46caeeb8db04a27f16e6c86160a72dfa3f1f",
+   "fixed": "09ff2a5fe35e65eede690f1baecbd9e0d96160947f49744e4a10cf4a5633d3ab",
+   "holdout": "2541fe50c864f281b09947fca605ace2eb11549ec449c0c2d03f0a3e66b829ee"
+  },
+  "authors_spanning_multiple_splits": {
+   "Immanuel Kant": [
+    "dev",
+    "holdout"
+   ],
+   "Erasmus Darwin": [
+    "dev",
+    "fixed"
+   ],
+   "Max Weber": [
+    "dev",
+    "fixed"
+   ],
+   "Alfred Weber": [
+    "dev",
+    "holdout"
+   ],
+   "夏目漱石": [
+    "dev",
+    "holdout"
+   ],
+   "Isaac Newton": [
+    "fixed",
+    "holdout"
+   ],
+   "Jean-Jacques Rousseau": [
+    "fixed",
+    "holdout"
+   ],
+   "森鷗外": [
+    "fixed",
+    "holdout"
+   ]
+  },
+  "works_spanning_multiple_splits": {
+   "marx-kapital": [
+    "dev",
+    "fixed"
+   ],
+   "hugo-miserables": [
+    "dev",
+    "fixed"
+   ],
+   "kant-kritik": [
+    "fixed",
+    "holdout"
+   ],
+   "darwin-origin": [
+    "fixed",
+    "holdout"
+   ],
+   "goethe-faust": [
+    "fixed",
+    "holdout"
+   ],
+   "dostoevsky-crime": [
+    "fixed",
+    "holdout"
+   ]
+  },
+  "note": "the frozen split is by case-id hash; the same person/work can appear in several splits, so split-level scores are NOT entity-independent. The holdout is treated as a regression set from this review onward."
+ },
+ "label_recount": {
+  "total_cases": 260,
+  "claimed_bibliographic_source_supported": 68,
+  "recounted_source_supported": 21,
+  "recounted_agent_assigned": 239,
+  "independent_human_verified": 0,
+  "rule": "source_supported is kept ONLY where an individual authority identifier (GND) was live-verified for that case's author on 2026-11-28; the generic basis text alone does not verify a label (section 22)",
+  "supported_cases": [
+   {
+    "id": "b10-auth-002",
+    "author_id": "author:kant",
+    "gnd": "118559796",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-006",
+    "author_id": "author:darwin-erasmus",
+    "gnd": "118671049",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-010",
+    "author_id": "author:weber-max",
+    "gnd": "118629743",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-011",
+    "author_id": "author:weber-alfred",
+    "gnd": "118765787",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-018",
+    "author_id": "author:soseki",
+    "gnd": "118785737",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-005",
+    "author_id": "author:darwin-erasmus",
+    "gnd": "118671049",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-008",
+    "author_id": "author:newton",
+    "gnd": "118587544",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-009",
+    "author_id": "author:weber-max",
+    "gnd": "118629743",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-014",
+    "author_id": "author:rousseau",
+    "gnd": "118603426",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-019",
+    "author_id": "author:ogai",
+    "gnd": "118736957",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-orig-013",
+    "author_id": "author:rousseau",
+    "gnd": "118603426",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-001",
+    "author_id": "author:kant",
+    "gnd": "118559796",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-007",
+    "author_id": "author:newton",
+    "gnd": "118587544",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-012",
+    "author_id": "author:weber-alfred",
+    "gnd": "118765787",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-013",
+    "author_id": "author:rousseau",
+    "gnd": "118603426",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-015",
+    "author_id": "author:fukuzawa",
+    "gnd": "118952633",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-016",
+    "author_id": "author:fukuzawa",
+    "gnd": "118952633",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-017",
+    "author_id": "author:soseki",
+    "gnd": "118785737",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-auth-020",
+    "author_id": "author:ogai",
+    "gnd": "118736957",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-orig-001",
+    "author_id": "author:kant",
+    "gnd": "118559796",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   },
+   {
+    "id": "b10-orig-016",
+    "author_id": "author:newton",
+    "gnd": "118587544",
+    "verified_on": "2026-11-28",
+    "verified_fields": "author identity + life years via lobid GND"
+   }
+  ]
+ },
+ "challenge2": {
+  "cases": 10,
+  "ok": 10,
+  "details": [
+   {
+    "case": "kw_vs_mw",
+    "got": "contradiction_candidate",
+    "want": "contradiction_candidate",
+    "ok": true
+   },
+   {
+    "case": "km_m_conversion",
+    "got": "consistent_candidate",
+    "want": "consistent_candidate",
+    "ok": true
+   },
+   {
+    "case": "different_place",
+    "got": "differing_scope",
+    "want": "differing_scope",
+    "ok": true
+   },
+   {
+    "case": "different_subject",
+    "got": "insufficient_context",
+    "want": "insufficient_context",
+    "ok": true
+   },
+   {
+    "case": "forged_admitted",
+    "got": "not_checked",
+    "want": "not_checked",
+    "ok": true
+   },
+   {
+    "case": "missing_evidence_ref",
+    "got": "not_checked",
+    "want": "not_checked",
+    "ok": true
+   },
+   {
+    "case": "different_place_no_support",
+    "got": true,
+    "want": true,
+    "ok": true
+   },
+   {
+    "case": "kant_editions_distinct",
+    "got": true,
+    "want": true,
+    "ok": true
+   },
+   {
+    "case": "edition_is_candidate",
+    "got": "edition_candidate",
+    "want": "edition_candidate",
+    "ok": true
+   },
+   {
+    "case": "unknown_year_no_edition",
+    "got": null,
+    "want": null,
+    "ok": true
+   }
+  ],
+  "label": "agent_assigned proxy challenge set (new, 2026-11-28)",
+  "independent_human_verified": 0
+ },
+ "pool_reranking_eval_B": {
+  "status": "measured",
+  "corpus": "b6 corpus (simulation, proxy)",
+  "pool": "lexical top-20 of the corpus per case",
+  "cases": 35,
+  "recall@10_in_pool": {
+   "pool_order_lexical": 0.7286,
+   "semantic_in_pool": 0.8071,
+   "hybrid_in_pool": 0.8071
+  },
+  "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+  "note": "re-ranking only reorders what retrieval found; pool recall is not end-to-end search recall"
+ },
+ "evidence_impact_eval_D": {
+  "legacy": {
+   "evidence": 0,
+   "unverified": 1,
+   "semantic_applied": false
+  },
+  "semantic": {
+   "evidence": 0,
+   "unverified": 1,
+   "semantic_applied": true
+  },
+  "note": "admission gates identical in both modes (frozen)"
+ },
+ "performance": {
+  "research_ranker_10": 1.45,
+  "research_ranker_30": 3.17,
+  "research_ranker_50": 5.99,
+  "model_first_load_ms": 1056.9,
+  "model_cached_load_ms": 0.021,
+  "model_singleton": true,
+  "encode_30_ms": 45.3
+ }
+}

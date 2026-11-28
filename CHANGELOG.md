@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.0.0b10 — Advanced Research Intelligence
+
+Final review (docs/b10-final-review.md): semantic search wired
+into the real service path as opt-in ranking modes
+(legacy/lexical/semantic/hybrid) with model-manifest SHA-256
+verification and a singleton backend; authority_verified now
+requires a fetched official record (local lexicon alone never
+verifies) with pre-merge contradiction detection; dedupe is
+exact (library_id, record_id) only and editions are candidates;
+adaptive stop respects filters and research intent; claim
+assessment requires trusted pipeline-issued evidence references;
+unit conversion and honest independence accounting in fact
+comparison; strict workspace artefact schemas with provenance
+and trust downgrade; atomic external session reservations;
+Docker CI split into a mandatory fixture job and an
+informational live-smoke job.
+
+## 1.0.0b10 — Advanced Research Intelligence (in development)
+
+Stage 0 (b9 external-profile regression hardening;
+docs/b10-b9-regression-hardening.md):
+
+- Authorisation currency now includes **expiry**: natural
+  consent expiry and access-token expiry refuse sends and void
+  responses at every checkpoint (post-queue, pre-send,
+  pre-return), not only grant/revoke generation changes.
+- Consent is applied **per data class at projection time**:
+  bibliographic fields, the rights block, reference URLs and
+  image URLs (new `images` class) are gated independently.
+- Sends carry their **library identity** to the send-path
+  guard; a send for a library outside the consent record's
+  library set is refused whatever host it targets.
+- **Budget history survives eviction and revocation** (separate
+  ledger); the tracked-user capacity is strict — new users are
+  refused at capacity instead of silently exceeding it.
+- Session bindings expire on an idle TTL, are capped **per
+  user** as well as per token, and new-session creation is
+  refused at capacity before the SDK runs.
+- Typed projections hardened: `clean_text` drops containers
+  instead of stringifying them; library capabilities are
+  projected field-by-field with types; reference URLs require
+  a known per-library host and carry no credential-shaped
+  query parameters.
+- Document identity distinguishes **upstream-confirmed**
+  identifiers from request echoes; rights are never certified
+  for an identity-less payload. The Internet Archive adapter
+  confirms identity from the metadata payload's own identifier.
+- The persisted consent file is strictly validated (a NaN
+  expiry no longer loads as permanent consent), versioned, and
+  written owner-only; direct server construction applies the
+  same startup gates as the CLI; audit events name the basis
+  of the recorded response size, and auth/session-layer
+  rejections are audited.
+- Tests: 599 pytest (29 new Stage 0 regressions); the b9
+  security evaluation still passes 164/164.
+
 ## 1.0.0b9 — External MCP Readiness
 
 - New **external-research MCP profile**: a separate FastMCP
@@ -667,3 +723,43 @@ listed as verified was not live-verified; see
   Europeana), library registry (`libraries.yaml`), NDL Book/Page API
   page OCR and IIIF image URLs, Docker, GitHub Actions, pytest and
   Playwright suites.
+- b10 Stage 2: AuthorityResolver (local lexicon + lobid GND /
+  Wikidata clients, VIAF implemented but live-blocked and off by
+  default); signal-based person resolution with hard year-conflict
+  exclusion and a one-year calendar-ambiguity rule; work/edition
+  resolution with a never-merge edition table; GND identifiers
+  live-verified for ten focus authors and recorded in the
+  lexicon; resolver evaluation over the frozen b10 dataset with
+  zero false verifications on all splits.
+- b10 Stage 3: simulation routing aligned with production (plan
+  language, not text detection) - b6 fixed F Recall@10 recovered
+  to 0.9167 and challenge to 1.0000 in simulation; Wasserkraft
+  label added for hydroelectric power (de). Lexical TF-IDF
+  scorer and ResearchRanker (strict tier + lexical/semantic
+  fusion, OCR as usability only) added; hybrid comparison did
+  not show a uniform win, so the incumbent ranker stays default
+  and ResearchRanker is opt-in (GLM_RESEARCH_RANKER=1) with
+  per-item ranking reasons. Local semantic backend
+  (paraphrase-multilingual-MiniLM-L12-v2, ONNX quint8, 127 MB,
+  Apache-2.0, pinned revision) evaluated: whole-corpus
+  Recall@10 1.0000 fixed vs 0.7286 lexical. Adaptive stop added
+  to standard-mode variant search (strict title-tier match).
+- b10 Stage 4: research.py - ResearchQuestion/ResearchClaim
+  structuring, claim-evidence candidate mapping (candidate-level
+  statuses only; unadmitted candidates are never assessed),
+  cross-source fact comparison with document vs independent
+  source counts and contradiction CANDIDATES (never confirmed).
+- b10 Stage 5: workspace b10 artefacts as versioned JSON
+  envelopes in research notes (no schema change), research
+  progress summary and candidate relationship graph; /api/features
+  endpoint and UI features line (semantic availability is only
+  ever reported when a local backend exists); ranking reasons
+  rendered when present. Zotero: format-level compatibility
+  verified on synthetic records (13/13 checks); the Zotero
+  application is not present in this environment, so real-app
+  import remains unverified.
+- b10 Stage 6: scenario evaluation A-L (live Kant check:
+  original-work candidates at #1 (French translation, IA) and
+  #10 (German original, DDB) in a live standard search);
+  performance measurements; consolidated evaluation and
+  ablation record; b11 candidates drafted (not started).

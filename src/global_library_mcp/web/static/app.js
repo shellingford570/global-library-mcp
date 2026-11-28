@@ -71,6 +71,8 @@ const I18N = {
     authorPlaceholder: '著者名（例：カント）', titlePlaceholder: '原題・翻訳題（例：純粋理性批判）',
     expandMulti: '多言語展開', expandHist: '歴史的表記展開',
     discoveryTitle: '検索の展開（資料発見のみ・根拠判定には使いません）',
+    featuresLine: (f) => `検索方式: 語彙・厳密信号${f.research_ranker ? ' + ResearchRanker（理由表示あり）' : ''} / 意味検索: ${f.semantic_search ? `利用可能（${f.semantic_model}・ローカル）` : '未導入（語彙検索のみ）'}`,
+    rankingReasonsLabel: 'ランキング理由',
     queryLanguageLabel: '質問の言語', matchedVariantLabel: '発見した検索語', discoveryReasonsLabel: '表示理由',
     workLinkLabel: '作品候補', ambiguousAuthorLabel: '同名の著者が複数いるため特定していません', variantExecuted: '実行済み', variantNotExecuted: '未実行',
     bsbHandoffLabel: 'BSB/MDZで原本を確認', dupGroupLabel: '同一作品の候補グループ',
@@ -208,6 +210,8 @@ const I18N = {
     authorPlaceholder: 'Author (e.g. Kant)', titlePlaceholder: 'Original / translated title',
     expandMulti: 'Multilingual expansion', expandHist: 'Historical spellings',
     discoveryTitle: 'Search expansion (discovery only; never used for evidence admission)',
+    featuresLine: (f) => `Search: lexical + strict signals${f.research_ranker ? ' + ResearchRanker (with reasons)' : ''} / Semantic search: ${f.semantic_search ? `available (${f.semantic_model}, local)` : 'not installed (lexical only)'}`,
+    rankingReasonsLabel: 'Ranking reasons',
     queryLanguageLabel: 'Query language', matchedVariantLabel: 'Found by search term', discoveryReasonsLabel: 'Why shown',
     workLinkLabel: 'Work candidate', ambiguousAuthorLabel: 'Several authors share this name; not identified', variantExecuted: 'executed', variantNotExecuted: 'not executed',
     bsbHandoffLabel: 'Check the original at BSB/MDZ', dupGroupLabel: 'Same-work candidate group',
@@ -328,6 +332,12 @@ function sourceLink(value, label) {
 }
 
 function renderSearch(data) {
+  if (data.ranking) {
+    const r = data.ranking;
+    const line = `ランキング: 要求=${r.requested_ranking_mode} / 実際=${r.effective_ranking_mode} / 意味適用=${r.semantic_applied ? 'あり' : 'なし'}${r.fallback_reason ? ` / フォールバック理由: ${r.fallback_reason}` : ''}`;
+    const metaEl = document.querySelector('#result-meta');
+    if (metaEl) metaEl.textContent = line;
+  }
   const items = data.results || [];
   title.textContent = data.query ? t().recordsFor(data.query) : t().resultsTitle;
   const retrieved = data.retrieved_at ? new Date(data.retrieved_at) : null;
@@ -353,6 +363,12 @@ function semanticsLine(item) {
     + (reasons ? ` <span class="relevance-reasons">${esc(reasons)}</span>` : '') + `</p>`;
 }
 
+function rankingReasonsLine(item) {
+  const reasons = item.ranking_reasons || [];
+  if (!reasons.length) return '';
+  return `<p>${t().rankingReasonsLabel}: <span class="rel-reasons">${esc(reasons.join(' / '))}</span></p>`;
+}
+
 function relevanceLine(item) {
   const rel = item.relevance || (item.relevance_status ? {status: item.relevance_status, reasons: item.relevance_reasons || []} : null);
   if (!rel || !rel.status) return '';
@@ -368,6 +384,7 @@ function relatedCard(item) {
       <span class="tag">${esc(item.library_name || item.library_id || '')}</span>
       <h3>${esc(item.title || item.record_id || '')}</h3>
       ${relevanceLine(item)}
+      ${rankingReasonsLine(item)}
       ${semanticsLine(item)}
     </div>
     <div class="card-actions">
@@ -387,6 +404,7 @@ function evidenceCard(item) {
       <h3>${esc(item.title)}</h3>
       <p>${t().frameLabel} ${esc(item.digital_frame ?? 'unknown')} · ${t().qualityLabel} ${quality ?? 'unknown'} · ${t().matchedTermLabel}: ${esc(item.matched_term || '')}</p>
       ${relevanceLine(item)}
+      ${rankingReasonsLine(item)}
       ${semanticsLine(item)}
       <p class="ocr-excerpt">${esc(excerpt)}</p>
       <p class="rights">${t().rightsLabel}: ${esc(item.rights?.statement || 'unknown')}</p>
@@ -548,6 +566,8 @@ function structuredParams() {
   if (expandHist && !expandHist.checked) extra.set('historical', '0');
   const ocrReq = document.querySelector('#ocr-required');
   if (ocrReq && ocrReq.checked) extra.set('ocr', '1');
+  const rankingSel = document.querySelector('#ranking-select');
+  if (rankingSel && rankingSel.value && rankingSel.value !== 'legacy') extra.set('ranking_mode', rankingSel.value);
   return extra;
 }
 
@@ -919,5 +939,18 @@ libRegion?.addEventListener('change', renderLibraries);
 libLang?.addEventListener('change', renderLibraries);
 libOcrOnly?.addEventListener('change', renderLibraries);
 loadLibraries();
+
+// b10 (section 37): state the actually-active search features in
+// the results header. If the endpoint fails, show nothing - never
+// guess that semantic search is available.
+async function loadFeatures() {
+  const meta = document.querySelector('#result-meta');
+  if (!meta) return;
+  try {
+    const features = await fetchJson('/api/features');
+    meta.textContent = t().featuresLine(features);
+  } catch (error) { /* informational only */ }
+}
+loadFeatures();
 
 applyLang();

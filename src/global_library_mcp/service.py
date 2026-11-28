@@ -442,6 +442,39 @@ def _canonical_in_document_result(result: dict[str, Any], library_id: str, recor
     return out
 
 
+
+RANKING_MODES = ("legacy", "lexical", "semantic", "hybrid")
+
+# Queries whose intent forbids adaptive early stopping (final
+# review section 12): edition comparison, cross-language
+# comparison, primary-source hunts and explicitly conditioned
+# searches need the full sweep.
+_NO_STOP_CUES = ("比較", "版", "初版", "再版", "翻訳", "原著", "一次資料",
+                 "edition", "compare", "comparison", "translation",
+                 "primary source")
+
+
+def adaptive_stop_allowed(query: str, record_filter: Any,
+                          user_libraries: Any) -> tuple[bool, str]:
+    """Whether the adaptive stop may fire at all for this search.
+
+    Returns (allowed, reason). Explicit bibliographic filters,
+    user-pinned libraries and comparison/primary-source intents
+    all disable the stop: a pooled strict-title hit says nothing
+    about whether the FILTERED, intended set is sufficient."""
+    import os as _os_stop
+    if _os_stop.getenv("GLM_ADAPTIVE_STOP") == "0":
+        return False, "adaptive stop disabled by operator (GLM_ADAPTIVE_STOP=0)"
+    if record_filter:
+        return False, "explicit bibliographic filter present"
+    if user_libraries:
+        return False, "user specified the library set explicitly"
+    lowered = (query or "").lower()
+    if any(cue in lowered for cue in _NO_STOP_CUES):
+        return False, "query intent requires the full variant sweep"
+    return True, ""
+
+
 class LibraryService:
     default_libraries = ("loc", "ndl", "gallica", "internet-archive")
 
@@ -525,7 +558,10 @@ class LibraryService:
         async def one(library_id: str):
             started = _time.monotonic()
             try:
-                value = await asyncio.wait_for(self.adapters[library_id].search(query, limit), timeout=deadline)
+                from global_library_mcp.http import use_library
+
+                with use_library(library_id):
+                    value = await asyncio.wait_for(self.adapters[library_id].search(query, limit), timeout=deadline)
                 timings[library_id] = round(_time.monotonic() - started, 2)
                 state = self._breaker.setdefault(library_id, {"failures": 0, "open_until": 0.0})
                 state["failures"] = 0
@@ -576,8 +612,11 @@ class LibraryService:
         adapter = self.adapters.get(library_id)
         if not adapter:
             raise ValueError(f"Unknown library: {library_id}")
+        from global_library_mcp.http import use_library
+
         async with self._op_budget(15, 8) as budget:
-            result = await adapter.get_document(record_id)
+            with use_library(library_id):
+                result = await adapter.get_document(record_id)
         if budget is not None and isinstance(result, dict):
             result = {**result, "http_stats": budget.stats()}
         return result
@@ -1109,6 +1148,7 @@ class LibraryService:
         expand_multilingual: bool = True,
         expand_historical: bool = True,
         record_filter: dict[str, Any] | None = None,
+        ranking_mode: str | None = None,
     ) -> dict[str, Any]:
         # b3.1: the HTTP budget context is held by use_budget's
         # try/finally, so it is restored even when the pipeline
@@ -1128,6 +1168,7 @@ class LibraryService:
                 expand_multilingual=expand_multilingual,
                 expand_historical=expand_historical,
                 record_filter=record_filter,
+                ranking_mode=ranking_mode,
             )
 
     async def _collect_evidence_impl(
@@ -1144,6 +1185,7 @@ class LibraryService:
         expand_multilingual: bool = True,
         expand_historical: bool = True,
         record_filter: dict[str, Any] | None = None,
+        ranking_mode: str | None = None,
     ) -> dict[str, Any]:
         """Collect page-level OCR evidence for a question.
 
@@ -1367,6 +1409,45 @@ class LibraryService:
                 if _capable >= 8:
                     _early_stop_note = {"stage": "variant_search", "status": "early_stop", "detail": f"{_capable} in-document candidates pooled; remaining variants skipped (standard mode)"}
                     break
+            # b10 (section 10): adaptive stop. When the pool
+            # already holds a strict title-tier match (an exact
+            # original/translated-title or full-query title hit),
+            # the author/work forms have answered the discovery
+            # need and the remaining expansion variants are
+            # skipped. The stop is reported as a planning decision
+            # only - it never asserts that no more relevant
+            # records exist.
+            _stop_ok, _stop_why = adaptive_stop_allowed(
+                query, record_filter, libraries)
+            if (_mode == "standard" and _early_stop_note is None
+                    and _stop_ok
+                    and not _engine_pending and discovery_plan
+                    and len(merged) >= 3):
+                from global_library_mcp.discovery import analyze_discovery_query as _adq
+                from global_library_mcp.ranking import score_item as _si
+                _dan = _adq(query)
+                _pool = list(merged)
+                _strict = False
+                if record_filter:
+                    # Defensive (the stop is already refused when a
+                    # filter is present): the strict signal must
+                    # survive the bibliographic filter and the
+                    # FILTERED pool must still be sufficient.
+                    _pool, _ = apply_biblio_filter(_pool, record_filter)
+                    if len(_pool) < 3:
+                        _pool = []
+                for _it in _pool:
+                    _s, _r = _si(_dan, _it, {})
+                    if any(m in r for r in _r for m in
+                           ("title matches", "title contains the full query",
+                            "record belongs to")):
+                        _strict = True
+                        break
+                if _strict:
+                    _early_stop_note = {
+                        "stage": "variant_search", "status": "adaptive_stop",
+                        "detail": "strict title-tier match pooled; remaining expansion variants skipped (adaptive plan, b10 section 10)"}
+                    break
         for _variant in variants:
             if _variant not in _executed_queries:
                 _variant_execution.append({
@@ -1376,17 +1457,18 @@ class LibraryService:
                     "reason": (_early_stop_note or {}).get("detail")
                               or "not reached before the variant sweep ended",
                 })
-        # Series dedupe: identical normalised title + author is one
-        # candidate, however many queries surfaced it.
-        from global_library_mcp.question import normalize_text
-
+        # Final-review dedupe (b10 section 11): ONLY an exact
+        # (library_id, record_id) repeat is a duplicate. Different
+        # editions, volumes and translations of the same title by
+        # the same author are distinct records and are ALL kept;
+        # work-level grouping is presentation-only (_attach_grouping).
         deduped: list[Any] = []
-        seen_series: set[tuple[str, str, str]] = set()
+        seen_records_final: set[tuple[str, str]] = set()
         for item in merged:
-            series_key = (item.library_id, normalize_text(item.title or ""), normalize_text(item.author or ""))
-            if series_key in seen_series:
+            _key = (item.library_id, item.record_id)
+            if _key in seen_records_final:
                 continue
-            seen_series.add(series_key)
+            seen_records_final.add(_key)
             deduped.append(item)
         # Final review (section 4): explicit bibliographic
         # filters are applied HERE - on metadata, before any OCR
@@ -1398,7 +1480,89 @@ class LibraryService:
             deduped, _biblio_filter_report = apply_biblio_filter(deduped, record_filter)
         merged = deduped[:30]
         ranked = rank_candidates(analysis, merged, query_hits)
-        search_view = {"query": query, "results": [item.to_dict() for item in ranked], "errors": search_errors}
+        # b10 (sections 20-22): opt-in ResearchRanker re-ranking
+        # with per-item reasons. Default OFF: the Stage 3 hybrid
+        # comparison did not show a uniform improvement over the
+        # incumbent ranker (docs/b10-ranking.md), so adoption is
+        # the operator's explicit choice via GLM_RESEARCH_RANKER=1.
+        import os as _os_rr
+        _rr_reasons: dict[tuple[str, str], list[str]] = {}
+        # Final review (sections 4-5): selectable ranking modes on
+        # the REAL service path. legacy = incumbent ranker;
+        # lexical = ResearchRanker (TF-IDF fusion); semantic =
+        # local-model scores; hybrid = lexical + semantic. The
+        # result reports requested vs effective mode and whether
+        # semantic scores were ACTUALLY applied - a loadable model
+        # alone never counts as applied.
+        _requested_mode = (ranking_mode or _os_rr.getenv("GLM_RANKING_MODE")
+                           or ("lexical" if _os_rr.getenv("GLM_RESEARCH_RANKER") == "1"
+                               else "legacy"))
+        if _requested_mode not in RANKING_MODES:
+            _requested_mode = "legacy"
+        _ranking_info: dict[str, Any] = {
+            "requested_ranking_mode": _requested_mode,
+            "effective_ranking_mode": _requested_mode,
+            "semantic_backend_available": False,
+            "semantic_applied": False,
+            "fallback_reason": None,
+            "model_id": None, "model_revision": None,
+            "candidate_pool_size": len(ranked),
+        }
+        if _requested_mode != "legacy" and ranked:
+            from global_library_mcp.discovery import analyze_discovery_query as _adq2
+            from global_library_mcp.research_ranker import ResearchRanker as _RR
+            _sem_scores = None
+            if _requested_mode in ("semantic", "hybrid"):
+                _backend = getattr(self, "_semantic_backend", None)
+                if _backend is None:
+                    from global_library_mcp.semantic_local import (
+                        backend_unavailable_reason, get_local_backend)
+                    _backend = get_local_backend()
+                    _ranking_info["fallback_reason"] = (
+                        None if _backend is not None
+                        else backend_unavailable_reason())
+                if _backend is not None:
+                    _ranking_info["semantic_backend_available"] = True
+                    _ranking_info["model_id"] = getattr(_backend, "model_id", None)
+                    _ranking_info["model_revision"] = getattr(
+                        _backend, "model_revision", None)
+                    try:
+                        from global_library_mcp.lexical import item_text as _itext
+                        from global_library_mcp.semantic_local import cosine_scores as _cos
+                        _texts = [_itext(_it) for _it in ranked]
+                        if hasattr(_backend, "encode_async"):
+                            _vecs = await _backend.encode_async([query, *_texts])
+                        else:
+                            import asyncio as _aio
+                            _vecs = await _aio.get_running_loop().run_in_executor(
+                                None, _backend.encode, [query, *_texts])
+                        _scores = _cos(_vecs[0], _vecs[1:])
+                        _sem_scores = {
+                            (_it.library_id, _it.record_id): float(_sc)
+                            for _it, _sc in zip(ranked, _scores)}
+                        _ranking_info["semantic_applied"] = True
+                        _ranking_info["fallback_reason"] = None
+                    except Exception as _exc:  # invalid model output etc.
+                        _ranking_info["fallback_reason"] = (
+                            f"semantic scoring failed: {type(_exc).__name__}")
+                        _sem_scores = None
+                if _sem_scores is None:
+                    _ranking_info["effective_ranking_mode"] = "lexical"
+            _rr = _RR(lexical_weight=(0.0 if _requested_mode == "semantic"
+                                      and _sem_scores is not None else 4.0))
+            ranked = _rr.rank(_adq2(query), list(ranked), query_hits,
+                              semantic_scores=_sem_scores)
+            for _it in ranked:
+                _rr_reasons[(_it.library_id, _it.record_id)] = _rr.reasons_for(_it)
+        _result_dicts = []
+        for _it in ranked:
+            _d = _it.to_dict()
+            if _rr_reasons:
+                _d["ranking_reasons"] = _rr_reasons.get(
+                    (_it.library_id, _it.record_id), [])
+            _result_dicts.append(_d)
+        search_view = {"query": query, "results": _result_dicts,
+                       "errors": search_errors, "ranking": _ranking_info}
         verified: list[Evidence] = []
         premise_contradictions: list[dict[str, Any]] = []
         related: list[dict[str, Any]] = []
@@ -1972,6 +2136,7 @@ class LibraryService:
         material_types: list[str] | None = None,
         ocr_required: bool = False,
         include_unknown_year: bool = True,
+        ranking_mode: str | None = None,
     ) -> dict[str, Any]:
         """Research-materials mode (Phase 8-D).
 
@@ -1991,7 +2156,7 @@ class LibraryService:
         """
         if mode == "quick":
             return await self._research_materials_quick(
-                query, libraries, limit, languages=languages,
+                query, libraries, limit, ranking_mode=ranking_mode, languages=languages,
                 expand_multilingual=expand_multilingual,
                 expand_historical=expand_historical,
                 author=author, title=title, year_from=year_from, year_to=year_to,
@@ -2005,7 +2170,7 @@ class LibraryService:
             query, libraries, limit, mode=mode, discovery_plan=_discovery_plan,
             expand_multilingual=expand_multilingual,
             expand_historical=expand_historical,
-            record_filter=_spec)
+            record_filter=_spec, ranking_mode=ranking_mode)
         biblio: dict[tuple[str, str], dict[str, Any]] = {}
         for item in collected["search"]["results"]:
             biblio[(item["library_id"], item["record_id"])] = item
@@ -2186,6 +2351,7 @@ class LibraryService:
             "analysis": collected["analysis"],
             "answerable": bool(collected["evidence"]),
             "materials": materials,
+            "ranking": collected["search"].get("ranking"),
             "stage_log": collected.get("stage_log", []),
             "retrieval": collected["retrieval"],
             "timings": collected.get("timings", {}),
@@ -2203,7 +2369,8 @@ class LibraryService:
                                         languages=None, expand_multilingual=True,
                                         expand_historical=True, author=None, title=None,
                                         year_from=None, year_to=None, material_types=None,
-                                        ocr_required=False, include_unknown_year=True):
+                                        ocr_required=False, include_unknown_year=True,
+                                        ranking_mode=None):
         """Quick mode (b3 section 7; b6 final review section 2):
         bibliographic search only - no OCR is ever fetched - but
         the discovery plan (cap 3), the structured conditions and
@@ -2254,6 +2421,49 @@ class LibraryService:
                                "candidates_before": len(_items), "candidates_after": len(_items),
                                "stage": "bibliographic (quick; no OCR fetched)",
                                "unsupported": []}
+        # Final review: ranking modes on the quick path too.
+        _q_ranking = {"requested_ranking_mode": ranking_mode or "legacy",
+                      "effective_ranking_mode": ranking_mode or "legacy",
+                      "semantic_backend_available": False,
+                      "semantic_applied": False, "fallback_reason": None,
+                      "model_id": None, "model_revision": None,
+                      "candidate_pool_size": len(_items)}
+        if ranking_mode in ("lexical", "semantic", "hybrid") and _items:
+            from global_library_mcp.lexical import LexicalScorer as _LSq
+            _texts_q = [" ".join(str(_it.get(k) or "") for k in
+                                ("title", "author", "subjects")) for _it in _items]
+            _lex_q = _LSq(_texts_q).score(query)
+            _sem_q = [0.0] * len(_items)
+            if ranking_mode in ("semantic", "hybrid"):
+                _bk = getattr(self, "_semantic_backend", None)
+                if _bk is None:
+                    from global_library_mcp.semantic_local import (
+                        backend_unavailable_reason as _bur, get_local_backend as _glb)
+                    _bk = _glb()
+                    _q_ranking["fallback_reason"] = None if _bk else _bur()
+                if _bk is not None:
+                    _q_ranking["semantic_backend_available"] = True
+                    _q_ranking["model_id"] = getattr(_bk, "model_id", None)
+                    _q_ranking["model_revision"] = getattr(_bk, "model_revision", None)
+                    try:
+                        from global_library_mcp.semantic_local import cosine_scores as _cosq
+                        if hasattr(_bk, "encode_async"):
+                            _vq = await _bk.encode_async([query, *_texts_q])
+                        else:
+                            import asyncio as _aioq
+                            _vq = await _aioq.get_running_loop().run_in_executor(
+                                None, _bk.encode, [query, *_texts_q])
+                        _sem_q = _cosq(_vq[0], _vq[1:])
+                        _q_ranking["semantic_applied"] = True
+                        _q_ranking["fallback_reason"] = None
+                    except Exception as _excq:
+                        _q_ranking["fallback_reason"] = f"semantic scoring failed: {type(_excq).__name__}"
+                if not _q_ranking["semantic_applied"]:
+                    _q_ranking["effective_ranking_mode"] = "lexical"
+            _order = sorted(range(len(_items)),
+                            key=lambda i: -((_lex_q[i] if ranking_mode != "semantic" else 0.0)
+                                            + (_sem_q[i] if ranking_mode in ("semantic", "hybrid") else 0.0)))
+            _items = [_items[i] for i in _order]
         if ocr_required:
             _kept = [_it for _it in _items if self._adapter_supports_ocr(_it["library_id"])]
             _filters_report.setdefault("applied_local", []).append("ocr_required")
@@ -2308,6 +2518,7 @@ class LibraryService:
             materials.append(_entry)
         self._attach_grouping(materials, _biblio)
         return {
+            "ranking": _q_ranking,
             "mode": "quick",
             "discovery": {
                 "query_language": _plan["query_language"],

@@ -1,0 +1,161 @@
+{
+ "evaluation_kind": "local AuthorityResolver over frozen b10 dataset",
+ "label_source": "dataset provenance (agent_assigned / bibliographic_source_supported)",
+ "split": "dev",
+ "stats": {
+  "identify_author": {
+   "correct": 1,
+   "total": 1,
+   "rate": 1.0
+  },
+  "identify_author_from_variant": {
+   "correct": 4,
+   "total": 4,
+   "rate": 1.0
+  },
+  "work_titles": {
+   "correct": 6,
+   "total": 6,
+   "rate": 1.0
+  },
+  "editions": {
+   "correct": 4,
+   "total": 4,
+   "rate": 1.0
+  },
+  "traps_scored": {
+   "correct": 1,
+   "total": 1,
+   "rate": 1.0
+  },
+  "must_not_merge": {
+   "correct": 1,
+   "total": 1,
+   "rate": 1.0
+  }
+ },
+ "false_verified": 0,
+ "traps_deferred_to_stage3_4": 10,
+ "surname_variant_not_falsely_verified": {
+  "ok": 4,
+  "total": 4
+ },
+ "details": [
+  {
+   "id": "b10-auth-002",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "カント",
+   "want": "Immanuel Kant"
+  },
+  {
+   "id": "b10-auth-006",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "エラズマス・ダーウィン",
+   "want": "Erasmus Darwin"
+  },
+  {
+   "id": "b10-auth-010",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "マックス・ウェーバー",
+   "want": "Max Weber"
+  },
+  {
+   "id": "b10-auth-011",
+   "status": "authority_verified",
+   "ok": true,
+   "got": "アルフレート・ウェーバー",
+   "want": "Alfred Weber"
+  },
+  {
+   "id": "b10-auth-018",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "夏目漱石",
+   "want": "夏目漱石"
+  },
+  {
+   "id": "b10-auth-026",
+   "status": "authority_candidate",
+   "ok": true,
+   "trap": "pen_name_soseki"
+  },
+  {
+   "id": "b10-orig-007",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "marx-kapital",
+   "want": "marx-kapital"
+  },
+  {
+   "id": "b10-orig-009",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "marx-kapital",
+   "want": "marx-kapital"
+  },
+  {
+   "id": "b10-orig-010",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "smith-wealth",
+   "want": "smith-wealth"
+  },
+  {
+   "id": "b10-orig-011",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "smith-wealth",
+   "want": "smith-wealth"
+  },
+  {
+   "id": "b10-orig-012",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "smith-wealth",
+   "want": "smith-wealth"
+  },
+  {
+   "id": "b10-orig-030",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "hugo-miserables",
+   "want": "hugo-miserables"
+  },
+  {
+   "id": "b10-edit-001",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik-A",
+   "want": "kant-kritik-A"
+  },
+  {
+   "id": "b10-edit-004",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "darwin-origin-6",
+   "want": "darwin-origin-6"
+  },
+  {
+   "id": "b10-edit-009",
+   "ok": true,
+   "trap": "kant-A-vs-B"
+  },
+  {
+   "id": "b10-edit-025",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "newton-principia-1",
+   "want": "newton-principia-1"
+  },
+  {
+   "id": "b10-edit-029",
+   "status": "authority_candidate",
+   "ok": true,
+   "got": "kant-kritik-A",
+   "want": "kant-kritik-A"
+  }
+ ]
+}

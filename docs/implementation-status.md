@@ -1,8 +1,26 @@
 # Implementation status
 
-Last updated: 2026-11-27 (branch `feat/external-mcp-readiness-b9`, b9 candidate).
+Last updated: 2026-11-28 (branch `feat/advanced-research-intelligence-b10`, b10 candidate).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
+
+## Advanced Research Intelligence (b10)
+
+| Capability | Status | Notes |
+|---|---|---|
+| b9 residual-risk hardening | implemented, verified | Consent expiry at send/return, per-class consent, send-level library binding, budget ledger, per-user session caps, typed projections, reference-host allowlists, identity states, consent-file hardening; docs/b10-b9-regression-hardening.md |
+| Multilingual allocation + routing | implemented, verified (simulation) | Legacy allocation adopted; simulation routing aligned with production; b6 fixed 0.9167 / challenge 1.0000 |
+| AuthorityResolver | implemented, verified | Local lexicon + lobid GND / Wikidata clients (opt-in live); GND ids live-verified for 10 authors; VIAF implemented, live-blocked, off by default; zero false verifications on the b10 dataset |
+| Lexical search (TF-IDF) | implemented, verified | lexical.py; whole-corpus R@10 0.7286 (fixed corpus) |
+| Local semantic search | implemented, opt-in | paraphrase-multilingual-MiniLM-L12-v2 ONNX quint8 (127 MB, Apache-2.0, pinned revision); whole-corpus R@10 1.0000 fixed; never feeds admission |
+| ResearchRanker | implemented, opt-in, NOT default | Hybrid comparison mixed (nDCG up, Recall@5 down); GLM_RESEARCH_RANKER=1 with ranking reasons |
+| Adaptive search planning | implemented, verified | Standard-mode adaptive stop on strict title-tier match; attempts 22.9 -> 22.1 on fixture eval |
+| Structured questions/claims | implemented, verified | research.py; candidate-level mapping only; unadmitted candidates never assessed |
+| Contradiction candidates | implemented, verified | Rule-based pair classification; no confirmed state exists; document vs independent counts separated |
+| Workspace b10 artefacts | implemented, verified | Versioned JSON envelopes in notes; no schema change; progress + candidate graph |
+| Zotero compatibility | format-verified only | 13/13 format checks on synthetic records; Zotero app absent - real import NOT verified |
+| NLI | not implemented | Second model needs separate approval; rule-based mapping is the shipped behaviour |
+| ChatGPT connection / tunnel / DNS pinning | not performed / not implemented | Unchanged b9 blockers; separate approval required |
 
 ## External MCP Readiness (b9)
 
@@ -167,3 +185,19 @@ e-rara identity-checked. Full record:
 docs/b5-final-review.md. Capability counts: registry 25,
 adapters 8, keyword-searchable 6, ID-addressed 2, page-OCR
 live-verified institutions 4 (NDL, IA, BSB, LoC newspapers).
+
+---
+
+## Final-review addendum (2026-11-28)
+
+This document describes the b10 candidate as submitted in
+PR #21 (head `dc8d794`). The external final review reproduced
+defects in several of the areas covered here; the fixes,
+re-measurements and corrected claims are recorded in
+`docs/b10-final-review.md`, which supersedes this document
+wherever the two disagree (notably: semantic search is now
+wired into the real service path as an opt-in ranking mode;
+`authority_verified` can no longer be reached from the local
+lexicon alone; editions are candidates; independent-source
+counting was replaced; the Docker CI job is fixture-mandatory
+with the live smoke separated as an informational job).

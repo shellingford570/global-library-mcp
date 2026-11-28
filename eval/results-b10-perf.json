@@ -1,0 +1,16 @@
+{
+ "measurement_kind": "local component medians (this VM, 1.5 shared CPUs)",
+ "question_analysis_ms": 0.028,
+ "discovery_analysis_ms": 2.159,
+ "expansion_plan_ms": 0.259,
+ "lexical_fit_and_score_30_docs_ms": 1.621,
+ "research_ranker_30_items_ms": 9.258,
+ "structure_question_ms": 2.298,
+ "structure_claim_ms": 1.285,
+ "assess_claim_evidence_ms": 0.014,
+ "compare_facts_ms": 0.002,
+ "notes": {
+  "semantic_model": "load 2.77 s, encode ~12 ms/text (docs/b10-model-card.md)",
+  "service_fixture_eval": "eval/results-b10-service-after-stage3.json (quick 11.7 s / standard 15.3 s mean per case over fixture transport; these are fixture-environment timings, not live network timings)"
+ }
+}

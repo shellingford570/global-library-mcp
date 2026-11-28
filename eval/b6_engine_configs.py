@@ -54,12 +54,24 @@ def engine_variants(config: str, query: str):
             variants.append(variant["text"])
     if config in ("F", "G", "H", "Gx"):
         # Routing: the original query still goes everywhere; every
-        # other variant is dispatched by its detected language.
-        # Unknown-language variants keep the full dispatch.
+        # other variant is dispatched by its language. Engine
+        # variants carry the plan's own language field - exactly
+        # what production routing uses (service.py reads
+        # variant["language"]). b10 fix: the previous code ran
+        # detect_language() on the variant TEXT, which misroutes
+        # single-word variants (the German compound
+        # "Dampfmaschine" was detected as English and sent to
+        # loc/internet-archive, never to ddb; the Finnish
+        # "höyrykone" was detected as German and sent to ddb).
+        # Legacy (non-engine) variants keep text detection.
         from global_library_mcp.discovery import detect_language
 
+        plan_languages = {}
+        for variant in plan["variants"]:
+            if variant.get("text") and variant.get("language"):
+                plan_languages[variant["text"]] = variant["language"]
         for variant in variants[1:]:
-            lang = detect_language(variant)["language"]
+            lang = plan_languages.get(variant) or detect_language(variant)["language"]
             if lang in _ROUTING:
                 routing[variant] = _ROUTING[lang]
     return variants, {"routing": routing, "plan": plan}

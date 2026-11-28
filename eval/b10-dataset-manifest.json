@@ -1,0 +1,23 @@
+{
+ "total": 260,
+ "files": {
+  "b10-dev.json": {
+   "cases": 93,
+   "sha256": "b39a88a62c61a0aa6e8cdb42c20b46caeeb8db04a27f16e6c86160a72dfa3f1f"
+  },
+  "b10-fixed.json": {
+   "cases": 107,
+   "sha256": "09ff2a5fe35e65eede690f1baecbd9e0d96160947f49744e4a10cf4a5633d3ab"
+  },
+  "b10-holdout.json": {
+   "cases": 60,
+   "sha256": "2541fe50c864f281b09947fca605ace2eb11549ec449c0c2d03f0a3e66b829ee"
+  }
+ },
+ "provenance_tally": {
+  "bibliographic_source_supported": 68,
+  "agent_assigned": 192
+ },
+ "independent_human_verified": 0,
+ "note": "No case in this dataset is independent_human_verified; see label_provenance per case."
+}

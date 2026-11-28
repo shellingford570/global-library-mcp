@@ -249,7 +249,7 @@ async def research_question(query: str, libraries: list[str] | None = None, limi
 
 
 @mcp.tool(annotations=_READ_ONLY)
-async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard", languages: list[str] | None = None, expand_multilingual: bool = True, expand_historical: bool = True, author: str | None = None, title: str | None = None, year_from: int | None = None, year_to: int | None = None, ocr_required: bool = False) -> dict[str, Any]:
+async def research_materials(query: str, libraries: list[str] | None = None, limit: int = 10, mode: str = "standard", languages: list[str] | None = None, expand_multilingual: bool = True, expand_historical: bool = True, author: str | None = None, title: str | None = None, year_from: int | None = None, year_to: int | None = None, ocr_required: bool = False, ranking_mode: str | None = None) -> dict[str, Any]:
     """Find research materials for a topic, with provenance.
 
     The primary Research Beta tool. Modes: "quick" returns
@@ -283,7 +283,7 @@ async def research_materials(query: str, libraries: list[str] | None = None, lim
         query, libraries, limit, mode=mode, languages=languages,
         expand_multilingual=expand_multilingual, expand_historical=expand_historical,
         author=author, title=title, year_from=year_from, year_to=year_to,
-        ocr_required=ocr_required)
+        ocr_required=ocr_required, ranking_mode=ranking_mode)
 
 
 @mcp.tool(annotations=_READ_ONLY)

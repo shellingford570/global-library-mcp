@@ -92,3 +92,12 @@ gaps are unchanged: DPLA and Europeana await API keys
 they answer, Gallica remains 403 from this network. Next
 coverage work belongs to b10 planning
 (docs/b10-candidates.md).
+
+## b10 note (2026-11-28)
+
+b10 deliberately added no libraries and no adapters: the
+release deepened research capability over the existing
+coverage (31 registry entries, 13 adapters). Live-verification
+states are unchanged from b8/b9 except the authority APIs
+(lobid GND and Wikidata verified live as authority sources,
+not as search libraries). See docs/b10-live-verification.md.
