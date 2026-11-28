@@ -36,6 +36,9 @@ from typing import Any
 KINDS = (
     "claim_assessment", "contradiction", "authority_resolution",
     "ranking_explanation", "research_question", "comparison_b10",
+    # b11 additions (sections 42/46/49): timeline, research report
+    # and semantic-search records are first-class artefacts now.
+    "timeline", "research_report", "semantic_search",
 )
 _PREFIX = "b10_"
 MAX_PAYLOAD_BYTES = 64 * 1024
@@ -62,6 +65,11 @@ _SCHEMAS: dict[str, dict[str, type | tuple[type, ...]]] = {
         "query": str, "ranking": dict, "items": list},
     "research_question": {"question": (dict, str), "structured": dict},
     "comparison_b10": {"pairs": list, "counts": dict, "note": str},
+    "timeline": {"events": list, "note": str},
+    "research_report": {
+        "report_id": str, "title": str, "sections": list,
+        "generated_at": str, "snapshot_id": str},
+    "semantic_search": {"query": str, "config": dict, "items": list},
 }
 _COMMON_FIELDS = {"record_refs": list, "citation_refs": list,
                   "rights_state": str, "model": dict}
@@ -84,12 +92,21 @@ _NESTED_KEYS: dict[str, set[str]] = {
               "unit_b", "converted", "reason", "subject", "predicate",
               "object", "place", "year_a", "year_b"},
     "claim": {"claim_id", "text", "subject", "predicate", "object",
-              "years", "places", "quantities", "entities",
-              "qualifiers", "era", "negated"},
+              "place", "unit", "value", "relation", "status", "note",
+              "years", "places", "quantities", "entities", "qualifiers",
+              "era", "negated", "statement", "original_statement",
+              "time", "quantity", "named_entities",
+              "source_type_required", "evidence_status", "event",
+              "condition", "modality", "negation", "attribution",
+              "uncertainty", "extraction", "evidence_refs",
+              "record_refs", "citation_refs", "structured",
+              "question_id"},
     "config": {"ranking_mode", "model_id", "model_revision",
                "allocation", "version", "mode"},
     "items": {"library_id", "record_id", "title", "reasons",
               "subscores", "rank", "status"},
+    "events": {"label", "year", "date_kind", "source_ref", "note"},
+    "sections": {"name", "title"},
     "candidates": {"name", "person_id", "status", "score",
                    "birth_year", "death_year", "identifiers", "works",
                    "source", "authority_id"},

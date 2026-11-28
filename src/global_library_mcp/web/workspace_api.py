@@ -798,6 +798,101 @@ class WorkspaceApi:
             data = self.read_body(handler, cap=RESTORE_CAP)
             send(self._restore(data))
             return
+        # -- b11 research validation routes (sections 49-54) ---------------
+        if len(parts) >= 3 and parts[0] == "projects" and parts[2] == "research":
+            pid = parts[1]
+            if store.get_project(pid) is None:
+                raise ApiError(404, "project not found")
+            from global_library_mcp.evidence_graph import (
+                build_project_graph)
+            from global_library_mcp.research import (
+                structure_claim, structure_question)
+            from global_library_mcp.synthesis import (
+                build_timeline, generate_research_report)
+            from global_library_mcp.workspace.research_artefacts import (
+                list_artefacts, project_research_progress, save_artefact)
+            sub = parts[3] if len(parts) > 3 else ""
+            if sub == "progress" and method == "GET":
+                send(project_research_progress(store, pid))
+                return
+            if sub == "artefacts" and method == "GET":
+                send({"artefacts": list_artefacts(store, pid)})
+                return
+            if sub == "graph" and method == "GET":
+                try:
+                    limit = min(2000, max(1, int(qs.get("limit", ["500"])[0])))
+                    offset = max(0, int(qs.get("offset", ["0"])[0]))
+                except ValueError:
+                    raise ApiError(400, "limit/offset must be integers")
+                send(build_project_graph(store, pid, limit=limit,
+                                         offset=offset))
+                return
+            if sub == "timeline" and method == "GET":
+                events = []
+                for art in list_artefacts(store, pid):
+                    if art["kind"] in ("b10_timeline", "timeline"):
+                        events += (art.get("payload") or {}).get("events") or []
+                send(build_timeline(events))
+                return
+            if sub == "questions" and method == "POST":
+                body = self.read_json(handler)
+                question = str(body.get("question") or "").strip()
+                if not question:
+                    raise ApiError(400, "question is required")
+                structured = structure_question(question).to_dict()
+                art = save_artefact(store, pid, "research_question",
+                                    question[:80],
+                                    {"question": structured})
+                send({"artefact": art, "structured": structured}, 201)
+                return
+            if sub == "claims" and method == "POST":
+                body = self.read_json(handler)
+                statement = str(body.get("statement") or "").strip()
+                if not statement:
+                    raise ApiError(400, "statement is required")
+                claim = structure_claim(statement).to_dict()
+                art = save_artefact(store, pid, "claim_assessment",
+                                    statement[:80],
+                                    {"claim": claim, "assessments": []})
+                send({"artefact": art, "claim": claim}, 201)
+                return
+            if sub == "reports" and method == "POST":
+                import subprocess as _sp
+                try:
+                    commit = _sp.run(["git", "rev-parse", "--short", "HEAD"],
+                                     capture_output=True, text=True,
+                                     timeout=5).stdout.strip()
+                except Exception:
+                    commit = ""
+                report = generate_research_report(store, pid,
+                                                  git_commit=commit)
+                sections = [{"name": k} for k in (
+                    "summary", "questions", "claim_states", "comparisons",
+                    "timeline", "rights", "unresolved_references")]
+                save_artefact(store, pid, "research_report",
+                              f"Report {report['report_id']}",
+                              {"report_id": report["report_id"],
+                               "title": f"Research report {report['report_id']}",
+                               "sections": sections,
+                               "record_refs": report["record_refs"],
+                               "citation_refs": report["citation_refs"],
+                               "generated_at": report["generated_at"]})
+                send(report, 201)
+                return
+            if sub == "reports" and method == "GET":
+                reps = [a for a in list_artefacts(store, pid)
+                        if a["kind"] in ("b10_research_report",
+                                         "research_report")]
+                send({"reports": reps})
+                return
+            if sub == "revalidate" and method == "POST":
+                graph = build_project_graph(store, pid, limit=1)
+                send({"revalidated": True,
+                      "graph_nodes": graph["node_count"],
+                      "graph_edges": graph["edge_count"],
+                      "progress": project_research_progress(store, pid)})
+                return
+            raise ApiError(404, "research route not found")
         raise ApiError(404, "workspace route not found")
 
     # -- views with current-rights gating ---------------------------------------
