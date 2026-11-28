@@ -876,6 +876,10 @@ class WorkspaceApi:
                                "sections": sections,
                                "record_refs": report["record_refs"],
                                "citation_refs": report["citation_refs"],
+                               "snapshot_id": report["snapshot_id"],
+                               "settings": {
+                                   "code_version": report["code_version"],
+                                   "git_commit": report["git_commit"]},
                                "generated_at": report["generated_at"]})
                 send(report, 201)
                 return

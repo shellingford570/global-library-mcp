@@ -349,3 +349,54 @@ def test_citation_ref_must_match_its_document_and_page(tmp_path):
             "citation_id": cit["citation_id"], "page_id": "p1",
             "library_id": "ndl", "record_id": "A"}]})
     assert ok["trust"] == "server_generated"
+
+
+# -- sections 12/16/18: graph over real store rows ---------------------------
+
+def test_graph_question_claim_and_citation_nodes(tmp_path):
+    from global_library_mcp.evidence_graph import build_project_graph
+    from global_library_mcp.workspace.research_artefacts import (
+        save_artefact)
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store = WorkspaceStore(str(tmp_path / "ws.db"))
+    pid = store.create_project("P")["project_id"]
+    doc = store.save_document(pid, "ndl", "R1", {"title": "Doc"})
+    cit = store.save_citation(doc["saved_document_id"], {
+        "page_id": "p7", "citation_key": "ndl:R1:p7",
+        "quotation_verification_status": "verified",
+        "page_mapping_status": "verified"})
+    q = save_artefact(store, pid, "research_question", "q",
+                      {"question": {"text": "Q?", "claim_id": "c1"}})
+    save_artefact(store, pid, "claim_assessment", "c", {
+        "claim": {"claim_id": "c1", "original_statement": "S.",
+                  "question_id": q["artefact_id"]},
+        "assessments": []})
+    g = build_project_graph(store, pid)
+    types = {n["type"] for n in g["nodes"]}
+    assert {"question", "claim", "page", "citation"} <= types
+    claim = [n for n in g["nodes"] if n["type"] == "claim"][0]
+    assert claim["evidence_state"] == "no_evidence_registered"
+    assert claim["assessment_count"] == 0
+    cit_node = [n for n in g["nodes"] if n["type"] == "citation"][0]
+    assert cit_node["reference_available"] is True
+    assert cit_node["revalidation_required"] is False
+    edges = {(e["source"].split(":")[0], e["type"]) for e in g["edges"]}
+    assert ("document", "has_page") in edges
+    assert ("page", "has_citation") in edges
+    assert ("question", "asks_about") in edges
+    # rights change: reference stays, excerpt display forbidden
+    store.add_rights_observation(doc["saved_document_id"], {
+        "category": "in_copyright", "statement": "x"})
+    g2 = build_project_graph(store, pid)
+    cn2 = [n for n in g2["nodes"] if n["type"] == "citation"][0]
+    assert cn2["reference_available"] is True
+    assert cn2["excerpt_display"] == "forbidden"
+
+
+def test_graph_unknown_status_never_support_edge(tmp_path):
+    from global_library_mcp.evidence_graph import STATUS_EDGE_MAP
+    assert STATUS_EDGE_MAP.get("totally_made_up") is None
+    assert set(STATUS_EDGE_MAP.values()) <= {
+        "supports_candidate", "partially_supports",
+        "contradicts_candidate", "contextualizes", "references",
+        "insufficient_evidence", "unassessed", "unresolved_reference"}

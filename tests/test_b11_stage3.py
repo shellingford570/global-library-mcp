@@ -43,15 +43,18 @@ def test_graph_server_artefact_claim_edges_and_import_downgrade():
                                           "library_id": "ndl",
                                           "record_id": "R1"}]})
     g = build_project_graph(store, pid)
+    # Final review sections 13/14: closed status mapping
+    # (supports_candidate); provenance is not confirmation, so a
+    # server_generated edge stays "candidate".
     claim_edges = [e for e in g["edges"]
-                   if e["type"] == "supported_by_candidate"]
+                   if e["type"] == "supports_candidate"]
     assert len(claim_edges) == 1
-    assert claim_edges[0]["state"] == "confirmed_reference"
+    assert claim_edges[0]["state"] == "candidate"
     # downgrade the artefact (restore) -> edge state follows
     store.apply_restore_trust_downgrade()
     g2 = build_project_graph(store, pid)
     assert [e for e in g2["edges"]
-            if e["type"] == "supported_by_candidate"][0]["state"] == \
+            if e["type"] == "supports_candidate"][0]["state"] == \
         "restored_unverified"
     assert art["trust"] == "server_generated"
 
@@ -62,8 +65,13 @@ def test_graph_caps_and_paging():
     for i in range(30):
         store.save_document(pid, "ndl", f"R{i}", {"title": f"D{i}"})
     g = build_project_graph(store, pid, limit=10, offset=0)
-    assert g["node_count"] == 31  # 30 docs + 1 source node
-    assert len(g["nodes"]) == 10
+    # Final review section 19 semantics: total_nodes counts every
+    # generated node (project + 30 docs + 1 source); node_count
+    # counts returned nodes (10 page nodes + project/source stubs).
+    assert g["total_nodes"] == 32
+    assert g["node_count"] == 12
+    assert g["omitted_nodes"] == 22
+    assert len(g["nodes"]) == 12
 
 
 def test_claim_structuring_extraction_states():
