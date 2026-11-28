@@ -62,9 +62,14 @@ test('research journey: question, claim, citation link, assessment, graph, repor
   await page.fill('#ws-panel input[placeholder="研究質問を入力"]', '進化論はいつ発表されたか');
   await page.click('#ws-panel button:text("質問を構造化して保存")');
   await expect(page.locator('#ws-status')).toContainText('質問を保存しました');
+  // the save re-renders the whole tab; wait for the LAST block
+  // (claims section) so the claim input is the final DOM node,
+  // not one a pending re-render is about to replace
+  await expect(page.locator('#ws-panel')).toContainText('主張と根拠評価');
   await page.fill('#ws-panel input[placeholder="主張を入力"]', '1859年に種の起源が出版された。');
   await page.click('#ws-panel button:text("主張を構造化して保存")');
   await expect(page.locator('#ws-status')).toContainText('主張を保存しました');
+  await expect(page.locator('#ws-panel')).toContainText('主張: 1859年に種の起源が出版された。');
 
   // link the saved citation to the claim, then assess it
   const ids = await page.evaluate(async () => {
