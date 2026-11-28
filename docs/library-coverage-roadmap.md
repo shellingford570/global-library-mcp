@@ -101,3 +101,12 @@ coverage (31 registry entries, 13 adapters). Live-verification
 states are unchanged from b8/b9 except the authority APIs
 (lobid GND and Wikidata verified live as authority sources,
 not as search libraries). See docs/b10-live-verification.md.
+
+## b11 note (2026-11-28)
+
+b11 added no libraries and no adapters (31 registry entries /
+13 adapters unchanged, as in b10). Its scope was validation of
+the research layer: artefact/evidence trust, evaluation data,
+the Evidence Graph, synthesis and reports. Coverage expansion
+candidates are collected in docs/b12-candidates.md (design
+only).

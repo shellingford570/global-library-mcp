@@ -1,0 +1,56 @@
+{
+ "fixture": "agent-labelled built-in fixtures (not human, not source-confirmed)",
+ "extraction": {
+  "cases": 4,
+  "per_field_rate": {
+   "subject": 0.0,
+   "predicate": "unmeasured",
+   "object": "unmeasured",
+   "year": 1.0,
+   "place": 1.0,
+   "quantity": "unmeasured",
+   "unit": "unmeasured",
+   "negation": "unmeasured",
+   "condition": "unmeasured"
+  },
+  "fields_without_labelled_cases": [
+   "predicate",
+   "object",
+   "quantity",
+   "unit",
+   "negation",
+   "condition"
+  ],
+  "original_statement_preservation_rate": 1.0
+ },
+ "resolution_and_errors": {
+  "evidence_reference_resolution_rate": {
+   "resolved": 1,
+   "of": 2,
+   "genuine_resolved": true,
+   "forged_resolved": false
+  },
+  "false_support_rate": {
+   "false_support": 0,
+   "of": 1
+  },
+  "false_contradiction_rate": {
+   "false_contradiction": 0,
+   "of": 1
+  },
+  "independence_misrecognition": {
+   "independently_confirmed": 0,
+   "user_asserted": 2
+  }
+ },
+ "report": {
+  "resolved_refs": 1,
+  "total_refs": 2,
+  "report_citation_resolution_rate": 0.5
+ },
+ "unmeasured": [
+  "predicate/object/quantity/unit/negation/condition extraction rates (no labelled cases in the fixture)",
+  "real-model NLI quality",
+  "independent human evaluation (0 reviewers)"
+ ]
+}

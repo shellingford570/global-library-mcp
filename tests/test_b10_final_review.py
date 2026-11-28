@@ -242,8 +242,16 @@ def test_forged_admitted_flag_refused():
 
 def test_trusted_candidate_requires_complete_ref():
     claim = research.structure_claim("明治25年に横浜で発電所が完成した")
-    cand = build_trusted_candidate(library_id="ndl", record_id="1",
-                                   page_id="1", text="明治25年 横浜 発電所")
+    # b11 Stage 0: candidates are built from registry-issued
+    # tokens only; tampering with the reference breaks the match.
+    from global_library_mcp.research import register_admitted_evidence
+    _tok = register_admitted_evidence(
+        library_id="ndl", record_id="1", page_id="1",
+        text="明治25年 横浜 発電所",
+        document_identity_state="upstream_confirmed",
+        page_identity_state="verified_mapping", admission_state="admitted")
+    cand = build_trusted_candidate(evidence_ref_token=_tok,
+                                   text="明治25年 横浜 発電所")
     cand["evidence_ref"].pop("page_id")
     rows = research.assess_claim_evidence(claim, [cand])
     assert rows[0]["status"] == "not_checked"
@@ -252,9 +260,9 @@ def test_trusted_candidate_requires_complete_ref():
 def test_compare_kw_vs_mw_not_consistent():
     out = research.compare_facts([
         {"value": 100, "unit": "kW", "document_id": "a",
-         "subject": "発電所", "place": "横浜"},
+         "subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜"},
         {"value": 100, "unit": "MW", "document_id": "b",
-         "subject": "発電所", "place": "横浜"}])
+         "subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜"}])
     # 100 kW != 100 MW after normalisation - a contradiction
     # CANDIDATE (never consistent, never confirmed).
     assert out["pairs"][0]["status"] == "contradiction_candidate"
@@ -264,15 +272,19 @@ def test_compare_kw_vs_mw_not_consistent():
 
 def test_compare_unit_conversion_can_reconcile():
     out = research.compare_facts([
-        {"value": 1, "unit": "MW", "document_id": "a"},
-        {"value": 1000, "unit": "kW", "document_id": "b"}])
+        {"value": 1, "unit": "MW", "document_id": "a",
+         "subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜"},
+        {"value": 1000, "unit": "kW", "document_id": "b",
+         "subject": "発電所", "predicate": "出力", "object": "発電設備", "place": "横浜"}])
     assert out["pairs"][0]["status"] == "consistent_candidate"
 
 
 def test_compare_different_place_not_contradiction():
     out = research.compare_facts([
-        {"value": 10, "unit": "hp", "document_id": "a", "place": "東京"},
-        {"value": 20, "unit": "hp", "document_id": "b", "place": "大阪"}])
+        {"value": 10, "unit": "hp", "document_id": "a", "place": "東京",
+         "subject": "発電所", "predicate": "出力", "object": "発電設備"},
+        {"value": 20, "unit": "hp", "document_id": "b", "place": "大阪",
+         "subject": "発電所", "predicate": "出力", "object": "発電設備"}])
     assert out["pairs"][0]["status"] == "differing_scope"
 
 

@@ -1,8 +1,24 @@
 # Implementation status
 
-Last updated: 2026-11-28 (branch `feat/advanced-research-intelligence-b10`, b10 candidate).
+Last updated: 2026-11-28 (branch `feat/research-validation-b11`, b11 final review applied).
 Labels: **implemented** = code exists; **verified** = exercised against the real
 service or a full local test; **not implemented** = absent by design or pending.
+
+## Research Validation & Knowledge Synthesis (b11)
+
+| Area | Status | Notes |
+|---|---|---|
+| Artefact/evidence trust boundaries | implemented, verified | Schema v5 research_artefacts table; registry-issued evidence tokens; forged promotions 0 (docs/b11-b10-regression-hardening.md) |
+| b11 evaluation set | implemented | 294 cases, section-19 provenance, grouped splits overlap 0; human evaluation 0 (docs/b11-dataset-design.md) |
+| Human review package | implemented, unused | Blind CSV + local HTML; agreement unmeasured - no reviewers (docs/b11-human-review.md) |
+| NLI | design only | No model downloaded; synthetic backend + shadow contract; approval proposal pending (docs/b11-nli-model-selection.md) |
+| Evidence Graph | implemented, verified | Trusted inputs only, rebuilt per read, caps 2000/5000 (docs/b11-evidence-graph.md) |
+| Synthesis + reports | implemented, verified | Template-based; Markdown+JSON reports with reproducibility fields (docs/b11-research-report.md) |
+| Research Web API/UI | implemented, verified | Workspace boundary; real-HTTP journey tests (docs/b11-workspace-integration.md) |
+| Final-review hardening | implemented, verified | Evidence-derived refs with caps/bindings, reviewed-record independence, recursive artefact schemas, rights sequence (schema v6), graph/report rebuild, research API completion, process-wide MiniLM gate; docs/b11-final-review.md |
+| Split identifier coverage | measured, low | persons 4.42% / works 0% / concepts 0% / documents 0% / source families 4.42% of 294 cases; 281 ungroupable (eval/b11-split-coverage.json) |
+| Scale | measured | 10,000 docs / 30,000 citations / 1,000 artefacts: graph 3.0 s, report 20.8 s, RSS 375.6 MB on this VM class (eval/b11-perf-final.json) |
+| Zotero real-app verification | NOT done | Additional-approval item since b7; format checks 13/13 only |
 
 ## Advanced Research Intelligence (b10)
 

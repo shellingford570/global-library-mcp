@@ -194,6 +194,8 @@ def to_bibtex(docs: list[dict[str, Any]]) -> str:
         fields: list[tuple[str, str]] = []
         if doc.get("title"):
             fields.append(("title", _tex(doc["title"])))
+        if doc.get("original_title") and doc["original_title"] != doc.get("title"):
+            fields.append(("origtitle", _tex(doc["original_title"])))
         authors = split_authors(doc.get("author"))
         if authors:
             fields.append(("author", " and ".join(_tex(a) for a in authors)))
@@ -268,6 +270,10 @@ def to_ris(docs: list[dict[str, Any]]) -> str:
             lines.append(f"DO  - {_ris_value(identifiers['doi'])}")
         if identifiers.get("isbn"):
             lines.append(f"SN  - {_ris_value(identifiers['isbn'])}")
+        if doc.get("translator"):
+            lines.append(f"N1  - Translator: {_ris_value(doc['translator'])}")
+        if doc.get("original_title") and doc["original_title"] != doc.get("title"):
+            lines.append(f"N1  - Original title: {_ris_value(doc['original_title'])}")
         if doc.get("landing_url"):
             lines.append(f"UR  - {_ris_value(doc['landing_url'])}")
         if doc.get("language_normalized"):
@@ -294,6 +300,8 @@ def to_csl_json(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
         item["type"] = _CSL_TYPES.get(_kind(doc), "document")
         if doc.get("title"):
             item["title"] = doc["title"]
+        if doc.get("original_title") and doc["original_title"] != doc.get("title"):
+            item["original-title"] = doc["original_title"]
         authors = [csl_author(a) for a in split_authors(doc.get("author"))]
         if authors:
             item["author"] = authors

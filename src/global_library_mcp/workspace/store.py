@@ -35,7 +35,7 @@ from typing import Any, Iterable
 
 from . import policy as _policy
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 6
 
 # Verification-status vocabulary a genuine database of this
 # application can contain. Restore validation rejects
@@ -271,7 +271,44 @@ _SCHEMA_V4 = """
 ALTER TABLE rights_observations ADD COLUMN trust TEXT;
 """
 
-MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3), (4, _SCHEMA_V4)]
+_SCHEMA_V5 = """
+CREATE TABLE research_artefacts (
+    artefact_id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    payload TEXT NOT NULL DEFAULT '{}',
+    trust TEXT NOT NULL DEFAULT 'server_generated',
+    provenance TEXT NOT NULL DEFAULT 'server',
+    operation_id TEXT NOT NULL DEFAULT '',
+    algorithm_version TEXT NOT NULL DEFAULT '',
+    model TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX idx_artefacts_project ON research_artefacts(project_id);
+"""
+
+_SCHEMA_V6 = """
+ALTER TABLE rights_observations ADD COLUMN seq INTEGER;
+CREATE TABLE rights_seq_counter (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    next_seq INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO rights_seq_counter (id, next_seq) VALUES (1, 0);
+"""
+
+MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3), (4, _SCHEMA_V4), (5, _SCHEMA_V5), (6, _SCHEMA_V6)]
+
+
+# Categories that RESTRICT excerpt use (b11 final review section
+# 11 fail-closed tie-break): anything not known to permit excerpts
+# is restrictive; only the excerpt-permitting categories are not.
+_PERMISSIVE_RIGHTS_CATEGORIES = {
+    "public_domain", "cc_by", "cc_by_sa", "cc_by_nc", "cc_by_nc_sa"}
+_RESTRICTIVE_RIGHTS_CATEGORIES = {
+    "in_copyright", "in_copyright_eu_orphan", "in_copyright_educational",
+    "no_copyright_non_commercial", "no_copyright_other", "copyright_undetermined",
+    "undetermined", "unknown", "restricted", "in_copyright_us"}
 
 
 def _json(value: Any) -> str:
@@ -359,6 +396,46 @@ class WorkspaceStore:
                 self._mark_imported_document_trust()
             if pending and any(v == 4 for v, _ in pending):
                 self._backfill_observation_trust(from_version=current)
+            if pending and any(v == 6 for v, _ in pending):
+                self._backfill_rights_seq()
+
+    def _next_rights_seq(self) -> int:
+        """Monotonic rights-observation sequence (b11 final
+        review section 11). Assigned inside the caller's
+        transaction on this store's single connection, so the
+        order is total and matches insertion order - unlike the
+        second-precision observed_at or random observation ids."""
+        row = self._conn.execute(
+            "SELECT next_seq FROM rights_seq_counter WHERE id = 1").fetchone()
+        nxt = int(row["next_seq"]) + 1 if row else 1
+        self._conn.execute(
+            "INSERT INTO rights_seq_counter (id, next_seq) VALUES (1, ?)"
+            " ON CONFLICT(id) DO UPDATE SET next_seq = excluded.next_seq",
+            (nxt,))
+        return nxt
+
+    def backfill_rights_seq(self) -> int:
+        """Assign seq to rows that arrived without one (imports
+        and restores write rows directly). Existing seq values
+        are never renumbered; new assignments continue the
+        counter in rowid (insertion) order."""
+        with self._lock, self._conn:
+            return self._backfill_rights_seq_locked()
+
+    def _backfill_rights_seq_locked(self) -> int:
+        rows = self._conn.execute(
+            "SELECT observation_id FROM rights_observations"
+            " WHERE seq IS NULL ORDER BY rowid").fetchall()
+        for r in rows:
+            self._conn.execute(
+                "UPDATE rights_observations SET seq = ?"
+                " WHERE observation_id = ?",
+                (self._next_rights_seq(), r["observation_id"]))
+        return len(rows)
+
+    def _backfill_rights_seq(self) -> None:
+        with self._lock, self._conn:
+            self._backfill_rights_seq_locked()
 
     def _mark_imported_document_trust(self) -> None:
         """b8 migration: documents that arrived via a b7 import
@@ -818,27 +895,52 @@ class WorkspaceStore:
         with self._lock, self._conn:
             oid = new_id()
             ts = now_iso()
+            seq = self._next_rights_seq()
             self._conn.execute(
                 "INSERT INTO rights_observations (observation_id, saved_document_id, statement,"
-                " category, source, observed_at, change_status, trust)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (oid, saved_document_id, statement, category, source, ts, change_status, trust))
+                " category, source, observed_at, change_status, trust, seq)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (oid, saved_document_id, statement, category, source, ts, change_status, trust, seq))
             return {"observation_id": oid, "saved_document_id": saved_document_id,
                     "statement": statement, "category": category, "source": source,
-                    "observed_at": ts, "change_status": change_status, "trust": trust}
+                    "observed_at": ts, "change_status": change_status, "trust": trust,
+                    "seq": seq}
 
     def list_rights_observations(self, saved_document_id: str) -> list[dict[str, Any]]:
         with self._lock:
             return _rows(self._conn.execute(
-                "SELECT * FROM rights_observations WHERE saved_document_id = ? ORDER BY observed_at",
+                "SELECT * FROM rights_observations WHERE saved_document_id = ?"
+                " ORDER BY COALESCE(seq, 0), observed_at, observation_id",
                 (saved_document_id,)))
 
     def latest_rights_observation(self, saved_document_id: str) -> dict[str, Any] | None:
+        """The CURRENT rights observation (section 11): the
+        greatest monotonic seq wins - insertion order, not the
+        second-precision timestamp or a random UUID. Fail-closed:
+        when the two newest observations share the same
+        observed_at with different categories and the newest is
+        not a server observation, the more restrictive one is
+        current (a permission never wins a same-timestamp tie
+        against a restriction it cannot outrank)."""
         with self._lock:
-            return _row(self._conn.execute(
+            rows = _rows(self._conn.execute(
                 "SELECT * FROM rights_observations WHERE saved_document_id = ?"
-                " ORDER BY observed_at DESC, observation_id DESC LIMIT 1",
-                (saved_document_id,)).fetchone())
+                " ORDER BY COALESCE(seq, 0) DESC, observed_at DESC,"
+                " observation_id DESC LIMIT 2",
+                (saved_document_id,)))
+            if not rows:
+                return None
+            top = rows[0]
+            if len(rows) == 2:
+                other = rows[1]
+                if other["observed_at"] == top["observed_at"] \
+                        and other.get("category") != top.get("category") \
+                        and top.get("trust") != "server_observed":
+                    restrictive = _RESTRICTIVE_RIGHTS_CATEGORIES
+                    if top.get("category") not in restrictive \
+                            and other.get("category") in restrictive:
+                        return other
+            return top
 
     def update_citation_excerpt(self, citation_id: str, excerpt: str) -> None:
         """Store an excerpt text for an existing citation. Used
@@ -879,6 +981,9 @@ class WorkspaceStore:
             observations_downgraded = self._conn.execute(
                 "UPDATE rights_observations SET trust = 'restored_claim'"
             ).rowcount
+            artefacts_downgraded = self._conn.execute(
+                "UPDATE research_artefacts SET trust = 'restored_unverified'"
+                " WHERE trust = 'server_generated'").rowcount
             rows = self._conn.execute(
                 "SELECT citation_id, quotation_verification_status,"
                 " page_mapping_status, image_verification_status, verified_at"
@@ -926,6 +1031,7 @@ class WorkspaceStore:
                      _policy.classify_rights(statement), ts))
             self._conn.execute(
                 "UPDATE saved_documents SET rights_trust = 'restored_claim'")
+            self._backfill_rights_seq_locked()
         return {"citations_downgraded": downgraded,
                 "documents_marked": len(docs),
                 "rights_observations_downgraded": observations_downgraded}
@@ -996,12 +1102,71 @@ class WorkspaceStore:
                                          self.list_documents(
                                              project_id, collection_id=c["collection_id"])]
                     for c in self.list_collections(project_id)},
+                "artefacts": self.list_artefact_rows(project_id),
                 "rights_observations": {
                     d["saved_document_id"]: self.list_rights_observations(d["saved_document_id"])
                     for d in documents},
             }
 
     # -- notes -----------------------------------------------------------------
+    # -- research artefacts (schema v5, b11 stage 0) -------------------
+    # Artefacts live in their OWN table. The trust column is set
+    # only by server-side code paths in this module's callers:
+    # save via save_artefact_row (server), import via
+    # import_artefact_row (always imported_unverified). Plain
+    # notes can never become trusted artefacts, and a payload
+    # hash is never used as proof of origin.
+    def save_artefact_row(self, project_id: str, kind: str, title: str,
+                          payload_json: str, *, trust: str,
+                          provenance: str, operation_id: str = "",
+                          algorithm_version: str = "",
+                          model_json: str = "{}") -> dict[str, Any]:
+        if trust not in ("server_generated", "imported_unverified",
+                         "restored_unverified"):
+            raise ValueError(f"invalid artefact trust: {trust}")
+        aid = "art_" + uuid.uuid4().hex[:20]
+        ts = now_iso()
+        with self._lock, self._conn:
+            self._conn.execute(
+                "INSERT INTO research_artefacts (artefact_id, project_id,"
+                " kind, title, payload, trust, provenance, operation_id,"
+                " algorithm_version, model, created_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (aid, project_id, kind, title, payload_json, trust,
+                 provenance, operation_id, algorithm_version, model_json, ts))
+        return {"artefact_id": aid, "project_id": project_id, "kind": kind,
+                "title": title, "trust": trust, "created_at": ts}
+
+    def update_artefact_payload(self, project_id: str, artefact_id: str,
+                                payload_json: str) -> bool:
+        """Server-side payload update (b11 final review section
+        28): linking/assessment endpoints rewrite a claim
+        artefact's payload. The trust column is NEVER touched
+        here - an update cannot promote an artefact."""
+        with self._lock, self._conn:
+            cur = self._conn.execute(
+                "UPDATE research_artefacts SET payload = ?"
+                " WHERE artefact_id = ? AND project_id = ?",
+                (payload_json, artefact_id, project_id))
+        return cur.rowcount > 0
+
+    def list_artefact_rows(self, project_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM research_artefacts WHERE project_id = ?"
+                " ORDER BY created_at, artefact_id", (project_id,)).fetchall()
+        out = []
+        for r in rows:
+            d = dict(r)
+            for key in ("payload", "model"):
+                if isinstance(d.get(key), str):
+                    try:
+                        d[key] = json.loads(d[key])
+                    except (ValueError, TypeError):
+                        d[key] = {}
+            out.append(d)
+        return out
+
     def save_note(self, project_id: str, content: str, *, title: str = "",
                   saved_document_id: str | None = None,
                   citation_id: str | None = None,
@@ -1262,6 +1427,17 @@ class WorkspaceStore:
         "rights_observations": {"observation_id", "saved_document_id"},
         "verification_observations": {"observation_id", "citation_id", "status"},
     }
+    # Version-conditional required tables (final review section
+    # 41): older backups legitimately lack them - the store
+    # migrates on open - so they are required only when the
+    # backup CLAIMS the version that introduced them.
+    _REQUIRED_SCHEMA_V5 = {
+        "research_artefacts": {"artefact_id", "project_id", "kind",
+                               "payload", "trust", "created_at"},
+    }
+    _REQUIRED_SCHEMA_V6 = {
+        "rights_seq_counter": {"id", "next_seq"},
+    }
 
     @staticmethod
     def validate_backup(path: str | Path) -> dict[str, Any]:
@@ -1356,6 +1532,54 @@ class WorkspaceStore:
                 ).fetchone()[0]
                 if bad_semantic:
                     problems.append("comparison semantic_status other than not_checked")
+            for _min_version, _schema in ((5, WorkspaceStore._REQUIRED_SCHEMA_V5),
+                                          (6, WorkspaceStore._REQUIRED_SCHEMA_V6)):
+                if version >= _min_version:
+                    for _table, _columns in _schema.items():
+                        if _table not in tables:
+                            problems.append(
+                                f"schema claims v{version} but table "
+                                f"{_table} is missing")
+                            continue
+                        _actual = {r["name"] for r in conn.execute(
+                            f"PRAGMA table_info({_table})")}
+                        if not _columns <= _actual:
+                            problems.append(
+                                f"schema claims v{version} but {_table} "
+                                f"lacks columns {sorted(_columns - _actual)}")
+            if version >= 5 and "research_artefacts" in tables and not problems:
+                # b11 final review section 41: a restore must
+                # validate research_artefacts too - trust and
+                # kind vocabularies, payload JSON shape and size.
+                # (The trust VALUE is never believed: the restore
+                # downgrade rewrites server_generated rows to
+                # restored_unverified regardless. Reference
+                # integrity is re-checked at read time by
+                # research_artefacts.reference_problems.)
+                from .research_artefacts import KINDS, MAX_PAYLOAD_BYTES
+                known_kinds = {"b10_" + k for k in KINDS} | set(KINDS)
+                for row in conn.execute(
+                        "SELECT kind, trust, payload FROM research_artefacts"):
+                    if row["trust"] not in ("server_generated",
+                                            "imported_unverified",
+                                            "restored_unverified"):
+                        problems.append(
+                            f"unknown artefact trust: {row['trust']}")
+                        break
+                    if row["kind"] not in known_kinds:
+                        problems.append(f"unknown artefact kind: {row['kind']}")
+                        break
+                    try:
+                        payload = json.loads(row["payload"] or "")
+                    except (TypeError, json.JSONDecodeError):
+                        problems.append("artefact payload is not valid JSON")
+                        break
+                    if not isinstance(payload, dict):
+                        problems.append("artefact payload is not an object")
+                        break
+                    if len((row["payload"] or "").encode("utf-8")) > MAX_PAYLOAD_BYTES:
+                        problems.append("artefact payload exceeds the size limit")
+                        break
         except sqlite3.Error as exc:
             problems.append(f"not a readable SQLite database: {exc}")
         finally:

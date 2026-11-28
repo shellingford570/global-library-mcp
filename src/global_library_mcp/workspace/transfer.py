@@ -155,6 +155,12 @@ def export_project(store: WorkspaceStore, project_id: str) -> dict[str, Any]:
                          bundle["collection_members"].get(c["collection_id"], [])}
                         for c in bundle["collections"]],
         "rights_observations": bundle["rights_observations"],
+        "research_artefacts": [
+            {"kind": a.get("kind"), "title": a.get("title"),
+             "payload": _artefact_payload(a),
+             "created_at": a.get("created_at"),
+             "claimed_trust": a.get("trust")}
+            for a in bundle.get("artefacts") or []],
         "export_omissions": omissions,
     }
     records = sum(len(payload[k]) for k in
@@ -171,6 +177,16 @@ def export_project(store: WorkspaceStore, project_id: str) -> dict[str, Any]:
     payload["export_warnings"] = warnings
     return payload
 
+
+
+def _artefact_payload(row: dict[str, Any]) -> Any:
+    raw = row.get("payload")
+    if isinstance(raw, str):
+        try:
+            return json.loads(raw)
+        except ValueError:
+            return {}
+    return raw or {}
 
 # --------------------------------------------------------------------- import
 def parse_import_json(raw: bytes) -> Any:
@@ -497,6 +513,55 @@ def import_project(store: WorkspaceStore, payload: Any) -> dict[str, Any]:
                  json.dumps(entry.get("http_stats") or {}, ensure_ascii=False),
                  str(entry.get("search_status") or "completed")[:50],
                  _ts(entry.get("created_at"), ts)))
+        artefact_entries = payload.get("research_artefacts") or []
+        if not isinstance(artefact_entries, list):
+            raise ImportError_("research_artefacts must be a list")
+        imported_artefacts = 0
+        unresolved_refs: list[dict[str, Any]] = []
+        from global_library_mcp.workspace.research_artefacts import (
+            validate_payload as _validate_artefact)
+        _imported_doc_keys = {
+            (d.get("library_id"), d.get("record_id")) for d in documents}
+        for art in artefact_entries:
+            if not isinstance(art, dict):
+                continue
+            kind = str(art.get("kind") or "")
+            if kind.startswith("b10_"):
+                kind = kind[4:]
+            try:
+                pl = _validate_artefact(kind, art.get("payload") or {})
+            except ValueError:
+                unresolved_refs.append({"kind": kind,
+                                        "reason": "payload failed schema validation on import"})
+                continue
+            new_cit_refs = []
+            for cid in pl.get("citation_refs") or []:
+                if cid in cit_map:
+                    new_cit_refs.append(cit_map[cid])
+                else:
+                    unresolved_refs.append({"kind": kind, "citation_id": cid,
+                                            "reason": "citation not present in import; reference dropped"})
+            if "citation_refs" in pl:
+                pl["citation_refs"] = new_cit_refs
+            kept_refs = []
+            for ref in pl.get("record_refs") or []:
+                if isinstance(ref, dict) and (ref.get("library_id"), ref.get("record_id")) in _imported_doc_keys:
+                    kept_refs.append(ref)
+                else:
+                    unresolved_refs.append({"kind": kind, "ref": ref,
+                                            "reason": "document not present in import; reference dropped"})
+            if "record_refs" in pl:
+                pl["record_refs"] = kept_refs
+            conn.execute(
+                "INSERT INTO research_artefacts (artefact_id, project_id,"
+                " kind, title, payload, trust, provenance, operation_id,"
+                " algorithm_version, model, created_at)"
+                " VALUES (?, ?, ?, ?, ?, 'imported_unverified', 'imported',"
+                " '', 'b11-import', '{}', ?)",
+                (new_id(), new_project_id, "b10_" + kind,
+                 str(art.get("title") or "")[:500],
+                 json.dumps(pl, ensure_ascii=False), ts))
+            imported_artefacts += 1
         docs_rights = {d["saved_document_id"]:
                        (d.get("rights_snapshot") or {}).get("statement")
                        for d in documents}
@@ -573,6 +638,8 @@ def import_project(store: WorkspaceStore, payload: Any) -> dict[str, Any]:
                          "comparisons": len(comparisons),
                          "collections": len(collections)},
             "imported_verification_claims": imported_claims,
+            "imported_artefacts": imported_artefacts,
+            "unresolved_artefact_refs": unresolved_refs,
             "excerpt_omissions": omissions,
             "note": "imported verification states and rights statements are "
                     "historical claims, not current verification"}

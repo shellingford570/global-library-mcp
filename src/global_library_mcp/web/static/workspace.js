@@ -156,7 +156,121 @@
     if (!projectId) { panel.appendChild(el('p', 'プロジェクトを作成すると、資料・引用・ノートを保存できます。')); return; }
     ({ documents: renderDocuments, citations: renderCitations, notes: renderNotes,
        comparisons: renderComparisons, history: renderHistory, cite: renderCiteForm,
-       export: renderExport }[currentTab] || renderDocuments)();
+       export: renderExport, research: renderResearch }[currentTab] || renderDocuments)();
+  }
+
+  // ---- b11 research validation tab (sections 49-54) --------------------
+  // State wording follows section 52: candidate/unconfirmed states
+  // are NEVER shown with a green "verified" style; trust and state
+  // are always rendered as text, and NLI/semantic scores are never
+  // presented as probabilities of correctness.
+  async function renderResearch() {
+    const base = `/api/workspace/projects/${encodeURIComponent(projectId)}/research`;
+    const progress = await wsFetch(`${base}/progress`);
+    panel.appendChild(el('h3', '研究の進捗（候補ベース）'));
+    const byKind = progress.b10_artefacts || {};
+    const rows = [
+      ['保存資料', progress.saved_documents],
+      ['保存引用', progress.saved_citations],
+      ['研究質問（サーバー生成）', byKind.b10_research_question || 0],
+      ['主張評価（サーバー生成）', byKind.b10_claim_assessment || 0],
+      ['根拠不足の主張', progress.claims_with_insufficient_evidence],
+      ['矛盾候補', progress.contradiction_candidates],
+      ['未検証の典拠候補', progress.unverified_authority_candidates],
+      ['比較（サーバー生成）', byKind.b10_comparison || 0],
+      ['時系列（サーバー生成）', byKind.b10_timeline || 0],
+      ['レポート（サーバー生成）', byKind.b10_research_report || 0],
+      ['意味検索の記録', byKind.b10_semantic_search || 0],
+      ['未信頼の成果物（手動ノート等）', progress.untrusted_artefacts],
+    ];
+    const table = el('div');
+    rows.forEach(([k, v]) => table.appendChild(el('p', `${k}: ${v}`)));
+    panel.appendChild(table);
+
+    const q = document.createElement('input');
+    q.type = 'text'; q.placeholder = '研究質問を入力'; q.maxLength = 2000;
+    panel.append(q, button('質問を構造化して保存', async () => {
+      if (!q.value.trim()) return;
+      const r = await wsFetch(`${base}/questions`, { method: 'POST', body: { question: q.value } });
+      say(`質問を保存しました（意図: ${r.structured.research_intent || 'unknown'}）`);
+      renderTab();
+    }));
+
+    const c = document.createElement('input');
+    c.type = 'text'; c.placeholder = '主張を入力'; c.maxLength = 2000;
+    panel.append(c, button('主張を構造化して保存', async () => {
+      if (!c.value.trim()) return;
+      const r = await wsFetch(`${base}/claims`, { method: 'POST', body: { statement: c.value } });
+      const ex = r.claim.extraction || {};
+      const missing = Object.entries(ex).filter(([, v]) => v === 'not_extracted').map(([k]) => k);
+      say(`主張を保存しました（未抽出: ${missing.join(', ') || 'なし'}）`);
+      renderTab();
+    }));
+
+    const graph = await wsFetch(`${base}/graph?limit=50`);
+    panel.appendChild(el('h3', '根拠グラフ'));
+    panel.appendChild(el('p', `ノード ${graph.node_count}件 / 辺 ${graph.edge_count}件（省略: ノード ${graph.omitted_nodes}件・辺 ${graph.omitted_edges}件）`));
+    graph.edges.slice(0, 50).forEach(e => {
+      panel.appendChild(el('p', `${e.source} —[${e.type} / ${e.state}]→ ${e.target}`));
+    });
+
+    const timeline = await wsFetch(`${base}/timeline`);
+    panel.appendChild(el('h3', '時系列（順序は因果を示しません）'));
+    (timeline.events || []).forEach(e => panel.appendChild(el('p', `${e.year} [${e.date_kind}] ${e.label}`)));
+    if (!(timeline.events || []).length) panel.appendChild(el('p', '日付のある出来事はまだありません。'));
+
+    panel.appendChild(el('h3', '研究レポート'));
+    panel.append(button('レポートを生成', async () => {
+      const rep = await wsFetch(`${base}/reports`, { method: 'POST', body: {} });
+      say(`レポート ${rep.report_id} を生成しました（未解決参照 ${rep.unresolved_count}件）`);
+      const pre = el('pre', rep.markdown);
+      panel.appendChild(pre);
+      const dl = (name, text, type) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([text], { type }));
+        a.download = name; a.textContent = name; panel.appendChild(a);
+      };
+      dl(`${rep.report_id}.md`, rep.markdown, 'text/markdown');
+      dl(`${rep.report_id}.json`, JSON.stringify(rep, null, 1), 'application/json');
+    }));
+    panel.append(button('状態を再構築（原典の再取得はしません）', async () => {
+      const r = await wsFetch(`${base}/refresh`, { method: 'POST', body: {} });
+      say(`状態を再構築しました: ノード ${r.graph_nodes}件 / 辺 ${r.graph_edges}件（原典の再取得はしていません）`);
+      renderTab();
+    }));
+    panel.append(button('参照の整合性を確認', async () => {
+      const r = await wsFetch(`${base}/revalidate_references`, { method: 'POST', body: {} });
+      say(`参照を確認しました: 成果物 ${r.artefacts_checked}件 / 壊れた参照 ${r.broken.length}件（原典の再取得はしていません）`);
+    }));
+
+    const arts = await wsFetch(`${base}/artefacts`);
+    panel.appendChild(el('h3', '研究成果物（信頼状態つき）'));
+    (arts.artefacts || []).forEach(a => {
+      panel.appendChild(el('p', `${a.kind} / 信頼: ${a.trust} / ${a.title || ''}`));
+    });
+
+    const claimsData = await wsFetch(`${base}/claims`);
+    panel.appendChild(el('h3', '主張と根拠評価'));
+    (claimsData.claims || []).forEach(a => {
+      const claim = (a.payload && a.payload.claim) || {};
+      const assessments = (a.payload && a.payload.assessments) || [];
+      const row = el('div');
+      row.appendChild(el('p', `主張: ${claim.original_statement || a.title || ''}（評価 ${assessments.length}件 / 信頼: ${a.trust}）`));
+      assessments.forEach(x => row.appendChild(el('p', `評価: ${x.status}（引用 ${x.citation_id || 'なし'}）`)));
+      const citInput = document.createElement('input');
+      citInput.type = 'text'; citInput.placeholder = '引用ID';
+      row.append(citInput, button('引用を関連付け', async () => {
+        if (!citInput.value.trim()) return;
+        await wsFetch(`${base}/claims/${a.artefact_id}/citations`, { method: 'POST', body: { citation_id: citInput.value.trim() } });
+        say('引用を関連付けました');
+        renderTab();
+      }), button('根拠を評価', async () => {
+        const r = await wsFetch(`${base}/claims/${a.artefact_id}/assess`, { method: 'POST', body: {} });
+        say(`根拠評価: ${(r.assessments || []).map(x => x.status).join(', ') || '根拠なし'}`);
+        renderTab();
+      }));
+      panel.appendChild(row);
+    });
   }
 
   async function renderDocuments() {

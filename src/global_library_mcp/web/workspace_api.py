@@ -76,6 +76,100 @@ _PAGE_SNAPSHOT_KEYS = (
 )
 
 
+def _assess_claim_citations(store: Any, project_id: str,
+                            claim: dict[str, Any],
+                            citation_ids: list[str]) -> list[dict[str, Any]]:
+    """Assess a claim against SAVED citations (b11 final review
+    sections 28-30). No caller-supplied trust flag exists: a
+    citation grounds an assessment only through the frozen
+    admission path - its excerpt is registered with identity
+    states taken from the citation's and document's CURRENT
+    verification states, and the existing assessor decides.
+    Anything short of that stays evidence_reference_only /
+    unresolved, never a support candidate."""
+    from dataclasses import fields as _dc_fields
+
+    from global_library_mcp.research import (
+        ResearchClaim, assess_claim_evidence, build_trusted_candidate,
+        register_admitted_evidence)
+
+    # The stored claim is a dict; the frozen assessor takes the
+    # ResearchClaim object. Rebuild it from the dataclass fields
+    # only (linking metadata like question_id stays out).
+    _known = {f.name for f in _dc_fields(ResearchClaim)}
+    claim_obj = ResearchClaim(**{
+        k: v for k, v in claim.items() if k in _known})
+    claim_id = claim.get("claim_id") or ""
+    out: list[dict[str, Any]] = []
+    docs_by_id = {d["saved_document_id"]: d
+                  for d in store.list_documents(project_id)}
+    for cid in citation_ids:
+        cit = store.get_citation(cid)
+        base = {"claim_id": claim_id, "citation_id": cid}
+        if cit is None:
+            out.append({**base, "status": "unresolved",
+                        "reason": "citation_missing"})
+            continue
+        doc = docs_by_id.get(cit["saved_document_id"])
+        if doc is None:
+            out.append({**base, "status": "unresolved",
+                        "reason": "citation_document_not_in_project"})
+            continue
+        base.update({"library_id": doc["library_id"],
+                     "record_id": doc["record_id"],
+                     "saved_document_id": doc["saved_document_id"],
+                     "page_id": cit.get("page_id")})
+        verified = (
+            cit.get("quotation_verification_status") == "verified"
+            and cit.get("page_mapping_status") == "verified")
+        excerpt = cit.get("original_excerpt") or ""
+        if not verified:
+            out.append({**base, "status": "evidence_reference_only",
+                        "reason": "citation_not_fully_verified"})
+            continue
+        if not excerpt:
+            out.append({**base, "status": "evidence_reference_only",
+                        "reason": "no_excerpt_text_available"})
+            continue
+        latest = store.latest_rights_observation(
+            doc["saved_document_id"]) or {}
+        token = register_admitted_evidence(
+            library_id=doc["library_id"], record_id=doc["record_id"],
+            page_id=cit.get("page_id") or "", text=excerpt,
+            document_identity_state=(
+                "upstream_confirmed"
+                if doc.get("verification_status") in (
+                    "verified", "upstream_confirmed")
+                else "unconfirmed"),
+            page_identity_state="verified_mapping",
+            admission_state="admitted",
+            ocr_source=cit.get("ocr_source"),
+            rights_state=latest.get("category"),
+            operation_id="op_workspace_assess",
+            session_id="workspace", project_id=project_id,
+            citation_id=cid)
+        candidate = build_trusted_candidate(
+            **{"evidence_ref_token": token, "text": excerpt})
+        if candidate is None:
+            out.append({**base, "status": "evidence_reference_only",
+                        "reason": "reference_not_admitted"})
+            continue
+        rows = assess_claim_evidence(claim_obj, [candidate],
+                                     store=store)
+        row = rows[0] if rows else {"status": "insufficient_evidence"}
+        out.append({**base, "status": row.get("status"),
+                    "signals": row.get("signals") or [],
+                    "reason": (row.get("reason") or "")[:200]})
+    return out
+
+
+def _reject_json_constant(value: str) -> Any:
+    """json.loads parse_constant hook (b11 final review section
+    31): NaN / Infinity / -Infinity are not valid JSON and are
+    refused with a structured 400 instead of becoming floats."""
+    raise ValueError(f"non-finite JSON constant refused: {value}")
+
+
 class ApiError(Exception):
     def __init__(self, status: int, message: str):
         super().__init__(message)
@@ -455,7 +549,9 @@ class WorkspaceApi:
             raise ApiError(415, "Content-Type must be application/json")
         raw = self.read_body(handler, cap)
         try:
-            value = json.loads(raw.decode("utf-8"))
+            value = json.loads(
+                raw.decode("utf-8"),
+                parse_constant=_reject_json_constant)
         except (ValueError, UnicodeDecodeError):
             raise ApiError(400, "invalid JSON body")
         if not isinstance(value, dict):
@@ -798,6 +894,301 @@ class WorkspaceApi:
             data = self.read_body(handler, cap=RESTORE_CAP)
             send(self._restore(data))
             return
+        # -- b11 research validation routes (sections 49-54) ---------------
+        if len(parts) >= 3 and parts[0] == "projects" and parts[2] == "research":
+            pid = parts[1]
+            if store.get_project(pid) is None:
+                raise ApiError(404, "project not found")
+            from global_library_mcp.evidence_graph import (
+                build_project_graph)
+            from global_library_mcp.research import (
+                structure_claim, structure_question)
+            from global_library_mcp.synthesis import (
+                build_timeline, generate_research_report)
+            from global_library_mcp.workspace.research_artefacts import (
+                list_artefacts, project_research_progress, save_artefact)
+            sub = parts[3] if len(parts) > 3 else ""
+            if sub == "progress" and method == "GET":
+                send(project_research_progress(store, pid))
+                return
+            if sub == "artefacts" and method == "GET":
+                send({"artefacts": list_artefacts(store, pid)})
+                return
+            if sub == "graph" and method == "GET":
+                try:
+                    limit = min(2000, max(1, int(qs.get("limit", ["500"])[0])))
+                    offset = max(0, int(qs.get("offset", ["0"])[0]))
+                except ValueError:
+                    raise ApiError(400, "limit/offset must be integers")
+                send(build_project_graph(store, pid, limit=limit,
+                                         offset=offset))
+                return
+            if sub == "timeline" and method == "GET":
+                events = []
+                for art in list_artefacts(store, pid):
+                    if art["kind"] in ("b10_timeline", "timeline"):
+                        events += (art.get("payload") or {}).get("events") or []
+                send(build_timeline(events))
+                return
+            # -- strict input validation (section 31): text
+            # fields must BE strings (never str()-coerced),
+            # unknown fields are refused, sizes are capped.
+            def _fields(body: dict, allowed: set) -> None:
+                extra = set(body) - allowed
+                if extra:
+                    raise ApiError(422, f"unknown field(s): "
+                                        f"{sorted(extra)}")
+
+            def _text(body: dict, field: str, *, required: bool = True,
+                      cap: int = 2000) -> str:
+                value = body.get(field)
+                if value is None:
+                    if required:
+                        raise ApiError(400, f"{field} is required")
+                    return ""
+                if not isinstance(value, str):
+                    raise ApiError(422, f"{field} must be a string")
+                value = value.strip()
+                if required and not value:
+                    raise ApiError(400, f"{field} is required")
+                if len(value) > cap:
+                    raise ApiError(413, f"{field} exceeds {cap} characters")
+                if len(value.encode("utf-8")) > cap * 4:
+                    raise ApiError(413, f"{field} exceeds the byte cap")
+                return value
+
+            def _artefact_row(aid: str, kind: str) -> dict:
+                for row in store.list_artefact_rows(pid):
+                    if row["artefact_id"] == aid and \
+                            row["kind"].removeprefix("b10_") == kind:
+                        return row
+                raise ApiError(404, f"{kind} artefact not found")
+
+            def _save_claim_payload(row: dict, payload: dict) -> None:
+                import json as _json
+                from global_library_mcp.workspace.research_artefacts import (
+                    validate_payload)
+                validate_payload("claim_assessment", payload)
+                store.update_artefact_payload(
+                    pid, row["artefact_id"],
+                    _json.dumps(payload, ensure_ascii=False))
+
+            if sub == "questions" and method == "GET":
+                send({"questions": [
+                    a for a in list_artefacts(store, pid)
+                    if a["kind"].removeprefix("b10_") == "research_question"]})
+                return
+            if sub == "questions" and method == "POST":
+                body = self.read_json(handler)
+                _fields(body, {"question"})
+                question = _text(body, "question")
+                structured = structure_question(question).to_dict()
+                art = save_artefact(store, pid, "research_question",
+                                    question[:80],
+                                    {"question": structured})
+                send({"artefact": art, "structured": structured}, 201)
+                return
+            if sub == "claims" and method == "GET":
+                send({"claims": [
+                    a for a in list_artefacts(store, pid)
+                    if a["kind"].removeprefix("b10_") == "claim_assessment"]})
+                return
+            if sub == "claims" and method == "POST" and len(parts) == 4:
+                body = self.read_json(handler)
+                _fields(body, {"statement", "question_id"})
+                statement = _text(body, "statement")
+                claim = structure_claim(statement).to_dict()
+                qid = body.get("question_id")
+                if qid is not None:
+                    if not isinstance(qid, str):
+                        raise ApiError(422, "question_id must be a string")
+                    _artefact_row(qid, "research_question")
+                    claim["question_id"] = qid
+                art = save_artefact(store, pid, "claim_assessment",
+                                    statement[:80],
+                                    {"claim": claim, "assessments": []})
+                send({"artefact": art, "claim": claim}, 201)
+                return
+            if sub == "claims" and len(parts) > 5 and method == "POST":
+                # /claims/{artefact_id}/{question|documents|citations|assess}
+                row = _artefact_row(parts[4], "claim_assessment")
+                payload = row.get("payload") or {}
+                claim = payload.get("claim") or {}
+                action = parts[5]
+                body = self.read_json(handler)
+                if action == "question":
+                    _fields(body, {"question_artefact_id"})
+                    qid = _text(body, "question_artefact_id", cap=64)
+                    _artefact_row(qid, "research_question")
+                    claim["question_id"] = qid
+                    payload["claim"] = claim
+                    _save_claim_payload(row, payload)
+                    send({"linked": True, "claim": claim})
+                    return
+                if action == "documents":
+                    _fields(body, {"library_id", "record_id"})
+                    lib = _text(body, "library_id", cap=128)
+                    rec = _text(body, "record_id", cap=256)
+                    doc = next((d for d in store.list_documents(pid)
+                                if d["library_id"] == lib
+                                and d["record_id"] == rec), None)
+                    if doc is None:
+                        raise ApiError(422, "document is not in the project")
+                    refs = claim.get("record_refs") or []
+                    entry = {"library_id": lib, "record_id": rec,
+                             "saved_document_id": doc["saved_document_id"]}
+                    if entry not in refs:
+                        refs.append(entry)
+                    claim["record_refs"] = refs
+                    payload["claim"] = claim
+                    _save_claim_payload(row, payload)
+                    send({"linked": True, "claim": claim})
+                    return
+                if action == "citations":
+                    _fields(body, {"citation_id"})
+                    cid = _text(body, "citation_id", cap=64)
+                    cit = store.get_citation(cid)
+                    if cit is None:
+                        raise ApiError(404, "citation not found")
+                    cdoc = store.get_document(cit["saved_document_id"]) or {}
+                    if cdoc.get("project_id") != pid:
+                        raise ApiError(422, "citation belongs to another project")
+                    refs = claim.get("citation_refs") or []
+                    if cid not in refs:
+                        refs.append(cid)
+                    claim["citation_refs"] = refs
+                    payload["claim"] = claim
+                    _save_claim_payload(row, payload)
+                    send({"linked": True, "claim": claim})
+                    return
+                if action == "assess":
+                    _fields(body, {"citation_ids"})
+                    cids = body.get("citation_ids")
+                    if cids is None:
+                        cids = claim.get("citation_refs") or []
+                    if not isinstance(cids, list) or \
+                            not all(isinstance(x, str) for x in cids):
+                        raise ApiError(422, "citation_ids must be a list of strings")
+                    assessments = _assess_claim_citations(
+                        store, pid, claim, cids)
+                    kept = [a for a in payload.get("assessments") or []
+                            if a.get("citation_id") not in set(cids)]
+                    payload["assessments"] = kept + assessments
+                    payload["claim"] = claim
+                    _save_claim_payload(row, payload)
+                    send({"assessments": assessments,
+                          "note": "statuses derive from the saved "
+                                  "citations' current verification "
+                                  "state and the frozen admission "
+                                  "gate; no caller-supplied admitted "
+                                  "flag is accepted"})
+                    return
+                raise ApiError(404, "claim action not found")
+            if sub == "reports" and method == "POST":
+                import subprocess as _sp
+                try:
+                    commit = _sp.run(["git", "rev-parse", "--short", "HEAD"],
+                                     capture_output=True, text=True,
+                                     timeout=5).stdout.strip()
+                except Exception:
+                    commit = ""
+                report = generate_research_report(store, pid,
+                                                  git_commit=commit)
+                sections = [{"name": k} for k in (
+                    "summary", "questions", "claim_states", "comparisons",
+                    "timeline", "rights", "unresolved_references")]
+                save_artefact(store, pid, "research_report",
+                              f"Report {report['report_id']}",
+                              {"report_id": report["report_id"],
+                               "title": f"Research report {report['report_id']}",
+                               "sections": sections,
+                               "record_refs": report["record_refs"],
+                               "citation_refs": report["citation_refs"],
+                               "snapshot_id": report["snapshot_id"],
+                               "settings": {
+                                   "code_version": report["code_version"],
+                                   "git_commit": report["git_commit"]},
+                               "generated_at": report["generated_at"]})
+                send(report, 201)
+                return
+            if sub == "reports" and method == "GET":
+                reps = [a for a in list_artefacts(store, pid)
+                        if a["kind"] in ("b10_research_report",
+                                         "research_report")]
+                send({"reports": reps})
+                return
+            if sub == "refresh" and method == "POST":
+                # Section 30: refresh = state REBUILD only. It
+                # does not refetch originals and does not
+                # revalidate references; the response says so.
+                graph = build_project_graph(store, pid, limit=1)
+                send({"operation": "refresh",
+                      "state_rebuilt": True,
+                      "references_revalidated": False,
+                      "original_refetched": False,
+                      "graph_nodes": graph["total_nodes"],
+                      "graph_edges": graph["total_edges"],
+                      "progress": project_research_progress(store, pid)})
+                return
+            if sub == "revalidate" and method == "POST":
+                # Legacy alias of refresh, with honest naming:
+                # it never claimed (and never claims) a reference
+                # revalidation or an original refetch.
+                graph = build_project_graph(store, pid, limit=1)
+                send({"operation": "refresh",
+                      "deprecated_alias_of": "refresh",
+                      "state_rebuilt": True,
+                      "references_revalidated": False,
+                      "original_refetched": False,
+                      "graph_nodes": graph["total_nodes"],
+                      "graph_edges": graph["total_edges"],
+                      "progress": project_research_progress(store, pid)})
+                return
+            if sub == "revalidate_references" and method == "POST":
+                from global_library_mcp.workspace.research_artefacts import (
+                    reference_problems)
+                broken = []
+                rows = store.list_artefact_rows(pid)
+                for r in rows:
+                    payload = r.get("payload") or {}
+                    if isinstance(payload, dict) and payload:
+                        problems = reference_problems(store, pid, payload)
+                        if problems:
+                            broken.append({"artefact_id": r["artefact_id"],
+                                           "problems": problems[:5]})
+                send({"operation": "revalidate_references",
+                      "artefacts_checked": len(rows),
+                      "broken": broken,
+                      "original_refetched": False})
+                return
+            if sub == "reverify_citation" and method == "POST":
+                body = self.read_json(handler)
+                _fields(body, {"citation_id"})
+                cid = _text(body, "citation_id", cap=64)
+                obs = self._reverify(cid)
+                send({"operation": "reverify_citation",
+                      "original_refetched": True,
+                      "observation": obs})
+                return
+            if sub == "revalidate_claim" and method == "POST":
+                body = self.read_json(handler)
+                _fields(body, {"artefact_id"})
+                row = _artefact_row(_text(body, "artefact_id", cap=64),
+                                    "claim_assessment")
+                payload = row.get("payload") or {}
+                claim = payload.get("claim") or {}
+                cids = claim.get("citation_refs") or []
+                assessments = _assess_claim_citations(
+                    store, pid, claim, cids)
+                kept = [a for a in payload.get("assessments") or []
+                        if a.get("citation_id") not in set(cids)]
+                payload["assessments"] = kept + assessments
+                _save_claim_payload(row, payload)
+                send({"operation": "revalidate_claim",
+                      "assessments": assessments,
+                      "original_refetched": False})
+                return
+            raise ApiError(404, "research route not found")
         raise ApiError(404, "workspace route not found")
 
     # -- views with current-rights gating ---------------------------------------

@@ -1,5 +1,58 @@
 # Changelog
 
+## 1.0.0b11 — Research Validation & Knowledge Synthesis (in development)
+
+- Final review fixes: evidence references derive from the
+  actual Evidence object and are bound to session/project/
+  citation with registry caps; independence requires a reviewed
+  record (bare assertions count as user-asserted only); complete
+  recursive artefact schemas with nested reference integrity;
+  monotonic rights-observation sequence (schema v6) with
+  fail-closed same-timestamp conflicts; Evidence Graph rebuilt
+  over real store fields with a closed status-to-edge mapping
+  and provenance separated from judgement; reports separate
+  imported/restored assertions from current evidence, display
+  evidence-less claims, re-check citation integrity, escape
+  Markdown at the b7 standard and hash full snapshot content;
+  research API completed (question/claim linking, citation
+  assessment through the frozen gate, split revalidation
+  semantics, strict input validation); MiniLM inference gate is
+  process-wide; cross-search dedupe by exact (library_id,
+  record_id); new research Playwright journey. See
+  docs/b11-final-review.md.
+
+- Stage 0: research artefacts moved to a dedicated schema-v5
+  table; note envelopes (including forged v2 envelopes with a
+  correct self-computed SHA-256) are user_asserted only and
+  never feed progress, graphs or reports. Evidence references
+  are registry-issued by the admission pipeline (snapshot, TTL,
+  hash/offset verification); compare_facts requires an
+  independence basis and full identity conditions; semantic
+  fallback ranks by the effective mode in Quick and Standard;
+  local semantic inference is resource-gated.
+- Stage 1: new 294-case b11 evaluation set with section-19
+  label provenance (human evaluation still 0), entity-grouped
+  splits with zero cross-split entity overlap, blind human
+  review package (CSV + local HTML); six additional GND
+  confirmations via lobid (+50 target not reached).
+- Stage 2: NLI researched and designed only - no model
+  downloaded. LocalNLIBackend interface, synthetic backend,
+  shadow contract (NLI never changes the governing status);
+  approval proposal documented.
+- Stage 3: Evidence Graph built only from trusted material,
+  rebuilt from current state on every read; claim structuring
+  with per-field extraction states; source-dependence rules
+  (similarity alone confirms nothing).
+- Stage 4: template-based synthesis that never mints
+  confirmed facts; research reports in Markdown + JSON with
+  full reproducibility fields and validated references.
+- Stage 5: research Web API + UI tab inside the existing
+  workspace security boundary; Zotero exports gain
+  original-title and translator handling; MCP profiles
+  unchanged (full 15 / research 14 / external 5).
+- Stage 6: regression, scenarios, CI research-validation job.
+  See docs/b11-evaluation.md and docs/b11-live-verification.md.
+
 ## 1.0.0b10 — Advanced Research Intelligence
 
 Final review (docs/b10-final-review.md): semantic search wired
