@@ -186,33 +186,43 @@ class LocalSemanticBackend:
         if len(texts) > MAX_ENCODE_TEXTS:
             raise SemanticBackendUnavailable(
                 f"too many texts for one inference call: {len(texts)}")
-        gate = _inference_gate()
-        global _gate_waiters
-        if gate.locked() and _gate_waiters >= MAX_INFERENCE_QUEUE:
+        gate = _process_gate()
+        if not gate.begin_wait():
             raise SemanticBackendUnavailable(
                 "inference queue full; falling back")
-        _gate_waiters += 1
-        try:
-            await asyncio.wait_for(gate.acquire(),
-                                   timeout=INFERENCE_ACQUIRE_TIMEOUT_S)
-        except (asyncio.TimeoutError, TimeoutError) as exc:
-            raise SemanticBackendUnavailable(
-                "inference queue deadline exceeded; "
-                "falling back") from exc
-        finally:
-            _gate_waiters -= 1
         loop = asyncio.get_running_loop()
+        cancelled = threading.Event()
+
+        def _acquire() -> bool:
+            got = gate.sem.acquire(
+                timeout=INFERENCE_ACQUIRE_TIMEOUT_S)
+            if got and cancelled.is_set():
+                gate.sem.release()
+                return False
+            return got
+
+        acquire_future = loop.run_in_executor(None, _acquire)
+        try:
+            got = await asyncio.shield(acquire_future)
+        except asyncio.CancelledError:
+            cancelled.set()
+            raise
+        finally:
+            gate.end_wait()
+        if not got:
+            raise SemanticBackendUnavailable(
+                "inference queue deadline exceeded; falling back")
         future = loop.run_in_executor(None, self.encode, texts)
+        released = threading.Event()
 
         def _release(_f: Any = None) -> None:
-            try:
-                gate.release()
-            except ValueError:
-                pass
-        # The resource reservation is released only when the
-        # THREAD actually finishes - cancelling the awaiting
-        # caller does not stop ONNX inference, so the slot stays
-        # reserved until the work is really done (section 12).
+            if not released.is_set():
+                released.set()
+                gate.sem.release()
+        # The reservation is released only when the THREAD
+        # actually finishes - cancelling the awaiting caller does
+        # not stop ONNX inference, so the slot stays reserved
+        # until the work is really done (section 12/33).
         future.add_done_callback(_release)
         try:
             return await asyncio.shield(future)
@@ -220,18 +230,55 @@ class LocalSemanticBackend:
             raise
 
 
-_gate: asyncio.Semaphore | None = None
-_gate_loop: Any = None
-_gate_waiters = 0
+class _ProcessGate:
+    """PROCESS-WIDE inference gate (final review section 33).
+
+    The b11 implementation used an asyncio.Semaphore recreated
+    per event loop, so the Web loop and the MCP loop (or two
+    successive asyncio.run calls) each enforced their own cap
+    and the process as a whole could exceed it. This gate is a
+    threading.Semaphore plus a lock-guarded waiter count: the
+    cap holds across loops, threads and Web+MCP combined."""
+
+    def __init__(self) -> None:
+        self.sem = threading.Semaphore(MAX_CONCURRENT_INFERENCE)
+        self._lock = threading.Lock()
+        self._waiters = 0
+
+    def begin_wait(self) -> bool:
+        with self._lock:
+            if self._waiters >= MAX_INFERENCE_QUEUE + MAX_CONCURRENT_INFERENCE:
+                return False
+            self._waiters += 1
+            return True
+
+    def end_wait(self) -> None:
+        with self._lock:
+            self._waiters = max(0, self._waiters - 1)
+
+    @property
+    def waiters(self) -> int:
+        with self._lock:
+            return self._waiters
 
 
-def _inference_gate() -> asyncio.Semaphore:
-    global _gate, _gate_loop
-    loop = asyncio.get_running_loop()
-    if _gate is None or _gate_loop is not loop:
-        _gate = asyncio.Semaphore(MAX_CONCURRENT_INFERENCE)
-        _gate_loop = loop
-    return _gate
+_process_gate_singleton: _ProcessGate | None = None
+_process_gate_lock = threading.Lock()
+
+
+def _process_gate() -> _ProcessGate:
+    global _process_gate_singleton
+    with _process_gate_lock:
+        if _process_gate_singleton is None:
+            _process_gate_singleton = _ProcessGate()
+        return _process_gate_singleton
+
+
+def reset_inference_gate() -> None:
+    """Test hook: drop the process gate."""
+    global _process_gate_singleton
+    with _process_gate_lock:
+        _process_gate_singleton = None
 
 
 _singleton: LocalSemanticBackend | None = None

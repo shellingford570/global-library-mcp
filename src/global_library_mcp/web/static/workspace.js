@@ -248,6 +248,29 @@
     (arts.artefacts || []).forEach(a => {
       panel.appendChild(el('p', `${a.kind} / 信頼: ${a.trust} / ${a.title || ''}`));
     });
+
+    const claimsData = await wsFetch(`${base}/claims`);
+    panel.appendChild(el('h3', '主張と根拠評価'));
+    (claimsData.claims || []).forEach(a => {
+      const claim = (a.payload && a.payload.claim) || {};
+      const assessments = (a.payload && a.payload.assessments) || [];
+      const row = el('div');
+      row.appendChild(el('p', `主張: ${claim.original_statement || a.title || ''}（評価 ${assessments.length}件 / 信頼: ${a.trust}）`));
+      assessments.forEach(x => row.appendChild(el('p', `評価: ${x.status}（引用 ${x.citation_id || 'なし'}）`)));
+      const citInput = document.createElement('input');
+      citInput.type = 'text'; citInput.placeholder = '引用ID';
+      row.append(citInput, button('引用を関連付け', async () => {
+        if (!citInput.value.trim()) return;
+        await wsFetch(`${base}/claims/${a.artefact_id}/citations`, { method: 'POST', body: { citation_id: citInput.value.trim() } });
+        say('引用を関連付けました');
+        renderTab();
+      }), button('根拠を評価', async () => {
+        const r = await wsFetch(`${base}/claims/${a.artefact_id}/assess`, { method: 'POST', body: {} });
+        say(`根拠評価: ${(r.assessments || []).map(x => x.status).join(', ') || '根拠なし'}`);
+        renderTab();
+      }));
+      panel.appendChild(row);
+    });
   }
 
   async function renderDocuments() {

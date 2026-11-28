@@ -584,3 +584,82 @@ def test_research_api_linking_assessment_and_validation(tmp_path):
     finally:
         httpd.shutdown()
         server_mod.RUNTIME.ws = old_ws
+
+
+# -- section 33: process-wide MiniLM gate -------------------------------------
+
+def test_minilm_gate_is_process_wide_across_loops():
+    import asyncio
+    import threading
+    import time
+
+    from global_library_mcp.semantic_local import (
+        LocalSemanticBackend, MAX_CONCURRENT_INFERENCE,
+        reset_inference_gate)
+    reset_inference_gate()
+    backend = object.__new__(LocalSemanticBackend)
+    state = {"cur": 0, "peak": 0}
+    lock = threading.Lock()
+
+    def slow_encode(texts):
+        with lock:
+            state["cur"] += 1
+            state["peak"] = max(state["peak"], state["cur"])
+        time.sleep(0.2)
+        with lock:
+            state["cur"] -= 1
+        return [[1.0] + [0.0] * 383 for _ in texts]
+    backend.encode = slow_encode
+
+    def run_loop():
+        async def main():
+            await asyncio.gather(
+                *[backend.encode_async(["x"]) for _ in range(3)])
+        asyncio.run(main())
+
+    threads = [threading.Thread(target=run_loop) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=30)
+    # two event loops in two threads share ONE process gate
+    assert state["peak"] <= MAX_CONCURRENT_INFERENCE
+    reset_inference_gate()
+
+
+def test_minilm_gate_cancel_keeps_reservation_until_thread_ends():
+    import asyncio
+    import threading
+    import time
+
+    from global_library_mcp.semantic_local import (
+        LocalSemanticBackend, _process_gate, reset_inference_gate)
+    reset_inference_gate()
+    backend = object.__new__(LocalSemanticBackend)
+    started = threading.Event()
+    finished = threading.Event()
+
+    def slow_encode(texts):
+        started.set()
+        time.sleep(0.4)
+        finished.set()
+        return [[1.0] + [0.0] * 383 for _ in texts]
+    backend.encode = slow_encode
+
+    async def main():
+        task = asyncio.create_task(backend.encode_async(["x"]))
+        await asyncio.sleep(0.1)
+        assert started.is_set()
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+        # caller cancelled, thread still running: the slot must
+        # still be held (semaphore value below the cap of 2)
+        assert _process_gate().sem._value == 1
+        await asyncio.sleep(0.5)
+        assert finished.is_set()
+        assert _process_gate().sem._value == 2
+    asyncio.run(main())
+    reset_inference_gate()
