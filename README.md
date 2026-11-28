@@ -160,6 +160,20 @@ model - note-stored artefacts now count as untrusted research
 notes, not as server-generated artefacts (their content is
 preserved). See docs/b11-research-validation.md.
 
+The b11 final review then hardened this layer end to end:
+evidence references derive from the actual Evidence object and
+expire/invalidate against current store state; independence
+requires a reviewed record (assertions alone never confirm);
+artefact payloads follow complete recursive schemas with
+nested reference integrity; rights observations carry a
+monotonic sequence (schema v6); the Evidence Graph and reports
+were rebuilt over real store fields with trust separation
+(imported/restored assertions are historical, never current
+evidence); the research API gained claim-citation linking and
+assessment through the frozen gate, split revalidation
+semantics and strict input validation; and the MiniLM gate is
+process-wide. Full record: docs/b11-final-review.md.
+
 ### Advanced Research Intelligence (1.0.0b10)
 
 b10 deepens research capability on the b9 foundation. The
