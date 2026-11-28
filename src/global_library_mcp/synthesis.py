@@ -80,7 +80,7 @@ def numeric_synthesis(facts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     conversion stated.  No averages, sums or rates are computed
     across facts - comparability is the researcher's judgement.
     """
-    from .research import _convert_value, _UNIT_FAMILIES
+    from .research import _convert
 
     out = []
     for f in facts:
@@ -90,15 +90,22 @@ def numeric_synthesis(facts: list[dict[str, Any]]) -> list[dict[str, Any]]:
                "era": f.get("era"), "definition": f.get("definition"),
                "scope": f.get("scope"),
                "approximate": bool(f.get("approximate"))}
-        unit = (f.get("unit") or "")
-        fam = _UNIT_FAMILIES.get(unit)
-        if fam is not None:
-            base = sorted(fam, key=lambda u: fam[u])[0]
-            conv = _convert_value(f.get("value"), unit, base)
+        try:
+            value = float(f.get("value"))
+        except (TypeError, ValueError):
+            value = None
+        if value is not None:
+            conv = _convert(value, f.get("unit"))
             if conv is not None:
-                row["normalized_value"] = conv
-                row["normalized_unit"] = base
-                row["conversion"] = f"{f.get('value')} {unit} = {conv} {base}"
+                family, base_value = conv
+                base_unit = {"power": "W", "length": "m",
+                             "mass": "kg"}.get(family, family)
+                if base_unit != f.get("unit"):
+                    row["normalized_value"] = base_value
+                    row["normalized_unit"] = base_unit
+                    row["conversion"] = (
+                        f"{f.get('value')} {f.get('unit')} = "
+                        f"{base_value} {base_unit}")
         out.append(row)
     return out
 
