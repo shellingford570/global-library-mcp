@@ -233,10 +233,14 @@
       dl(`${rep.report_id}.md`, rep.markdown, 'text/markdown');
       dl(`${rep.report_id}.json`, JSON.stringify(rep, null, 1), 'application/json');
     }));
-    panel.append(button('再検証（現在の状態で再計算）', async () => {
-      const r = await wsFetch(`${base}/revalidate`, { method: 'POST', body: {} });
-      say(`再検証しました: ノード ${r.graph_nodes}件 / 辺 ${r.graph_edges}件`);
+    panel.append(button('状態を再構築（原典の再取得はしません）', async () => {
+      const r = await wsFetch(`${base}/refresh`, { method: 'POST', body: {} });
+      say(`状態を再構築しました: ノード ${r.graph_nodes}件 / 辺 ${r.graph_edges}件（原典の再取得はしていません）`);
       renderTab();
+    }));
+    panel.append(button('参照の整合性を確認', async () => {
+      const r = await wsFetch(`${base}/revalidate_references`, { method: 'POST', body: {} });
+      say(`参照を確認しました: 成果物 ${r.artefacts_checked}件 / 壊れた参照 ${r.broken.length}件（原典の再取得はしていません）`);
     }));
 
     const arts = await wsFetch(`${base}/artefacts`);

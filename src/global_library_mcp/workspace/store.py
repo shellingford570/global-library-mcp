@@ -1137,6 +1137,19 @@ class WorkspaceStore:
         return {"artefact_id": aid, "project_id": project_id, "kind": kind,
                 "title": title, "trust": trust, "created_at": ts}
 
+    def update_artefact_payload(self, project_id: str, artefact_id: str,
+                                payload_json: str) -> bool:
+        """Server-side payload update (b11 final review section
+        28): linking/assessment endpoints rewrite a claim
+        artefact's payload. The trust column is NEVER touched
+        here - an update cannot promote an artefact."""
+        with self._lock, self._conn:
+            cur = self._conn.execute(
+                "UPDATE research_artefacts SET payload = ?"
+                " WHERE artefact_id = ? AND project_id = ?",
+                (payload_json, artefact_id, project_id))
+        return cur.rowcount > 0
+
     def list_artefact_rows(self, project_id: str) -> list[dict[str, Any]]:
         with self._lock:
             rows = self._conn.execute(

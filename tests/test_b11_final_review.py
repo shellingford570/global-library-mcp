@@ -5,6 +5,7 @@ number in the name/docstring) and pins the fixed behaviour.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -484,3 +485,102 @@ def test_report_markdown_injection_escaped(tmp_path):
     assert "](https://evil.example" not in md
     headings = [ln for ln in md.splitlines() if ln.startswith("# ")]
     assert len(headings) == 1  # only the real title heading
+
+
+# -- sections 28-31: research API over real HTTP ------------------------------
+
+def test_research_api_linking_assessment_and_validation(tmp_path):
+    import re
+    import threading
+    import urllib.error
+    import urllib.request
+    from http.cookiejar import CookieJar
+    from http.server import ThreadingHTTPServer
+
+    import global_library_mcp.web.server as server_mod
+    from global_library_mcp.web.workspace_api import WorkspaceWebRuntime
+    from global_library_mcp.workspace.store import WorkspaceStore
+
+    store = WorkspaceStore(str(tmp_path / "ws.db"))
+    ws = WorkspaceWebRuntime(store)
+    old_ws = server_mod.RUNTIME.ws
+    server_mod.RUNTIME.ws = ws
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), server_mod.Handler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{httpd.server_address[1]}"
+    jar = CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(jar))
+    try:
+        with opener.open(base + "/", timeout=30) as res:
+            html = res.read().decode()
+        csrf = re.search(r'name="glm-csrf" content="([^"]+)"', html).group(1)
+
+        def call(method, path, body=None, raw=None):
+            data = raw if raw is not None else (
+                json.dumps(body).encode() if body is not None else None)
+            headers = {}
+            if method in ("POST", "PUT", "DELETE"):
+                headers["X-GLM-CSRF"] = csrf
+            if data is not None:
+                headers["Content-Type"] = "application/json"
+            req = urllib.request.Request(base + path, data=data,
+                                         method=method, headers=headers)
+            try:
+                with opener.open(req, timeout=60) as res:
+                    return res.status, json.loads(res.read().decode() or "{}")
+            except urllib.error.HTTPError as exc:
+                return exc.code, json.loads(exc.read().decode() or "{}")
+
+        status, proj = call("POST", "/api/workspace/projects",
+                            {"title": "api-test"})
+        assert status == 201
+        pid = proj["project_id"]
+        doc = store.save_document(pid, "ndl", "R1", {"title": "Doc"})
+        cit = store.save_citation(doc["saved_document_id"], {
+            "page_id": "p1", "citation_key": "ndl:R1:p1",
+            "quotation_verification_status": "user_entered_unverified",
+            "page_mapping_status": "unverified"})
+        R = f"/api/workspace/projects/{pid}/research"
+        status, q = call("POST", R + "/questions", {"question": "Q?"})
+        assert status == 201
+        qid = q["artefact"]["artefact_id"]
+        status, cl = call("POST", R + "/claims",
+                          {"statement": "1900年に東京で起きた。",
+                           "question_id": qid})
+        assert status == 201
+        aid = cl["artefact"]["artefact_id"]
+        assert cl["claim"]["question_id"] == qid
+        # strict validation: dict statement is NOT str()-coerced
+        status, _ = call("POST", R + "/claims", {"statement": {"x": 1}})
+        assert status == 422
+        # unknown field (a caller-supplied admitted flag) refused
+        status, _ = call("POST", R + f"/claims/{aid}/assess",
+                         {"citation_ids": [cit["citation_id"]],
+                          "admitted": True})
+        assert status == 422
+        # NaN body refused as invalid JSON
+        status, _ = call("POST", R + "/questions", raw=b'{"question": NaN}')
+        assert status == 400
+        # link citation, then assess: unverified citation stays
+        # reference-only through the frozen gate semantics
+        status, linked = call("POST", R + f"/claims/{aid}/citations",
+                              {"citation_id": cit["citation_id"]})
+        assert status == 200 and linked["linked"] is True
+        status, assessed = call("POST", R + f"/claims/{aid}/assess", {})
+        assert status == 200
+        assert assessed["assessments"][0]["status"] == \
+            "evidence_reference_only"
+        # refresh vs revalidate_references are distinct operations
+        status, fr = call("POST", R + "/refresh", {})
+        assert status == 200 and fr["operation"] == "refresh"
+        assert fr["original_refetched"] is False
+        status, rr = call("POST", R + "/revalidate_references", {})
+        assert status == 200 and rr["operation"] == "revalidate_references"
+        assert rr["artefacts_checked"] >= 2
+        status, claims = call("GET", R + "/claims")
+        assert status == 200 and len(claims["claims"]) == 1
+        assert claims["claims"][0]["payload"]["assessments"]
+    finally:
+        httpd.shutdown()
+        server_mod.RUNTIME.ws = old_ws

@@ -101,7 +101,12 @@ def test_research_routes_over_http(tmp_path):
         status, reps = call("GET", f"/api/workspace/projects/{pid}/research/reports")
         assert status == 200 and len(reps["reports"]) == 1
         status, rv = call("POST", f"/api/workspace/projects/{pid}/research/revalidate", {})
-        assert status == 200 and rv["revalidated"] is True
+        # Final review section 30: the legacy route is a refresh
+        # (state rebuild) and must SAY so - it never refetched an
+        # original and never revalidated references.
+        assert status == 200 and rv["operation"] == "refresh"
+        assert rv["original_refetched"] is False
+        assert rv["references_revalidated"] is False
         # cross-project: unknown project id is a 404, not a leak
         status, _ = call("GET", "/api/workspace/projects/nope/research/progress")
         assert status == 404
