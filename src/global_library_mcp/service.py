@@ -462,6 +462,9 @@ def adaptive_stop_allowed(query: str, record_filter: Any,
     user-pinned libraries and comparison/primary-source intents
     all disable the stop: a pooled strict-title hit says nothing
     about whether the FILTERED, intended set is sufficient."""
+    import os as _os_stop
+    if _os_stop.getenv("GLM_ADAPTIVE_STOP") == "0":
+        return False, "adaptive stop disabled by operator (GLM_ADAPTIVE_STOP=0)"
     if record_filter:
         return False, "explicit bibliographic filter present"
     if user_libraries:
@@ -1424,14 +1427,15 @@ class LibraryService:
                 from global_library_mcp.ranking import score_item as _si
                 _dan = _adq(query)
                 _pool = list(merged)
+                _strict = False
                 if record_filter:
+                    # Defensive (the stop is already refused when a
+                    # filter is present): the strict signal must
+                    # survive the bibliographic filter and the
+                    # FILTERED pool must still be sufficient.
                     _pool, _ = apply_biblio_filter(_pool, record_filter)
                     if len(_pool) < 3:
-                        _strict = False
                         _pool = []
-                    else:
-                        _strict = None  # decided below over _pool
-                _strict = False if _strict is None else _strict
                 for _it in _pool:
                     _s, _r = _si(_dan, _it, {})
                     if any(m in r for r in _r for m in

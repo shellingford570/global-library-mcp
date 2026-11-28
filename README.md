@@ -162,7 +162,7 @@ with document vs independent-source counts; and Research
 Workspace artefacts, progress and candidate relationship
 graphs. The new ResearchRanker was evaluated but NOT adopted
 as the default (mixed results) and ships opt-in. See
-docs/b10-advanced-research-intelligence.md.
+docs/b10-advanced-research-intelligence.md. Final-review fixes and corrected measurements: docs/b10-final-review.md.
 
 ## Quick start (local)
 

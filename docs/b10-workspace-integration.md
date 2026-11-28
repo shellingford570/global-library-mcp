@@ -63,3 +63,19 @@ What was verified, with synthetic records only
 
 No user Zotero library exists here or was touched; no account,
 registration or cloud sync was involved.
+
+---
+
+## Final-review addendum (2026-11-28)
+
+This document describes the b10 candidate as submitted in
+PR #21 (head `dc8d794`). The external final review reproduced
+defects in several of the areas covered here; the fixes,
+re-measurements and corrected claims are recorded in
+`docs/b10-final-review.md`, which supersedes this document
+wherever the two disagree (notably: semantic search is now
+wired into the real service path as an opt-in ranking mode;
+`authority_verified` can no longer be reached from the local
+lexicon alone; editions are candidates; independent-source
+counting was replaced; the Docker CI job is fixture-mandatory
+with the live smoke separated as an informational job).

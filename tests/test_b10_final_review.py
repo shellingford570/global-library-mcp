@@ -352,3 +352,20 @@ def test_graph_caps_and_aggregation(tmp_path):
     assert any(n["type"] == "group" for n in graph["nodes"])
     assert len(graph["edges"]) <= 500
     assert "omitted_edges" in graph
+
+
+@pytest.mark.asyncio
+async def test_standard_mode_adaptive_stop_path_does_not_crash():
+    # Regression: the final-review stop guard referenced an
+    # unbound variable when no bibliographic filter was present
+    # (found by the stop A/B probe, 2026-11-28).
+    svc = _service([
+        _result("k1", "Kritik der reinen Vernunft", "Kant, Immanuel", "1781", "de"),
+        _result("k2", "Kritik der reinen Vernunft", "Kant, Immanuel", "1787", "de"),
+        _result("k3", "Kritik der reinen Vernunft", "Kant, Immanuel", "1781", "de"),
+        _result("k4", "Kritik der reinen Vernunft", "Kant, Immanuel", "1787", "de")])
+    out = await svc.research_materials("純粋理性批判の版を比較したい",
+                                       libraries=["stub"], mode="standard")
+    assert out["materials"]  # comparison intent: full sweep, no crash
+    assert not any(e.get("status") == "adaptive_stop"
+                   for e in out.get("stage_log", []))

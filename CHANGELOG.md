@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.0b10 — Advanced Research Intelligence
+
+Final review (docs/b10-final-review.md): semantic search wired
+into the real service path as opt-in ranking modes
+(legacy/lexical/semantic/hybrid) with model-manifest SHA-256
+verification and a singleton backend; authority_verified now
+requires a fetched official record (local lexicon alone never
+verifies) with pre-merge contradiction detection; dedupe is
+exact (library_id, record_id) only and editions are candidates;
+adaptive stop respects filters and research intent; claim
+assessment requires trusted pipeline-issued evidence references;
+unit conversion and honest independence accounting in fact
+comparison; strict workspace artefact schemas with provenance
+and trust downgrade; atomic external session reservations;
+Docker CI split into a mandatory fixture job and an
+informational live-smoke job.
+
 ## 1.0.0b10 — Advanced Research Intelligence (in development)
 
 Stage 0 (b9 external-profile regression hardening;

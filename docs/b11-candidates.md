@@ -1,44 +1,79 @@
 # b11 candidates — Research Validation & Knowledge Synthesis
 
-Tentative, written at the end of b10 (2026-11-28) for a future
-decision; nothing here is approved or started.
+Design preparation only (updated for the b10 final review,
+2026-11-28). Nothing here is approved or started; b11
+implementation requires tana's separate approval.
 
-## Candidates
+## Priority 1 — Independent research-quality evaluation
 
-1. **Independent human evaluation.** Recruit reviewers for the
-   b10 dataset's review sheet (`eval/b10-review.csv`) so proxy
-   labels can be replaced or validated; report inter-annotator
-   agreement before quoting any accuracy figure.
-2. **ChatGPT Controlled Pilot** (separate track, separate
-   approval): only after DNS pinning is implemented, a
-   production IdP is chosen, egress restrictions are verified,
-   and the Plus/Pro connection route is re-confirmed from
-   current official documentation.
-3. **NLI shadow evaluation.** With separate approval for a
-   second local model: shadow-score claim–evidence pairs
-   against the rule-based mapping; adopt nothing automatically.
-4. **Semantic search in the live path.** Move the opt-in local
-   embeddings from whole-corpus evaluation into the retrieved-
-   subset ranking with the strict tier, measured on the service
-   fixture evaluation and live spot checks; keep the model
-   optional and the fallback exact.
-5. **Authority coverage growth.** NDL authority SPARQL as a
-   first-class source (terms already verified), VIAF when the
-   network path allows, BnF/LCNAF auxiliaries; grow the lexicon
-   from authority data with per-entry provenance instead of
-   hand compilation.
-6. **Research Workspace synthesis.** Cross-project evidence
-   maps, claim dossiers that gather a claim, its candidate
-   evidence, contradictions and the researcher's own verdicts;
-   export of dossiers to Markdown/CSL.
-7. **Kant-class ranking problems.** The remaining live-pool
-   noise (notably Internet Archive full-text search) suggests
-   per-library result-quality weighting as a ranking input,
-   evaluated like b10's ranker comparison before any adoption.
+- Human-assigned ground-truth labels (the b10 recount leaves
+  21 source-supported / 239 agent-assigned / **0 human-verified**
+  of 260 cases).
+- Per-case source verification for bibliographic and authority
+  labels (individual URLs / record ids / authority ids, checked
+  fields, verification date).
+- Relevance judgements for search results; page–OCR mapping
+  verification on real records.
+- Claim–evidence correspondence evaluation with the trusted
+  reference format introduced in the b10 final review.
+- Inter-annotator agreement reporting; a review UI or CSV flow
+  (the b10 review sheet is the starting point).
+- Entity-grouped splits (person / work / concept / source) as
+  the primary reporting unit, since the case-hash split leaks
+  entities across splits (8 authors, 6 works span splits).
 
-## Standing constraints carried forward
+## Priority 2 — Local NLI (design only; second model NOT approved)
 
-Frozen evidence conditions unchanged; paid LLM use only with
-fresh per-run approval; external profile scope changes only
-with a dedicated security review; every merge/tag/release a
-separate decision.
+- Candidate class: small multilingual NLI models with ONNX
+  quantised builds (e.g. mDeBERTa-v3-base-xnli class models and
+  distilled multilingual variants) — **no candidate is selected
+  and none may be downloaded without separate approval** naming
+  the model, licence, size and cost.
+- For any future candidate, record before acquisition: model
+  card, licence, parameter/quantised size, CPU inference cost,
+  ONNX availability, Japanese/German/French coverage.
+- Known limits to design around: historical orthography, OCR
+  noise, negation/condition/numeric/era sensitivity; an
+  embedding model measures similarity, NOT entailment — the
+  b10 MiniLM must not be repurposed as an NLI judge.
+- Shadow evaluation method: NLI scores recorded beside the
+  frozen rule-based verification, never replacing it; promotion
+  criteria and disagreement analysis defined in advance.
+- Self-verification limit: the same model family must not be
+  the sole judge of its own retrieval.
+
+## Priority 3 — Evidence Graph
+
+- Nodes: research question, claim, document, edition, page,
+  verbatim citation, authority candidate, support candidate,
+  contradiction candidate, independence state, source-dependency
+  edges.
+- Built on the b10 final-review foundations: trusted evidence
+  references, edition candidates, source-family accounting
+  (independence unknown unless confirmed with a basis).
+
+## Priority 4 — Research knowledge synthesis
+
+- Per-claim evidence lists across documents; difference lists;
+  unresolved-item lists; chronological research views;
+  multilingual document comparison; citation-bearing research
+  reports. Synthesis never upgrades candidates into verified
+  claims.
+
+## Priority 5 — Real-use experience
+
+- Research workspace polish; Zotero real-application
+  compatibility (requires a real-machine environment, separate
+  approval); research progress management; relationship
+  visualisation within the b10 graph caps; export quality.
+
+## Separate track — ChatGPT Controlled Pilot
+
+Unchanged blockers: Plus connection route unconfirmed, DNS
+pinning unimplemented, no production IdP, egress restrictions
+unverified, per-user consent operations incomplete,
+multi-process budget accounting incomplete, production audit
+operations unverified. Re-confirm contract terms and connection
+routes from current official OpenAI documentation at the time
+the pilot is considered. No tunnel, key, contract change or
+connection is approved here.
