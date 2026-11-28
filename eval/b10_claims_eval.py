@@ -84,9 +84,12 @@ def main() -> int:
                                 "ok": ok, "era_ok": era_ok, "place_ok": place_ok,
                                 "event_extracted": False})
                 continue
-            rows = assess_claim_evidence(claim, [{
-                "document_id": case["id"], "admitted": True,
-                "text": case.get("snippet") or ""}])
+            from global_library_mcp.research import build_trusted_candidate
+            _cand = build_trusted_candidate(
+                library_id="fixture", record_id=case["id"], page_id="1",
+                text=case.get("snippet") or "")
+            _cand["document_id"] = case["id"]
+            rows = assess_claim_evidence(claim, [_cand])
             got = rows[0]["status"]
             want_state = case["expect"].get("evidence_state")
             ok = got == want_state

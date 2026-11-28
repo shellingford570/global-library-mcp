@@ -73,7 +73,11 @@ def test_year_conflict_never_verifies():
 def test_local_weber_disambiguation():
     resolver = AuthorityResolver()
     res = resolver.resolve_person("Max Weber", birth_year=1864, death_year=1920)
-    assert res.status == "authority_verified"
+    # b10 final review (section 7): the local lexicon alone NEVER
+    # verifies - its external identifiers are unverified until the
+    # official record is fetched. Disambiguation still picks the
+    # right candidate.
+    assert res.status == "authority_candidate"
     assert res.candidates[0].record.authority_id == "author:weber-max"
     res2 = resolver.resolve_person("Alfred Weber", birth_year=1868,
                                    death_year=1958)

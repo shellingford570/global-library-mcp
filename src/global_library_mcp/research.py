@@ -43,10 +43,61 @@ INTENTS = (
 )
 
 CLAIM_STATUSES = (
-    "supported_candidate", "partially_supported",
+    "evidence_reference_only", "supported_candidate", "partially_supported",
     "conflicting_candidate", "contextual_only",
     "insufficient_evidence", "not_checked",
 )
+
+# Final review (sections 13-14): a candidate is assessed ONLY when
+# it carries a verifiable reference issued by the frozen evidence
+# pipeline itself. A bare ``admitted: True`` in an arbitrary dict
+# is caller-asserted and is NEVER trusted.
+TRUSTED_ADMISSION_SOURCE = "glm_evidence_pipeline"
+
+
+def build_trusted_candidate(*, library_id: str, record_id: str,
+                            page_id: str, text: str,
+                            citation_id: str | None = None,
+                            excerpt_start: int | None = None,
+                            excerpt_end: int | None = None,
+                            years: list[int] | None = None,
+                            place: str | None = None) -> dict[str, Any]:
+    """Construct an assessable candidate from pipeline-admitted
+    evidence, with the full reference chain and excerpt hash."""
+    import hashlib as _hl
+    return {
+        "admitted": True,
+        "admission_source": TRUSTED_ADMISSION_SOURCE,
+        "evidence_ref": {
+            "library_id": library_id, "record_id": record_id,
+            "page_id": page_id, "citation_id": citation_id,
+            "excerpt_start": excerpt_start, "excerpt_end": excerpt_end,
+            "excerpt_hash": _hl.sha256((text or "").encode("utf-8")).hexdigest(),
+            "admission_state": "admitted",
+            "document_identity_state": "upstream_confirmed",
+            "page_identity_state": "verified_mapping",
+            "source": "original_page_ocr",
+        },
+        "document_id": f"{library_id}:{record_id}",
+        "library_id": library_id, "record_id": record_id,
+        "page_id": page_id, "text": text,
+        "years": years, "place": place,
+    }
+
+
+def _trusted_ref(cand: dict[str, Any]) -> tuple[bool, str]:
+    if not cand.get("admitted"):
+        return False, "candidate did not pass the evidence admission gates"
+    if cand.get("admission_source") != TRUSTED_ADMISSION_SOURCE:
+        return False, ("admission is caller-asserted, not issued by the "
+                       "evidence pipeline; refusing to assess")
+    ref = cand.get("evidence_ref") or {}
+    for field_name in ("library_id", "record_id", "page_id", "excerpt_hash"):
+        if not ref.get(field_name):
+            return False, f"evidence reference incomplete: {field_name} missing"
+    if ref.get("admission_state") != "admitted":
+        return False, "evidence reference does not record admitted state"
+    return True, ""
 
 
 # ---------------------------------------------------------------------------
@@ -229,11 +280,14 @@ def assess_claim_evidence(claim: ResearchClaim,
     out: list[dict[str, Any]] = []
     for cand in candidates:
         row: dict[str, Any] = {
+            "claim_id": claim.claim_id,
             "document_id": cand.get("document_id"),
             "page_id": cand.get("page_id"),
+            "evidence_ref": cand.get("evidence_ref"),
             "status": "not_checked", "signals": []}
-        if not cand.get("admitted"):
-            row["reason"] = "candidate did not pass the evidence admission gates"
+        _ok, _why = _trusted_ref(cand)
+        if not _ok:
+            row["reason"] = _why
             out.append(row)
             continue
         text = cand.get("text") or ""
@@ -350,7 +404,26 @@ def assess_claim_evidence(claim: ResearchClaim,
             row["signals"] = signals
             out.append(row)
             continue
-        if score >= 4:
+        # Conditional passages contextualise; they do not support.
+        if any(m in text for m in ("場合", "ならば", "if ", "would ")):
+            signals.append("conditional_context")
+            row["status"] = "contextual_only"
+            row["signals"] = signals
+            out.append(row)
+            continue
+        _missing: list[str] = []
+        if claim.place and "place_match" not in signals:
+            _missing.append("place")
+        if claim.quantity and "quantity_and_unit_match" not in signals:
+            _missing.append("quantity_or_unit")
+        if claim.time and (claim.time.get("years_mentioned")) \
+                and "time_match" not in signals \
+                and "subject_or_entity_match" not in signals:
+            _missing.append("time")
+        if "subject_or_entity_match" not in signals:
+            _missing.append("subject_or_entity")
+        row["unconfirmed_signals"] = _missing
+        if score >= 4 and not _missing:
             row["status"] = "supported_candidate"
         elif score >= 2:
             row["status"] = "partially_supported"
@@ -385,58 +458,117 @@ def _unit_norm(unit: Any) -> str:
     return _UNIT_ALIASES.get(key, key)
 
 
-def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
-    """Compare extracted facts about one claim across sources.
+# Convertible unit families (SI): value in the family base unit.
+_UNIT_FAMILIES: dict[str, tuple[str, float]] = {
+    "w": ("power", 1.0), "kw": ("power", 1_000.0),
+    "mw": ("power", 1_000_000.0), "gw": ("power", 1_000_000_000.0),
+    "キロワット": ("power", 1_000.0),
+    "m": ("length", 1.0), "km": ("length", 1_000.0),
+    "キロメートル": ("length", 1_000.0), "メートル": ("length", 1.0),
+    "kg": ("mass", 1.0), "t": ("mass", 1_000.0), "トン": ("mass", 1_000.0),
+    "ton": ("mass", 1_000.0), "tons": ("mass", 1_000.0),
+}
 
-    Fact fields: value, unit, year, place, scope, document_id,
-    work_id (same work = same source family), library_id.
-    Returns per-pair classifications plus document and
-    INDEPENDENT source counts. A difference is a candidate for
-    human review, never a confirmed contradiction.
+
+def _convert(value: float, unit: Any) -> tuple[str, float] | None:
+    fam = _UNIT_FAMILIES.get(_unit_norm(unit))
+    if fam is None:
+        return None
+    return fam[0], value * fam[1]
+
+
+def compare_facts(facts: list[dict[str, Any]]) -> dict[str, Any]:
+    """Compare extracted facts across sources (sections 15-16).
+
+    A pair is a contradiction CANDIDATE only when subject,
+    predicate, object, place, scope, time and definition all
+    agree and the (unit-normalised) values still differ. Any
+    identity mismatch yields differing_* / insufficient_context,
+    never a contradiction. Independence is reported honestly:
+    distinct documents are NOT independent sources; only facts
+    carrying an explicit independence basis count as confirmed
+    independent, everything else is unknown.
     """
     pairs: list[dict[str, Any]] = []
     for i in range(len(facts)):
         for j in range(i + 1, len(facts)):
             a, b = facts[i], facts[j]
-            pair = {"a": a.get("document_id"), "b": b.get("document_id")}
-            au, bu = _unit_norm(a.get("unit")), _unit_norm(b.get("unit"))
-            if a.get("value") is None or b.get("value") is None:
-                # No quantities: definitional scope differences and
-                # same-concept restatements are still classifiable.
-                if a.get("definition") and b.get("definition") \
+            pair: dict[str, Any] = {"a": a.get("document_id"),
+                                    "b": b.get("document_id")}
+            for field_name in ("subject", "predicate", "object"):
+                if a.get(field_name) and b.get(field_name) \
+                        and a.get(field_name) != b.get(field_name):
+                    pair["status"] = "insufficient_context"
+                    pair["reason"] = f"{field_name} differs - not the same assertion"
+                    pairs.append(pair)
+                    break
+            else:
+                if a.get("place") and b.get("place") and a.get("place") != b.get("place"):
+                    pair["status"] = "differing_scope"
+                    pair["reason"] = "different place"
+                elif a.get("definition") and b.get("definition") \
                         and a.get("definition") != b.get("definition"):
                     pair["status"] = "differing_scope"
-                elif a.get("concept") and a.get("concept") == b.get("concept"):
-                    pair["status"] = "consistent_candidate"
+                elif a.get("scope") and b.get("scope") and a.get("scope") != b.get("scope"):
+                    pair["status"] = "differing_scope"
+                elif a.get("value") is None or b.get("value") is None:
+                    if a.get("concept") and a.get("concept") == b.get("concept"):
+                        pair["status"] = "consistent_candidate"
+                    else:
+                        pair["status"] = "insufficient_context"
                 else:
-                    pair["status"] = "insufficient_context"
-            elif a.get("definition") and b.get("definition") \
-                    and a.get("definition") != b.get("definition"):
-                pair["status"] = "differing_scope"
-            elif a.get("value") != b.get("value") and au != bu:
-                # Different values in different units: conversion
-                # may reconcile them; not a contradiction.
-                pair["status"] = "differing_unit"
-            elif a.get("year") and b.get("year") and a.get("year") != b.get("year") \
-                    and au not in ("年", "year", "years"):
-                # Differing anchors explain differing measurements -
-                # unless the year IS the claimed value (a year
-                # quantity), where disagreement is the contradiction
-                # candidate itself.
-                pair["status"] = "differing_time"
-            elif a.get("scope") and b.get("scope") and a.get("scope") != b.get("scope"):
-                pair["status"] = "differing_scope"
-            elif a.get("value") != b.get("value"):
-                pair["status"] = "contradiction_candidate"
-            else:
-                pair["status"] = "consistent_candidate"
-            pairs.append(pair)
-    families = {f.get("work_id") or f.get("document_id") for f in facts}
+                    au, bu = _unit_norm(a.get("unit")), _unit_norm(b.get("unit"))
+                    ca, cb = _convert(float(a["value"]), a.get("unit")), \
+                        _convert(float(b["value"]), b.get("unit"))
+                    if au == bu:
+                        norm_a, norm_b = float(a["value"]), float(b["value"])
+                        comparable = True
+                    elif ca and cb and ca[0] == cb[0]:
+                        norm_a, norm_b = ca[1], cb[1]
+                        comparable = True
+                        pair["converted"] = {
+                            "a_base": norm_a, "b_base": norm_b, "family": ca[0]}
+                    else:
+                        comparable = False
+                    if not comparable:
+                        pair["status"] = "differing_unit"
+                    elif a.get("year") and b.get("year") and a.get("year") != b.get("year") \
+                            and au not in ("年", "year", "years"):
+                        pair["status"] = "differing_time"
+                    elif norm_a != norm_b:
+                        both_negated = bool(a.get("negated")) and bool(b.get("negated"))
+                        if both_negated:
+                            pair["status"] = "insufficient_context"
+                            pair["reason"] = ("both sources state a negation; "
+                                               "differing negated values are not "
+                                               "a mutual contradiction")
+                        else:
+                            pair["status"] = "contradiction_candidate"
+                    else:
+                        pair["status"] = "consistent_candidate"
+                pairs.append(pair)
+    doc_keys = {f"{f.get('library_id')}|{f.get('record_id') or f.get('document_id')}"
+                for f in facts}
+    families = {f.get("work_id") or f"{f.get('library_id')}|{f.get('record_id') or f.get('document_id')}"
+                for f in facts}
+    libraries = {f.get("library_id") for f in facts if f.get("library_id")}
+    confirmed = sum(1 for f in facts if f.get("independence_confirmed"))
+    dependent = sum(1 for f in facts if f.get("dependent_on"))
     return {
-        "document_count": len(facts),
-        "independent_source_count": len(families),
+        "evidence_item_count": len(facts),
+        "distinct_document_count": len(doc_keys),
+        "distinct_library_record_count": len(doc_keys),
+        "distinct_library_count": len(libraries),
+        "source_family_candidate_count": len(families),
+        "known_dependent_source_count": dependent,
+        "independence_unknown_count": len(facts) - confirmed - dependent,
+        "independently_confirmed_source_count": confirmed,
+        # Legacy keys kept as DOCUMENT counts only (never read as
+        # independent corroboration):
+        "document_count": len(doc_keys),
+        "independent_source_count": None,
         "pairs": pairs,
-        "note": ("document_count counts holdings; "
-                 "independent_source_count groups copies of the same "
-                 "work - only the latter counts as corroboration"),
+        "note": ("distinct documents are not independent sources; "
+                 "independence is unknown unless explicitly confirmed "
+                 "with a basis"),
     }

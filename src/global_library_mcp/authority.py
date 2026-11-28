@@ -30,6 +30,15 @@ from . import lexicon
 
 FetchJson = Callable[[str], dict]
 
+# Final review (section 9): the live authority clients use a
+# synchronous, unbudgeted HTTP path that does NOT go through
+# BudgetedTransport / destination validation / cancellation.
+# They are therefore DEVELOPER-EXPERIMENTAL ONLY: the resolver
+# takes no live sources by default and the research search path
+# never enables them. Do not wire them into production search
+# until an async, budgeted, allow-listed transport exists.
+LIVE_SOURCES_EXPERIMENTAL = True
+
 STATUSES = (
     "authority_verified", "authority_candidate", "ambiguous",
     "conflicting_authorities", "insufficient_metadata",
@@ -68,6 +77,8 @@ class AuthorityRecord:
     source_url: str = ""
     retrieved_at: str = ""
     verification_status: str = "authority_candidate"
+    fetched: bool = False
+    observations: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {k: v for k, v in self.__dict__.items() if v not in (None, "", [], {})}
@@ -161,6 +172,11 @@ class GndSource:
     def search_person(self, name: str, birth_year: int | None = None) -> list[AuthorityRecord]:
         from urllib.parse import quote
 
+        # Final review (section 9): the name is a VALUE, never
+        # query syntax. Lucene operators / field separators are
+        # stripped before quoting so user input cannot change the
+        # fields or operators of the search expression.
+        name = re.sub(r'["\\:()\[\]{}^~*?/]', " ", name or "").strip()
         q = f"preferredName:{name}"
         if birth_year:
             q += f" AND dateOfBirth:{birth_year}*"
@@ -181,7 +197,7 @@ class GndSource:
                 variant_names=variants,
                 birth_year=_year((member.get("dateOfBirth") or [None])[0]),
                 death_year=_year((member.get("dateOfDeath") or [None])[0]),
-                source_url=f"https://d-nb.info/gnd/{gid}",
+                source_url=f"https://d-nb.info/gnd/{gid}", fetched=True,
                 verification_status="authority_candidate"))
         return out
 
@@ -213,7 +229,7 @@ class WikidataSource:
                 entity_type="person",
                 canonical_name=str(hit.get("label") or ""),
                 variant_names=[str(a) for a in hit.get("aliases") or []],
-                source_url=f"https://www.wikidata.org/wiki/{qid}",
+                source_url=f"https://www.wikidata.org/wiki/{qid}", fetched=True,
                 verification_status="authority_candidate"))
         return out
 
@@ -250,7 +266,7 @@ class ViafSource:
                 canonical_name=term,
                 birth_year=int(years.group(1)) if years else None,
                 death_year=int(years.group(2)) if years else None,
-                source_url=f"https://viaf.org/viaf/{vid}",
+                source_url=f"https://viaf.org/viaf/{vid}", fetched=True,
                 verification_status="authority_candidate"))
         return out
 
@@ -299,7 +315,13 @@ class AuthorityResolver:
 
     def resolve_person(self, name: str, *, birth_year: int | None = None,
                        death_year: int | None = None,
-                       known_work: str | None = None) -> Resolution:
+                       known_work: str | None = None,
+                       role: str | None = None) -> Resolution:
+        # `role` records the BIBLIOGRAPHIC role under discussion
+        # (author / translator / editor / subject). Verification
+        # certifies identity only; a person verified as a subject
+        # is not thereby the author of a work. The role is echoed
+        # in the resolution notes so callers cannot conflate them.
         notes: list[str] = []
         records = self._gather_persons(name, birth_year, notes)
         res = Resolution(query=name, entity_type="person",
@@ -329,6 +351,34 @@ class AuthorityResolver:
                 return rec.authority_id
             return f"name:{_norm(rec.canonical_name)}:{rec.birth_year}"
 
+        # Final review (section 8): observations are preserved
+        # BEFORE merging and contradictions are detected on the
+        # un-merged observations - merging must never erase a
+        # disagreement between sources.
+        _pre_merge_conflict = False
+        _pre_merge_ambiguity = False
+        _by_ext_obs: dict[str, list[AuthorityRecord]] = {}
+        for rec in records:
+            rec.observations = [{
+                "source": rec.authority_source,
+                "authority_id": rec.authority_id,
+                "birth_year": rec.birth_year, "death_year": rec.death_year,
+                "canonical_name": rec.canonical_name,
+                "fetched": bool(rec.fetched),
+                "retrieved_at": rec.retrieved_at}]
+            for scheme, value in rec.external_identifiers.items():
+                _by_ext_obs.setdefault(f"{scheme}:{value}", []).append(rec)
+            if rec.authority_source in _OFFICIAL_SOURCES:
+                _by_ext_obs.setdefault(rec.authority_id, []).append(rec)
+        for _obs in _by_ext_obs.values():
+            _births = {r.birth_year for r in _obs if r.birth_year}
+            _deaths = {r.death_year for r in _obs if r.death_year}
+            for _years in (_births, _deaths):
+                if len(_years) > 1:
+                    if max(_years) - min(_years) == 1:
+                        _pre_merge_ambiguity = True
+                    else:
+                        _pre_merge_conflict = True
         for rec in records:
             key = _key(rec)
             existing = by_key.get(key)
@@ -336,7 +386,13 @@ class AuthorityResolver:
                 by_key[key] = rec
                 merged.append(rec)
                 continue
-            # union variants/identifiers; prefer the official record
+            # union variants/identifiers; prefer the official record.
+            # Years are NEVER overwritten: a disagreement stays in
+            # the observations and blocks verification.
+            existing.observations = [
+                *existing.observations, *rec.observations]
+            if rec.fetched:
+                existing.fetched = True
             existing.variant_names = sorted(
                 set(existing.variant_names) | set(rec.variant_names)
                 | {rec.canonical_name})
@@ -422,10 +478,15 @@ class AuthorityResolver:
         viable = [c for c in scored if not c.excluded_reason]
         scored.sort(key=lambda c: -c.score)
         res.candidates = scored
-        if conflict:
+        if conflict or _pre_merge_conflict:
             res.status = "conflicting_authorities"
             res.notes.append("sources disagree on life years for the same authority id")
             return res
+        if _pre_merge_ambiguity:
+            res.notes.append(
+                "sources differ by one year for the same authority id; "
+                "kept ambiguous (a calendar explanation requires an "
+                "explicit documented basis, which is absent)")
         if not viable:
             res.status = "insufficient_metadata"
             res.notes.append("all name matches excluded by life-year conflicts")
@@ -433,10 +494,36 @@ class AuthorityResolver:
         top = max(viable, key=lambda c: c.score)
         second = max((c.score for c in viable if c is not top), default=0.0)
         if top.score >= 4.0 and top.score - second >= 2.0:
-            official = (top.record.authority_source in _OFFICIAL_SOURCES
-                        or bool(top.record.external_identifiers))
-            res.status = ("authority_verified" if official
+            # Final review (section 7): authority_verified requires
+            # ALL of: an official authority record ACTUALLY FETCHED
+            # (an identifier merely written in the local lexicon is
+            # unverified and never suffices), the fetched record's
+            # id strictly matching its source scheme, an exact name
+            # or verified variant match, at least one independent
+            # auxiliary signal, person-type agreement and no
+            # unresolved ambiguity/conflict.
+            _obs_official = [o for o in top.record.observations
+                             if o.get("fetched")
+                             and o.get("source") in _OFFICIAL_SOURCES
+                             and str(o.get("authority_id", "")).startswith(
+                                 str(o.get("source")) + ":")]
+            _aux = [sg for sg in top.signals if sg.endswith("_match")]
+            _verified = bool(
+                _obs_official
+                and "exact_name_form" in top.signals
+                and any(sg in _aux for sg in (
+                    "birth_year_match", "death_year_match",
+                    "associated_work_match"))
+                and top.record.entity_type == "person"
+                and not _pre_merge_ambiguity
+                and not any("off_by_one" in sg for sg in top.signals))
+            res.status = ("authority_verified" if _verified
                           else "authority_candidate")
+            if not _verified and top.record.authority_source == "local-lexicon":
+                res.notes.append(
+                    "local lexicon candidate only: external identifiers "
+                    "present in the lexicon are unverified until the "
+                    "official authority record is fetched")
         elif top.score >= 3.0 and top.score - second < 2.0:
             res.status = "ambiguous"
         elif top.score >= 3.0:
@@ -524,6 +611,13 @@ def identify_edition(work_id: str, year: int | None) -> dict[str, Any] | None:
             return {"work_id": work_id, "year": pub_year,
                     "edition_code": code, "edition_label": label,
                     "edition_id": f"{work_id}@{code}",
+                    "status": "edition_candidate",
+                    "basis": "publication_year_only",
+                    "certainty": "candidate",
+                    "note": ("a publication year alone does not prove a "
+                             "specific edition: first/reprint, other "
+                             "publishers, translations and annotated "
+                             "editions can share a year"),
                     "shares_pages_with_other_editions": False}
     return None
 
@@ -534,5 +628,8 @@ def editions_of(work_id: str) -> list[dict[str, Any]]:
         out.append({"work_id": work_id, "year": pub_year,
                     "edition_code": code, "edition_label": label,
                     "edition_id": f"{work_id}@{code}",
+                    "status": "edition_candidate",
+                    "basis": "publication_year_only",
+                    "certainty": "candidate",
                     "shares_pages_with_other_editions": False})
     return out

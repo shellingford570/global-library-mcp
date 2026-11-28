@@ -332,6 +332,12 @@ function sourceLink(value, label) {
 }
 
 function renderSearch(data) {
+  if (data.ranking) {
+    const r = data.ranking;
+    const line = `ランキング: 要求=${r.requested_ranking_mode} / 実際=${r.effective_ranking_mode} / 意味適用=${r.semantic_applied ? 'あり' : 'なし'}${r.fallback_reason ? ` / フォールバック理由: ${r.fallback_reason}` : ''}`;
+    const metaEl = document.querySelector('#result-meta');
+    if (metaEl) metaEl.textContent = line;
+  }
   const items = data.results || [];
   title.textContent = data.query ? t().recordsFor(data.query) : t().resultsTitle;
   const retrieved = data.retrieved_at ? new Date(data.retrieved_at) : null;
@@ -560,6 +566,8 @@ function structuredParams() {
   if (expandHist && !expandHist.checked) extra.set('historical', '0');
   const ocrReq = document.querySelector('#ocr-required');
   if (ocrReq && ocrReq.checked) extra.set('ocr', '1');
+  const rankingSel = document.querySelector('#ranking-select');
+  if (rankingSel && rankingSel.value && rankingSel.value !== 'legacy') extra.set('ranking_mode', rankingSel.value);
   return extra;
 }
 

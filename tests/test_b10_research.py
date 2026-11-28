@@ -8,8 +8,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from global_library_mcp import service as _LS  # noqa: F401,E402
 from global_library_mcp.research import (  # noqa: E402
-    assess_claim_evidence, compare_facts, structure_claim,
-    structure_question)
+    assess_claim_evidence, build_trusted_candidate, compare_facts,
+    structure_claim, structure_question)
+
+
+def _trusted(document_id, text, **kw):
+    cand = build_trusted_candidate(
+        library_id="ndl", record_id=document_id, page_id="1", text=text, **kw)
+    cand["document_id"] = document_id
+    return cand
 
 
 def test_question_structure_hydro():
@@ -38,12 +45,9 @@ def test_claim_quantity_and_year():
 def test_evidence_mapping_statuses():
     claim = structure_claim("明治時代の日本で水力発電所が建設された")
     rows = assess_claim_evidence(claim, [
-        {"document_id": "ok", "admitted": True,
-         "text": "明治25年、日本において水力発電所が建設された。"},
-        {"document_id": "retro", "admitted": True,
-         "text": "1925年に明治期の発電事業を回顧した資料"},
-        {"document_id": "neg", "admitted": True,
-         "text": "明治時代には日本に水力発電所は存在しなかった。"},
+        _trusted("ok", "明治25年、日本において水力発電所が建設された。"),
+        _trusted("retro", "1925年に明治期の発電事業を回顧した資料"),
+        _trusted("neg", "明治時代には日本に水力発電所は存在しなかった。"),
         {"document_id": "unadmitted", "admitted": False,
          "text": "明治25年、日本において水力発電所が建設された。"},
     ])
@@ -57,8 +61,7 @@ def test_evidence_mapping_statuses():
 def test_evidence_year_conflict():
     claim = structure_claim("発電所は明治30年に完成した")
     rows = assess_claim_evidence(claim, [
-        {"document_id": "x", "admitted": True,
-         "text": "原文は明治13年の完成と記す"}])
+        _trusted("x", "原文は明治13年の完成と記す")])
     assert rows[0]["status"] == "conflicting_candidate"
 
 
@@ -82,7 +85,12 @@ def test_compare_facts_independence_count():
         {"value": 120, "unit": "kw", "document_id": "ia-copy", "work_id": "w1"},
         {"value": 150, "unit": "kw", "document_id": "other", "work_id": "w2"}])
     assert out["document_count"] == 3
-    assert out["independent_source_count"] == 2  # same work twice = one source
+    # b10 final review (section 16): distinct documents are NOT
+    # independent sources. Same-work copies form one source-family
+    # candidate; independence itself stays unknown (never counted).
+    assert out["source_family_candidate_count"] == 2
+    assert out["independently_confirmed_source_count"] == 0
+    assert out["independent_source_count"] is None
     statuses = {(p["a"], p["b"]): p["status"] for p in out["pairs"]}
     assert statuses[("ndl-copy", "other")] == "contradiction_candidate"
     # never a CONFIRMED contradiction anywhere
