@@ -154,10 +154,14 @@ def test_schema_v5_migration_from_v4(tmp_path):
     store.close()
     conn = sqlite3.connect(str(path))
     conn.execute("DROP TABLE research_artefacts")
-    conn.execute("DELETE FROM schema_migrations WHERE version = 5")
+    conn.execute("DROP TABLE rights_seq_counter")
+    conn.execute("ALTER TABLE rights_observations DROP COLUMN seq")
+    conn.execute("DELETE FROM schema_migrations WHERE version IN (5, 6)")
     conn.commit(); conn.close()
     store2 = WorkspaceStore(path)
-    assert store2.schema_version == 5
+    # b11 final review: schema advanced to v6 (rights seq); the
+    # v4 -> current migration still preserves data + backup
+    assert store2.schema_version == 6
     assert store2.list_notes(pid)[0]["content"] == "keep me"
     assert (tmp_path / "old.db.pre-migration-v4.bak").exists()
     store2.close()

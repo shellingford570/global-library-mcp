@@ -191,3 +191,161 @@ def test_registry_caps_and_session_revocation():
                 text=_TEXT, operation_id="op-cap", session_id="s2",
                 **_PIPE)
     revoke_session_evidence_refs("s2")
+
+
+# -- section 11: rights observation ordering ---------------------------------
+
+def _store_doc(tmp_path, name="ws.db"):
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store = WorkspaceStore(str(tmp_path / name))
+    pid = store.create_project("P")["project_id"]
+    doc = store.save_document(pid, "ndl", "1", {"title": "資料"})
+    return store, doc
+
+
+def test_rights_seq_same_second_pd_then_copyright(tmp_path):
+    store, doc = _store_doc(tmp_path)
+    did = doc["saved_document_id"]
+    store.add_rights_observation(did, "Public Domain", "public_domain",
+                                 "live_fetch", "observed")
+    store.add_rights_observation(did, "In Copyright", "in_copyright",
+                                 "live_fetch", "observed")
+    latest = store.latest_rights_observation(did)
+    assert latest["category"] == "in_copyright"
+    assert latest["seq"] is not None
+    seqs = [r["seq"] for r in store.list_rights_observations(did)]
+    assert seqs == sorted(seqs) and len(set(seqs)) == len(seqs)
+
+
+def test_rights_seq_reverse_order_server_update_wins(tmp_path):
+    store, doc = _store_doc(tmp_path)
+    did = doc["saved_document_id"]
+    store.add_rights_observation(did, "In Copyright", "in_copyright",
+                                 "live_fetch", "observed")
+    store.add_rights_observation(did, "Public Domain", "public_domain",
+                                 "reverify", "observed")
+    # an explicit later SERVER observation is a real update
+    assert store.latest_rights_observation(did)["category"] == "public_domain"
+
+
+def test_rights_same_timestamp_untrusted_conflict_fails_closed(tmp_path):
+    import sqlite3
+    store, doc = _store_doc(tmp_path)
+    did = doc["saved_document_id"]
+    conn = sqlite3.connect(str(tmp_path / "ws.db"))
+    # imported (non-server) rows, identical timestamps, PD last by
+    # insertion: the restriction must win the tie
+    conn.execute(
+        "INSERT INTO rights_observations (observation_id, saved_document_id,"
+        " statement, category, source, observed_at, change_status, trust, seq)"
+        " VALUES ('o1', ?, 'IC', 'in_copyright', 'imported:x',"
+        " '2026-01-01T00:00:00Z', 'observed', 'imported_claim', 1)", (did,))
+    conn.execute(
+        "INSERT INTO rights_observations (observation_id, saved_document_id,"
+        " statement, category, source, observed_at, change_status, trust, seq)"
+        " VALUES ('o2', ?, 'PD', 'public_domain', 'imported:x',"
+        " '2026-01-01T00:00:00Z', 'observed', 'imported_claim', 2)", (did,))
+    conn.commit(); conn.close()
+    assert store.latest_rights_observation(did)["category"] == "in_copyright"
+
+
+def test_rights_seq_migration_from_v5(tmp_path):
+    import sqlite3
+    store, doc = _store_doc(tmp_path)
+    did = doc["saved_document_id"]
+    store.add_rights_observation(did, "Public Domain", "public_domain",
+                                 "live_fetch", "observed")
+    store.add_rights_observation(did, "In Copyright", "in_copyright",
+                                 "live_fetch", "observed")
+    path = str(tmp_path / "ws.db")
+    store._conn.close()
+    conn = sqlite3.connect(path)
+    conn.execute("ALTER TABLE rights_observations DROP COLUMN seq")
+    conn.execute("DROP TABLE rights_seq_counter")
+    conn.execute("DELETE FROM schema_migrations WHERE version = 6")
+    conn.commit(); conn.close()
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store2 = WorkspaceStore(path)
+    latest = store2.latest_rights_observation(did)
+    assert latest["category"] == "in_copyright"
+    assert latest["seq"] == 2
+
+
+# -- sections 8-10: strict artefact schemas + reference integrity ------------
+
+def test_empty_payload_rejected():
+    from global_library_mcp.workspace.research_artefacts import (
+        validate_payload)
+    with pytest.raises(ValueError):
+        validate_payload("claim_assessment", {})
+
+
+def test_nested_arbitrary_dict_rejected():
+    from global_library_mcp.workspace.research_artefacts import (
+        validate_payload)
+    with pytest.raises(ValueError):
+        validate_payload("claim_assessment", {
+            "claim": {"time": {"anything": {"deep": 1}}},
+            "assessments": []})
+
+
+def test_nonstring_status_rejected():
+    from global_library_mcp.workspace.research_artefacts import (
+        validate_payload)
+    with pytest.raises(ValueError):
+        validate_payload("claim_assessment", {
+            "assessments": [{"claim_id": "c", "status": 123}]})
+
+
+def test_unknown_status_and_deep_text_key_rejected():
+    from global_library_mcp.workspace.research_artefacts import (
+        validate_payload)
+    with pytest.raises(ValueError):
+        validate_payload("claim_assessment", {
+            "assessments": [{"claim_id": "c", "status": "totally_verified"}]})
+    with pytest.raises(ValueError):
+        validate_payload("claim_assessment", {
+            "assessments": [{"claim_id": "c", "status": "not_checked",
+                             "reason": "x", "ocr_text": "smuggled"}]})
+
+
+def test_cross_document_ref_combination_rejected(tmp_path):
+    from global_library_mcp.workspace.research_artefacts import (
+        save_artefact)
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store = WorkspaceStore(str(tmp_path / "ws.db"))
+    pid = store.create_project("P")["project_id"]
+    da = store.save_document(pid, "ndl", "A", {"title": "A"})
+    store.save_document(pid, "ndl", "B", {"title": "B"})
+    # document A's saved_document_id + document B's record_id,
+    # nested inside an assessment
+    with pytest.raises(ValueError):
+        save_artefact(store, pid, "claim_assessment", "t", {
+            "assessments": [{
+                "claim_id": "c", "status": "supported_candidate",
+                "library_id": "ndl", "record_id": "B",
+                "saved_document_id": da["saved_document_id"]}]})
+
+
+def test_citation_ref_must_match_its_document_and_page(tmp_path):
+    from global_library_mcp.workspace.research_artefacts import (
+        save_artefact)
+    from global_library_mcp.workspace.store import WorkspaceStore
+    store = WorkspaceStore(str(tmp_path / "ws.db"))
+    pid = store.create_project("P")["project_id"]
+    doc = store.save_document(pid, "ndl", "A", {"title": "A"})
+    cit = store.save_citation(doc["saved_document_id"], {
+        "page_id": "p1", "citation_key": "k",
+        "quotation_verification_status": "verified",
+        "page_mapping_status": "verified"})
+    with pytest.raises(ValueError):
+        save_artefact(store, pid, "claim_assessment", "t", {
+            "assessments": [{
+                "claim_id": "c", "status": "supported_candidate",
+                "citation_id": cit["citation_id"], "page_id": "OTHER"}]})
+    ok = save_artefact(store, pid, "claim_assessment", "t", {
+        "assessments": [{
+            "claim_id": "c", "status": "supported_candidate",
+            "citation_id": cit["citation_id"], "page_id": "p1",
+            "library_id": "ndl", "record_id": "A"}]})
+    assert ok["trust"] == "server_generated"

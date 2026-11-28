@@ -35,7 +35,7 @@ from typing import Any, Iterable
 
 from . import policy as _policy
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 # Verification-status vocabulary a genuine database of this
 # application can contain. Restore validation rejects
@@ -288,7 +288,27 @@ CREATE TABLE research_artefacts (
 CREATE INDEX idx_artefacts_project ON research_artefacts(project_id);
 """
 
-MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3), (4, _SCHEMA_V4), (5, _SCHEMA_V5)]
+_SCHEMA_V6 = """
+ALTER TABLE rights_observations ADD COLUMN seq INTEGER;
+CREATE TABLE rights_seq_counter (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    next_seq INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO rights_seq_counter (id, next_seq) VALUES (1, 0);
+"""
+
+MIGRATIONS: list[tuple[int, str]] = [(1, _SCHEMA_V1), (2, _SCHEMA_V2), (3, _SCHEMA_V3), (4, _SCHEMA_V4), (5, _SCHEMA_V5), (6, _SCHEMA_V6)]
+
+
+# Categories that RESTRICT excerpt use (b11 final review section
+# 11 fail-closed tie-break): anything not known to permit excerpts
+# is restrictive; only the excerpt-permitting categories are not.
+_PERMISSIVE_RIGHTS_CATEGORIES = {
+    "public_domain", "cc_by", "cc_by_sa", "cc_by_nc", "cc_by_nc_sa"}
+_RESTRICTIVE_RIGHTS_CATEGORIES = {
+    "in_copyright", "in_copyright_eu_orphan", "in_copyright_educational",
+    "no_copyright_non_commercial", "no_copyright_other", "copyright_undetermined",
+    "undetermined", "unknown", "restricted", "in_copyright_us"}
 
 
 def _json(value: Any) -> str:
@@ -376,6 +396,46 @@ class WorkspaceStore:
                 self._mark_imported_document_trust()
             if pending and any(v == 4 for v, _ in pending):
                 self._backfill_observation_trust(from_version=current)
+            if pending and any(v == 6 for v, _ in pending):
+                self._backfill_rights_seq()
+
+    def _next_rights_seq(self) -> int:
+        """Monotonic rights-observation sequence (b11 final
+        review section 11). Assigned inside the caller's
+        transaction on this store's single connection, so the
+        order is total and matches insertion order - unlike the
+        second-precision observed_at or random observation ids."""
+        row = self._conn.execute(
+            "SELECT next_seq FROM rights_seq_counter WHERE id = 1").fetchone()
+        nxt = int(row["next_seq"]) + 1 if row else 1
+        self._conn.execute(
+            "INSERT INTO rights_seq_counter (id, next_seq) VALUES (1, ?)"
+            " ON CONFLICT(id) DO UPDATE SET next_seq = excluded.next_seq",
+            (nxt,))
+        return nxt
+
+    def backfill_rights_seq(self) -> int:
+        """Assign seq to rows that arrived without one (imports
+        and restores write rows directly). Existing seq values
+        are never renumbered; new assignments continue the
+        counter in rowid (insertion) order."""
+        with self._lock, self._conn:
+            return self._backfill_rights_seq_locked()
+
+    def _backfill_rights_seq_locked(self) -> int:
+        rows = self._conn.execute(
+            "SELECT observation_id FROM rights_observations"
+            " WHERE seq IS NULL ORDER BY rowid").fetchall()
+        for r in rows:
+            self._conn.execute(
+                "UPDATE rights_observations SET seq = ?"
+                " WHERE observation_id = ?",
+                (self._next_rights_seq(), r["observation_id"]))
+        return len(rows)
+
+    def _backfill_rights_seq(self) -> None:
+        with self._lock, self._conn:
+            self._backfill_rights_seq_locked()
 
     def _mark_imported_document_trust(self) -> None:
         """b8 migration: documents that arrived via a b7 import
@@ -835,27 +895,52 @@ class WorkspaceStore:
         with self._lock, self._conn:
             oid = new_id()
             ts = now_iso()
+            seq = self._next_rights_seq()
             self._conn.execute(
                 "INSERT INTO rights_observations (observation_id, saved_document_id, statement,"
-                " category, source, observed_at, change_status, trust)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (oid, saved_document_id, statement, category, source, ts, change_status, trust))
+                " category, source, observed_at, change_status, trust, seq)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (oid, saved_document_id, statement, category, source, ts, change_status, trust, seq))
             return {"observation_id": oid, "saved_document_id": saved_document_id,
                     "statement": statement, "category": category, "source": source,
-                    "observed_at": ts, "change_status": change_status, "trust": trust}
+                    "observed_at": ts, "change_status": change_status, "trust": trust,
+                    "seq": seq}
 
     def list_rights_observations(self, saved_document_id: str) -> list[dict[str, Any]]:
         with self._lock:
             return _rows(self._conn.execute(
-                "SELECT * FROM rights_observations WHERE saved_document_id = ? ORDER BY observed_at",
+                "SELECT * FROM rights_observations WHERE saved_document_id = ?"
+                " ORDER BY COALESCE(seq, 0), observed_at, observation_id",
                 (saved_document_id,)))
 
     def latest_rights_observation(self, saved_document_id: str) -> dict[str, Any] | None:
+        """The CURRENT rights observation (section 11): the
+        greatest monotonic seq wins - insertion order, not the
+        second-precision timestamp or a random UUID. Fail-closed:
+        when the two newest observations share the same
+        observed_at with different categories and the newest is
+        not a server observation, the more restrictive one is
+        current (a permission never wins a same-timestamp tie
+        against a restriction it cannot outrank)."""
         with self._lock:
-            return _row(self._conn.execute(
+            rows = _rows(self._conn.execute(
                 "SELECT * FROM rights_observations WHERE saved_document_id = ?"
-                " ORDER BY observed_at DESC, observation_id DESC LIMIT 1",
-                (saved_document_id,)).fetchone())
+                " ORDER BY COALESCE(seq, 0) DESC, observed_at DESC,"
+                " observation_id DESC LIMIT 2",
+                (saved_document_id,)))
+            if not rows:
+                return None
+            top = rows[0]
+            if len(rows) == 2:
+                other = rows[1]
+                if other["observed_at"] == top["observed_at"] \
+                        and other.get("category") != top.get("category") \
+                        and top.get("trust") != "server_observed":
+                    restrictive = _RESTRICTIVE_RIGHTS_CATEGORIES
+                    if top.get("category") not in restrictive \
+                            and other.get("category") in restrictive:
+                        return other
+            return top
 
     def update_citation_excerpt(self, citation_id: str, excerpt: str) -> None:
         """Store an excerpt text for an existing citation. Used
@@ -946,6 +1031,7 @@ class WorkspaceStore:
                      _policy.classify_rights(statement), ts))
             self._conn.execute(
                 "UPDATE saved_documents SET rights_trust = 'restored_claim'")
+            self._backfill_rights_seq_locked()
         return {"citations_downgraded": downgraded,
                 "documents_marked": len(docs),
                 "rights_observations_downgraded": observations_downgraded}
