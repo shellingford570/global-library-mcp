@@ -1427,6 +1427,17 @@ class WorkspaceStore:
         "rights_observations": {"observation_id", "saved_document_id"},
         "verification_observations": {"observation_id", "citation_id", "status"},
     }
+    # Version-conditional required tables (final review section
+    # 41): older backups legitimately lack them - the store
+    # migrates on open - so they are required only when the
+    # backup CLAIMS the version that introduced them.
+    _REQUIRED_SCHEMA_V5 = {
+        "research_artefacts": {"artefact_id", "project_id", "kind",
+                               "payload", "trust", "created_at"},
+    }
+    _REQUIRED_SCHEMA_V6 = {
+        "rights_seq_counter": {"id", "next_seq"},
+    }
 
     @staticmethod
     def validate_backup(path: str | Path) -> dict[str, Any]:
@@ -1521,6 +1532,54 @@ class WorkspaceStore:
                 ).fetchone()[0]
                 if bad_semantic:
                     problems.append("comparison semantic_status other than not_checked")
+            for _min_version, _schema in ((5, WorkspaceStore._REQUIRED_SCHEMA_V5),
+                                          (6, WorkspaceStore._REQUIRED_SCHEMA_V6)):
+                if version >= _min_version:
+                    for _table, _columns in _schema.items():
+                        if _table not in tables:
+                            problems.append(
+                                f"schema claims v{version} but table "
+                                f"{_table} is missing")
+                            continue
+                        _actual = {r["name"] for r in conn.execute(
+                            f"PRAGMA table_info({_table})")}
+                        if not _columns <= _actual:
+                            problems.append(
+                                f"schema claims v{version} but {_table} "
+                                f"lacks columns {sorted(_columns - _actual)}")
+            if version >= 5 and "research_artefacts" in tables and not problems:
+                # b11 final review section 41: a restore must
+                # validate research_artefacts too - trust and
+                # kind vocabularies, payload JSON shape and size.
+                # (The trust VALUE is never believed: the restore
+                # downgrade rewrites server_generated rows to
+                # restored_unverified regardless. Reference
+                # integrity is re-checked at read time by
+                # research_artefacts.reference_problems.)
+                from .research_artefacts import KINDS, MAX_PAYLOAD_BYTES
+                known_kinds = {"b10_" + k for k in KINDS} | set(KINDS)
+                for row in conn.execute(
+                        "SELECT kind, trust, payload FROM research_artefacts"):
+                    if row["trust"] not in ("server_generated",
+                                            "imported_unverified",
+                                            "restored_unverified"):
+                        problems.append(
+                            f"unknown artefact trust: {row['trust']}")
+                        break
+                    if row["kind"] not in known_kinds:
+                        problems.append(f"unknown artefact kind: {row['kind']}")
+                        break
+                    try:
+                        payload = json.loads(row["payload"] or "")
+                    except (TypeError, json.JSONDecodeError):
+                        problems.append("artefact payload is not valid JSON")
+                        break
+                    if not isinstance(payload, dict):
+                        problems.append("artefact payload is not an object")
+                        break
+                    if len((row["payload"] or "").encode("utf-8")) > MAX_PAYLOAD_BYTES:
+                        problems.append("artefact payload exceeds the size limit")
+                        break
         except sqlite3.Error as exc:
             problems.append(f"not a readable SQLite database: {exc}")
         finally:

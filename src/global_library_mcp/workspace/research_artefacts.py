@@ -359,7 +359,8 @@ def validate_payload(kind: str, payload: Any) -> dict[str, Any]:
 
 
 def reference_problems(store: Any, project_id: str,
-                       payload: dict[str, Any]) -> list[str]:
+                       payload: dict[str, Any],
+                       _index: dict[str, Any] | None = None) -> list[str]:
     """Recursive reference integrity (section 9): EVERY
     reference in the payload - top level and nested inside
     assessments/pairs/events/items - must be consistent.
@@ -375,9 +376,15 @@ def reference_problems(store: Any, project_id: str,
       layers resolve them against the project and mark the rest
       unresolved."""
     problems: list[str] = []
-    docs = store.list_documents(project_id)
-    by_id = {d["saved_document_id"]: d for d in docs}
-    cits = {c["citation_id"]: c for c in store.list_citations(project_id)}
+    if _index is not None:
+        docs = _index["docs"]
+        by_id = _index["by_id"]
+        cits = _index["cits"]
+    else:
+        docs = store.list_documents(project_id)
+        by_id = {d["saved_document_id"]: d for d in docs}
+        cits = {c["citation_id"]: c
+                for c in store.list_citations(project_id)}
 
     def walk(value: Any, path: str) -> None:
         if isinstance(value, dict):
@@ -476,6 +483,7 @@ def import_artefact(store: Any, project_id: str, kind: str,
 
 def list_artefacts(store: Any, project_id: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
+    _ref_index: dict[str, Any] | None = None
     for row in store.list_artefact_rows(project_id):
         try:
             raw_payload = row.get("payload")
@@ -495,7 +503,15 @@ def list_artefacts(store: Any, project_id: str) -> list[dict[str, Any]]:
         # a row whose references no longer resolve is flagged
         # and the graph/report layers treat it as unresolved.
         if isinstance(payload, dict) and payload:
-            problems = reference_problems(store, project_id, payload)
+            if _ref_index is None:
+                _docs = store.list_documents(project_id)
+                _ref_index = {
+                    "docs": _docs,
+                    "by_id": {d["saved_document_id"]: d for d in _docs},
+                    "cits": {c["citation_id"]: c
+                             for c in store.list_citations(project_id)}}
+            problems = reference_problems(store, project_id, payload,
+                                          _index=_ref_index)
             entry["reference_integrity"] = "ok" if not problems else "broken"
             if problems:
                 entry["reference_problems"] = problems[:5]

@@ -2,6 +2,25 @@
 
 ## 1.0.0b11 — Research Validation & Knowledge Synthesis (in development)
 
+- Final review fixes: evidence references derive from the
+  actual Evidence object and are bound to session/project/
+  citation with registry caps; independence requires a reviewed
+  record (bare assertions count as user-asserted only); complete
+  recursive artefact schemas with nested reference integrity;
+  monotonic rights-observation sequence (schema v6) with
+  fail-closed same-timestamp conflicts; Evidence Graph rebuilt
+  over real store fields with a closed status-to-edge mapping
+  and provenance separated from judgement; reports separate
+  imported/restored assertions from current evidence, display
+  evidence-less claims, re-check citation integrity, escape
+  Markdown at the b7 standard and hash full snapshot content;
+  research API completed (question/claim linking, citation
+  assessment through the frozen gate, split revalidation
+  semantics, strict input validation); MiniLM inference gate is
+  process-wide; cross-search dedupe by exact (library_id,
+  record_id); new research Playwright journey. See
+  docs/b11-final-review.md.
+
 - Stage 0: research artefacts moved to a dedicated schema-v5
   table; note envelopes (including forged v2 envelopes with a
   correct self-computed SHA-256) are user_asserted only and

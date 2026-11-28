@@ -1,0 +1,146 @@
+{
+ "environment": "this VM (1.5 shared CPU class)",
+ "scales": [
+  {
+   "documents": 100,
+   "citations": 300,
+   "artefacts": 10,
+   "seed_ms": 2.7,
+   "graph_total_nodes": 712,
+   "graph_total_edges": 810,
+   "graph_build_and_page": {
+    "median_ms": 18.2,
+    "p95_ms": 18.2,
+    "max_ms": 26.2,
+    "runs": [
+     18.2,
+     17.8,
+     26.2
+    ]
+   },
+   "progress": {
+    "median_ms": 12.8,
+    "p95_ms": 12.8,
+    "max_ms": 12.9,
+    "runs": [
+     12.8,
+     12.9,
+     12.7
+    ]
+   },
+   "report": {
+    "median_ms": 77.0,
+    "p95_ms": 74.8,
+    "max_ms": 79.2,
+    "runs": [
+     79.2,
+     74.8
+    ]
+   },
+   "artefact_save_at_scale": {
+    "median_ms": 14.7,
+    "p95_ms": 13.5,
+    "max_ms": 15.9,
+    "runs": [
+     15.9,
+     13.5
+    ]
+   },
+   "peak_rss_mb": 38.9
+  },
+  {
+   "documents": 1000,
+   "citations": 3000,
+   "artefacts": 100,
+   "seed_ms": 29.4,
+   "graph_total_nodes": 7102,
+   "graph_total_edges": 8100,
+   "graph_build_and_page": {
+    "median_ms": 209.4,
+    "p95_ms": 209.4,
+    "max_ms": 241.6,
+    "runs": [
+     209.4,
+     241.6,
+     194.2
+    ]
+   },
+   "progress": {
+    "median_ms": 163.6,
+    "p95_ms": 163.6,
+    "max_ms": 185.4,
+    "runs": [
+     163.6,
+     153.2,
+     185.4
+    ]
+   },
+   "report": {
+    "median_ms": 898.55,
+    "p95_ms": 897.7,
+    "max_ms": 899.4,
+    "runs": [
+     899.4,
+     897.7
+    ]
+   },
+   "artefact_save_at_scale": {
+    "median_ms": 134.65,
+    "p95_ms": 125.7,
+    "max_ms": 143.6,
+    "runs": [
+     143.6,
+     125.7
+    ]
+   },
+   "peak_rss_mb": 78.5
+  },
+  {
+   "documents": 10000,
+   "citations": 30000,
+   "artefacts": 1000,
+   "seed_ms": 326.2,
+   "graph_total_nodes": 71002,
+   "graph_total_edges": 81000,
+   "graph_build_and_page": {
+    "median_ms": 3002.1,
+    "p95_ms": 3002.1,
+    "max_ms": 3015.9,
+    "runs": [
+     3015.9,
+     3002.1,
+     3001.3
+    ]
+   },
+   "progress": {
+    "median_ms": 7073.7,
+    "p95_ms": 7073.7,
+    "max_ms": 8509.2,
+    "runs": [
+     6875.0,
+     7073.7,
+     8509.2
+    ]
+   },
+   "report": {
+    "median_ms": 20781.5,
+    "p95_ms": 20394.6,
+    "max_ms": 21168.4,
+    "runs": [
+     20394.6,
+     21168.4
+    ]
+   },
+   "artefact_save_at_scale": {
+    "median_ms": 1581.9,
+    "p95_ms": 1487.1,
+    "max_ms": 1676.7,
+    "runs": [
+     1487.1,
+     1676.7
+    ]
+   },
+   "peak_rss_mb": 375.6
+  }
+ ]
+}

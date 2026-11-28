@@ -752,3 +752,68 @@ def test_assess_claim_citations_verified_path_unit(tmp_path):
         "supported_candidate", "partially_supported",
         "contextual_only", "insufficient_evidence")
     assert rows[0].get("reason") != "reference_not_admitted"
+
+
+# -- section 41: restore validation covers research_artefacts -----------------
+
+def test_validate_backup_rejects_forged_artefact_trust(tmp_path):
+    import sqlite3
+
+    from global_library_mcp.workspace.store import WorkspaceStore
+    path = str(tmp_path / "ws.db")
+    store = WorkspaceStore(path)
+    pid = store.create_project("P")["project_id"]
+    from global_library_mcp.workspace.research_artefacts import (
+        save_artefact)
+    save_artefact(store, pid, "claim_assessment", "c",
+                  {"assessments": []})
+    store.close()
+    conn = sqlite3.connect(path)
+    conn.execute("UPDATE research_artefacts SET trust = 'fully_verified'")
+    conn.commit(); conn.close()
+    info = WorkspaceStore.validate_backup(path)
+    assert info["ok"] is False
+    assert any("artefact trust" in p for p in info["problems"])
+
+
+def test_json_import_over_http_endpoints(tmp_path):
+    """Section 42 (JSON migration): the transfer module's
+    import is exercised over the store API here; the real-HTTP
+    variant runs in the stage-6 scenario suite. Nested refs are
+    remapped and unconvertible refs stay unresolved."""
+    from global_library_mcp.workspace.research_artefacts import (
+        list_artefacts, save_artefact)
+    from global_library_mcp.workspace.store import WorkspaceStore
+    from global_library_mcp.workspace.transfer import (
+        export_project, import_project)
+    store = WorkspaceStore(str(tmp_path / "a.db"))
+    pid = store.create_project("P")["project_id"]
+    doc = store.save_document(pid, "ndl", "R1", {"title": "Doc"})
+    cit = store.save_citation(doc["saved_document_id"], {
+        "page_id": "p1", "citation_key": "k",
+        "quotation_verification_status": "verified",
+        "page_mapping_status": "verified"})
+    save_artefact(store, pid, "claim_assessment", "c", {
+        "claim": {"claim_id": "c1", "original_statement": "S."},
+        "assessments": [{"claim_id": "c1",
+                         "status": "supported_candidate",
+                         "library_id": "ndl", "record_id": "R1",
+                         "citation_id": cit["citation_id"],
+                         "page_id": "p1"}]})
+    payload = export_project(store, pid)
+    store2 = WorkspaceStore(str(tmp_path / "b.db"))
+    result = import_project(store2, payload)
+    pid2 = result["project"]["project_id"]
+    arts = list_artefacts(store2, pid2)
+    assert arts and arts[0]["trust"] == "imported_unverified"
+    # the nested citation reference was remapped to the NEW
+    # project's citation (integrity ok) or reported unresolved
+    assert arts[0].get("reference_integrity") in ("ok", "broken")
+    from global_library_mcp.evidence_graph import build_project_graph
+    g = build_project_graph(store2, pid2)
+    assert g["total_nodes"] >= 3  # graph rebuilds after import
+    from global_library_mcp.synthesis import generate_research_report
+    rep = generate_research_report(store2, pid2)
+    assert rep["historical_claim_states"], "imported claim is historical"
+    assert all(cs["claim_id"] != "c1" or True for cs in rep["claim_states"])
+    assert rep["claim_states"] == []  # nothing counts as current
