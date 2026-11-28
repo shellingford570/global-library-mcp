@@ -177,7 +177,7 @@ class GndSource:
         # stripped before quoting so user input cannot change the
         # fields or operators of the search expression.
         name = re.sub(r'["\\:()\[\]{}^~*?/]', " ", name or "").strip()
-        q = f"preferredName:{name}"
+        q = f'preferredName:"{name}"'
         if birth_year:
             q += f" AND dateOfBirth:{birth_year}*"
         url = (f"{self.BASE}?q={quote(q)}"

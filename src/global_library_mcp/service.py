@@ -1549,8 +1549,7 @@ class LibraryService:
             ranked = _rr.rank(_adq2(query), list(ranked), query_hits,
                               semantic_scores=_sem_scores)
             for _it in ranked:
-                _rr_reasons[(_it.library_id, _it.record_id)] = list(
-                    getattr(_it, "_research_reasons", []))
+                _rr_reasons[(_it.library_id, _it.record_id)] = _rr.reasons_for(_it)
         _result_dicts = []
         for _it in ranked:
             _d = _it.to_dict()

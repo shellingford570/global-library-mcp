@@ -41,6 +41,12 @@ class ResearchRanker:
                  semantic_weight: float = SEMANTIC_WEIGHT):
         self.lexical_weight = lexical_weight
         self.semantic_weight = semantic_weight
+        self._meta: dict = {}
+
+    def reasons_for(self, item: Any) -> list[str]:
+        key = (getattr(item, "library_id", ""),
+               getattr(item, "record_id", ""))
+        return list((self._meta.get(key) or {}).get("reasons") or [])
 
     def rank(self, analysis: Any, items: list[Any],
              query_hits: dict[tuple[str, str], int],
@@ -53,6 +59,7 @@ class ResearchRanker:
         for concept in getattr(analysis, "concepts", []) or []:
             for lang in ("ja", "en", "de", "fr", "fi", "sv", "nl"):
                 concept_labels.extend((concept.get("labels") or {}).get(lang, []))
+        self._meta = {}
         scorer = LexicalScorer([item_text(it) for it in items])
         lex = scorer.score(" ".join([query_text, *concept_labels]))
         scored: list[tuple[float, int, Any]] = []
@@ -78,15 +85,19 @@ class ResearchRanker:
                 if sem >= 0.25:
                     reasons = [*reasons,
                                f"semantic relevance {sem:.2f} (local model)"]
-            item._research_score = round(total, 3)
-            item._research_reasons = reasons
-            item._research_subscores = {
+            # Final review: SearchResult is a SLOTS dataclass, so
+            # results are kept in a side table keyed by
+            # (library_id, record_id) instead of mutating items
+            # (the b10 implementation crashed on real records).
+            self._meta[key] = {
+                "score": round(total, 3), "reasons": reasons,
+                "subscores": {
                 "strict_signals": round(base, 3),
                 "lexical": round(float(lex[idx]), 3),
                 "semantic": (round(float(sem), 3) if sem is not None else None),
                 "strict_title_tier": strict,
                 "ocr_usability": bool(getattr(item, "ocr", None)),
-            }
+                }}
             scored.append(((1 if strict else 0), total, idx, item))
         scored.sort(key=lambda t: (-t[0], -t[1], t[2]))
         return [t[3] for t in scored]

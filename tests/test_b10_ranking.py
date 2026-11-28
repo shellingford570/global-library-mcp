@@ -47,18 +47,20 @@ def test_research_ranker_strict_tier_beats_ocr():
                    rid="x:strict", ocr=False)
     noisy = _item("Kant und die Folgen der Kritik", "Someone Else",
                   rid="x:noisy", ocr=True)
-    ranked = ResearchRanker().rank(analysis, [noisy, strict], {})
+    _rr = ResearchRanker()
+    ranked = _rr.rank(analysis, [noisy, strict], {})
     assert ranked[0].record_id == "x:strict"
-    assert ranked[0]._research_subscores["strict_title_tier"] is True
+    assert _rr._meta[("ddb", "x:strict")]["subscores"]["strict_title_tier"] is True
     # OCR is usability only: it must not appear as relevance points
-    assert ranked[1]._research_subscores["ocr_usability"] is True
+    assert _rr._meta[("ddb", "x:noisy")]["subscores"]["ocr_usability"] is True
 
 
 def test_research_ranker_reasons_only_from_fired_signals():
     analysis = analyze_discovery_query("Dampfmaschine")
     item = _item("Die Dampfmaschine", "Friedrich Müller")
-    ranked = ResearchRanker().rank(analysis, [item], {})
-    reasons = ranked[0]._research_reasons
+    _rr = ResearchRanker()
+    ranked = _rr.rank(analysis, [item], {})
+    reasons = _rr.reasons_for(ranked[0])
     assert all(isinstance(r, str) for r in reasons)
     assert not any("semantic" in r for r in reasons)  # no model ran
 
