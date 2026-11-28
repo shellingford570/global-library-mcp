@@ -107,8 +107,11 @@ _NESTED_KEYS: dict[str, set[str]] = {
     "structured": {"intent", "entities", "era", "constraints",
                    "ambiguities", "subject", "predicate", "object"},
     "question": {"claim_id", "text", "subject", "predicate", "object",
-                 "years", "places", "quantities", "entities",
-                 "qualifiers", "era", "negated"},
+                 "original_question", "detected_language",
+                 "research_intent", "expected_evidence_type", "entities",
+                 "time_range", "author_constraints", "work_constraints",
+                 "numerical_constraints", "place", "unit", "value",
+                 "relation", "status", "note"},
 }
 
 
