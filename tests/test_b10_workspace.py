@@ -71,6 +71,6 @@ def test_graph_candidate_edges(tmp_path):
 def test_existing_data_untouched(tmp_path):
     store, pid = _store(tmp_path)
     version_before = store.schema_version
-    save_artefact(store, pid, "research_question", "q", {"x": 1})
+    save_artefact(store, pid, "research_question", "q", {"question": {"text": "q"}})
     assert store.schema_version == version_before  # no migration
     assert store.integrity_check() == "ok"

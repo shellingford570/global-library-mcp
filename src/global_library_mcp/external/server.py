@@ -643,6 +643,13 @@ class _SessionBindingMiddleware:
     def __init__(self, app, user_resolver=None, audit=None):
         self.app = app
         self._bindings: dict[str, dict[str, Any]] = {}
+        # Final review (section 26): capacity is RESERVED
+        # atomically BEFORE the SDK runs an initialize request,
+        # so concurrent initializations cannot all pass the check
+        # and overshoot the caps. A reservation is converted to a
+        # binding when the SDK returns a session id, and released
+        # when the request finishes without one.
+        self._reservations: list[dict[str, Any]] = []
         self._lock = threading.Lock()
         # Optional: authorization header value -> user id (or
         # None). Supplied by the app builder from the token
@@ -667,6 +674,18 @@ class _SessionBindingMiddleware:
                    if now - b["last_seen"] > self.IDLE_TTL_S]
         for sid in expired:
             self._bindings.pop(sid, None)
+        self._reservations = [r for r in self._reservations
+                              if now - r["at"] <= 120.0]
+
+    def _counts(self, token_hash: str, user_key: str) -> tuple[int, int, int]:
+        total = len(self._bindings) + len(self._reservations)
+        per_token = sum(1 for b in self._bindings.values()
+                        if b["token_hash"] == token_hash) + sum(
+            1 for r in self._reservations if r["token_hash"] == token_hash)
+        per_user = sum(1 for b in self._bindings.values()
+                       if b["user_key"] == user_key) + sum(
+            1 for r in self._reservations if r["user_key"] == user_key)
+        return total, per_token, per_user
 
     def _note_rejection(self, error_class: str) -> None:
         if self._audit is not None:
@@ -691,8 +710,9 @@ class _SessionBindingMiddleware:
             with self._lock:
                 self._sweep(now)
                 bound = self._bindings.get(session_id)
-                if bound is not None:
-                    bound["last_seen"] = now
+            # Final review (section 26): last_seen is updated ONLY
+            # after ownership is verified - a foreign principal
+            # must not be able to keep another user's session alive.
             if bound is None or bound["token_hash"] != token_hash \
                     or bound["user_key"] != user_key:
                 from starlette.responses import JSONResponse
@@ -702,16 +722,27 @@ class _SessionBindingMiddleware:
                     {"error": "session_binding_mismatch"}, status_code=403)
                 await response(scope, receive, send)
                 return
+            with self._lock:
+                if session_id in self._bindings:
+                    self._bindings[session_id]["last_seen"] = time.monotonic()
             await self.app(scope, receive, send)
             if scope.get("method") == "DELETE":
                 with self._lock:
                     self._bindings.pop(session_id, None)
             return
 
+        _reservation: dict[str, Any] | None = None
         if scope.get("method") == "POST":
             with self._lock:
                 self._sweep(now)
-                at_capacity = len(self._bindings) >= self.MAX_SESSIONS
+                _total, _pt, _pu = self._counts(token_hash, user_key)
+                at_capacity = (_total >= self.MAX_SESSIONS
+                               or _pt >= self.MAX_PER_TOKEN
+                               or _pu >= self.MAX_PER_USER)
+                if not at_capacity:
+                    _reservation = {"token_hash": token_hash,
+                                    "user_key": user_key, "at": now}
+                    self._reservations.append(_reservation)
             if at_capacity:
                 from starlette.responses import JSONResponse
 
@@ -727,6 +758,9 @@ class _SessionBindingMiddleware:
                     if key.decode("latin-1").lower() == "mcp-session-id":
                         new_id = value.decode("latin-1")
                         with self._lock:
+                            if _reservation is not None \
+                                    and _reservation in self._reservations:
+                                self._reservations.remove(_reservation)
                             per_token = sum(
                                 1 for b in self._bindings.values()
                                 if b["token_hash"] == token_hash)
@@ -743,7 +777,13 @@ class _SessionBindingMiddleware:
                                 }
             await send(message)
 
-        await self.app(scope, receive, send_wrapper)
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            if _reservation is not None:
+                with self._lock:
+                    if _reservation in self._reservations:
+                        self._reservations.remove(_reservation)
 
 
 def external_http_app(server: FastMCP, ctx: ExternalContext):
