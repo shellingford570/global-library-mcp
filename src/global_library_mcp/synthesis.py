@@ -148,7 +148,12 @@ def _snapshot_id(store: Any, project_id: str) -> str:
     basis = json.dumps({
         "docs": sorted((d["library_id"], d["record_id"],
                         d.get("verification_status"),
-                        d.get("rights_trust")) for d in docs),
+                        d.get("rights_trust"),
+                        (store.latest_rights_observation(
+                            d["saved_document_id"]) or {}).get("category"),
+                        (store.latest_rights_observation(
+                            d["saved_document_id"]) or {}).get("observed_at"))
+                       for d in docs),
         "cits": sorted((c["citation_id"], c.get("verification_status"))
                        for c in cits),
         "arts": sorted((a["artefact_id"], a["trust"]) for a in arts),
@@ -234,11 +239,15 @@ def generate_research_report(store: Any, project_id: str, *,
 
     claim_states = classify_claim_states(claims)
     timeline = build_timeline(timeline_events)
-    rights_rows = [{"library_id": d["library_id"],
-                    "record_id": d["record_id"],
-                    "rights_trust": d.get("rights_trust"),
-                    "rights_status": d.get("rights_status")}
-                   for d in docs.values()]
+    rights_rows = []
+    for d in docs.values():
+        latest = store.latest_rights_observation(d["saved_document_id"])
+        rights_rows.append({
+            "library_id": d["library_id"], "record_id": d["record_id"],
+            "rights_trust": (latest or {}).get("trust")
+                            or d.get("rights_trust"),
+            "rights_status": (latest or {}).get("category"),
+            "rights_statement": (latest or {}).get("statement")})
     report = {
         "report_id": "rep_" + uuid.uuid4().hex[:16],
         "schema_version": REPORT_SCHEMA_VERSION,

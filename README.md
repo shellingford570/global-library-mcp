@@ -134,6 +134,32 @@ Enterprise/Edu and read/fetch connections for Pro, with no
 documented custom-MCP route for Plus. See
 docs/b9-external-mcp-readiness.md.
 
+### Research Validation & Knowledge Synthesis (1.0.0b11)
+
+b11 validates the research layer built through b10. Research
+artefacts moved out of user-writable notes into a dedicated
+server-managed table (schema v5): a hand-written or imported
+artefact - even one carrying a correct self-computed hash - is
+never trusted as server-generated, and evidence references are
+now opaque tokens issued only by the admission pipeline itself.
+A new 294-case evaluation set adds entity-grouped splits and a
+blind human-review package (human evaluation remains 0; no
+reviewer was recruited). NLI was researched and designed but
+NO model was downloaded: the shadow contract, a synthetic
+backend and an approval proposal are in
+docs/b11-nli-model-selection.md. An Evidence Graph is built
+only from trusted material, template-based synthesis never
+mints confirmed facts, and research reports (Markdown + JSON)
+carry full reproducibility fields with every reference
+validated against the project. The workspace gained a research
+tab and API; MCP profiles are unchanged (full 15 / research
+14 / external 5) and research artefacts are never exposed
+externally. Note for b10 users: artefact tallies stored as
+notes under b10 are recomputed under the stricter b11 trust
+model - note-stored artefacts now count as untrusted research
+notes, not as server-generated artefacts (their content is
+preserved). See docs/b11-research-validation.md.
+
 ### Advanced Research Intelligence (1.0.0b10)
 
 b10 deepens research capability on the b9 foundation. The

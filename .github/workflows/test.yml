@@ -321,3 +321,20 @@ jobs:
             /tmp/results-b9-security.json
             /tmp/results-b9-perf.json
           if-no-files-found: ignore
+
+  research-validation:
+    # b11: dataset integrity, grouped splits, NLI proxy harness,
+    # evidence graph and synthesis - fixed fixtures only, no
+    # model downloads, no live upstreams, no paid AI, no skips.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: pip install '.[test]'
+      - run: pytest tests/test_b11_stage0.py tests/test_b11_stage1.py tests/test_b11_stage2.py tests/test_b11_stage3.py tests/test_b11_stage4.py tests/test_b11_stage5.py tests/test_b11_stage6.py -q
+      - run: python eval/b11_dataset.py --out /tmp/b11-cases-check.json
+      - run: python eval/b11_grouped_splits.py --dataset /tmp/b11-cases-check.json --out /tmp/b11-splits-check.json
+      - run: python eval/b11_nli_eval.py --out /tmp/b11-nli-check.json
