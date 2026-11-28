@@ -58,6 +58,10 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8128
         run: npx playwright test tests/e2e/workspace.spec.js --reporter=json > /tmp/glm-ws-ci/pw.json
+      - name: Run research Playwright journey (b11 final review section 32)
+        env:
+          BASE_URL: http://127.0.0.1:8128
+        run: npx playwright test tests/e2e/research.spec.js --reporter=json > /tmp/glm-ws-ci/pw-research.json
       - name: Assert ALL mandatory workspace journeys ran (no skips)
         if: always()
         run: |
@@ -72,6 +76,13 @@ jobs:
           assert stats.get('unexpected', 0) == 0, "workspace journeys failed"
           assert skipped == 0, "a mandatory workspace journey skipped - not a CI success (section 18)"
           assert passed == 6, f"expected all 6 mandatory journeys to pass, got {passed}"
+          with open('/tmp/glm-ws-ci/pw-research.json') as fh:
+              rreport = json.load(fh)
+          rstats = rreport.get('stats', {})
+          print(f"research journey: passed={rstats.get('expected', 0)} skipped={rstats.get('skipped', 0)} unexpected={rstats.get('unexpected', 0)}")
+          assert rstats.get('unexpected', 0) == 0, "research journey failed"
+          assert rstats.get('skipped', 0) == 0, "the mandatory research journey skipped"
+          assert rstats.get('expected', 0) == 1, "expected the research journey to pass"
           EOF
       - name: Restart persistence check
         env:

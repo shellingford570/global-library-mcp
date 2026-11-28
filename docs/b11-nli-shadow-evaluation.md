@@ -31,3 +31,17 @@ agreement 0.857 (12/14). Known synthetic misses are recorded in
 as entailment by token overlap). **This measures the harness and
 the stand-in, not any real model.** Real-model shadow quality
 is unmeasured until a model is approved and downloaded.
+
+## Interpretation of the synthetic result (final review section 35)
+
+The 0.857 (12/14) figure measures ONLY that the interface, the
+status separation (`synthetic_test` vs `shadow_evaluated` vs
+`unavailable`), the shadow plumbing and the evaluation harness
+behave as designed. It is **not** a measurement of any real
+model's NLI quality: the synthetic backend is a lexical-overlap
+stub (`synthetic-lexical-overlap-v1`). Synthetic output is
+stored and displayed only under the `synthetic_test` status and
+is never written into research reports as an NLI judgement
+(`synthesis.py` does not consume NLI output at all). Real-model
+quality remains **unmeasured** until a separately approved
+model acquisition happens.

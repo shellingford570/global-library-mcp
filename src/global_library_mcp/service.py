@@ -618,7 +618,14 @@ class LibraryService:
                 if index >= len(group) or len(results) >= limit:
                     continue
                 result = group[index]
-                key = ("url", result.landing_url) if result.landing_url else ("record", result.library_id, result.record_id)
+                # b11 final review section 40: cross-search
+                # dedupe is by EXACT (library_id, record_id)
+                # only. The previous URL-based key let the same
+                # record through twice under different landing
+                # URLs and could merge distinct records that
+                # share one URL; different editions/volumes/IDs
+                # are never duplicates.
+                key = (result.library_id, result.record_id)
                 if key not in seen:
                     seen.add(key)
                     results.append(result)

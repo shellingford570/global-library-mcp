@@ -663,3 +663,40 @@ def test_minilm_gate_cancel_keeps_reservation_until_thread_ends():
         assert _process_gate().sem._value == 2
     asyncio.run(main())
     reset_inference_gate()
+
+
+# -- section 40: cross-search dedupe by exact (library, record) ---------------
+
+@pytest.mark.asyncio
+async def test_cross_search_dedupes_exact_record_only():
+    import httpx
+
+    from global_library_mcp.adapters.base import LibraryAdapter
+    from global_library_mcp.models import SearchResult
+    from global_library_mcp.service import LibraryService
+
+    def rec(rid, url):
+        return SearchResult(library_id="stub", library_name="Stub",
+                            record_id=rid, title=f"T{rid}", author="A",
+                            date="1900", language="en",
+                            landing_url=url, raw={})
+
+    class Adapter(LibraryAdapter):
+        library_id = "stub"
+        library_name = "Stub"
+        supports_in_document_search = False
+
+        def __init__(self):
+            pass
+
+        async def search(self, query, limit=10):
+            return [rec("R1", "https://example.org/a"),
+                    rec("R1", "https://example.org/b"),  # exact dup
+                    rec("R2", "https://example.org/a")]  # same URL, other record
+
+    svc = LibraryService(httpx.AsyncClient(
+        transport=httpx.MockTransport(lambda r: httpx.Response(200))))
+    svc.adapters = {"stub": Adapter()}
+    out = await svc.search("q", libraries=["stub"], limit=10)
+    ids = [r.record_id for r in out.results]
+    assert ids == ["R1", "R2"], ids

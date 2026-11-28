@@ -44,9 +44,17 @@ test('research journey: question, claim, citation link, assessment, graph, repor
   await saveButton.waitFor({ state: 'visible' });
   await saveButton.click();
   await expect(page.locator('#ws-status')).toContainText('保存しました');
-  const citeButton = page.locator('.ws-save-cite').first();
-  await citeButton.waitFor({ state: 'visible' });
-  await citeButton.click();
+
+  // original page -> citation, through the cite form (the IA
+  // fixture identifier is onoriginofspecie1859darw, leaf 0)
+  await page.click('[data-ws-tab="cite"]');
+  await page.fill('#ws-panel input[placeholder="library_id"]', 'internet-archive');
+  await page.fill('#ws-panel input[placeholder="page_id"]', 'onoriginofspecie1859darw@0');
+  await page.click('#ws-panel button:text("ページを取得")');
+  const area = page.locator('#ws-panel textarea');
+  await expect(area).not.toHaveValue('');
+  await area.evaluate((el) => { el.focus(); el.setSelectionRange(0, 24); });
+  await page.click('#ws-panel button:text("選択範囲を引用として保存")');
   await expect(page.locator('#ws-status')).toContainText('引用を保存しました');
 
   // research tab: question and claim

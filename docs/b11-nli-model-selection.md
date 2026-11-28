@@ -50,3 +50,53 @@ huggingface.co), and the rationale (shadow-mode contradiction /
 entailment signal for claim-evidence assessment, never a
 governing verdict). **This proposal is documentation only; the
 download itself needs tana's separate approval.**
+
+## Acquisition application - concrete file manifest (final review section 34)
+
+Measured from the Hugging Face API (`?blobs=true` and the tree
+endpoint) on 2026-11-28 at revision
+`8adb042d524ecd5c26d3e3ba0e3fbcf7e2d0864c`. **Nothing was
+downloaded; this section only makes a future approval request
+decidable.** The full repository is 2,590,785,805 bytes across
+12 files and is NOT the acquisition target.
+
+Acquisition set (quantized ONNX path, mirroring the MiniLM
+semantic model policy):
+
+| File | Bytes | SHA-256 (LFS) / git blob |
+|---|---|---|
+| `onnx/model_quantized.onnx` | 338,679,133 | `27c39e884c14b03cf46cfc5485971b6db70ff330220d93dfe729c63fde43af0e` |
+| `config.json` | 1,066 | git blob `25b875998a15441ca06ee6d96b4cae362514549d` |
+| `spm.model` | 4,305,025 | `13c8d666d62a7bc4ac8f040aab68e942c861f93303156cc28f5c7e885d86d6e3` |
+| `tokenizer.json` | 16,331,396 | `3aca3ce69a0a35aeb144a52c4f1d41c4246b8785f8f398315cc8fb6b24057810` |
+| `tokenizer_config.json` | 1,256 | git blob `173d68ceeb1e02125bda27f0867401b1deaad258` |
+| `special_tokens_map.json` | 286 | git blob `2c9cb07c8fdeeb5ac3ceafb170592e990b204dcd` |
+| `added_tokens.json` | 23 | git blob `d8d263667449f525ae294e10a31b032d4b7eaf1b` |
+| **Total** | **359,318,185** | |
+
+- ONNX external data: **none** - the repo contains no
+  `*.onnx_data` sibling; the quantized model is a single file.
+  (The unquantized `onnx/model.onnx`, 1,116,115,065 bytes,
+  SHA-256 `7d39629484bdad052176a0cff26ffe408d8c2b69c7abd242716fee320badd661`,
+  is NOT in the acquisition set.)
+- Architecture: `DebertaV2ForSequenceClassification`;
+  label mapping from `config.json` `id2label`:
+  0 = entailment, 1 = neutral, 2 = contradiction.
+- Tokenizer: SentencePiece (`spm.model`) + fast tokenizer
+  (`tokenizer.json`); no remote code.
+- License: MIT (weights and card).
+- Disk: ~360 MB in a model directory OUTSIDE the repo (same
+  policy as the MiniLM semantic model); nothing is committed.
+- Estimated RSS: not measured (no download); base-size encoder
+  class, expected ~1-2 GB - to be measured at acquisition time,
+  not asserted here.
+- CPU: CPU-only ONNX Runtime, batch 1; premise truncated to
+  2,000 chars by the existing checker; no GPU requirement.
+- Japanese support basis and limit: the base encoder is
+  multilingual (CC100 incl. Japanese), but the NLI fine-tuning
+  (MultiNLI + XNLI) covers XNLI's 15 languages, which do NOT
+  include Japanese or Finnish teacher signal. ja/fi shadow
+  quality is therefore UNVERIFIED and must be evaluated before
+  any reliance; NLI remains a shadow signal regardless.
+- Cost: 0 (local inference; one-time HTTPS download from
+  huggingface.co is the only network use).
