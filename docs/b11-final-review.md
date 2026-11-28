@@ -238,8 +238,10 @@ both stated here as defined-but-limited.
   b6 fixed (config F) Recall@10 **0.9167**, challenge
   **1.0000**, b8 fixed Standard **0.7667**, cross-language
   **0.7500** — all identical to the b10/b11 baselines.
-  Service eval (Quick/Standard) is reported in the release
-  notes from the same-conditions run.
+  Service eval over fixed HTTP fixtures (10 cases):
+  Quick Recall@10 **0.4667** (avg HTTP 12.6), Standard
+  **0.8667** (avg HTTP 22.1) — also identical; Quick remains
+  unimproved and is disclosed as such.
 - Full pytest: see the release record (target ≥ 704 + new
   final-review tests, 0 skipped in mandatory suites).
 

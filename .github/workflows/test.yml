@@ -61,7 +61,7 @@ jobs:
       - name: Run research Playwright journey (b11 final review section 32)
         env:
           BASE_URL: http://127.0.0.1:8128
-        run: npx playwright test tests/e2e/research.spec.js --reporter=json > /tmp/glm-ws-ci/pw-research.json
+        run: PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/glm-ws-ci/pw-research.json npx playwright test tests/e2e/research.spec.js --reporter=list,json
       - name: Assert ALL mandatory workspace journeys ran (no skips)
         if: always()
         run: |
