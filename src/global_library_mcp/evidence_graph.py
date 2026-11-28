@@ -169,7 +169,23 @@ def build_project_graph(store: Any, project_id: str, *,
 
     # -- artefacts: questions, claims, assessments, reports -----
     artefacts = store.list_artefact_rows(project_id)
+    # Questions first: claims may be processed before the
+    # question artefact they link to (artefact order is by
+    # creation time/id, not by dependency).
     question_nodes: dict[str, str] = {}
+    for art in artefacts:
+        if art["kind"].removeprefix("b10_") != "research_question":
+            continue
+        payload = art.get("payload") or {}
+        if not isinstance(payload, dict):
+            payload = {}
+        q = payload.get("question")
+        text = (q.get("original_question") or q.get("text")
+                if isinstance(q, dict) else q) or art.get("title")
+        question_nodes[art["artefact_id"]] = add_node(
+            "question", art["artefact_id"], text or "",
+            trust=art.get("trust") or "server_generated",
+            provenance=art.get("provenance"))
     for art in artefacts:
         payload = art.get("payload") or {}
         if not isinstance(payload, dict):
@@ -177,12 +193,7 @@ def build_project_graph(store: Any, project_id: str, *,
         trust = art.get("trust") or "server_generated"
         kind = art["kind"].removeprefix("b10_")
         if kind == "research_question":
-            q = payload.get("question")
-            text = (q.get("original_question") or q.get("text")
-                    if isinstance(q, dict) else q) or art.get("title")
-            question_nodes[art["artefact_id"]] = add_node(
-                "question", art["artefact_id"], text or "",
-                trust=trust, provenance=art.get("provenance"))
+            continue
         elif kind == "claim_assessment":
             claim = payload.get("claim") or {}
             claim_id = (claim.get("claim_id")
